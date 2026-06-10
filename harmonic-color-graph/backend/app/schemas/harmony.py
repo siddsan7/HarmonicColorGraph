@@ -105,7 +105,9 @@ class TransitionRecord(StrictModel):
     count: int = Field(default=0, ge=0)
     probability: float = Field(default=0.0, ge=0.0, le=1.0)
     genre: str | None = None
+    subgenre: str | None = None
     section: str | None = None
+    decade: int | None = None
     relationship_labels: list[str] = Field(default_factory=list)
     short_explanation: str | None = None
     technical_explanation: str | None = None

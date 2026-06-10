@@ -362,7 +362,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Roman analysis handles provided keys and missing-key
   confidence.
 - [x] Theory labels cover the required relationship types.
-- [ ] Transition aggregation produces counts and
+- [x] Transition aggregation produces counts and
   probabilities.
 - [ ] Chordonomicon sample ingestion reports quality metrics.
 - [ ] PostgreSQL schema and migrations exist.

@@ -64,6 +64,10 @@ change.
   interchange, deceptive motion, circle-of-fifths motion,
   secondary dominants, subV-like resolution, tritone
   substitution, and chromatic mediants.
+- Completed Feature 08: Transition Graph Aggregation. Added
+  transition edge extraction, global/contextual count
+  aggregation, probability normalization, and theory labels
+  on aggregated records.
 
 ## In Progress
 
@@ -71,7 +75,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 08: Transition Graph Aggregation.
+- Implement Feature 09: Chordonomicon Sample Ingestion.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
