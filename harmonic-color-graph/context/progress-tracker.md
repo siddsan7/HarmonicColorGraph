@@ -68,6 +68,10 @@ change.
   transition edge extraction, global/contextual count
   aggregation, probability normalization, and theory labels
   on aggregated records.
+- Completed Feature 09: Chordonomicon Sample Ingestion.
+  Added local JSONL sample loading, source metadata mapping,
+  normalization summary metrics, warning counts, top failure
+  reporting, and schema inspection notes.
 
 ## In Progress
 
@@ -75,7 +79,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 09: Chordonomicon Sample Ingestion.
+- Implement Feature 10: Database Schema and Repositories.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its

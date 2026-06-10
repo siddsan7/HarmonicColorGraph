@@ -364,7 +364,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Theory labels cover the required relationship types.
 - [x] Transition aggregation produces counts and
   probabilities.
-- [ ] Chordonomicon sample ingestion reports quality metrics.
+- [x] Chordonomicon sample ingestion reports quality metrics.
 - [ ] PostgreSQL schema and migrations exist.
 - [ ] Analysis and transition lookup services are tested.
 - [ ] Four Phase 1 FastAPI endpoints are tested.
