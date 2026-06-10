@@ -44,6 +44,10 @@ change.
   schemas for canonical chords, parse warnings, normalized
   progressions, key/Roman analysis, transitions, and Phase 1
   API response contracts.
+- Completed Feature 03: Chord Normalization Fixtures. Added
+  stable sample cases for aliases, slash chords, suspended
+  chords, minor seventh flat-five chords, flat roots, and
+  invalid non-chord text.
 
 ## In Progress
 
@@ -51,7 +55,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 03: Chord Normalization Fixtures.
+- Implement Feature 04: Chord Normalizer.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its

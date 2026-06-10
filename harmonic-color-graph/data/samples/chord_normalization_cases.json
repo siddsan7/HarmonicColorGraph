@@ -1,0 +1,155 @@
+[
+  {
+    "raw_symbol": "Cmaj7",
+    "description": "Common major seventh spelling.",
+    "expected": {
+      "symbol": "C:maj7",
+      "root": "C",
+      "quality": "maj7",
+      "bass": null,
+      "pitch_classes": [0, 4, 7, 11],
+      "intervals": [0, 4, 7, 11]
+    },
+    "warnings": []
+  },
+  {
+    "raw_symbol": "CM7",
+    "description": "Uppercase M alias for major seventh.",
+    "expected": {
+      "symbol": "C:maj7",
+      "root": "C",
+      "quality": "maj7",
+      "bass": null,
+      "pitch_classes": [0, 4, 7, 11],
+      "intervals": [0, 4, 7, 11]
+    },
+    "warnings": [
+      {
+        "code": "alias_normalized",
+        "message": "Normalized quality alias M7 to maj7.",
+        "raw_value": "CM7"
+      }
+    ]
+  },
+  {
+    "raw_symbol": "C major 7",
+    "description": "Long-form major seventh spelling.",
+    "expected": {
+      "symbol": "C:maj7",
+      "root": "C",
+      "quality": "maj7",
+      "bass": null,
+      "pitch_classes": [0, 4, 7, 11],
+      "intervals": [0, 4, 7, 11]
+    },
+    "warnings": [
+      {
+        "code": "alias_normalized",
+        "message": "Normalized quality alias major 7 to maj7.",
+        "raw_value": "C major 7"
+      }
+    ]
+  },
+  {
+    "raw_symbol": "C Maj7",
+    "description": "Whitespace and mixed-case major seventh spelling.",
+    "expected": {
+      "symbol": "C:maj7",
+      "root": "C",
+      "quality": "maj7",
+      "bass": null,
+      "pitch_classes": [0, 4, 7, 11],
+      "intervals": [0, 4, 7, 11]
+    },
+    "warnings": [
+      {
+        "code": "alias_normalized",
+        "message": "Normalized quality alias Maj7 to maj7.",
+        "raw_value": "C Maj7"
+      }
+    ]
+  },
+  {
+    "raw_symbol": "C/E",
+    "description": "Major triad with slash bass.",
+    "expected": {
+      "symbol": "C:maj/E",
+      "root": "C",
+      "quality": "maj",
+      "bass": "E",
+      "pitch_classes": [0, 4, 7],
+      "intervals": [0, 4, 7]
+    },
+    "warnings": []
+  },
+  {
+    "raw_symbol": "Gsus4",
+    "description": "Suspended fourth triad.",
+    "expected": {
+      "symbol": "G:sus4",
+      "root": "G",
+      "quality": "sus4",
+      "bass": null,
+      "pitch_classes": [7, 0, 2],
+      "intervals": [0, 5, 7]
+    },
+    "warnings": []
+  },
+  {
+    "raw_symbol": "F#m7b5",
+    "description": "Minor seventh flat-five spelling.",
+    "expected": {
+      "symbol": "F#:min7b5",
+      "root": "F#",
+      "quality": "min7b5",
+      "bass": null,
+      "pitch_classes": [6, 9, 0, 4],
+      "intervals": [0, 3, 6, 10]
+    },
+    "warnings": [
+      {
+        "code": "alias_normalized",
+        "message": "Normalized quality alias m7b5 to min7b5.",
+        "raw_value": "F#m7b5"
+      }
+    ]
+  },
+  {
+    "raw_symbol": "Bbmin7",
+    "description": "Flat-root minor seventh chord.",
+    "expected": {
+      "symbol": "Bb:min7",
+      "root": "Bb",
+      "quality": "min7",
+      "bass": null,
+      "pitch_classes": [10, 1, 5, 8],
+      "intervals": [0, 3, 7, 10]
+    },
+    "warnings": []
+  },
+  {
+    "raw_symbol": "D7/F#",
+    "description": "Dominant seventh chord with slash bass.",
+    "expected": {
+      "symbol": "D:7/F#",
+      "root": "D",
+      "quality": "7",
+      "bass": "F#",
+      "pitch_classes": [2, 6, 9, 0],
+      "intervals": [0, 4, 7, 10]
+    },
+    "warnings": []
+  },
+  {
+    "raw_symbol": "not a chord",
+    "description": "Non-chord text should remain unparseable.",
+    "expected": null,
+    "warnings": [
+      {
+        "code": "unparseable_chord",
+        "message": "Could not parse raw chord symbol.",
+        "raw_value": "not a chord"
+      }
+    ]
+  }
+]
