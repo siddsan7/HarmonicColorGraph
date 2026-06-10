@@ -66,3 +66,16 @@ def test_get_transition_stats_endpoint():
     assert payload["from_roman"] == "V"
     assert payload["next"]
 
+
+def test_phase_one_demo_origin_receives_cors_headers():
+    response = client.options(
+        "/analyze-progression",
+        headers={
+            "Origin": "http://localhost:3000",
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"

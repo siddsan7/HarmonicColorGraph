@@ -6,7 +6,7 @@ change.
 ## Current Phase
 
 - Phase 1 - Data, Theory, and Graph Foundation.
-- Status: context setup complete; implementation not started.
+- Status: implementation complete and locally verified.
 
 ## Current Goal
 
@@ -94,6 +94,11 @@ change.
   parse rates, Roman confidence, transition counts, top
   transitions, theory-label coverage, API latency smoke
   timing, warnings, and top unparseable symbols.
+- Completed Feature 15: Minimal Phase 1 Demo UI. Replaced the
+  placeholder homepage with a Next.js workbench that calls the
+  real FastAPI analysis, next-chord, and transition explanation
+  endpoints; added shadcn-style input, label, and badge
+  primitives; and enabled localhost CORS for the browser demo.
 
 ## In Progress
 
@@ -101,24 +106,18 @@ change.
 
 ## Next Up
 
-- Implement Feature 15: Minimal Phase 1 Demo UI.
-- Add backend folder structure, Python project config, and
-  initial test setup.
-- Inspect a small Chordonomicon sample and document its
-  schema before writing ingestion logic.
-- Build chord normalization fixtures and failing tests.
+- Start Phase 2 planning from
+  `context/phase-2-color-embeddings-recommendation-engine.md`.
+- Decide how the Phase 1 transition graph will be seeded for
+  the first color-scoring and embedding experiments.
 
 ## Open Questions
 
-- Which Python package manager should the backend use:
-  `uv`, Poetry, or plain `pip`/`requirements.txt`?
 - Which PostgreSQL provider should be targeted first:
   local Postgres, Supabase, Neon, or Docker Compose?
 - Should Chordonomicon be accessed through Hugging Face
   datasets at runtime, downloaded manually, or sampled into
   committed fixtures?
-- Should the first demo UI call a local FastAPI service or
-  use mocked responses until the backend stabilizes?
 
 ## Architecture Decisions
 
@@ -139,8 +138,8 @@ change.
 
 ## Session Notes
 
-- Current app shell is minimal: `app/page.tsx` only displays
-  "Harmonic Color Graph."
+- Current app shell is the Phase 1 demo workbench in
+  `components/phase-one-demo.tsx`.
 - `package.json` now includes shadcn/ui support packages:
   `class-variance-authority`, `clsx`, `lucide-react`,
   `radix-ui`, `shadcn`, `tailwind-merge`, and
@@ -152,3 +151,5 @@ change.
   alias for `python`, so backend verification uses the real
   executable at
   `C:\Users\sidds\AppData\Local\Programs\Python\Python312\python.exe`.
+- Local demo verification uses FastAPI at `http://127.0.0.1:8000`
+  and Next.js at `http://127.0.0.1:3000`.

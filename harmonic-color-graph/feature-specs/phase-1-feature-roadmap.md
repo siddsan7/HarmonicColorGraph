@@ -369,7 +369,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Analysis and transition lookup services are tested.
 - [x] Four Phase 1 FastAPI endpoints are tested.
 - [x] Metrics command summarizes corpus quality.
-- [ ] Minimal UI demonstrates the backend.
+- [x] Minimal UI demonstrates the backend.
 
 ## Explicitly Not Phase 1
 

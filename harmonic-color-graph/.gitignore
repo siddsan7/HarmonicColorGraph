@@ -49,3 +49,4 @@ __pycache__/
 .venv/
 *.egg-info/
 *.db
+*.db-journal
