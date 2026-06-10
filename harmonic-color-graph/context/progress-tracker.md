@@ -77,6 +77,10 @@ change.
   config, and the initial Alembic migration for Phase 1 core
   tables. Migration verification succeeded against an
   in-memory SQLite URL in this sandbox.
+- Completed Feature 11: Analysis Service. Added a composed
+  service that returns the Phase 1 analysis response shape
+  from normalization, Roman analysis, warning deduplication,
+  and relationship labeling.
 
 ## In Progress
 
@@ -84,7 +88,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 11: Analysis Service.
+- Implement Feature 12: Transition Lookup Services.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
