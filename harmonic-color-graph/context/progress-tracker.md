@@ -72,6 +72,11 @@ change.
   Added local JSONL sample loading, source metadata mapping,
   normalization summary metrics, warning counts, top failure
   reporting, and schema inspection notes.
+- Completed Feature 10: Database Schema and Repositories.
+  Added SQLAlchemy models, repository helpers, session
+  config, and the initial Alembic migration for Phase 1 core
+  tables. Migration verification succeeded against an
+  in-memory SQLite URL in this sandbox.
 
 ## In Progress
 
@@ -79,7 +84,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 10: Database Schema and Repositories.
+- Implement Feature 11: Analysis Service.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its

@@ -365,7 +365,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Transition aggregation produces counts and
   probabilities.
 - [x] Chordonomicon sample ingestion reports quality metrics.
-- [ ] PostgreSQL schema and migrations exist.
+- [x] PostgreSQL schema and migrations exist.
 - [ ] Analysis and transition lookup services are tested.
 - [ ] Four Phase 1 FastAPI endpoints are tested.
 - [ ] Metrics command summarizes corpus quality.
