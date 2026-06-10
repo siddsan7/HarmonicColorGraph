@@ -85,6 +85,10 @@ change.
   ranked next-chord and transition-stat lookup with
   genre/section filtering, global fallback, counts,
   probabilities, and relationship labels.
+- Completed Feature 13: FastAPI Phase 1 Endpoints. Added
+  `/analyze-progression`, `/next-chords`,
+  `/explain-transition`, and `/transition-stats` with
+  schema-validated request and response contracts.
 
 ## In Progress
 
@@ -92,7 +96,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 13: FastAPI Phase 1 Endpoints.
+- Implement Feature 14: Quality Metrics and Reporting.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its

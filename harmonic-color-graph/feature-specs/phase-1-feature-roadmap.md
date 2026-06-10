@@ -367,7 +367,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Chordonomicon sample ingestion reports quality metrics.
 - [x] PostgreSQL schema and migrations exist.
 - [x] Analysis and transition lookup services are tested.
-- [ ] Four Phase 1 FastAPI endpoints are tested.
+- [x] Four Phase 1 FastAPI endpoints are tested.
 - [ ] Metrics command summarizes corpus quality.
 - [ ] Minimal UI demonstrates the backend.
 
