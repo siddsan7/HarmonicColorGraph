@@ -10,9 +10,9 @@ change.
 
 ## Current Goal
 
-- Prepare the repository context for Phase 1 implementation:
-  graph-first project scope, architecture, standards,
-  workflow rules, and active phase context.
+- Implement Phase 1 from
+  `feature-specs/phase-1-feature-roadmap.md`, testing,
+  committing, and pushing after each feature.
 
 ## Completed
 
@@ -36,6 +36,10 @@ change.
   parent `package-lock.json`.
 - Drafted the Phase 1 feature roadmap at
   `feature-specs/phase-1-feature-roadmap.md`.
+- Completed Feature 01: Backend Project Scaffold. Added the
+  FastAPI backend package structure, Python project config,
+  health endpoint, pytest setup, data folders, and notebook
+  folder.
 
 ## In Progress
 
@@ -43,8 +47,7 @@ change.
 
 ## Next Up
 
-- Create the first detailed implementation spec for Feature
-  01: Backend Project Scaffold.
+- Implement Feature 02: Core Domain Schemas.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
@@ -90,3 +93,8 @@ change.
   `tw-animate-css`.
 - No backend, database, data, notebook, or detailed
   implementation feature spec files exist yet.
+- Backend dependencies are installed in the user Python 3.12
+  environment. The sandbox shell still resolves the Store
+  alias for `python`, so backend verification uses the real
+  executable at
+  `C:\Users\sidds\AppData\Local\Programs\Python\Python312\python.exe`.

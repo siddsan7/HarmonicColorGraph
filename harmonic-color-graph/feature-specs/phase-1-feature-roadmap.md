@@ -354,7 +354,7 @@ analysis, not duplicate or fake the harmonic engine.
 
 ## Phase 1 Completion Checklist
 
-- [ ] Backend scaffold exists and tests run.
+- [x] Backend scaffold exists and tests run.
 - [ ] Core schemas preserve raw input, normalized output,
   warnings, confidence, and ambiguity.
 - [ ] Chord normalization is fixture-tested.
