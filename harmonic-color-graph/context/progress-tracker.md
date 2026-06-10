@@ -1,0 +1,92 @@
+# Progress Tracker
+
+Update this file after every meaningful implementation
+change.
+
+## Current Phase
+
+- Phase 1 - Data, Theory, and Graph Foundation.
+- Status: context setup complete; implementation not started.
+
+## Current Goal
+
+- Prepare the repository context for Phase 1 implementation:
+  graph-first project scope, architecture, standards,
+  workflow rules, and active phase context.
+
+## Completed
+
+- Analyzed the three source roadmap documents:
+  Phase 1 data/theory graph foundation, Phase 2 color
+  embeddings and recommendation engine, and Phase 3 LLM/RAG
+  agents and productization.
+- Replaced placeholder context files with Harmonic Color
+  Graph-specific project memory.
+- Added active Phase 1 context at
+  `context/phase-1-harmonic-data-graph-foundation.md`.
+- Updated `AGENTS.md` so future agents read the active phase
+  context and future feature specs.
+- Created the empty `feature-specs/` folder for future
+  implementation-specific specs.
+- Installed and initialized shadcn/ui with Radix primitives,
+  Lucide icons, Tailwind CSS v4 theming, `components.json`,
+  `components/ui/button.tsx`, and `lib/utils.ts`.
+- Set the app's Turbopack root in `next.config.ts` so
+  builds do not infer the parent workspace from the extra
+  parent `package-lock.json`.
+- Drafted the Phase 1 feature roadmap at
+  `feature-specs/phase-1-feature-roadmap.md`.
+
+## In Progress
+
+- None yet.
+
+## Next Up
+
+- Create the first detailed implementation spec for Feature
+  01: Backend Project Scaffold.
+- Add backend folder structure, Python project config, and
+  initial test setup.
+- Inspect a small Chordonomicon sample and document its
+  schema before writing ingestion logic.
+- Build chord normalization fixtures and failing tests.
+
+## Open Questions
+
+- Which Python package manager should the backend use:
+  `uv`, Poetry, or plain `pip`/`requirements.txt`?
+- Which PostgreSQL provider should be targeted first:
+  local Postgres, Supabase, Neon, or Docker Compose?
+- Should Chordonomicon be accessed through Hugging Face
+  datasets at runtime, downloaded manually, or sampled into
+  committed fixtures?
+- Should the first demo UI call a local FastAPI service or
+  use mocked responses until the backend stabilizes?
+
+## Architecture Decisions
+
+- The project is graph/theory-first, not LLM-first. LLMs will
+  explain and orchestrate grounded results after deterministic
+  and statistical systems produce candidates.
+- Absolute chords and Roman numeral representations must both
+  be stored for every progression.
+- Phase 1 should start with a small dataset sample before
+  full-corpus ingestion.
+- PostgreSQL is the primary structured store; pgvector is
+  planned for Phase 2 embeddings.
+- Next.js remains the frontend shell; FastAPI/Python is the
+  planned backend for music theory, ingestion, and analysis.
+- Turbopack root is explicitly set to the app directory to
+  avoid workspace-root ambiguity while the parent repository
+  also contains a lockfile.
+
+## Session Notes
+
+- Current app shell is minimal: `app/page.tsx` only displays
+  "Harmonic Color Graph."
+- `package.json` now includes shadcn/ui support packages:
+  `class-variance-authority`, `clsx`, `lucide-react`,
+  `radix-ui`, `shadcn`, `tailwind-merge`, and
+  `tw-animate-css`.
+- No backend, database, data, notebook, or detailed
+  implementation feature spec files exist yet.
