@@ -361,7 +361,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Progression normalization is fixture-tested.
 - [x] Roman analysis handles provided keys and missing-key
   confidence.
-- [ ] Theory labels cover the required relationship types.
+- [x] Theory labels cover the required relationship types.
 - [ ] Transition aggregation produces counts and
   probabilities.
 - [ ] Chordonomicon sample ingestion reports quality metrics.

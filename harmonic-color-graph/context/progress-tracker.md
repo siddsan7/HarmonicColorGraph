@@ -59,6 +59,11 @@ change.
   Analysis. Added provided-key Roman conversion, simple
   missing-key estimation, confidence scores, alternate
   analyses, and warning propagation.
+- Completed Feature 07: Theory Relationship Labels. Added
+  rule-based transition labels for cadences, modal
+  interchange, deceptive motion, circle-of-fifths motion,
+  secondary dominants, subV-like resolution, tritone
+  substitution, and chromatic mediants.
 
 ## In Progress
 
@@ -66,7 +71,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 07: Theory Relationship Labels.
+- Implement Feature 08: Transition Graph Aggregation.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
