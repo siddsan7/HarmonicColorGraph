@@ -63,6 +63,13 @@ class CanonicalChord(StrictModel):
         return values
 
 
+class ChordNormalizationResult(StrictModel):
+    raw_symbol: str
+    success: bool
+    chord: CanonicalChord | None = None
+    warnings: list[ParseWarning] = Field(default_factory=list)
+
+
 class NormalizedProgression(StrictModel):
     raw_input: str | list[str]
     chords: list[CanonicalChord] = Field(default_factory=list)
@@ -146,4 +153,3 @@ class TransitionStatsResponse(StrictModel):
     genre: str | None = None
     section: str | None = None
     next: list[TransitionCandidate] = Field(default_factory=list)
-

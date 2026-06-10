@@ -48,6 +48,9 @@ change.
   stable sample cases for aliases, slash chords, suspended
   chords, minor seventh flat-five chords, flat roots, and
   invalid non-chord text.
+- Completed Feature 04: Chord Normalizer. Added deterministic
+  chord parsing with alias cleanup, slash-bass preservation,
+  pitch-class derivation, and structured parse failures.
 
 ## In Progress
 
@@ -55,7 +58,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 04: Chord Normalizer.
+- Implement Feature 05: Progression Normalizer.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
