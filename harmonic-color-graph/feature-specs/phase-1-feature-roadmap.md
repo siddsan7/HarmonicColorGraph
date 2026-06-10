@@ -358,7 +358,7 @@ analysis, not duplicate or fake the harmonic engine.
 - [x] Core schemas preserve raw input, normalized output,
   warnings, confidence, and ambiguity.
 - [x] Chord normalization is fixture-tested.
-- [ ] Progression normalization is fixture-tested.
+- [x] Progression normalization is fixture-tested.
 - [ ] Roman analysis handles provided keys and missing-key
   confidence.
 - [ ] Theory labels cover the required relationship types.

@@ -51,6 +51,10 @@ change.
 - Completed Feature 04: Chord Normalizer. Added deterministic
   chord parsing with alias cleanup, slash-bass preservation,
   pitch-class derivation, and structured parse failures.
+- Completed Feature 05: Progression Normalizer. Added
+  string/list progression parsing, chord normalization
+  composition, skipped-token reporting, warning propagation,
+  and parse success metrics.
 
 ## In Progress
 
@@ -58,7 +62,8 @@ change.
 
 ## Next Up
 
-- Implement Feature 05: Progression Normalizer.
+- Implement Feature 06: Key Detection and Roman Numeral
+  Analysis.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
