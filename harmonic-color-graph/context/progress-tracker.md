@@ -55,6 +55,10 @@ change.
   string/list progression parsing, chord normalization
   composition, skipped-token reporting, warning propagation,
   and parse success metrics.
+- Completed Feature 06: Key Detection and Roman Numeral
+  Analysis. Added provided-key Roman conversion, simple
+  missing-key estimation, confidence scores, alternate
+  analyses, and warning propagation.
 
 ## In Progress
 
@@ -62,8 +66,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 06: Key Detection and Roman Numeral
-  Analysis.
+- Implement Feature 07: Theory Relationship Labels.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
