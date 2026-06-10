@@ -81,6 +81,10 @@ change.
   service that returns the Phase 1 analysis response shape
   from normalization, Roman analysis, warning deduplication,
   and relationship labeling.
+- Completed Feature 12: Transition Lookup Services. Added
+  ranked next-chord and transition-stat lookup with
+  genre/section filtering, global fallback, counts,
+  probabilities, and relationship labels.
 
 ## In Progress
 
@@ -88,7 +92,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 12: Transition Lookup Services.
+- Implement Feature 13: FastAPI Phase 1 Endpoints.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
