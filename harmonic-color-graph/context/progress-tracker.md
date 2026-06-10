@@ -40,6 +40,10 @@ change.
   FastAPI backend package structure, Python project config,
   health endpoint, pytest setup, data folders, and notebook
   folder.
+- Completed Feature 02: Core Domain Schemas. Added Pydantic
+  schemas for canonical chords, parse warnings, normalized
+  progressions, key/Roman analysis, transitions, and Phase 1
+  API response contracts.
 
 ## In Progress
 
@@ -47,7 +51,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 02: Core Domain Schemas.
+- Implement Feature 03: Chord Normalization Fixtures.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
