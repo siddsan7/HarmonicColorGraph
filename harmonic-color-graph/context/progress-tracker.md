@@ -89,6 +89,11 @@ change.
   `/analyze-progression`, `/next-chords`,
   `/explain-transition`, and `/transition-stats` with
   schema-validated request and response contracts.
+- Completed Feature 14: Quality Metrics and Reporting. Added
+  a sample metrics report builder and CLI wrapper covering
+  parse rates, Roman confidence, transition counts, top
+  transitions, theory-label coverage, API latency smoke
+  timing, warnings, and top unparseable symbols.
 
 ## In Progress
 
@@ -96,7 +101,7 @@ change.
 
 ## Next Up
 
-- Implement Feature 14: Quality Metrics and Reporting.
+- Implement Feature 15: Minimal Phase 1 Demo UI.
 - Add backend folder structure, Python project config, and
   initial test setup.
 - Inspect a small Chordonomicon sample and document its
