@@ -119,6 +119,9 @@ change.
 - Updated the Phase 1 demo UI to display whether next-chord
   results came from persisted database rows, explicit demo
   fallback, or an empty corpus.
+- Added `docs/phase-1-runbook.md` and replaced the scaffolded
+  README with project-specific setup, Supabase, seeding,
+  verification, and phase-direction instructions.
 
 ## In Progress
 
@@ -128,9 +131,8 @@ change.
 
 ## Next Up
 
-- Add run/deploy documentation for Supabase setup,
-  migrations, full-library seeding, metrics, backend, and
-  frontend operation.
+- Seed the full Chordonomicon JSONL library into Supabase
+  once the dataset export is available locally.
 
 ## Open Questions
 
