@@ -99,25 +99,37 @@ change.
   real FastAPI analysis, next-chord, and transition explanation
   endpoints; added shadcn-style input, label, and badge
   primitives; and enabled localhost CORS for the browser demo.
+- Started Phase 1 production gap closure. Created Supabase
+  project `HarmonicColorGraph` with ref
+  `bqaateqbbavwnbyfuqvk`, applied the Phase 1 core schema
+  migration in Supabase, added explicit backend environment
+  settings, documented Supabase `DATABASE_URL` placeholders,
+  and added Postgres driver support.
 
 ## In Progress
 
-- None yet.
+- Bridge the Phase 1 demo/product gap with Supabase-backed
+  ingestion, persistence, API lookup, UI data-source status,
+  and run/deploy documentation.
 
 ## Next Up
 
-- Start Phase 2 planning from
-  `context/phase-2-color-embeddings-recommendation-engine.md`.
-- Decide how the Phase 1 transition graph will be seeded for
-  the first color-scoring and embedding experiments.
+- Build the full-library Chordonomicon ingestion and
+  persistence CLI.
+- Replace in-memory demo transitions with repository-backed
+  Supabase transition lookup.
 
 ## Open Questions
 
 - Which PostgreSQL provider should be targeted first:
   local Postgres, Supabase, Neon, or Docker Compose?
+  Answer: Supabase Postgres.
 - Should Chordonomicon be accessed through Hugging Face
   datasets at runtime, downloaded manually, or sampled into
   committed fixtures?
+  Answer: support full-library ingestion through a local or
+  Hugging Face-backed import script; commit only tiny test
+  fixtures.
 
 ## Architecture Decisions
 

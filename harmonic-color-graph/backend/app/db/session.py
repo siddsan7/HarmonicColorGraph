@@ -1,16 +1,14 @@
-import os
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.core.config import get_settings
+
 
 def get_database_url() -> str:
-    return os.getenv(
-        "DATABASE_URL",
-        "sqlite+pysqlite:///./.tmp/harmonic_color_graph.db",
-    )
+    return get_settings().database_url
 
 
 def create_database_engine(database_url: str | None = None) -> Engine:
