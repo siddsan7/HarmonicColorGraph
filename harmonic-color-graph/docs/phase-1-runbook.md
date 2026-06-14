@@ -24,17 +24,22 @@ Copy the example file and fill in the Supabase password:
 Copy-Item backend\.env.example backend\.env
 ```
 
-Use the direct Supabase connection for local scripts:
+Use the Supabase pooler connection for local scripts when IPv6
+direct database access is unavailable:
 
 ```env
-DATABASE_URL=postgresql+psycopg://postgres:<password>@db.bqaateqbbavwnbyfuqvk.supabase.co:5432/postgres
+DATABASE_URL=postgresql+psycopg://postgres.bqaateqbbavwnbyfuqvk:<password>@aws-1-us-west-2.pooler.supabase.com:5432/postgres
 HCG_ENABLE_DEMO_FALLBACK=false
-CHORDONOMICON_SOURCE_PATH=../data/raw/chordonomicon.jsonl
+CHORDONOMICON_SOURCE_PATH=../data/raw/chordonomicon_v2.csv
 CHORDONOMICON_METRICS_OUTPUT=../data/processed/phase1_quality_metrics.json
 ```
 
-Use the pooler form later for serverless or deployed backend
-environments if direct connections become constrained.
+The direct connection form is still valid in environments with
+IPv6 database access:
+
+```env
+DATABASE_URL=postgresql+psycopg://postgres:<password>@db.bqaateqbbavwnbyfuqvk.supabase.co:5432/postgres
+```
 
 ## Install Backend Dependencies
 
@@ -64,10 +69,34 @@ For future schema changes:
 
 Do not commit the full Chordonomicon dataset. Put downloaded or
 exported files under `data/raw/`, which is intended for local raw
-data.
+data and ignored by Git.
 
-The ingestion CLI currently expects JSONL, one progression per
-line. Each row may contain:
+The current full-library file is:
+
+```text
+data/raw/chordonomicon_v2.csv
+```
+
+The CSV is about 264 MB and contains 679,808 source rows. That
+size is fine for local ingestion, but the full Supabase seed is a
+batch job and should be run with the pooler URL and the batching
+defaults below.
+
+The ingestion CLI accepts the Chordonomicon v2 CSV directly. It
+splits section markers such as `<intro_1>` and `<verse_1>` into
+separate progression rows, normalizes the `s` sharp spelling used
+by the dataset, and maps columns as follows:
+
+- `id` -> source song id
+- `artist_id` -> artist field
+- `spotify_song_id` -> Spotify id
+- `main_genre` or `genres` -> genre
+- `rock_genre` -> subgenre
+- `release_date` or `decade` -> release date metadata
+- section markers in `chords` -> section
+
+The CLI also supports JSONL, one progression per line. Each JSONL
+row may contain:
 
 ```json
 {
@@ -84,39 +113,49 @@ line. Each row may contain:
 }
 ```
 
-The loader accepts `chords`, `progression`, or
+For JSONL, the loader accepts `chords`, `progression`, or
 `chord_progression` as the progression field. It accepts UTF-8
 and UTF-8-with-BOM JSONL files.
-
-If using Hugging Face locally, export the full dataset to JSONL
-before running the seed command. Keep the export in
-`data/raw/chordonomicon.jsonl`.
 
 ## Seed Supabase
 
 From `backend/`:
 
 ```powershell
-& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus ..\data\raw\chordonomicon.jsonl --metrics-output ..\data\processed\phase1_quality_metrics.json
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus ..\data\raw\chordonomicon_v2.csv --reset-database --metrics-output ..\data\processed\phase1_quality_metrics.json --batch-size 1000
 ```
+
+`--reset-database` clears the Phase 1 tables before rebuilding
+the shared corpus. Omit it only when intentionally appending to an
+already managed database.
 
 For a local smoke run that does not touch Supabase:
 
 ```powershell
 $env:DATABASE_URL='sqlite+pysqlite:///:memory:'
-& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus .tmp\cli-seed-sample.jsonl --create-schema --metrics-output .tmp\cli-seed-metrics.json
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus ..\data\raw\chordonomicon_v2.csv --limit 5000 --reset-database --metrics-output .tmp\csv-seed-smoke.json --batch-size 1000
 Remove-Item Env:\DATABASE_URL
 ```
 
 The seed command:
 
-- loads the JSONL corpus,
+- loads the CSV or JSONL corpus,
 - normalizes chords and progressions,
 - runs Roman numeral analysis,
 - persists songs, chords, progressions, progression positions,
   and transition records,
 - aggregates global and contextual transition probabilities,
 - writes metrics when `--metrics-output` is provided.
+
+Latest local smoke metrics against `chordonomicon_v2.csv` with
+`--limit 5000`:
+
+- 5,000 progressions persisted
+- 13,325 transition records persisted
+- 99.987% chord-token parse success
+- 99.92% progression parse success
+- remaining top unparseable symbols: malformed slash tokens
+  `Cs/` and `Db/`
 
 ## Run Backend
 

@@ -35,9 +35,32 @@ QUALITY_INTERVALS = {
     "7": [0, 4, 7, 10],
     "dim": [0, 3, 6],
     "aug": [0, 4, 8],
+    "sus2": [0, 2, 7],
     "sus4": [0, 5, 7],
+    "7sus2": [0, 2, 7, 10],
+    "7sus4": [0, 5, 7, 10],
     "add9": [0, 4, 7, 2],
+    "add11": [0, 4, 7, 5],
+    "add13": [0, 4, 7, 9],
+    "minadd9": [0, 3, 7, 2],
+    "minadd11": [0, 3, 7, 5],
     "min7b5": [0, 3, 6, 10],
+    "no3": [0, 7],
+    "9": [0, 4, 7, 10, 2],
+    "maj9": [0, 4, 7, 11, 2],
+    "maj7sus2": [0, 2, 7, 11],
+    "maj9#11": [0, 4, 7, 11, 2, 6],
+    "maj13": [0, 4, 7, 11, 2, 5, 9],
+    "min9": [0, 3, 7, 10, 2],
+    "11": [0, 4, 7, 10, 2, 5],
+    "min11": [0, 3, 7, 10, 2, 5],
+    "13": [0, 4, 7, 10, 2, 5, 9],
+    "13b": [0, 4, 7, 10, 2, 5, 8],
+    "min13": [0, 3, 7, 10, 2, 5, 9],
+    "minadd13": [0, 3, 7, 9],
+    "dim7": [0, 3, 6, 9],
+    "augmaj7": [0, 4, 8, 11],
+    "minmaj7": [0, 3, 7, 11],
 }
 
 QUALITY_ALIASES = {
@@ -58,14 +81,48 @@ QUALITY_ALIASES = {
     "dim": "dim",
     "aug": "aug",
     "+": "aug",
+    "sus2": "sus2",
     "sus4": "sus4",
+    "7sus2": "7sus2",
+    "7sus4": "7sus4",
     "add9": "add9",
+    "add11": "add11",
+    "add13": "add13",
+    "minadd9": "minadd9",
+    "madd9": "minadd9",
+    "minadd11": "minadd11",
+    "madd11": "minadd11",
     "m7b5": "min7b5",
     "min7b5": "min7b5",
+    "no3": "no3",
+    "no3d": "no3",
+    "9": "9",
+    "maj9": "maj9",
+    "M9": "maj9",
+    "maj7sus2": "maj7sus2",
+    "maj9#11": "maj9#11",
+    "maj911s": "maj9#11",
+    "maj13": "maj13",
+    "min9": "min9",
+    "m9": "min9",
+    "11": "11",
+    "min11": "min11",
+    "m11": "min11",
+    "13": "13",
+    "13b": "13b",
+    "min13": "min13",
+    "m13": "min13",
+    "minadd13": "minadd13",
+    "madd13": "minadd13",
+    "dim7": "dim7",
+    "augmaj7": "augmaj7",
+    "+maj7": "augmaj7",
+    "minmaj7": "minmaj7",
+    "mmaj7": "minmaj7",
 }
 
-ROOT_PATTERN = re.compile(r"^\s*([A-Ga-g])([#b]?)(.*)$")
-BASS_PATTERN = re.compile(r"^\s*([A-Ga-g])([#b]?)\s*$")
+ROOT_PATTERN = re.compile(r"^\s*([A-Ga-g])([#bs]?)(.*)$")
+BASS_PATTERN = re.compile(r"^\s*([A-Ga-g])([#bs]?)\s*$")
 
 
 @dataclass(frozen=True)
@@ -119,10 +176,15 @@ def _parse_root(raw_symbol: str) -> ParsedRoot | None:
     match = ROOT_PATTERN.match(raw_symbol)
     if match is None:
         return None
-    root = match.group(1).upper() + match.group(2)
+    accidental = match.group(2)
+    remainder = match.group(3)
+    if accidental == "s" and remainder.lower().startswith("us"):
+        accidental = ""
+        remainder = f"s{remainder}"
+    root = _normalize_note(match.group(1), accidental)
     if root not in NOTE_TO_PITCH_CLASS:
         return None
-    return ParsedRoot(root=root, remainder=match.group(3))
+    return ParsedRoot(root=root, remainder=remainder)
 
 
 def _split_bass(remainder: str) -> tuple[str, str | None]:
@@ -134,10 +196,15 @@ def _split_bass(remainder: str) -> tuple[str, str | None]:
     if bass_match is None:
         return body, None
 
-    bass = bass_match.group(1).upper() + bass_match.group(2)
+    bass = _normalize_note(bass_match.group(1), bass_match.group(2))
     if bass not in NOTE_TO_PITCH_CLASS:
         return body, None
     return body, bass
+
+
+def _normalize_note(letter: str, accidental: str) -> str:
+    normalized_accidental = "#" if accidental == "s" else accidental
+    return letter.upper() + normalized_accidental
 
 
 def _normalize_quality(

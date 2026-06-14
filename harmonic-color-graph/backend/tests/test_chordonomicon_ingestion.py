@@ -89,6 +89,36 @@ def test_load_chordonomicon_sample_accepts_utf8_bom_files():
     assert summary.rows[0].source_song_id == "bom_song"
 
 
+def test_load_chordonomicon_csv_splits_section_markers():
+    sample_path = _sample_path().with_suffix(".csv")
+    sample_path.write_text(
+        "\n".join(
+            [
+                (
+                    "id,chords,release_date,genres,decade,rock_genre,artist_id,"
+                    "main_genre,spotify_song_id,spotify_artist_id"
+                ),
+                (
+                    '1,"<intro_1> C G <verse_1> A/Cs D",2003-01-01,'
+                    "'pop rock',2000.0,pop rock,artist_1,pop,spotify_1,artist_spotify_1"
+                ),
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = load_chordonomicon_sample(sample_path)
+
+    assert summary.rows_processed == 2
+    assert [row.section for row in summary.rows] == ["intro", "verse"]
+    assert summary.rows[0].source_song_id == "1"
+    assert summary.rows[0].genre == "pop"
+    assert summary.rows[0].subgenre == "pop rock"
+    assert summary.rows[0].spotify_id == "spotify_1"
+    assert summary.rows[1].normalized_progression.chords[0].symbol == "A:maj/C#"
+
+
 def _sample_path() -> Path:
     directory = Path(__file__).resolve().parents[1] / ".tmp" / "ingestion-tests"
     directory.mkdir(parents=True, exist_ok=True)

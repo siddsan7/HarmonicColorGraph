@@ -1,3 +1,4 @@
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -5,8 +6,15 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.db.repositories import HarmonicRepository
-from app.ingestion.chordonomicon import load_chordonomicon_sample
-from app.services.transition_graph import ProgressionTransitionInput, aggregate_transitions
+from app.ingestion.chordonomicon import iter_chordonomicon_rows
+from app.models.harmony import ProgressionChordModel, ProgressionModel
+from app.schemas import TransitionRecord
+from app.services.transition_graph import (
+    ContextKey,
+    ProgressionTransitionInput,
+    TransitionKey,
+)
+from app.theory.relationships import label_transition
 from app.theory.roman_analysis import analyze_progression
 
 
@@ -23,14 +31,34 @@ def ingest_chordonomicon_corpus(
     *,
     session: Session,
     limit: int | None = None,
+    batch_size: int = 1000,
 ) -> CorpusIngestionReport:
-    ingestion = load_chordonomicon_sample(sample_path, limit=limit)
     repository = HarmonicRepository(session)
-    transition_inputs: list[ProgressionTransitionInput] = []
+    batch_size = max(1, batch_size)
+    transition_counts: Counter[TransitionKey] = Counter()
     confidence_values: list[float] = []
+    warning_counts: Counter[str] = Counter()
+    skipped_tokens: Counter[str] = Counter()
+    total_tokens = 0
+    parsed_tokens = 0
+    progression_success_count = 0
+    rows_processed = 0
     progressions_persisted = 0
+    seen_chords: set[str] = set()
+    progression_batch: list[tuple[ProgressionModel, list[str], list[str]]] = []
 
-    for row in ingestion.rows:
+    for row in iter_chordonomicon_rows(sample_path, limit=limit):
+        normalized = row.normalized_progression
+        rows_processed += 1
+        total_tokens += len(normalized.chords) + len(normalized.skipped_tokens)
+        parsed_tokens += len(normalized.chords)
+        if normalized.success:
+            progression_success_count += 1
+        for warning in normalized.warnings:
+            warning_counts[warning.code] += 1
+        for token in normalized.skipped_tokens:
+            skipped_tokens[token] += 1
+
         roman = analyze_progression(row.normalized_progression.raw_input, key=row.key)
         confidence_values.append(roman.confidence)
         absolute_chords = [
@@ -38,7 +66,10 @@ def ingest_chordonomicon_corpus(
         ]
 
         for chord in row.normalized_progression.chords:
+            if chord.symbol in seen_chords:
+                continue
             repository.upsert_chord(chord)
+            seen_chords.add(chord.symbol)
 
         if row.source_song_id:
             repository.upsert_song(
@@ -50,7 +81,7 @@ def ingest_chordonomicon_corpus(
                 release_date=row.release_date,
             )
 
-        progression = repository.insert_progression(
+        progression = ProgressionModel(
             source=row.source,
             source_song_id=row.source_song_id,
             key=roman.key,
@@ -66,19 +97,13 @@ def ingest_chordonomicon_corpus(
                 for warning in row.normalized_progression.warnings + roman.warnings
             ],
         )
-        for index, absolute_chord in enumerate(absolute_chords):
-            repository.insert_progression_chord(
-                progression_id=progression.id,
-                position=index,
-                absolute_chord=absolute_chord,
-                roman_chord=(
-                    roman.roman_chords[index]
-                    if index < len(roman.roman_chords)
-                    else None
-                ),
-            )
+        session.add(progression)
+        progression_batch.append(
+            (progression, absolute_chords, roman.roman_chords)
+        )
 
-        transition_inputs.append(
+        _count_transitions(
+            transition_counts,
             ProgressionTransitionInput(
                 roman_chords=roman.roman_chords,
                 mode_context=roman.mode,
@@ -86,38 +111,162 @@ def ingest_chordonomicon_corpus(
                 subgenre=row.subgenre,
                 section=row.section,
                 decade=_release_decade(row.release_date),
-            )
+            ),
         )
         progressions_persisted += 1
 
-    transitions = aggregate_transitions(transition_inputs)
+        if len(progression_batch) >= batch_size:
+            _flush_progression_batch(session, progression_batch)
+
+    _flush_progression_batch(session, progression_batch)
+
+    transitions = _build_transition_records(transition_counts)
     for transition in transitions:
         repository.insert_transition(transition)
 
     session.commit()
     metrics = {
-        "rows_processed": ingestion.rows_processed,
-        "progressions_loaded": ingestion.progressions_loaded,
+        "rows_processed": rows_processed,
+        "progressions_loaded": rows_processed,
         "progressions_persisted": progressions_persisted,
         "progression_parse_success_rate": (
-            ingestion.progression_success_count / ingestion.progressions_loaded
-            if ingestion.progressions_loaded
+            progression_success_count / rows_processed
+            if rows_processed
             else 0.0
         ),
-        "chord_parse_success_rate": ingestion.chord_parse_success_rate,
+        "chord_parse_success_rate": parsed_tokens / total_tokens if total_tokens else 0.0,
         "roman_confidence_distribution": _confidence_distribution(confidence_values),
         "transition_records_persisted": len(transitions),
-        "warning_counts": dict(ingestion.warning_counts),
+        "warning_counts": dict(warning_counts),
         "top_unparseable_symbols": [
-            [symbol, count] for symbol, count in ingestion.top_failures
+            [symbol, count] for symbol, count in skipped_tokens.most_common(10)
         ],
     }
 
     return CorpusIngestionReport(
-        rows_processed=ingestion.rows_processed,
+        rows_processed=rows_processed,
         progressions_persisted=progressions_persisted,
         transitions_persisted=len(transitions),
         metrics=metrics,
+    )
+
+
+def _flush_progression_batch(
+    session: Session,
+    batch: list[tuple[ProgressionModel, list[str], list[str]]],
+) -> None:
+    if not batch:
+        return
+
+    session.flush()
+    progression_chords = []
+    for progression, absolute_chords, roman_chords in batch:
+        progression_chords.extend(
+            ProgressionChordModel(
+                progression_id=progression.id,
+                position=index,
+                absolute_chord=absolute_chord,
+                roman_chord=(
+                    roman_chords[index] if index < len(roman_chords) else None
+                ),
+            )
+            for index, absolute_chord in enumerate(absolute_chords)
+        )
+    session.add_all(progression_chords)
+    batch.clear()
+
+
+def _count_transitions(
+    counts: Counter[TransitionKey],
+    progression: ProgressionTransitionInput,
+) -> None:
+    for from_roman, to_roman in zip(
+        progression.roman_chords,
+        progression.roman_chords[1:],
+    ):
+        counts[
+            (
+                from_roman,
+                to_roman,
+                progression.mode_context,
+                "all",
+                None,
+                "all",
+                None,
+            )
+        ] += 1
+
+        if progression.genre or progression.section:
+            counts[
+                (
+                    from_roman,
+                    to_roman,
+                    progression.mode_context,
+                    progression.genre or "all",
+                    progression.subgenre,
+                    progression.section or "all",
+                    progression.decade,
+                )
+            ] += 1
+
+
+def _build_transition_records(
+    counts: Counter[TransitionKey],
+) -> list[TransitionRecord]:
+    totals_by_context: Counter[ContextKey] = Counter()
+    for (
+        from_roman,
+        _to_roman,
+        mode_context,
+        genre,
+        subgenre,
+        section,
+        decade,
+    ), count in counts.items():
+        totals_by_context[
+            (from_roman, mode_context, genre, subgenre, section, decade)
+        ] += count
+
+    transitions = []
+    for (
+        from_roman,
+        to_roman,
+        mode_context,
+        genre,
+        subgenre,
+        section,
+        decade,
+    ), count in counts.items():
+        base = label_transition(from_roman, to_roman, mode_context)
+        total = totals_by_context[
+            (from_roman, mode_context, genre, subgenre, section, decade)
+        ]
+        transitions.append(
+            TransitionRecord(
+                from_roman=from_roman,
+                to_roman=to_roman,
+                mode_context=mode_context,  # type: ignore[arg-type]
+                count=count,
+                probability=count / total if total else 0.0,
+                genre=genre,
+                subgenre=subgenre,
+                section=section,
+                decade=decade,
+                relationship_labels=base.relationship_labels,
+                short_explanation=base.short_explanation,
+                technical_explanation=base.technical_explanation,
+            )
+        )
+
+    return sorted(
+        transitions,
+        key=lambda transition: (
+            transition.genre or "",
+            transition.section or "",
+            transition.from_roman,
+            -transition.count,
+            transition.to_roman,
+        ),
     )
 
 

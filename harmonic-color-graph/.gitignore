@@ -16,6 +16,10 @@
 pytest-cache-files-*/
 .tmp/
 
+# local datasets
+data/raw/*
+!data/raw/.gitkeep
+
 # next.js
 /.next/
 /out/

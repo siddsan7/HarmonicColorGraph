@@ -21,7 +21,7 @@ Implemented:
 - Rule-based harmonic relationship labels.
 - Supabase/Postgres schema for chords, songs, progressions,
   transitions, labels, and metadata.
-- Full-library-capable Chordonomicon JSONL seed command.
+- Full-library-capable Chordonomicon CSV/JSONL seed command.
 - Database-backed `/next-chords` and `/transition-stats`
   endpoints with explicit demo fallback.
 - Next.js Phase 1 demo UI.
@@ -82,7 +82,7 @@ See [docs/phase-1-runbook.md](docs/phase-1-runbook.md) for:
 
 - Supabase project details.
 - `DATABASE_URL` setup.
-- Full-library Chordonomicon JSONL ingestion.
+- Full-library Chordonomicon CSV ingestion.
 - Metrics output.
 - Demo fallback behavior.
 - Backend/frontend verification commands.
@@ -96,11 +96,11 @@ cd backend
 & "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m pytest
 ```
 
-Seed a Chordonomicon JSONL corpus into the configured database:
+Seed the Chordonomicon v2 CSV corpus into the configured database:
 
 ```powershell
 cd backend
-& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus ..\data\raw\chordonomicon.jsonl --metrics-output ..\data\processed\phase1_quality_metrics.json
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus ..\data\raw\chordonomicon_v2.csv --reset-database --metrics-output ..\data\processed\phase1_quality_metrics.json --batch-size 1000
 ```
 
 Analyze a progression:

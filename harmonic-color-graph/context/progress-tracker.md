@@ -6,7 +6,9 @@ change.
 ## Current Phase
 
 - Phase 1 - Data, Theory, and Graph Foundation.
-- Status: implementation complete and locally verified.
+- Status: full-library CSV ingestion path implemented and
+  locally verified; remote Supabase seed is pending live
+  database command approval.
 
 ## Current Goal
 
@@ -122,17 +124,32 @@ change.
 - Added `docs/phase-1-runbook.md` and replaced the scaffolded
   README with project-specific setup, Supabase, seeding,
   verification, and phase-direction instructions.
+- Added direct support for the real Chordonomicon v2 CSV in
+  `data/raw/chordonomicon_v2.csv`. The loader now splits
+  section markers, maps the CSV metadata columns, handles
+  Chordonomicon sharp spellings, and keeps the large raw file out
+  of Git.
+- Improved corpus seeding for full-library use by batching
+  progression and chord-position writes, adding a seed CLI
+  `--batch-size` flag, and documenting the Supabase pooler URL
+  form.
+- Verified a real CSV local smoke seed with `--limit 5000`:
+  5,000 progressions persisted, 13,325 transition records
+  persisted, 99.987% chord-token parse success, and 99.92%
+  progression parse success. Remaining parse misses were
+  malformed slash tokens (`Cs/`, `Db/`).
 
 ## In Progress
 
-- Bridge the Phase 1 demo/product gap with Supabase-backed
-  ingestion, persistence, API lookup, UI data-source status,
-  and run/deploy documentation.
+- Bridge the Phase 1 demo/product gap by running the full
+  Chordonomicon v2 CSV seed into Supabase once live database
+  command approval is available in this environment.
 
 ## Next Up
 
-- Seed the full Chordonomicon JSONL library into Supabase
-  once the dataset export is available locally.
+- Seed the full Chordonomicon v2 CSV library into Supabase with
+  `--reset-database --batch-size 1000`, then run API smoke
+  checks against database-backed transition results.
 
 ## Open Questions
 
