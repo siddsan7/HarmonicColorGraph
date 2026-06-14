@@ -66,6 +66,29 @@ def test_load_chordonomicon_sample_supports_limit():
     assert all(row.source == "Chordonomicon" for row in summary.rows)
 
 
+def test_load_chordonomicon_sample_accepts_utf8_bom_files():
+    sample_path = _sample_path()
+    sample_path.write_text(
+        "\ufeff"
+        + json.dumps(
+            {
+                "song_id": "bom_song",
+                "genre": "pop",
+                "section": "chorus",
+                "key": "C major",
+                "chords": ["C", "G", "Am", "F"],
+            }
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = load_chordonomicon_sample(sample_path)
+
+    assert summary.rows_processed == 1
+    assert summary.rows[0].source_song_id == "bom_song"
+
+
 def _sample_path() -> Path:
     directory = Path(__file__).resolve().parents[1] / ".tmp" / "ingestion-tests"
     directory.mkdir(parents=True, exist_ok=True)

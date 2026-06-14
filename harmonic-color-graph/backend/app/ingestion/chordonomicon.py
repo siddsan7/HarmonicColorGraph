@@ -48,7 +48,7 @@ def load_chordonomicon_sample(
     rows_processed = 0
     progression_success_count = 0
 
-    with source_path.open("r", encoding="utf-8") as handle:
+    with source_path.open("r", encoding="utf-8-sig") as handle:
         for line in handle:
             if limit is not None and rows_processed >= limit:
                 break

@@ -105,6 +105,12 @@ change.
   migration in Supabase, added explicit backend environment
   settings, documented Supabase `DATABASE_URL` placeholders,
   and added Postgres driver support.
+- Added a full-library-capable Chordonomicon seed path.
+  `app.ingestion.seed_corpus` can read a JSONL source path,
+  normalize and analyze progressions, persist songs/chords/
+  progressions/progression positions/transitions, and emit
+  metrics. Local smoke runs can use `--create-schema` with an
+  in-memory database, while Supabase uses migrations.
 
 ## In Progress
 
@@ -114,8 +120,6 @@ change.
 
 ## Next Up
 
-- Build the full-library Chordonomicon ingestion and
-  persistence CLI.
 - Replace in-memory demo transitions with repository-backed
   Supabase transition lookup.
 
