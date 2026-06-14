@@ -111,6 +111,11 @@ change.
   progressions/progression positions/transitions, and emit
   metrics. Local smoke runs can use `--create-schema` with an
   in-memory database, while Supabase uses migrations.
+- Replaced always-on API demo transitions with
+  repository-backed transition lookup. `/next-chords` and
+  `/transition-stats` now read persisted transition records
+  first, report data-source metadata, and only use demo
+  fallback when `HCG_ENABLE_DEMO_FALLBACK=true`.
 
 ## In Progress
 
@@ -120,8 +125,9 @@ change.
 
 ## Next Up
 
-- Replace in-memory demo transitions with repository-backed
-  Supabase transition lookup.
+- Update the demo UI to display whether transition results
+  came from Supabase/database rows, demo fallback, or an empty
+  corpus.
 
 ## Open Questions
 

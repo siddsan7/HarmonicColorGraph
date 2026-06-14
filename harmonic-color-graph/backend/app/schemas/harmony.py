@@ -140,6 +140,9 @@ class AnalyzeProgressionResponse(StrictModel):
 class NextChordsResponse(StrictModel):
     input: list[str]
     candidates: list[TransitionCandidate]
+    data_source: str = "unknown"
+    fallback_used: bool = False
+    database_transition_count: int = 0
 
 
 class ExplainTransitionResponse(StrictModel):
@@ -155,3 +158,6 @@ class TransitionStatsResponse(StrictModel):
     genre: str | None = None
     section: str | None = None
     next: list[TransitionCandidate] = Field(default_factory=list)
+    data_source: str = "unknown"
+    fallback_used: bool = False
+    database_transition_count: int = 0

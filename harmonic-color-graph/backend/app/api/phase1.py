@@ -1,7 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
+from app.db.repositories import HarmonicRepository
+from app.db.session import get_session
 from app.schemas import (
     AnalyzeProgressionRequest,
     AnalyzeProgressionResponse,
@@ -47,16 +51,25 @@ def next_chords_endpoint(
     progression: Annotated[str, Query(min_length=1)],
     genre: str | None = None,
     section: str | None = None,
+    session: Session = Depends(get_session),
 ) -> NextChordsResponse:
     roman_progression = [
         chord.strip() for chord in progression.split(",") if chord.strip()
     ]
-    return get_next_chords(
+    records, data_source, fallback_used, database_count = _transition_records_for_lookup(
+        roman_progression[-1],
+        session=session,
+    )
+    response = get_next_chords(
         roman_progression,
-        DEMO_TRANSITIONS,
+        records,
         genre=genre,
         section=section,
     )
+    response.data_source = data_source
+    response.fallback_used = fallback_used
+    response.database_transition_count = database_count
+    return response
 
 
 @router.get("/explain-transition", response_model=ExplainTransitionResponse)
@@ -80,10 +93,40 @@ def transition_stats_endpoint(
     from_roman: Annotated[str, Query(alias="from", min_length=1)],
     genre: str | None = None,
     section: str | None = None,
+    session: Session = Depends(get_session),
 ) -> TransitionStatsResponse:
-    return get_transition_stats(
+    records, data_source, fallback_used, database_count = _transition_records_for_lookup(
         from_roman,
-        DEMO_TRANSITIONS,
+        session=session,
+    )
+    response = get_transition_stats(
+        from_roman,
+        records,
         genre=genre,
         section=section,
     )
+    response.data_source = data_source
+    response.fallback_used = fallback_used
+    response.database_transition_count = database_count
+    return response
+
+
+def _transition_records_for_lookup(
+    from_roman: str,
+    *,
+    session: Session,
+):
+    repository = HarmonicRepository(session)
+    database_records = repository.list_transition_records_from(from_roman)
+    if database_records:
+        return database_records, "database", False, len(database_records)
+
+    if get_settings().demo_fallback_enabled:
+        demo_records = [
+            transition
+            for transition in DEMO_TRANSITIONS
+            if transition.from_roman == from_roman
+        ]
+        return demo_records, "demo_fallback", True, 0
+
+    return [], "database_empty", False, 0
