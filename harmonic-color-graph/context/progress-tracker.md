@@ -116,6 +116,9 @@ change.
   `/transition-stats` now read persisted transition records
   first, report data-source metadata, and only use demo
   fallback when `HCG_ENABLE_DEMO_FALLBACK=true`.
+- Updated the Phase 1 demo UI to display whether next-chord
+  results came from persisted database rows, explicit demo
+  fallback, or an empty corpus.
 
 ## In Progress
 
@@ -125,9 +128,9 @@ change.
 
 ## Next Up
 
-- Update the demo UI to display whether transition results
-  came from Supabase/database rows, demo fallback, or an empty
-  corpus.
+- Add run/deploy documentation for Supabase setup,
+  migrations, full-library seeding, metrics, backend, and
+  frontend operation.
 
 ## Open Questions
 

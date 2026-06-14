@@ -62,6 +62,9 @@ type TransitionCandidate = {
 type NextChordsResponse = {
   input: string[]
   candidates: TransitionCandidate[]
+  data_source: string
+  fallback_used: boolean
+  database_transition_count: number
 }
 
 type ExplainTransitionResponse = {
@@ -337,9 +340,26 @@ export function PhaseOneDemo() {
 
                 <section className="grid gap-4 lg:grid-cols-2">
                   <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
-                    <h2 className="text-base font-semibold">
-                      Candidate next chords
-                    </h2>
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div>
+                        <h2 className="text-base font-semibold">
+                          Candidate next chords
+                        </h2>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {nextChords
+                            ? `${nextChords.database_transition_count} database edges inspected`
+                            : "Awaiting lookup"}
+                        </p>
+                      </div>
+                      {nextChords ? (
+                        <Badge
+                          variant="outline"
+                          className={dataSourceTone(nextChords.data_source)}
+                        >
+                          {dataSourceLabel(nextChords.data_source)}
+                        </Badge>
+                      ) : null}
+                    </div>
                     <div className="mt-4 grid gap-3">
                       {nextChords?.candidates.length ? (
                         nextChords.candidates.map((candidate, index) => (
@@ -637,4 +657,32 @@ function candidateTone(index: number): string {
   }
 
   return "border-border bg-background/40"
+}
+
+function dataSourceLabel(dataSource: string): string {
+  if (dataSource === "database") {
+    return "Database"
+  }
+  if (dataSource === "demo_fallback") {
+    return "Demo fallback"
+  }
+  if (dataSource === "database_empty") {
+    return "Empty corpus"
+  }
+
+  return "Unknown source"
+}
+
+function dataSourceTone(dataSource: string): string {
+  if (dataSource === "database") {
+    return "border-emerald-400/40 bg-emerald-400/10 text-emerald-100"
+  }
+  if (dataSource === "demo_fallback") {
+    return "border-amber-400/40 bg-amber-400/10 text-amber-100"
+  }
+  if (dataSource === "database_empty") {
+    return "border-rose-400/40 bg-rose-400/10 text-rose-100"
+  }
+
+  return "border-border text-muted-foreground"
 }
