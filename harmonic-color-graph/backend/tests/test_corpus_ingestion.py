@@ -56,6 +56,28 @@ def test_ingest_chordonomicon_corpus_respects_limit():
         assert report.progressions_persisted == 2
 
 
+def test_ingest_chordonomicon_corpus_transition_only_skips_progressions():
+    engine = create_engine("sqlite+pysqlite:///:memory:")
+    Base.metadata.create_all(engine)
+    session_factory = sessionmaker(bind=engine)
+    sample_path = _sample_path()
+    _write_sample(sample_path)
+
+    with session_factory() as session:
+        report = ingest_chordonomicon_corpus(
+            sample_path,
+            session=session,
+            transition_only=True,
+        )
+        repository = HarmonicRepository(session)
+
+        assert report.rows_processed == 3
+        assert report.progressions_persisted == 0
+        assert report.transitions_persisted > 0
+        assert repository.list_transitions_from("V", genre="pop")[0].to_roman == "vi"
+        assert repository.get_chord_by_symbol("C:maj") is not None
+
+
 def _sample_path() -> Path:
     directory = Path(__file__).resolve().parents[1] / ".tmp" / "corpus-tests"
     directory.mkdir(parents=True, exist_ok=True)

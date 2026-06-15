@@ -7,8 +7,10 @@ change.
 
 - Phase 1 - Data, Theory, and Graph Foundation.
 - Status: full-library CSV ingestion path implemented and
-  locally verified; remote Supabase seed is pending live
-  database command approval.
+  locally verified; full-provenance remote seed exceeded the
+  current Supabase project's storage limit, and Supabase is
+  temporarily refusing writes until storage/read-only recovery is
+  resolved.
 
 ## Current Goal
 
@@ -138,18 +140,34 @@ change.
   persisted, 99.987% chord-token parse success, and 99.92%
   progression parse success. Remaining parse misses were
   malformed slash tokens (`Cs/`, `Db/`).
+- Ran live Supabase seed smoke tests successfully after adding
+  batching: 100 rows completed in about 2.6 seconds, and 5,000
+  rows completed in about 15 seconds.
+- Attempted the full Chordonomicon v2 provenance seed against
+  Supabase. The run failed with PostgreSQL `DiskFull` while
+  inserting `progression_chords`, after the seed had reached very
+  large progression IDs. The transaction rolled back and Phase 1
+  tables read back as empty.
+- Added a `--transition-only` seed mode that reads the full
+  corpus and persists chords plus aggregate transition records
+  without the storage-heavy songs/progressions/progression-chord
+  provenance tables.
 
 ## In Progress
 
-- Bridge the Phase 1 demo/product gap by running the full
-  Chordonomicon v2 CSV seed into Supabase once live database
-  command approval is available in this environment.
+- Resolve the Supabase write/read-only state caused by the
+  disk-full full-provenance seed attempt, then run the
+  full-library `--transition-only` seed for database-backed
+  Phase 1 recommendations.
 
 ## Next Up
 
-- Seed the full Chordonomicon v2 CSV library into Supabase with
-  `--reset-database --batch-size 1000`, then run API smoke
-  checks against database-backed transition results.
+- In the Supabase dashboard, upgrade/add storage or otherwise
+  clear the read-only state caused by the disk-full failure.
+- Run `seed_corpus ..\data\raw\chordonomicon_v2.csv
+  --reset-database --transition-only --batch-size 1000`.
+- Run API smoke checks against database-backed transition
+  results.
 
 ## Open Questions
 

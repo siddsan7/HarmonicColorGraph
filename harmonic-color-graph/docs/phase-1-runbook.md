@@ -129,6 +129,26 @@ From `backend/`:
 the shared corpus. Omit it only when intentionally appending to an
 already managed database.
 
+The command above is the full provenance seed: it stores songs,
+progressions, per-position chord rows, and transitions. On the
+current Supabase project tier, the full Chordonomicon v2 corpus
+exceeded available database storage while inserting
+`progression_chords`. Use a larger Supabase storage tier for full
+provenance.
+
+For the current Supabase tier, use the full-library transition
+graph seed instead:
+
+```powershell
+& "$env:LOCALAPPDATA\Programs\Python\Python312\python.exe" -m app.ingestion.seed_corpus ..\data\raw\chordonomicon_v2.csv --reset-database --transition-only --metrics-output ..\data\processed\phase1_quality_metrics.json --batch-size 1000
+```
+
+`--transition-only` still reads the entire corpus, normalizes
+chords, runs Roman numeral analysis, and writes database-backed
+transition probabilities for `/next-chords` and
+`/transition-stats`. It intentionally skips the heavy songs,
+progressions, and progression-position provenance tables.
+
 For a local smoke run that does not touch Supabase:
 
 ```powershell
@@ -146,6 +166,9 @@ The seed command:
   and transition records,
 - aggregates global and contextual transition probabilities,
 - writes metrics when `--metrics-output` is provided.
+
+With `--transition-only`, the seed command persists chords and
+transition records only.
 
 Latest local smoke metrics against `chordonomicon_v2.csv` with
 `--limit 5000`:

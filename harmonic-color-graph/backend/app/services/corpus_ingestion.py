@@ -5,9 +5,7 @@ from typing import Any
 
 from sqlalchemy.orm import Session
 
-from app.db.repositories import HarmonicRepository
 from app.ingestion.chordonomicon import iter_chordonomicon_rows
-from app.models.harmony import ProgressionChordModel, ProgressionModel
 from app.schemas import TransitionRecord
 from app.services.transition_graph import (
     ContextKey,
@@ -32,8 +30,15 @@ def ingest_chordonomicon_corpus(
     session: Session,
     limit: int | None = None,
     batch_size: int = 1000,
+    transition_only: bool = False,
 ) -> CorpusIngestionReport:
-    repository = HarmonicRepository(session)
+    from app.models.harmony import (
+        ChordModel,
+        ProgressionModel,
+        SongModel,
+        TransitionModel,
+    )
+
     batch_size = max(1, batch_size)
     transition_counts: Counter[TransitionKey] = Counter()
     confidence_values: list[float] = []
@@ -45,7 +50,8 @@ def ingest_chordonomicon_corpus(
     rows_processed = 0
     progressions_persisted = 0
     seen_chords: set[str] = set()
-    progression_batch: list[tuple[ProgressionModel, list[str], list[str]]] = []
+    seen_song_ids: set[str] = set()
+    progression_batch: list[tuple[Any, list[str], list[str]]] = []
 
     for row in iter_chordonomicon_rows(sample_path, limit=limit):
         normalized = row.normalized_progression
@@ -68,39 +74,55 @@ def ingest_chordonomicon_corpus(
         for chord in row.normalized_progression.chords:
             if chord.symbol in seen_chords:
                 continue
-            repository.upsert_chord(chord)
+            session.add(
+                ChordModel(
+                    symbol=chord.symbol,
+                    root=chord.root,
+                    quality=chord.quality,
+                    pitch_classes=chord.pitch_classes,
+                    intervals=chord.intervals,
+                )
+            )
             seen_chords.add(chord.symbol)
 
-        if row.source_song_id:
-            repository.upsert_song(
-                source_id=row.source_song_id,
-                title=row.title,
-                artist=row.artist,
-                spotify_id=row.spotify_id,
-                genre=row.genre,
-                release_date=row.release_date,
+        if (
+            not transition_only
+            and row.source_song_id
+            and row.source_song_id not in seen_song_ids
+        ):
+            session.add(
+                SongModel(
+                    source_id=row.source_song_id,
+                    title=row.title,
+                    artist=row.artist,
+                    spotify_id=row.spotify_id,
+                    genre=row.genre,
+                    release_date=row.release_date,
+                )
             )
+            seen_song_ids.add(row.source_song_id)
 
-        progression = ProgressionModel(
-            source=row.source,
-            source_song_id=row.source_song_id,
-            key=roman.key,
-            mode=roman.mode,
-            genre=row.genre,
-            subgenre=row.subgenre,
-            section=row.section,
-            absolute_chords=absolute_chords,
-            roman_chords=roman.roman_chords,
-            analysis_confidence=roman.confidence,
-            parse_warnings=[
-                f"{warning.code}:{warning.raw_value or ''}"
-                for warning in row.normalized_progression.warnings + roman.warnings
-            ],
-        )
-        session.add(progression)
-        progression_batch.append(
-            (progression, absolute_chords, roman.roman_chords)
-        )
+        if not transition_only:
+            progression = ProgressionModel(
+                source=row.source,
+                source_song_id=row.source_song_id,
+                key=roman.key,
+                mode=roman.mode,
+                genre=row.genre,
+                subgenre=row.subgenre,
+                section=row.section,
+                absolute_chords=absolute_chords,
+                roman_chords=roman.roman_chords,
+                analysis_confidence=roman.confidence,
+                parse_warnings=[
+                    f"{warning.code}:{warning.raw_value or ''}"
+                    for warning in row.normalized_progression.warnings + roman.warnings
+                ],
+            )
+            session.add(progression)
+            progression_batch.append(
+                (progression, absolute_chords, roman.roman_chords)
+            )
 
         _count_transitions(
             transition_counts,
@@ -113,16 +135,31 @@ def ingest_chordonomicon_corpus(
                 decade=_release_decade(row.release_date),
             ),
         )
-        progressions_persisted += 1
+        if not transition_only:
+            progressions_persisted += 1
 
-        if len(progression_batch) >= batch_size:
+        if not transition_only and len(progression_batch) >= batch_size:
             _flush_progression_batch(session, progression_batch)
 
-    _flush_progression_batch(session, progression_batch)
+    if not transition_only:
+        _flush_progression_batch(session, progression_batch)
 
     transitions = _build_transition_records(transition_counts)
-    for transition in transitions:
-        repository.insert_transition(transition)
+    session.add_all(
+        TransitionModel(
+            from_roman=transition.from_roman,
+            to_roman=transition.to_roman,
+            mode_context=transition.mode_context,
+            genre=transition.genre,
+            subgenre=transition.subgenre,
+            section=transition.section,
+            decade=transition.decade,
+            count=transition.count,
+            probability=transition.probability,
+            relationship_labels=transition.relationship_labels,
+        )
+        for transition in transitions
+    )
 
     session.commit()
     metrics = {
@@ -153,8 +190,10 @@ def ingest_chordonomicon_corpus(
 
 def _flush_progression_batch(
     session: Session,
-    batch: list[tuple[ProgressionModel, list[str], list[str]]],
+    batch: list[tuple[Any, list[str], list[str]]],
 ) -> None:
+    from app.models.harmony import ProgressionChordModel
+
     if not batch:
         return
 

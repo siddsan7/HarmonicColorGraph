@@ -38,6 +38,14 @@ def main() -> None:
         help="Progression batch size for corpus writes.",
     )
     parser.add_argument(
+        "--transition-only",
+        action="store_true",
+        help=(
+            "Aggregate the full corpus into chord and transition tables only. "
+            "Use this when the database cannot store every progression row."
+        ),
+    )
+    parser.add_argument(
         "--create-schema",
         action="store_true",
         help="Create SQLAlchemy tables before ingesting. Use only for local smoke runs.",
@@ -61,6 +69,7 @@ def main() -> None:
             session=session,
             limit=args.limit,
             batch_size=args.batch_size,
+            transition_only=args.transition_only,
         )
 
     payload = {
