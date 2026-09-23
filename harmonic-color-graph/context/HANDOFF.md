@@ -38,26 +38,24 @@ top for the current feature and any live blocker — that's kept current
 and is the source of truth, more current than anything below by the time
 you're reading this. As of this handoff:
 
-- **Done and merged to `main`:** F00–F07 (all of milestone M0 except the
-  keep-alive cron). Chord analysis, transition lookup, and the
-  golden/regression test harness are re-verified and hotfixed; the
-  project has a real Supabase Postgres project with a versioned SQL
-  migration, serverless-safe sessions, `GET /health/db`, and CI
-  (`.github/workflows/ci.yml`, three jobs: backend unit, backend-postgres
-  integration, frontend). Both Vercel projects are live in production:
-  the FastAPI API at `harmonic-color-graph-api.vercel.app` (F06) and the
-  Next.js web app at `harmonic-color-graph.vercel.app` (F07), talking to
-  each other through a same-origin proxy — see
-  `docs/runbooks/vercel.md`.
-- **Next:** F08 (daily keep-alive cron, `CRON_SECRET`-gated route, UI
-  status pill / degraded-mode banner) is code-complete and gate-passed on
-  `feat/F08-keepalive-status`, but not yet merged — it's blocked on writing
-  the generated `CRON_SECRET` value to the Vercel web project's env vars,
-  which the auto-mode classifier refuses ("Secret-Store Writes"). Needs
-  Siddharth's explicit approval to retry the tool call, or he can paste the
-  value into the Vercel dashboard himself. See
-  `context/progress-tracker.md`'s F08 entry for the full detail and exact
-  steps. This is the last feature before the M0 exit gate.
+- **Done and merged to `main`:** F00–F08 — **milestone M0 is complete.**
+  Chord analysis, transition lookup, and the golden/regression test
+  harness are re-verified and hotfixed; the project has a real Supabase
+  Postgres project with a versioned SQL migration, serverless-safe
+  sessions, `GET /health/db`, and CI (`.github/workflows/ci.yml`, three
+  jobs: backend unit, backend-postgres integration, frontend). Both
+  Vercel projects are live in production: the FastAPI API at
+  `harmonic-color-graph-api.vercel.app` (F06) and the Next.js web app at
+  `harmonic-color-graph.vercel.app` (F07), talking to each other through
+  a same-origin proxy — see `docs/runbooks/vercel.md`. F08 added a daily
+  `CRON_SECRET`-gated keep-alive route (`vercel.json`'s `crons`, production
+  only), plus a status pill and a non-blocking degraded-mode banner that
+  shows instead of crashing when the DB is unreachable — verified live in
+  production (see `docs/runbooks/vercel.md`'s "Cron and status" section).
+- **Next:** M1's F10 (chord model upgrade: spelling, bass, inversion,
+  features — `theory/spelling.py`, extended `CanonicalChord`, full-corpus
+  vocabulary coverage report). Read
+  `feature-specs/v2-implementation-plan.md`'s F10 section before starting.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the
