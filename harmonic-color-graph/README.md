@@ -1,5 +1,7 @@
 # Harmonic Color Graph
 
+[![CI](https://github.com/siddsan7/HarmonicColorGraph/actions/workflows/ci.yml/badge.svg)](https://github.com/siddsan7/HarmonicColorGraph/actions/workflows/ci.yml)
+
 Harmonic Color Graph is a harmonic intelligence workbench for
 analyzing chord progressions, converting them into Roman
 numerals, labeling harmonic relationships, and recommending

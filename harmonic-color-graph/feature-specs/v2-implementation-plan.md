@@ -167,12 +167,12 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Commit:** `chore: repo hygiene, dependency extras, check scripts`
 
 ### F02 — CI (GitHub Actions) [M]
-- [ ] `.github/workflows/ci.yml` at the git root, `defaults.run.working-directory: harmonic-color-graph`:
+- [x] `.github/workflows/ci.yml` at the git root, `defaults.run.working-directory: harmonic-color-graph`:
   - `backend` job: Python 3.12, `pip install -e "backend[dev,pipeline]"`, `ruff check`, `pytest -q --cov=app` (unit).
   - `backend-pg` job: service `pgvector/pgvector:pg17`, apply `supabase/migrations/*.sql` in order with `psql`, run `pytest -q -m pg`. (Runs empty until F05 creates migrations; keep the job and have it pass with "no tests collected" allowed via `-m pg || test $? -eq 5`.)
   - `frontend` job: Node 20, `npm ci`, `npm run lint`, `npm run typecheck`, `npm test`, `npm run build`.
   - Concurrency group per ref; cache pip and npm.
-- [ ] Add a CI badge to `README.md`.
+- [x] Add a CI badge to `README.md`.
 
 **Checks:** Push the branch → all jobs green on the PR; deliberately break one unit test locally, confirm CI would fail (run `act` or push a throwaway commit, then revert). Record the real test count (baseline: 57) in the tracker.
 **Commit:** `chore(ci): backend, postgres, and frontend workflows`

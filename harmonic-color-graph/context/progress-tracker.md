@@ -10,7 +10,7 @@ change.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F02 (CI - GitHub Actions).
+- Current feature: F03 (v1 baseline snapshot & regression harness).
 - Blocked: none.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
@@ -228,7 +228,57 @@ change.
   `npm audit` shows 14 pre-existing vulnerabilities (1 critical,
   in `sharp`/`qs`, transitively required by Next.js itself, not
   by anything added in F01) — worth a dedicated look before v1.0
-  (F85) but not blocking v2 feature work.
+  (F85) but not blocking v2 feature work. Flagged as a follow-up
+  task (task_fcac3493).
+- Completed F02 (CI): added `.github/workflows/ci.yml` (repo
+  root) with `backend` (ruff + pytest unit + coverage),
+  `backend-pg` (pgvector/pgvector:pg17 service, applies
+  `supabase/migrations/*.sql` if any exist, `pytest -m pg`
+  tolerating exit 5/"no tests collected" until F05), and
+  `frontend` (npm ci/lint/typecheck/test/build) jobs; per-ref
+  concurrency group; pip/npm caching; CI badge in `README.md`.
+  While wiring the frontend job's `npm ci`, found that F01's
+  `vitest@^5.0.1` only resolves via `--legacy-peer-deps` (its
+  `@types/node` peer range is `^22 || >=24`, incompatible with
+  this project's Node 20 target) — routing around it with the
+  flag everywhere would have papered over a real mismatch, so
+  downgraded to `vitest@^3.2.7` instead (peer range `^18 || ^20
+  || >=22`, and it pulls its own compatible `vite` as a normal
+  dependency, so the manually pinned `vite` devDependency from
+  F01 was removed too); confirmed plain `npm ci` now resolves
+  with no flags and the full suite (lint/typecheck/test/build)
+  still passes. Baseline test count confirmed: 57 backend unit
+  tests. Gate: `scripts/check.sh all` green locally; CI itself
+  will self-validate on this feature's own PR (first feature
+  where GitHub Actions can gate the merge).
+- F02 real-CI catch (relevant to F05): the `push` trigger
+  initially only ran on `main`, so pushing a feature branch with
+  no PR-hosting tool available (GitKraken plugin needs
+  `gk auth login`, which needs interactive sign-in; no `gh` CLI
+  installed) never actually ran CI — widened `on.push` to all
+  branches so a feature branch can self-validate before it's
+  squash-merged. The first real run then failed `backend-pg`
+  (pytest exit 2 = collection errors) while `backend`/`frontend`
+  passed. Root cause: `DATABASE_URL` in that job was a bare
+  `postgresql://...` URL; SQLAlchemy defaults that scheme to the
+  `psycopg2` driver, which isn't installed (this project only
+  has `psycopg` v3 per F01), and `app/db/session.py:23` builds
+  its engine at *import* time, so almost every test file failed
+  to collect. Fixed by using `postgresql+psycopg://` for
+  `DATABASE_URL`/`TEST_DATABASE_URL` — confirmed locally
+  (`import app.db.session` with each scheme reproduces the
+  failure and the fix). `psql` doesn't understand the `+psycopg`
+  suffix, so it gets its own plain-scheme `PSQL_DATABASE_URL`.
+  Separately, GitHub Actions' default `bash -e` for `run:` steps
+  meant the intended "tolerate pytest exit 5 (no tests
+  collected)" logic never actually ran — errexit aborts the
+  script at the failing `pytest` line before `code=$?` has any
+  effect (confirmed locally by reproducing the exact `bash
+  --noprofile --norc -eo pipefail` semantics GitHub Actions
+  uses) — fixed by bracketing the pytest call with `set +e` /
+  `set -e`. **F05 should reuse `postgresql+psycopg://` for the
+  real `DATABASE_URL`/`DATABASE_URL_LOAD`**, not the bare
+  `postgresql://` scheme the roadmap examples show.
 
 ## In Progress
 
