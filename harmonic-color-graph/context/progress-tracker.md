@@ -13,8 +13,18 @@ detail it points to.
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
 - Current feature: F08 (keep-alive cron and graceful degradation) —
-  the last feature before M0 closes out.
-- Blocked: none right now.
+  code complete on `feat/F08-keepalive-status`, pending merge and
+  one production step (see Blocked).
+- Blocked: F08's `CRON_SECRET` env var write to the Vercel web
+  project (`prj_7qWHYz6bENIzUWg0dZz3drY6H8cg`) was refused by the
+  auto-mode classifier ("Secret-Store Writes") — this needs
+  Siddharth's explicit approval to run via the Vercel MCP tool, or
+  he can set it himself in the Vercel dashboard (Project → Settings
+  → Environment Variables → production, target `production` only,
+  type `sensitive`). Until it's set, the deployed cron route fails
+  closed with 401 (safe, just inert) — see the F08 Completed entry
+  below for the full picture. This also blocks the M0 exit gate,
+  which needs the cron verified live.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -604,20 +614,115 @@ detail it points to.
   - Gate: `scripts/check.sh all` green locally; CI green on the
     feature branch (run #18, all three jobs); squash-merged to
     `main`.
+- Completed F08 (keep-alive cron, status pill, graceful
+  degradation), on branch `feat/F08-keepalive-status`.
+  - `app/api/cron/keepalive/route.ts`: a Next.js route handler
+    (`force-dynamic`) that 401s unless `Authorization: Bearer
+    $CRON_SECRET` matches (fails closed if the env var is unset,
+    not just if the header is missing/wrong), otherwise fetches
+    `/api/hcg/health/db` via `new URL(request.url)` (same-origin,
+    so it goes through the existing `next.config.ts` proxy to the
+    FastAPI backend) and forwards its status code and body
+    verbatim; a fetch-level failure (backend unreachable, not just
+    its DB) returns 502 with `keepalive_fetch_failed`. Unit-tested
+    in `route.test.ts` (5 cases: no header, wrong secret, unset
+    secret, successful forward, fetch failure) using `vi.stubEnv` /
+    `vi.stubGlobal("fetch", …)` — no real network calls.
+  - `vercel.json` (new, frontend project root):
+    `{"crons": [{"path": "/api/cron/keepalive", "schedule": "0 15
+    * * *"}]}`. Vercel only activates cron schedules on production
+    deployments, not previews, so this only starts firing once
+    merged to `main` and deployed.
+  - `lib/api/client.ts`: added `fetchHealth()` (throws like the
+    other endpoints) and `fetchHealthDb()` (deliberately does
+    *not* throw on a non-2xx — `/health/db`'s 503
+    `db_unavailable` body is an expected, distinguishable state
+    for the banner, not an exceptional failure; returns
+    `{ok: true, data} | {ok: false, data}`).
+  - `lib/hooks/use-system-health.ts`: polls both endpoints every
+    60s (and once on mount) via `useEffect`, distinguishing
+    `apiStatus` (`checking | ok | down`) from `dbStatus`
+    (`checking | ok | unavailable | down`) — `unavailable` means
+    the API answered with `db_unavailable` (DB down but API up,
+    e.g. Supabase paused); `down` means the request itself failed.
+  - `components/system-status.tsx`: `SystemStatusBadges` (API/DB
+    pills + corpus version, wired into the header of
+    `components/phase-one-demo.tsx`) and `DegradedModeBanner`
+    (renders only when `dbStatus === "unavailable"`, the exact
+    "Live data is waking up — showing cached graph" copy from the
+    plan), placed right under the header so it never blocks the
+    rest of the page.
+  - `.env.example` (new, frontend root): documents `HCG_API_ORIGIN`
+    (previously undocumented) and `CRON_SECRET`.
+    `.claude/launch.json` (new — recreates what F07's progress
+    entry described but never actually committed; the browser
+    preview tool needs it and it's harmless to keep checked in for
+    future sessions).
+  - **Verification found and worked around a real timing gotcha**:
+    the plan's own suggestion to point `DATABASE_URL` at a "dead
+    host" to test the banner is ambiguous — a host that actively
+    refuses the connection (e.g. `127.0.0.1:1`, nothing listening)
+    hung the FastAPI request for 30+ seconds instead of failing
+    fast on this Windows/psycopg3 setup (a bare `curl` to the same
+    port also took ~2s, so it's not purely a psycopg thing, but
+    psycopg was far worse — never returned even at 30s). Switched
+    to an unresolvable hostname (`nonexistent-host.invalid`)
+    instead, which fails DNS resolution in ~50ms and makes
+    `/health/db` return its 503 in ~0.3s. Recorded this in
+    `tests/e2e/degraded-mode.spec.ts`'s comment so the next person
+    doesn't repeat the 30-second wait.
+  - Also found and killed an orphaned `next dev` process already
+    squatting on port 3000 (started earlier the same day, serving
+    a build where `/api/hcg/health` 404'd — likely a stale process
+    from before this session, not this branch's code). Not a bug
+    in this feature, but it would have produced false "API down"
+    results if not caught before trusting the browser-pane
+    verification.
+  - Verified manually end to end (three backend restarts): (1)
+    healthy DB → pill shows "API OK / DB OK / corpus
+    unversioned", no banner; (2) `curl` the cron route — no header
+    → 401, wrong secret → 401, correct secret → 200 forwarding
+    `{"status":"ok","database":"connected"}`; (3) DB pointed at
+    `nonexistent-host.invalid` → pill shows "DB waking up", banner
+    text visible, page did not crash (`document.querySelector('main')`
+    still present), confirmed via `read_console_messages` that the
+    only console errors were expected network-level ones (503s),
+    no uncaught exception. Ran both Playwright specs against this:
+    `degraded-mode.spec.ts` passed against the dead-DB backend,
+    `smoke.spec.ts` passed again after restoring the real DB —
+    neither is wired into CI (matches F07's precedent), run
+    manually per the plan's checks.
+  - **Blocked**: writing the generated `CRON_SECRET` value to the
+    Vercel web project's env vars via `create_project_env` was
+    refused by the auto-mode classifier ("Secret-Store Writes") —
+    this needs Siddharth's explicit approval to retry via the tool,
+    or he can paste the value into the Vercel dashboard himself
+    (Project Settings → Environment Variables, target
+    `production`, type `sensitive`). The code fails closed without
+    it (401, not a crash), so merging without it set is safe; it
+    just means the cron won't authenticate against
+    `/api/cron/keepalive` in production until it's set, which also
+    blocks the M0 exit gate (needs the cron verified live).
+  - Gate: `scripts/check.sh all` green locally (ruff, eslint, tsc,
+    pytest unit + pg, vitest 9/9 including the 5 new route tests,
+    `npm run build`, `python -c "import app.main"`); CI check
+    pending on the pushed branch; not yet merged (see Blocked).
 
 ## In Progress
 
-- None — F08 (keep-alive cron and graceful degradation) not yet
-  started.
+- F08 is code-complete on `feat/F08-keepalive-status` and passed
+  the full local check gate; blocked only on the `CRON_SECRET`
+  Vercel env var write (see "v2 Plan — Active" → Blocked above).
 
 ## Next Up
 
-- F08: `app/api/cron/keepalive/route.ts` (bearer-secret-gated,
-  calls `/api/hcg/health/db`), `vercel.json` cron entry on the web
-  app project (`0 15 * * *`, needs a `CRON_SECRET` env var — a
-  §0.2 input, or generate one and record the ref, never the value),
-  and a UI status pill / degraded-mode banner. This is the last
-  feature before the M0 exit gate.
+- Once F08's `CRON_SECRET` is set and the branch is merged: verify
+  the cron is listed on the Vercel project and fires successfully
+  in production, then close the M0 exit gate (CI green on `main`;
+  both Vercel projects live; `/health/db` 200 in production;
+  tracker updated with deploy URLs and latencies) and move on to
+  M1's F10 (chord model upgrade: spelling, bass, inversion,
+  features).
 
 ## Open Questions
 

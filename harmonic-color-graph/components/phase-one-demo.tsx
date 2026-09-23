@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
 import {
   API_BASE_PATH,
   analyzeProgression,
@@ -24,6 +25,7 @@ import {
   type ExplainTransitionResponse,
   type NextChordsResponse,
 } from "@/lib/api/client"
+import { useSystemHealth } from "@/lib/hooks/use-system-health"
 import { cn } from "@/lib/utils"
 
 const SAMPLE_PROGRESSION = "C - G - Am"
@@ -73,6 +75,7 @@ export function PhaseOneDemo() {
   const [transitionExplanation, setTransitionExplanation] =
     useState<ExplainTransitionResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const systemHealth = useSystemHealth()
 
   const parsedChords = useMemo(
     () => parseChordInput(progressionInput),
@@ -149,14 +152,23 @@ export function PhaseOneDemo() {
             </p>
           </div>
 
-          <div className="flex max-w-full items-center gap-2 overflow-hidden rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-            <Server className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="truncate font-mono">{API_BASE_PATH}</span>
-            <Badge variant="outline" className={statusMeta.className}>
-              {statusMeta.label}
-            </Badge>
+          <div className="flex flex-col items-end gap-2">
+            <div className="flex max-w-full items-center gap-2 overflow-hidden rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
+              <Server className="size-3.5 shrink-0" aria-hidden="true" />
+              <span className="truncate font-mono">{API_BASE_PATH}</span>
+              <Badge variant="outline" className={statusMeta.className}>
+                {statusMeta.label}
+              </Badge>
+            </div>
+            <SystemStatusBadges
+              apiStatus={systemHealth.apiStatus}
+              dbStatus={systemHealth.dbStatus}
+              corpusVersion={systemHealth.corpusVersion}
+            />
           </div>
         </header>
+
+        <DegradedModeBanner dbStatus={systemHealth.dbStatus} />
 
         <section className="grid flex-1 gap-5 lg:grid-cols-[minmax(280px,380px)_1fr]">
           <form

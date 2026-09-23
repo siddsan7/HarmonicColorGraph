@@ -50,8 +50,14 @@ you're reading this. As of this handoff:
   each other through a same-origin proxy — see
   `docs/runbooks/vercel.md`.
 - **Next:** F08 (daily keep-alive cron, `CRON_SECRET`-gated route, UI
-  status pill / degraded-mode banner) — the last feature before the M0
-  exit gate.
+  status pill / degraded-mode banner) is code-complete and gate-passed on
+  `feat/F08-keepalive-status`, but not yet merged — it's blocked on writing
+  the generated `CRON_SECRET` value to the Vercel web project's env vars,
+  which the auto-mode classifier refuses ("Secret-Store Writes"). Needs
+  Siddharth's explicit approval to retry the tool call, or he can paste the
+  value into the Vercel dashboard himself. See
+  `context/progress-tracker.md`'s F08 entry for the full detail and exact
+  steps. This is the last feature before the M0 exit gate.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the

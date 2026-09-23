@@ -56,6 +56,29 @@ export type ExplainTransitionResponse = {
   technical_explanation: string
 }
 
+export type HealthResponse = {
+  status: string
+  version: string
+  corpus_version: string
+}
+
+export type HealthDbOk = {
+  status: string
+  database: string
+}
+
+export type HealthDbError = {
+  error: {
+    code: string
+    message: string
+    details: Record<string, unknown>
+  }
+}
+
+export type HealthDbResult =
+  | { ok: true; data: HealthDbOk }
+  | { ok: false; data: HealthDbError }
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_PATH}${path}`, init)
 
@@ -105,5 +128,21 @@ export function explainTransition(
   return apiFetch<ExplainTransitionResponse>(
     `/explain-transition?${params.toString()}`
   )
+}
+
+export function fetchHealth(): Promise<HealthResponse> {
+  return apiFetch<HealthResponse>("/health")
+}
+
+// Unlike apiFetch, this never throws on a non-2xx status: `/health/db`
+// returning 503 with `{error: {code: "db_unavailable", ...}}` is an
+// expected, distinguishable state for the degraded-mode banner, not an
+// exceptional failure.
+export async function fetchHealthDb(): Promise<HealthDbResult> {
+  const response = await fetch(`${API_BASE_PATH}/health/db`, {
+    cache: "no-store",
+  })
+  const data = await response.json()
+  return response.ok ? { ok: true, data } : { ok: false, data }
 }
 

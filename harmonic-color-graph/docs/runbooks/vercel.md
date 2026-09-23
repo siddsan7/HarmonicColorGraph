@@ -119,3 +119,25 @@ confirms the production `DATABASE_URL` (pooler) works end-to-end.
   Also ran the Playwright smoke spec against production directly
   (`PLAYWRIGHT_BASE_URL=https://harmonic-color-graph.vercel.app npx
   playwright test`) — passed.
+
+## Cron and status (F08)
+
+- `vercel.json` (frontend project root) declares one cron:
+  `{"path": "/api/cron/keepalive", "schedule": "0 15 * * *"}`. Vercel only
+  activates cron schedules on **production** deployments — a preview build
+  with the same `vercel.json` will not fire it. It starts running once this
+  merges to `main` and redeploys.
+- `app/api/cron/keepalive/route.ts` requires `Authorization: Bearer
+  $CRON_SECRET` and 401s (fails closed) if the env var is unset or the
+  header doesn't match; on success it forwards `/api/hcg/health/db`'s
+  status and body verbatim.
+- **Env var `CRON_SECRET`** (web app project, target `production`, type
+  `sensitive`) still needs to be set - writing it via `create_project_env`
+  was refused by the auto-mode classifier ("Secret-Store Writes"). Set it
+  either by re-running that tool call with explicit approval, or by pasting
+  a generated value into the Vercel dashboard: Project -> Settings ->
+  Environment Variables. Never record the value itself here or in the
+  tracker - same rule as the Supabase DB password.
+- The web app project's env vars as of F08 (`filter_project_envs`):
+  `HCG_API_ORIGIN` only (production + preview). `CRON_SECRET` is the one
+  gap.

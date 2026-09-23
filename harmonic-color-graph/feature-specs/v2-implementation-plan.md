@@ -229,9 +229,9 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Commit:** `feat(deploy): Next.js on Vercel with same-origin API proxy`
 
 ### F08 — Keep-alive, status, graceful degradation [S]
-- [ ] `app/api/cron/keepalive/route.ts`: requires `Authorization: Bearer ${CRON_SECRET}`, calls `/api/hcg/health/db`, returns its status.
-- [ ] `vercel.json` cron: `{"path": "/api/cron/keepalive", "schedule": "0 15 * * *"}` (daily, Hobby-compatible).
-- [ ] UI status pill: API OK / DB OK / corpus version. On `db_unavailable`, show a non-blocking banner ("Live data is waking up — showing cached graph") instead of an error page.
+- [x] `app/api/cron/keepalive/route.ts`: requires `Authorization: Bearer ${CRON_SECRET}`, calls `/api/hcg/health/db`, returns its status.
+- [x] `vercel.json` cron: `{"path": "/api/cron/keepalive", "schedule": "0 15 * * *"}` (daily, Hobby-compatible).
+- [x] UI status pill: API OK / DB OK / corpus version. On `db_unavailable`, show a non-blocking banner ("Live data is waking up — showing cached graph") instead of an error page.
 
 **Checks:** The cron is listed on the project; a manual `curl` with the secret → 200 and without → 401; a local run with `DATABASE_URL` pointed at a dead host shows the banner, not a crash (Playwright).
 **Commit:** `feat(ops): daily keep-alive cron and degraded-mode banner`
