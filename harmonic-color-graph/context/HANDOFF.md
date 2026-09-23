@@ -38,15 +38,20 @@ top for the current feature and any live blocker — that's kept current
 and is the source of truth, more current than anything below by the time
 you're reading this. As of this handoff:
 
-- **Done and merged to `main`:** F00–F05 (all of milestone M0 up through
-  the Supabase environment). Chord analysis, transition lookup, and the
+- **Done and merged to `main`:** F00–F07 (all of milestone M0 except the
+  keep-alive cron). Chord analysis, transition lookup, and the
   golden/regression test harness are re-verified and hotfixed; the
-  project now has a real Supabase Postgres project with a versioned SQL
+  project has a real Supabase Postgres project with a versioned SQL
   migration, serverless-safe sessions, `GET /health/db`, and CI
   (`.github/workflows/ci.yml`, three jobs: backend unit, backend-postgres
-  integration, frontend).
-- **Next:** F06 (deploy the FastAPI API to Vercel), then F07 (deploy the
-  Next.js web app), then F08 (keep-alive cron) — closing out M0.
+  integration, frontend). Both Vercel projects are live in production:
+  the FastAPI API at `harmonic-color-graph-api.vercel.app` (F06) and the
+  Next.js web app at `harmonic-color-graph.vercel.app` (F07), talking to
+  each other through a same-origin proxy — see
+  `docs/runbooks/vercel.md`.
+- **Next:** F08 (daily keep-alive cron, `CRON_SECRET`-gated route, UI
+  status pill / degraded-mode banner) — the last feature before the M0
+  exit gate.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the
@@ -120,6 +125,18 @@ you're reading this. As of this handoff:
   paused. It was left alone (costs nothing extra paused) rather than
   deleted. The active project is `avnxcyulznofylsnydfg` — see
   `docs/runbooks/supabase.md`.
+- Vercel MCP gotchas from F06/F07, all detailed in
+  `docs/runbooks/vercel.md`: new projects default `ssoProtection` on
+  (blocks public `curl`/browser access — must be explicitly disabled);
+  `create_git_project` 403s on this account's token scope, use
+  `create_project` with an inline `gitRepository` instead; the same
+  scope gap blocks `get_runtime_logs`/`list_deployment_events`, so
+  verify deployments with direct `curl`/Playwright instead; and
+  `vercel.json`'s modern `rewrites` array can't interpolate env vars
+  into the destination, so the API proxy is a Next.js `rewrites()` in
+  `next.config.ts`, not `vercel.json`. Triggering a production
+  deployment also needs explicit user confirmation — the auto-mode
+  classifier blocks `create_deployment` with `target: "production"`.
 
 ## Orientation map (what to read, in what order, for what)
 
