@@ -16,9 +16,17 @@ detail it points to.
   `main` (squash commit `afdd525`) and verified live in production.
   This closes out **M0** — see the exit-gate summary in the F08
   Completed entry below.
-- Blocked: none right now.
-- Next up: M1's F10 (chord model upgrade — spelling, bass,
-  inversion, features).
+- M1 F10–F14 implementation is complete locally on `feat/F10-chord-model-upgrade`.
+  The inherited F10/F11 dirty worktree was kept together so its already
+  intertwined changes were not discarded. The full local gate and two
+  Playwright workbench checks pass. Branch CI, merge, and production smoke
+  are the remaining ship checks.
+- Siddharth chose provisional key and Roman gold fixtures and will review
+  `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. Their human
+  review checkboxes remain open in the plan; no implementation is waiting
+  on that review.
+- Blocked: none.
+- Current focus: ship the M1 branch, verify production, then begin M2.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -38,9 +46,8 @@ detail it points to.
   SQLAlchemy/Alembic schema, and a minimal demo UI are
   implemented and were the basis for the defects and metrics
   recorded in `docs/roadmap-v2.md` §2.
-- Now executing the v2 plan's M0 (Foundation & deploy
-  skeleton), which re-verifies and hotfixes this Phase 1
-  baseline before building v2 analysis on top of it.
+- M0 is live. M1 harmonic analysis v2 is implemented locally and
+  in its ship gate; M2 corpus pipeline work follows.
 
 ## Current Goal
 
@@ -52,6 +59,34 @@ detail it points to.
   not add new work there.
 
 ## Completed
+
+- **2026-09-23 — M1 F10–F14 implementation.** Continued the inherited
+  uncommitted F10/F11 branch and completed the milestone in order. F10
+  adds spelling, inversions, chord-set features, and a full-corpus vocabulary
+  report at **99.9683% token parse** (51,994,634 tokens). F11 adds a
+  24-key Temperley-profile finder with dev-fitted weights/temperature,
+  optional repetition weighting, local modulations, and a dev-only music21
+  oracle. The 40-item held-out half reaches **90% top-1, 95% top-2,
+  ECE 0.052**. A first 20,000-song pass exposed overconfident long-song
+  posteriors (45.3% in the p≥0.95 bin); length-aware temperature fixed
+  this to **2.3%** on rerun, with **20.9%** section/song disagreement.
+  F12 adds functional Roman tokens and deterministic diatonic, applied,
+  borrowed, substitute, chromatic, extension, and inversion rules. The
+  provisional 60-item/192-token Roman set scores **100% core and figure**;
+  music21 agrees on **162/165 (98.2%)** diatonic degree/quality checks,
+  with three suspended-chord differences documented. Throughput was about
+  **5,152 four-chord sections/s/core**. F13 adds 20 registry rules with
+  fact IDs, two positive and one negative test per rule, and language lint;
+  the same 20,000-song corpus sample labels **86.4%** of transitions.
+  F14 adds `POST /v2/analyze`, exported OpenAPI/generated TypeScript types
+  with CI drift checks, and a responsive workbench with key bars, function
+  badges, parse warnings, and relationship evidence. All F03 xfails were
+  promoted to passing v2 regressions. The v1 golden changes only for
+  `Fm C`: the minor-plagal cadence now correctly favors C major and `iv–I`.
+  `scripts/check.ps1 all` passes; local Playwright checks for `D7 G C` and
+  `C Am F G` pass against the real API through the same-origin proxy.
+  The musician review of both gold sets was deferred by Siddharth; they
+  remain explicitly provisional.
 
 - Analyzed the three source roadmap documents:
   Phase 1 data/theory graph foundation, Phase 2 color
@@ -739,18 +774,58 @@ F10 (chord model upgrade: spelling, bass, inversion, features).
 
 ## In Progress
 
-- None. F08 shipped and the M0 exit gate is closed (see above).
+- F10 (chord model upgrade) is implemented locally but not yet committed,
+  pushed, or CI-verified. Claude's uncommitted changes add
+  `backend/app/theory/spelling.py` with letter-name spelling,
+  line-of-fifths arithmetic, key-aware spelling, chord-tone spelling,
+  interval vectors, pitch-class masks, inversion detection, and
+  quality/extension classification. `CanonicalChord` now has additive v2
+  fields (`root_pc`, `bass_pc`, `inversion`, `tones_spelled`,
+  `pc_set_mask`, `interval_vector`, `quality_class`, `extensions`), and
+  `normalize_chord()` populates them while preserving the old v1 fields.
+  Dangling slash symbols such as `Cs/` are now parsed by dropping the slash
+  with a `slash_dropped` warning.
+- F10 also adds an offline pipeline package (`backend/pipeline/`) with
+  `python -m pipeline.cli vocab-report ...`; `backend/pyproject.toml`
+  includes `pipeline*` packages. The generated report draft at
+  `docs/eval/vocab.md` was produced against
+  `data/raw/chordonomicon_v2.csv`: 2,952,684 progressions,
+  51,994,634 chord tokens, 51,978,158 parsed tokens, **99.9683%** token
+  parse, and 373 unique unparseable symbols. That clears F10's 99.95%
+  acceptance threshold, though many advanced symbols remain listed for
+  future alias work (`Emajs9`, `D7b9`, `E7b9`, etc.).
+- Early F11 work is mixed into this same uncommitted branch. Added:
+  `data/gold/keys.jsonl` (80 items: 20 templates x 4 transpositions, not
+  yet Siddharth-reviewed), `backend/app/theory/keys.py`,
+  `backend/app/theory/keys_params.json`,
+  `backend/pipeline/stages/calibrate_keys.py`, and
+  `docs/eval/keys.md`. `roman_analysis.py` now delegates missing-key
+  estimation to `estimate_keys()`, reports method
+  `pitch_class_profile_v2`, adds an `ambiguous` flag through
+  `RomanAnalysis` and `AnalyzeProgressionResponse`, refreshes the v1
+  golden outputs, and removes two former F11 xfails:
+  `Dm G` includes C major in the top two and `C Am F G` sets
+  `ambiguous=true`.
+- Verification run during this handoff update:
+  `py -3.12 -m pytest backend/tests --disable-warnings` from
+  `harmonic-color-graph/` -> `178 passed, 4 skipped, 8 xfailed in 1.36s`.
+  Focused spelling/key/golden run also passed:
+  `114 passed, 8 xfailed in 0.97s`.
+- Still not done: full Standard Check Gate (`scripts/check.ps1 all` or
+  `scripts/check.sh all`), branch push, GitHub Actions verification,
+  squash-merge to `main`, and the final Completed entry. Before pushing,
+  inspect whether the partial F11 files should remain on
+  `feat/F10-chord-model-upgrade` or be split to a dedicated F11 branch.
 
 ## Next Up
 
-- M1's F10: chord model upgrade — `theory/spelling.py` (letter-name
-  arithmetic, line-of-fifths, key-signature-aware spelling),
-  extended `CanonicalChord` fields (`root_pc`, `bass_pc`,
-  `inversion`, `tones_spelled[]`, `pc_set_mask`, `interval_vector`,
-  `quality_class`, `extensions[]`), and a full-corpus vocabulary
-  coverage report. See
-  `feature-specs/v2-implementation-plan.md`'s F10 section for the
-  full spec before starting.
+- Close out F10 from the current dirty worktree: review the diff, decide
+  what to do with the early F11 work, run the Standard Check Gate, write
+  the final F10 Completed entry with gate results, commit, push, verify
+  CI, and merge.
+- Then continue F11 properly: Siddharth review of `data/gold/keys.jsonl`,
+  finish/verify the 24-key finder acceptance checks from the plan, add any
+  missing oracle/reporting pieces, and keep the F11 feature boundary clear.
 
 ## Open Questions
 

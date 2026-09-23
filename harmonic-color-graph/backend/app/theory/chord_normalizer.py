@@ -2,30 +2,14 @@ import re
 from dataclasses import dataclass
 
 from app.schemas import CanonicalChord, ChordNormalizationResult, ParseWarning
-
-NOTE_TO_PITCH_CLASS = {
-    "C": 0,
-    "C#": 1,
-    "Db": 1,
-    "D": 2,
-    "D#": 3,
-    "Eb": 3,
-    "E": 4,
-    "Fb": 4,
-    "E#": 5,
-    "F": 5,
-    "F#": 6,
-    "Gb": 6,
-    "G": 7,
-    "G#": 8,
-    "Ab": 8,
-    "A": 9,
-    "A#": 10,
-    "Bb": 10,
-    "B": 11,
-    "Cb": 11,
-    "B#": 0,
-}
+from app.theory.spelling import (
+    NOTE_TO_PITCH_CLASS,
+    classify_chord_intervals,
+    compute_interval_vector,
+    compute_pc_set_mask,
+    detect_inversion,
+    spell_chord_tones,
+)
 
 QUALITY_INTERVALS = {
     "maj": [0, 4, 7],
@@ -139,7 +123,16 @@ def normalize_chord(raw_symbol: str) -> ChordNormalizationResult:
 
     body_remainder, bass = _split_bass(parsed.remainder)
     if bass is None and "/" in parsed.remainder:
-        return _failure(raw_symbol, "Could not parse slash-chord bass.")
+        trailing = parsed.remainder.split("/", 1)[1].strip()
+        if trailing:
+            return _failure(raw_symbol, "Could not parse slash-chord bass.")
+        warnings.append(
+            ParseWarning(
+                code="slash_dropped",
+                message="Dropped dangling slash with no bass note.",
+                raw_value=raw_symbol,
+            )
+        )
 
     quality, quality_warning = _normalize_quality(body_remainder, raw_symbol)
     if quality is None:
@@ -154,6 +147,9 @@ def normalize_chord(raw_symbol: str) -> ChordNormalizationResult:
     if bass is not None:
         symbol = f"{symbol}/{bass}"
 
+    bass_pc = NOTE_TO_PITCH_CLASS[bass] if bass is not None else root_pc
+    quality_info = classify_chord_intervals(intervals)
+
     chord = CanonicalChord(
         raw_symbol=raw_symbol,
         symbol=symbol,
@@ -163,6 +159,14 @@ def normalize_chord(raw_symbol: str) -> ChordNormalizationResult:
         pitch_classes=pitch_classes,
         intervals=intervals,
         warnings=warnings,
+        root_pc=root_pc,
+        bass_pc=bass_pc,
+        inversion=detect_inversion(root_pc, bass_pc, pitch_classes),
+        tones_spelled=spell_chord_tones(parsed.root, intervals),
+        pc_set_mask=compute_pc_set_mask(pitch_classes),
+        interval_vector=compute_interval_vector(pitch_classes),
+        quality_class=quality_info.quality_class,
+        extensions=quality_info.extensions,
     )
     return ChordNormalizationResult(
         raw_symbol=raw_symbol,

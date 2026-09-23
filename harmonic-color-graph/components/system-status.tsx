@@ -43,7 +43,7 @@ export function DegradedModeBanner({ dbStatus }: { dbStatus: DbStatus }) {
       className="flex items-center gap-2 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2 text-sm text-amber-100"
     >
       <CircleAlert className="size-4 shrink-0" aria-hidden="true" />
-      <p>Live data is waking up — showing cached graph.</p>
+      <p>Live data is waking up — analysis remains available, but corpus suggestions may be delayed.</p>
     </div>
   )
 }

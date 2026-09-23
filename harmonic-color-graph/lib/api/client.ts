@@ -6,6 +6,11 @@
  */
 export const API_BASE_PATH = "/api/hcg"
 
+import type { components } from "@/lib/api/types"
+
+export type AnalysisV2 = components["schemas"]["AnalysisV2"]
+export type AnalyzeV2Request = components["schemas"]["AnalyzeV2Request"]
+
 export type ModeContext = "major" | "minor" | "unknown"
 
 export type ParseWarning = {
@@ -103,6 +108,26 @@ export function analyzeProgression(
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ chords, key }),
   })
+}
+
+export async function analyzeProgressionV2(
+  request: AnalyzeV2Request
+): Promise<AnalysisV2> {
+  const payload: unknown = await apiFetch<unknown>("/v2/analyze", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request),
+  })
+  if (
+    typeof payload !== "object" || payload === null ||
+    !("tokens" in payload) || !Array.isArray(payload.tokens) ||
+    !("key_distribution" in payload) || !Array.isArray(payload.key_distribution) ||
+    !("relationships" in payload) || !Array.isArray(payload.relationships) ||
+    !("song_key" in payload) || typeof payload.song_key !== "string"
+  ) {
+    throw new Error("The analysis response was incomplete.")
+  }
+  return payload as AnalysisV2
 }
 
 export function fetchNextChords(

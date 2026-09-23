@@ -37,6 +37,22 @@ class ParseWarning(StrictModel):
     raw_value: str | None = None
 
 
+QUALITY_CLASSES = {
+    "maj",
+    "min",
+    "dim",
+    "aug",
+    "dom7",
+    "maj7",
+    "min7",
+    "hdim7",
+    "dim7",
+    "minmaj7",
+    "sus",
+    "power",
+}
+
+
 class CanonicalChord(StrictModel):
     raw_symbol: str = Field(min_length=1)
     symbol: str = Field(min_length=1)
@@ -46,6 +62,16 @@ class CanonicalChord(StrictModel):
     intervals: list[int] = Field(default_factory=list)
     bass: str | None = None
     warnings: list[ParseWarning] = Field(default_factory=list)
+    # F10: spelling, bass, inversion, and interval features (schema v2,
+    # additive-only so v1 consumers keep working on the shared fields above).
+    root_pc: int | None = Field(default=None, ge=0, le=11)
+    bass_pc: int | None = Field(default=None, ge=0, le=11)
+    inversion: Literal["root", "first", "second", "third", "other"] | None = None
+    tones_spelled: list[str] = Field(default_factory=list)
+    pc_set_mask: int | None = Field(default=None, ge=0, le=4095)
+    interval_vector: list[int] = Field(default_factory=list)
+    quality_class: str | None = None
+    extensions: list[str] = Field(default_factory=list)
 
     @field_validator("root", "bass")
     @classmethod
@@ -61,6 +87,20 @@ class CanonicalChord(StrictModel):
         if invalid:
             raise ValueError("Pitch classes and intervals must be in 0..11")
         return values
+
+    @field_validator("quality_class")
+    @classmethod
+    def validate_quality_class(cls, value: str | None) -> str | None:
+        if value is not None and value not in QUALITY_CLASSES:
+            raise ValueError(f"Invalid quality_class: {value}")
+        return value
+
+    @field_validator("interval_vector")
+    @classmethod
+    def validate_interval_vector(cls, value: list[int]) -> list[int]:
+        if value and len(value) != 6:
+            raise ValueError("interval_vector must have exactly 6 entries")
+        return value
 
 
 class ChordNormalizationResult(StrictModel):
@@ -96,6 +136,7 @@ class RomanAnalysis(StrictModel):
     roman_chords: list[str] = Field(default_factory=list)
     alternate_analyses: list[KeyAnalysis] = Field(default_factory=list)
     warnings: list[ParseWarning] = Field(default_factory=list)
+    ambiguous: bool = False
 
 
 class TransitionRecord(StrictModel):
@@ -142,6 +183,7 @@ class AnalyzeProgressionResponse(StrictModel):
     confidence: float = Field(ge=0.0, le=1.0)
     warnings: list[ParseWarning] = Field(default_factory=list)
     relationships: list[TransitionRecord] = Field(default_factory=list)
+    ambiguous: bool = False
 
 
 class NextChordsResponse(StrictModel):

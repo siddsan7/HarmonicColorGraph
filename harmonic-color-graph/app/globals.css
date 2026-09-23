@@ -84,6 +84,21 @@
 }
 
 .dark {
+    --bg-base: #08090b;
+    --bg-surface: #111318;
+    --bg-subtle: #191d24;
+    --text-primary: #f4f1e8;
+    --text-secondary: #b7bdc8;
+    --text-muted: #777f8f;
+    --accent-primary: #42e8b4;
+    --accent-secondary: #7aa7ff;
+    --accent-warm: #f2c86b;
+    --accent-tension: #f05d8e;
+    --border-default: #2a303a;
+    --border-strong: #3e4654;
+    --state-error: #ff6b6b;
+    --state-success: #53d18a;
+    --state-warning: #f2c86b;
     --background: oklch(0.145 0 0);
     --foreground: oklch(0.985 0 0);
     --card: oklch(0.205 0 0);

@@ -1,0 +1,12 @@
+{
+  "profile": "temperley",
+  "weights": {
+    "profile_correlation": 1.5,
+    "chord_fit": 1.0,
+    "cadence_count": 0.0,
+    "final_is_tonic": 0.6,
+    "first_is_tonic": 0.2,
+    "minor_plagal": 0.8
+  },
+  "temperature": 0.2
+}

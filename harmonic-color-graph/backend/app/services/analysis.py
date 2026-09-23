@@ -24,6 +24,7 @@ def analyze_progression_service(
         confidence=roman.confidence,
         warnings=_dedupe_warnings(normalized.warnings + roman.warnings),
         relationships=relationships,
+        ambiguous=roman.ambiguous,
     )
 
 

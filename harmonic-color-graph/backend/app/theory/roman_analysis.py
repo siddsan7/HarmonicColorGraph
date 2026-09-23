@@ -2,30 +2,10 @@ from dataclasses import dataclass
 
 from app.schemas import CanonicalChord, KeyAnalysis, RomanAnalysis
 from app.theory.chord_normalizer import NOTE_TO_PITCH_CLASS
+from app.theory.keys import estimate_keys
 from app.theory.progression_normalizer import normalize_progression
 
-MAJOR_SCALE = {0, 2, 4, 5, 7, 9, 11}
-MINOR_SCALE = {0, 2, 3, 5, 7, 8, 10}
-
-EXPECTED_MAJOR_QUALITIES = {
-    0: "maj",
-    2: "min",
-    4: "min",
-    5: "maj",
-    7: "maj",
-    9: "min",
-    11: "dim",
-}
-
-EXPECTED_MINOR_QUALITIES = {
-    0: "min",
-    2: "dim",
-    3: "maj",
-    5: "min",
-    7: "min",
-    8: "maj",
-    10: "maj",
-}
+KEY_ESTIMATION_METHOD = "pitch_class_profile_v2"
 
 ROMAN_BY_SEMITONE_MAJOR = {
     0: "I",
@@ -80,33 +60,41 @@ def analyze_progression(
             method="provided_key",
             roman_chords=roman_chords,
             warnings=normalized.warnings,
+            ambiguous=False,
         )
 
-    candidates = _estimate_keys(normalized.chords)
-    best = candidates[0] if candidates else ParsedKey("C", "major")
+    key_result = estimate_keys(normalized.chords)
+    best = _parsed_key_from_estimate(key_result.best.key, key_result.best.mode)
     alternates = [
         KeyAnalysis(
-            key=f"{candidate.root} {candidate.mode}",
-            mode=candidate.mode,  # type: ignore[arg-type]
-            confidence=_confidence_for_candidate(candidate, normalized.chords),
-            method="diatonic_fit_plus_terminal_chord",
-            roman_chords=_romanize_chords(normalized.chords, candidate),
+            key=estimate.key,
+            mode=estimate.mode,  # type: ignore[arg-type]
+            confidence=estimate.probability,
+            method=KEY_ESTIMATION_METHOD,
+            roman_chords=_romanize_chords(
+                normalized.chords, _parsed_key_from_estimate(estimate.key, estimate.mode)
+            ),
         )
-        for candidate in candidates[1:3]
+        for estimate in key_result.top(3)[1:3]
     ]
     best_confidence = min(
-        _confidence_for_candidate(best, normalized.chords) * normalized.chord_parse_success_rate,
+        key_result.best.probability * normalized.chord_parse_success_rate,
         0.99,
     )
     return RomanAnalysis(
-        key=f"{best.root} {best.mode}",
-        mode=best.mode,  # type: ignore[arg-type]
+        key=key_result.best.key,
+        mode=key_result.best.mode,  # type: ignore[arg-type]
         confidence=best_confidence,
-        method="diatonic_fit_plus_terminal_chord",
+        method=KEY_ESTIMATION_METHOD,
         roman_chords=_romanize_chords(normalized.chords, best),
         alternate_analyses=alternates,
         warnings=normalized.warnings,
+        ambiguous=key_result.ambiguous,
     )
+
+
+def _parsed_key_from_estimate(key: str, mode: str) -> "ParsedKey":
+    return ParsedKey(root=key.split()[0], mode=mode)
 
 
 def _parse_key(key: str) -> ParsedKey:
@@ -120,74 +108,6 @@ def _parse_key(key: str) -> ParsedKey:
     if mode not in {"major", "minor"}:
         raise ValueError(f"Unsupported key mode: {key}")
     return ParsedKey(root=root, mode=mode)
-
-
-def _estimate_keys(chords: list[CanonicalChord]) -> list[ParsedKey]:
-    candidate_roots = list(dict.fromkeys(chord.root for chord in chords))
-    candidates = [
-        ParsedKey(root=root, mode=mode) for root in candidate_roots for mode in ("major", "minor")
-    ]
-    return sorted(
-        candidates,
-        key=lambda candidate: _score_candidate(candidate, chords),
-        reverse=True,
-    )
-
-
-def _score_candidate(candidate: ParsedKey, chords: list[CanonicalChord]) -> float:
-    if not chords:
-        return 0.0
-    key_pc = NOTE_TO_PITCH_CLASS[candidate.root]
-    scale = MAJOR_SCALE if candidate.mode == "major" else MINOR_SCALE
-    diatonic_hits = sum(
-        1 for chord in chords if (NOTE_TO_PITCH_CLASS[chord.root] - key_pc) % 12 in scale
-    )
-    score = diatonic_hits / len(chords)
-    quality_hits = sum(
-        1
-        for chord in chords
-        if _quality_matches_candidate(
-            chord,
-            (NOTE_TO_PITCH_CLASS[chord.root] - key_pc) % 12,
-            candidate.mode,
-        )
-    )
-    score += 0.20 * (quality_hits / len(chords))
-
-    first_interval = (NOTE_TO_PITCH_CLASS[chords[0].root] - key_pc) % 12
-    last_interval = (NOTE_TO_PITCH_CLASS[chords[-1].root] - key_pc) % 12
-    if first_interval == 0:
-        score += 0.05
-    if last_interval == 0:
-        score += 0.15
-    if candidate.mode == "major" and last_interval == 7:
-        score += 0.10
-    return score
-
-
-def _quality_matches_candidate(
-    chord: CanonicalChord,
-    interval: int,
-    mode: str,
-) -> bool:
-    expected = (EXPECTED_MAJOR_QUALITIES if mode == "major" else EXPECTED_MINOR_QUALITIES).get(
-        interval
-    )
-    if expected is None:
-        return False
-    if expected == "maj":
-        return chord.quality in {"maj", "maj7", "7", "sus4", "add9"}
-    if expected == "min":
-        return chord.quality in {"min", "min7", "min7b5"}
-    return chord.quality == expected
-
-
-def _confidence_for_candidate(
-    candidate: ParsedKey,
-    chords: list[CanonicalChord],
-) -> float:
-    score = _score_candidate(candidate, chords)
-    return max(0.0, min(score / 1.25, 0.95))
 
 
 def _romanize_chords(chords: list[CanonicalChord], key: ParsedKey) -> list[str]:

@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api import phase1_router
+from app.api.analysis_v2 import router as analysis_v2_router
 from app.core.config import get_settings
 from app.db.session import get_session
 
@@ -30,6 +31,7 @@ app.add_middleware(
 # kept so existing clients (the demo UI) don't break until F14 moves the UI.
 app.include_router(phase1_router)
 app.include_router(phase1_router, prefix="/v1")
+app.include_router(analysis_v2_router)
 
 
 @app.get("/health", tags=["system"])

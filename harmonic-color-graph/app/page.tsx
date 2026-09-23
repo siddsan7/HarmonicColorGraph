@@ -1,5 +1,5 @@
-import { PhaseOneDemo } from "@/components/phase-one-demo"
+import { WorkbenchV2 } from "@/components/workbench-v2"
 
 export default function Home() {
-  return <PhaseOneDemo />
+  return <WorkbenchV2 />
 }

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Harmonic Color Graph",
-  description: "Phase 1 harmonic analysis demo.",
+  description: "Key-aware harmonic analysis, functional Roman numerals, and grounded relationship evidence.",
 };
 
 export default function RootLayout({

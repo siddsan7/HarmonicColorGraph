@@ -42,6 +42,7 @@ pythonpath = ["."]
 addopts = "-q -p no:cacheprovider"
 markers = [
     "pg: Postgres integration test; needs TEST_DATABASE_URL (skipped otherwise)",
+    "slow: throughput benchmark with a 1000-section batch",
 ]
 filterwarnings = [
     "ignore:Using `httpx` with `starlette.testclient` is deprecated:starlette.exceptions.StarletteDeprecationWarning",
@@ -63,4 +64,4 @@ known-first-party = ["app"]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path"]
 
 [tool.setuptools.packages.find]
-include = ["app*"]
+include = ["app*", "pipeline*"]

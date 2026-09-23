@@ -155,6 +155,14 @@ see `docs/roadmap-v2.md` and
 
 ## API Surface
 
+M1 adds the DB-independent `POST /v2/analyze` endpoint. It returns a
+24-key distribution (top five), song and section keys, functional Roman
+tokens with absolute chord features, indexed parse warnings, and
+fact-bearing relationship labels. `theory/keys.py`, `theory/roman.py`,
+and `theory/relationships_v2.py` implement the rules; the original
+`/v1/*` and unversioned routes remain callable. `backend/openapi.json`
+and `lib/api/types.ts` are generated contracts checked for drift in CI.
+
 Phase 1 target endpoints:
 
 - `POST /analyze-progression` - normalize and analyze a chord

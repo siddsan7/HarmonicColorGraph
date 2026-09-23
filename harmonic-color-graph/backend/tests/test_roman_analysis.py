@@ -28,7 +28,7 @@ def test_analyze_progression_preserves_ambiguity_when_key_is_missing():
     analysis = analyze_progression(["Am", "F", "C", "G"])
 
     assert analysis.key == "C major"
-    assert analysis.method == "diatonic_fit_plus_terminal_chord"
+    assert analysis.method == "pitch_class_profile_v2"
     assert analysis.confidence < 1.0
     assert analysis.roman_chords == ["vi", "IV", "I", "V"]
     assert any(candidate.key == "A minor" for candidate in analysis.alternate_analyses)

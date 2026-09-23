@@ -19,6 +19,7 @@ the tool itself.
 Define these as CSS custom properties before building
 substantial UI. Components should use tokens rather than
 hardcoded hex values.
+The M1 workbench defines them on `.dark` in `app/globals.css`.
 
 | Role                 | CSS Variable          | Value     |
 | -------------------- | --------------------- | --------- |

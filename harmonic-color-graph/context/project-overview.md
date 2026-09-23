@@ -130,13 +130,18 @@ project:
 
 ### Current Scope
 
-- Current active phase: Phase 1.
+- Current active execution: the v2 implementation plan. M0 is
+  merged and live; M1 F10–F14 is implemented and passing local
+  checks on the feature branch, with CI and production verification
+  pending. The key and Roman gold sets are provisional until
+  Siddharth's later musician review. `context/HANDOFF.md` and
+  `context/progress-tracker.md` hold the current ship state.
 - Build the harmonic data/theory backend and document the
   project so future implementation follows the intended
   graph-first architecture.
-- Keep the existing Next.js app available for a minimal demo,
-  but do not let frontend polish distract from Phase 1 data
-  correctness.
+- Keep the existing Next.js app available for the current
+  workbench/demo while v2 analysis, graph, color, and
+  recommendation layers are added incrementally.
 
 ### In Scope
 

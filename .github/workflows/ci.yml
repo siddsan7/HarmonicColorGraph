@@ -43,6 +43,11 @@ jobs:
         working-directory: harmonic-color-graph/backend
         run: ruff format --check .
 
+      - name: OpenAPI contract drift
+        run: |
+          python scripts/export_openapi.py
+          git diff --exit-code -- backend/openapi.json
+
       - name: Unit tests
         working-directory: harmonic-color-graph/backend
         run: pytest -q --cov=app
@@ -132,6 +137,11 @@ jobs:
 
       - name: Install
         run: npm ci
+
+      - name: Generated API types drift
+        run: |
+          npm run gen:api
+          git diff --exit-code -- lib/api/types.ts
 
       - name: Lint
         run: npm run lint

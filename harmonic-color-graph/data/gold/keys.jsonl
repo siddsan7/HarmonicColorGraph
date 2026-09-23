@@ -1,0 +1,80 @@
+{"template": "diatonic_major_cadence", "chords": ["C", "F", "G", "C"], "notes": "I IV V I", "key": "C major"}
+{"template": "diatonic_major_cadence", "chords": ["Eb", "Ab", "Bb", "Eb"], "notes": "I IV V I", "key": "Eb major"}
+{"template": "diatonic_major_cadence", "chords": ["F#", "B", "C#", "F#"], "notes": "I IV V I", "key": "F# major"}
+{"template": "diatonic_major_cadence", "chords": ["A", "D", "E", "A"], "notes": "I IV V I", "key": "A major"}
+{"template": "pop_loop", "chords": ["C", "G", "Am", "F"], "notes": "I V vi IV", "key": "C major"}
+{"template": "pop_loop", "chords": ["Eb", "Bb", "Cm", "Ab"], "notes": "I V vi IV", "key": "Eb major"}
+{"template": "pop_loop", "chords": ["F#", "C#", "D#m", "B"], "notes": "I V vi IV", "key": "F# major"}
+{"template": "pop_loop", "chords": ["A", "E", "F#m", "D"], "notes": "I V vi IV", "key": "A major"}
+{"template": "minor_harmonic_v", "chords": ["Cm", "Fm", "G", "Cm"], "notes": "i iv V i (harmonic-minor dominant)", "key": "C minor"}
+{"template": "minor_harmonic_v", "chords": ["Ebm", "Abm", "Bb", "Ebm"], "notes": "i iv V i (harmonic-minor dominant)", "key": "Eb minor"}
+{"template": "minor_harmonic_v", "chords": ["F#m", "Bm", "C#", "F#m"], "notes": "i iv V i (harmonic-minor dominant)", "key": "F# minor"}
+{"template": "minor_harmonic_v", "chords": ["Am", "Dm", "E", "Am"], "notes": "i iv V i (harmonic-minor dominant)", "key": "A minor"}
+{"template": "natural_minor_loop", "chords": ["Cm", "Ab", "Eb", "Bb"], "notes": "i VI III VII (natural minor / Aeolian)", "key": "C minor"}
+{"template": "natural_minor_loop", "chords": ["Ebm", "Cb", "Gb", "Db"], "notes": "i VI III VII (natural minor / Aeolian)", "key": "Eb minor"}
+{"template": "natural_minor_loop", "chords": ["F#m", "D", "A", "E"], "notes": "i VI III VII (natural minor / Aeolian)", "key": "F# minor"}
+{"template": "natural_minor_loop", "chords": ["Am", "F", "C", "G"], "notes": "i VI III VII (natural minor / Aeolian)", "key": "A minor"}
+{"template": "mixolydian", "chords": ["C", "A#", "F", "C"], "notes": "I bVII IV I (mixolydian)", "key": "C major"}
+{"template": "mixolydian", "chords": ["Eb", "Db", "Ab", "Eb"], "notes": "I bVII IV I (mixolydian)", "key": "Eb major"}
+{"template": "mixolydian", "chords": ["F#", "E", "B", "F#"], "notes": "I bVII IV I (mixolydian)", "key": "F# major"}
+{"template": "mixolydian", "chords": ["A", "G", "D", "A"], "notes": "I bVII IV I (mixolydian)", "key": "A major"}
+{"template": "dorian", "chords": ["Cm", "F", "Cm"], "notes": "i IV i (dorian raised 6th)", "key": "C minor"}
+{"template": "dorian", "chords": ["Ebm", "Ab", "Ebm"], "notes": "i IV i (dorian raised 6th)", "key": "Eb minor"}
+{"template": "dorian", "chords": ["F#m", "B", "F#m"], "notes": "i IV i (dorian raised 6th)", "key": "F# minor"}
+{"template": "dorian", "chords": ["Am", "D", "Am"], "notes": "i IV i (dorian raised 6th)", "key": "A minor"}
+{"template": "blues", "chords": ["C7", "F7", "G7", "C7"], "notes": "I7 IV7 V7 I7 (blues)", "key": "C major"}
+{"template": "blues", "chords": ["Eb7", "Ab7", "Bb7", "Eb7"], "notes": "I7 IV7 V7 I7 (blues)", "key": "Eb major"}
+{"template": "blues", "chords": ["F#7", "B7", "C#7", "F#7"], "notes": "I7 IV7 V7 I7 (blues)", "key": "F# major"}
+{"template": "blues", "chords": ["A7", "D7", "E7", "A7"], "notes": "I7 IV7 V7 I7 (blues)", "key": "A major"}
+{"template": "jazz_ii_v_i", "chords": ["Dm7", "G7", "Cmaj7"], "notes": "ii7 V7 Imaj7", "key": "C major"}
+{"template": "jazz_ii_v_i", "chords": ["Fm7", "Bb7", "Ebmaj7"], "notes": "ii7 V7 Imaj7", "key": "Eb major"}
+{"template": "jazz_ii_v_i", "chords": ["G#m7", "C#7", "F#maj7"], "notes": "ii7 V7 Imaj7", "key": "F# major"}
+{"template": "jazz_ii_v_i", "chords": ["Bm7", "E7", "Amaj7"], "notes": "ii7 V7 Imaj7", "key": "A major"}
+{"template": "borrowed_iv", "chords": ["F", "Fm", "C"], "notes": "IV iv I (modal mixture)", "key": "C major"}
+{"template": "borrowed_iv", "chords": ["Ab", "Abm", "Eb"], "notes": "IV iv I (modal mixture)", "key": "Eb major"}
+{"template": "borrowed_iv", "chords": ["B", "Bm", "F#"], "notes": "IV iv I (modal mixture)", "key": "F# major"}
+{"template": "borrowed_iv", "chords": ["D", "Dm", "A"], "notes": "IV iv I (modal mixture)", "key": "A major"}
+{"template": "secondary_dominant_v_of_v", "chords": ["C", "D7", "G", "C"], "notes": "I V7/V V I", "key": "C major"}
+{"template": "secondary_dominant_v_of_v", "chords": ["Eb", "F7", "Bb", "Eb"], "notes": "I V7/V V I", "key": "Eb major"}
+{"template": "secondary_dominant_v_of_v", "chords": ["F#", "G#7", "C#", "F#"], "notes": "I V7/V V I", "key": "F# major"}
+{"template": "secondary_dominant_v_of_v", "chords": ["A", "B7", "E", "A"], "notes": "I V7/V V I", "key": "A major"}
+{"template": "tonic_absent_ii_v", "chords": ["Dm", "G"], "notes": "ii V (no tonic chord sounds; implies but does not confirm the key)", "key": "C major"}
+{"template": "tonic_absent_ii_v", "chords": ["Fm", "Bb"], "notes": "ii V (no tonic chord sounds; implies but does not confirm the key)", "key": "Eb major"}
+{"template": "tonic_absent_ii_v", "chords": ["G#m", "C#"], "notes": "ii V (no tonic chord sounds; implies but does not confirm the key)", "key": "F# major"}
+{"template": "tonic_absent_ii_v", "chords": ["Bm", "E"], "notes": "ii V (no tonic chord sounds; implies but does not confirm the key)", "key": "A major"}
+{"template": "ambiguous_relative_pair", "chords": ["Am", "F", "C", "G"], "notes": "vi IV I V (classic major/relative-minor ambiguity)", "acceptable_keys": ["C major", "A minor"]}
+{"template": "ambiguous_relative_pair", "chords": ["Cm", "Ab", "Eb", "Bb"], "notes": "vi IV I V (classic major/relative-minor ambiguity)", "acceptable_keys": ["Eb major", "C minor"]}
+{"template": "ambiguous_relative_pair", "chords": ["D#m", "B", "F#", "C#"], "notes": "vi IV I V (classic major/relative-minor ambiguity)", "acceptable_keys": ["F# major", "D# minor"]}
+{"template": "ambiguous_relative_pair", "chords": ["F#m", "D", "A", "E"], "notes": "vi IV I V (classic major/relative-minor ambiguity)", "acceptable_keys": ["A major", "F# minor"]}
+{"template": "plagal_major", "chords": ["C", "F", "C"], "notes": "I IV I", "key": "C major"}
+{"template": "plagal_major", "chords": ["Eb", "Ab", "Eb"], "notes": "I IV I", "key": "Eb major"}
+{"template": "plagal_major", "chords": ["F#", "B", "F#"], "notes": "I IV I", "key": "F# major"}
+{"template": "plagal_major", "chords": ["A", "D", "A"], "notes": "I IV I", "key": "A major"}
+{"template": "half_cadence_minor", "chords": ["Cm", "Fm", "G"], "notes": "i iv V", "key": "C minor"}
+{"template": "half_cadence_minor", "chords": ["Ebm", "Abm", "Bb"], "notes": "i iv V", "key": "Eb minor"}
+{"template": "half_cadence_minor", "chords": ["F#m", "Bm", "C#"], "notes": "i iv V", "key": "F# minor"}
+{"template": "half_cadence_minor", "chords": ["Am", "Dm", "E"], "notes": "i iv V", "key": "A minor"}
+{"template": "deceptive_major", "chords": ["C", "F", "G", "Am"], "notes": "I IV V vi (deceptive cadence)", "key": "C major"}
+{"template": "deceptive_major", "chords": ["Eb", "Ab", "Bb", "Cm"], "notes": "I IV V vi (deceptive cadence)", "key": "Eb major"}
+{"template": "deceptive_major", "chords": ["F#", "B", "C#", "D#m"], "notes": "I IV V vi (deceptive cadence)", "key": "F# major"}
+{"template": "deceptive_major", "chords": ["A", "D", "E", "F#m"], "notes": "I IV V vi (deceptive cadence)", "key": "A major"}
+{"template": "diatonic_scale_walk", "chords": ["C", "Dm", "Em", "F", "G", "Am", "Bdim", "C"], "notes": "I ii iii IV V vi vii I", "key": "C major"}
+{"template": "diatonic_scale_walk", "chords": ["Eb", "Fm", "Gm", "Ab", "Bb", "Cm", "Ddim", "Eb"], "notes": "I ii iii IV V vi vii I", "key": "Eb major"}
+{"template": "diatonic_scale_walk", "chords": ["F#", "G#m", "A#m", "B", "C#", "D#m", "E#dim", "F#"], "notes": "I ii iii IV V vi vii I", "key": "F# major"}
+{"template": "diatonic_scale_walk", "chords": ["A", "Bm", "C#m", "D", "E", "F#m", "G#dim", "A"], "notes": "I ii iii IV V vi vii I", "key": "A major"}
+{"template": "andalusian_minor", "chords": ["Cm", "Bb", "Ab", "G"], "notes": "i bVII bVI V (Andalusian cadence)", "key": "C minor"}
+{"template": "andalusian_minor", "chords": ["Ebm", "Db", "Cb", "Bb"], "notes": "i bVII bVI V (Andalusian cadence)", "key": "Eb minor"}
+{"template": "andalusian_minor", "chords": ["F#m", "E", "D", "C#"], "notes": "i bVII bVI V (Andalusian cadence)", "key": "F# minor"}
+{"template": "andalusian_minor", "chords": ["Am", "G", "F", "E"], "notes": "i bVII bVI V (Andalusian cadence)", "key": "A minor"}
+{"template": "circle_of_fifths_major", "chords": ["Am", "Dm", "G", "C"], "notes": "vi ii V I", "key": "C major"}
+{"template": "circle_of_fifths_major", "chords": ["Cm", "Fm", "Bb", "Eb"], "notes": "vi ii V I", "key": "Eb major"}
+{"template": "circle_of_fifths_major", "chords": ["D#m", "G#m", "C#", "F#"], "notes": "vi ii V I", "key": "F# major"}
+{"template": "circle_of_fifths_major", "chords": ["F#m", "Bm", "E", "A"], "notes": "vi ii V I", "key": "A major"}
+{"template": "secondary_dominant_v_of_vi", "chords": ["C", "E7", "Am", "G", "C"], "notes": "I V7/vi vi V I", "key": "C major"}
+{"template": "secondary_dominant_v_of_vi", "chords": ["Eb", "G7", "Cm", "Bb", "Eb"], "notes": "I V7/vi vi V I", "key": "Eb major"}
+{"template": "secondary_dominant_v_of_vi", "chords": ["F#", "A#7", "D#m", "C#", "F#"], "notes": "I V7/vi vi V I", "key": "F# major"}
+{"template": "secondary_dominant_v_of_vi", "chords": ["A", "C#7", "F#m", "E", "A"], "notes": "I V7/vi vi V I", "key": "A major"}
+{"template": "minor_plagal", "chords": ["Cm", "Fm", "Cm"], "notes": "i iv i", "key": "C minor"}
+{"template": "minor_plagal", "chords": ["Ebm", "Abm", "Ebm"], "notes": "i iv i", "key": "Eb minor"}
+{"template": "minor_plagal", "chords": ["F#m", "Bm", "F#m"], "notes": "i iv i", "key": "F# minor"}
+{"template": "minor_plagal", "chords": ["Am", "Dm", "Am"], "notes": "i iv i", "key": "A minor"}

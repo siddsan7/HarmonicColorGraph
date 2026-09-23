@@ -1,0 +1,1779 @@
+{
+  "components": {
+    "schemas": {
+      "AnalysisV2": {
+        "additionalProperties": false,
+        "properties": {
+          "ambiguous": {
+            "title": "Ambiguous",
+            "type": "boolean"
+          },
+          "chords": {
+            "items": {
+              "$ref": "#/components/schemas/CanonicalChord"
+            },
+            "title": "Chords",
+            "type": "array"
+          },
+          "key_distribution": {
+            "items": {
+              "$ref": "#/components/schemas/KeyProbability"
+            },
+            "title": "Key Distribution",
+            "type": "array"
+          },
+          "local_keys": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Local Keys",
+            "type": "array"
+          },
+          "modulations": {
+            "items": {
+              "$ref": "#/components/schemas/Modulation"
+            },
+            "title": "Modulations",
+            "type": "array"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipFact"
+            },
+            "title": "Relationships",
+            "type": "array"
+          },
+          "song_key": {
+            "title": "Song Key",
+            "type": "string"
+          },
+          "tokens": {
+            "items": {
+              "$ref": "#/components/schemas/RomanToken"
+            },
+            "title": "Tokens",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key_distribution",
+          "song_key",
+          "ambiguous",
+          "local_keys",
+          "tokens",
+          "chords"
+        ],
+        "title": "AnalysisV2",
+        "type": "object"
+      },
+      "AnalysisWarning": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          },
+          "token_index": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Token Index"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "AnalysisWarning",
+        "type": "object"
+      },
+      "AnalyzeProgressionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "chords": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Chords",
+            "type": "array"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "required": [
+          "chords"
+        ],
+        "title": "AnalyzeProgressionRequest",
+        "type": "object"
+      },
+      "AnalyzeProgressionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "absolute_chords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Absolute Chords",
+            "type": "array"
+          },
+          "ambiguous": {
+            "default": false,
+            "title": "Ambiguous",
+            "type": "boolean"
+          },
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "detected_key": {
+            "title": "Detected Key",
+            "type": "string"
+          },
+          "relationships": {
+            "items": {
+              "$ref": "#/components/schemas/TransitionRecord"
+            },
+            "title": "Relationships",
+            "type": "array"
+          },
+          "roman_chords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Roman Chords",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/ParseWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "absolute_chords",
+          "roman_chords",
+          "detected_key",
+          "confidence"
+        ],
+        "title": "AnalyzeProgressionResponse",
+        "type": "object"
+      },
+      "AnalyzeV2Request": {
+        "additionalProperties": false,
+        "properties": {
+          "chords": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Chords"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "section_markers": {
+            "default": false,
+            "title": "Section Markers",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "chords"
+        ],
+        "title": "AnalyzeV2Request",
+        "type": "object"
+      },
+      "CanonicalChord": {
+        "additionalProperties": false,
+        "properties": {
+          "bass": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bass"
+          },
+          "bass_pc": {
+            "anyOf": [
+              {
+                "maximum": 11.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bass Pc"
+          },
+          "extensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extensions",
+            "type": "array"
+          },
+          "interval_vector": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Interval Vector",
+            "type": "array"
+          },
+          "intervals": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Intervals",
+            "type": "array"
+          },
+          "inversion": {
+            "anyOf": [
+              {
+                "enum": [
+                  "root",
+                  "first",
+                  "second",
+                  "third",
+                  "other"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Inversion"
+          },
+          "pc_set_mask": {
+            "anyOf": [
+              {
+                "maximum": 4095.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pc Set Mask"
+          },
+          "pitch_classes": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Pitch Classes",
+            "type": "array"
+          },
+          "quality": {
+            "minLength": 1,
+            "title": "Quality",
+            "type": "string"
+          },
+          "quality_class": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Class"
+          },
+          "raw_symbol": {
+            "minLength": 1,
+            "title": "Raw Symbol",
+            "type": "string"
+          },
+          "root": {
+            "minLength": 1,
+            "title": "Root",
+            "type": "string"
+          },
+          "root_pc": {
+            "anyOf": [
+              {
+                "maximum": 11.0,
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Root Pc"
+          },
+          "symbol": {
+            "minLength": 1,
+            "title": "Symbol",
+            "type": "string"
+          },
+          "tones_spelled": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tones Spelled",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/ParseWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "raw_symbol",
+          "symbol",
+          "root",
+          "quality"
+        ],
+        "title": "CanonicalChord",
+        "type": "object"
+      },
+      "ContextUsed": {
+        "additionalProperties": false,
+        "properties": {
+          "backoff": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Backoff",
+            "type": "array"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "mode": {
+            "default": "major",
+            "title": "Mode",
+            "type": "string"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "title": "ContextUsed",
+        "type": "object"
+      },
+      "ExplainTransitionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "from_roman": {
+            "minLength": 1,
+            "title": "From Roman",
+            "type": "string"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "short_explanation": {
+            "title": "Short Explanation",
+            "type": "string"
+          },
+          "technical_explanation": {
+            "title": "Technical Explanation",
+            "type": "string"
+          },
+          "to_roman": {
+            "minLength": 1,
+            "title": "To Roman",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_roman",
+          "to_roman",
+          "short_explanation",
+          "technical_explanation"
+        ],
+        "title": "ExplainTransitionResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "KeyProbability": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "probability": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability",
+            "type": "number"
+          }
+        },
+        "required": [
+          "key",
+          "probability"
+        ],
+        "title": "KeyProbability",
+        "type": "object"
+      },
+      "Modulation": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "from_key": {
+            "title": "From Key",
+            "type": "string"
+          },
+          "section_index": {
+            "minimum": 0.0,
+            "title": "Section Index",
+            "type": "integer"
+          },
+          "semitones": {
+            "title": "Semitones",
+            "type": "integer"
+          },
+          "to_key": {
+            "title": "To Key",
+            "type": "string"
+          }
+        },
+        "required": [
+          "section_index",
+          "from_key",
+          "to_key",
+          "semitones",
+          "description"
+        ],
+        "title": "Modulation",
+        "type": "object"
+      },
+      "NextChordsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "candidates": {
+            "items": {
+              "$ref": "#/components/schemas/TransitionCandidate"
+            },
+            "title": "Candidates",
+            "type": "array"
+          },
+          "context_used": {
+            "$ref": "#/components/schemas/ContextUsed"
+          },
+          "data_source": {
+            "default": "unknown",
+            "title": "Data Source",
+            "type": "string"
+          },
+          "database_transition_count": {
+            "default": 0,
+            "title": "Database Transition Count",
+            "type": "integer"
+          },
+          "fallback_used": {
+            "default": false,
+            "title": "Fallback Used",
+            "type": "boolean"
+          },
+          "input": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Input",
+            "type": "array"
+          }
+        },
+        "required": [
+          "input",
+          "candidates"
+        ],
+        "title": "NextChordsResponse",
+        "type": "object"
+      },
+      "ParseWarning": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "minLength": 1,
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "minLength": 1,
+            "title": "Message",
+            "type": "string"
+          },
+          "raw_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Value"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "ParseWarning",
+        "type": "object"
+      },
+      "RelationshipFact": {
+        "additionalProperties": false,
+        "properties": {
+          "category": {
+            "enum": [
+              "cadence",
+              "functional",
+              "chromatic",
+              "voice_leading",
+              "modal"
+            ],
+            "title": "Category",
+            "type": "string"
+          },
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "from_index": {
+            "minimum": 0.0,
+            "title": "From Index",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "short_explanation": {
+            "title": "Short Explanation",
+            "type": "string"
+          },
+          "technical_explanation": {
+            "title": "Technical Explanation",
+            "type": "string"
+          },
+          "to_index": {
+            "minimum": 0.0,
+            "title": "To Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "category",
+          "from_index",
+          "to_index",
+          "short_explanation",
+          "technical_explanation",
+          "fact_ids"
+        ],
+        "title": "RelationshipFact",
+        "type": "object"
+      },
+      "RomanToken": {
+        "additionalProperties": false,
+        "properties": {
+          "accidental": {
+            "default": "",
+            "title": "Accidental",
+            "type": "string"
+          },
+          "applied_role": {
+            "anyOf": [
+              {
+                "enum": [
+                  "V",
+                  "viio",
+                  "subV"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied Role"
+          },
+          "applied_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Applied To"
+          },
+          "bass_pc": {
+            "maximum": 11.0,
+            "minimum": 0.0,
+            "title": "Bass Pc",
+            "type": "integer"
+          },
+          "borrowed_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Borrowed From"
+          },
+          "chord_index": {
+            "minimum": 0.0,
+            "title": "Chord Index",
+            "type": "integer"
+          },
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "core": {
+            "title": "Core",
+            "type": "string"
+          },
+          "degree": {
+            "maximum": 7.0,
+            "minimum": 1.0,
+            "title": "Degree",
+            "type": "integer"
+          },
+          "display_figure": {
+            "title": "Display Figure",
+            "type": "string"
+          },
+          "extensions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extensions",
+            "type": "array"
+          },
+          "figure": {
+            "title": "Figure",
+            "type": "string"
+          },
+          "function": {
+            "default": "other",
+            "enum": [
+              "T",
+              "PD",
+              "D",
+              "other"
+            ],
+            "title": "Function",
+            "type": "string"
+          },
+          "inversion": {
+            "default": "root",
+            "title": "Inversion",
+            "type": "string"
+          },
+          "is_borrowed": {
+            "default": false,
+            "title": "Is Borrowed",
+            "type": "boolean"
+          },
+          "is_chromatic": {
+            "default": false,
+            "title": "Is Chromatic",
+            "type": "boolean"
+          },
+          "mode": {
+            "enum": [
+              "major",
+              "minor"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "pitch_classes": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Pitch Classes",
+            "type": "array"
+          },
+          "quality_class": {
+            "title": "Quality Class",
+            "type": "string"
+          },
+          "root_pc": {
+            "maximum": 11.0,
+            "minimum": 0.0,
+            "title": "Root Pc",
+            "type": "integer"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tags",
+            "type": "array"
+          },
+          "unresolved": {
+            "default": false,
+            "title": "Unresolved",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "figure",
+          "display_figure",
+          "core",
+          "mode",
+          "degree",
+          "quality_class",
+          "confidence",
+          "root_pc",
+          "bass_pc",
+          "chord_index"
+        ],
+        "title": "RomanToken",
+        "type": "object"
+      },
+      "TransitionCandidate": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "minLength": 1,
+            "title": "Chord",
+            "type": "string"
+          },
+          "count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "probability": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability",
+            "type": "number"
+          },
+          "relationship": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relationship"
+          },
+          "relationship_labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Relationship Labels",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chord",
+          "probability"
+        ],
+        "title": "TransitionCandidate",
+        "type": "object"
+      },
+      "TransitionRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "count": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "decade": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decade"
+          },
+          "from_roman": {
+            "minLength": 1,
+            "title": "From Roman",
+            "type": "string"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "mode_context": {
+            "default": "unknown",
+            "enum": [
+              "major",
+              "minor",
+              "unknown"
+            ],
+            "title": "Mode Context",
+            "type": "string"
+          },
+          "probability": {
+            "default": 0.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability",
+            "type": "number"
+          },
+          "relationship_labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Relationship Labels",
+            "type": "array"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "short_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Short Explanation"
+          },
+          "subgenre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subgenre"
+          },
+          "technical_explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Technical Explanation"
+          },
+          "to_roman": {
+            "minLength": 1,
+            "title": "To Roman",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from_roman",
+          "to_roman"
+        ],
+        "title": "TransitionRecord",
+        "type": "object"
+      },
+      "TransitionStatsResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "context_used": {
+            "$ref": "#/components/schemas/ContextUsed"
+          },
+          "data_source": {
+            "default": "unknown",
+            "title": "Data Source",
+            "type": "string"
+          },
+          "database_transition_count": {
+            "default": 0,
+            "title": "Database Transition Count",
+            "type": "integer"
+          },
+          "fallback_used": {
+            "default": false,
+            "title": "Fallback Used",
+            "type": "boolean"
+          },
+          "from_roman": {
+            "minLength": 1,
+            "title": "From Roman",
+            "type": "string"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "next": {
+            "items": {
+              "$ref": "#/components/schemas/TransitionCandidate"
+            },
+            "title": "Next",
+            "type": "array"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "required": [
+          "from_roman"
+        ],
+        "title": "TransitionStatsResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Phase 1 harmonic data graph foundation API.",
+    "title": "Harmonic Color Graph API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/analyze-progression": {
+      "post": {
+        "operationId": "analyze_progression_endpoint_analyze_progression_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeProgressionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeProgressionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Analyze Progression Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/explain-transition": {
+      "get": {
+        "operationId": "explain_transition_endpoint_explain_transition_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "major",
+              "title": "Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplainTransitionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Explain Transition Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_check_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Check Health Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Check",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/health/db": {
+      "get": {
+        "operationId": "health_db_check_health_db_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Db Check",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/next-chords": {
+      "get": {
+        "operationId": "next_chords_endpoint_next_chords_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "progression",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Progression",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "major",
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Genre"
+            }
+          },
+          {
+            "in": "query",
+            "name": "section",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextChordsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Next Chords Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/transition-stats": {
+      "get": {
+        "operationId": "transition_stats_endpoint_transition_stats_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "major",
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Genre"
+            }
+          },
+          {
+            "in": "query",
+            "name": "section",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitionStatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transition Stats Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/v1/analyze-progression": {
+      "post": {
+        "operationId": "analyze_progression_endpoint_v1_analyze_progression_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeProgressionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyzeProgressionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Analyze Progression Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/v1/explain-transition": {
+      "get": {
+        "operationId": "explain_transition_endpoint_v1_explain_transition_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "To",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "major",
+              "title": "Mode",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExplainTransitionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Explain Transition Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/v1/next-chords": {
+      "get": {
+        "operationId": "next_chords_endpoint_v1_next_chords_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "progression",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Progression",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "major",
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Genre"
+            }
+          },
+          {
+            "in": "query",
+            "name": "section",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NextChordsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Next Chords Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/v1/transition-stats": {
+      "get": {
+        "operationId": "transition_stats_endpoint_v1_transition_stats_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "From",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "mode",
+            "required": false,
+            "schema": {
+              "default": "major",
+              "title": "Mode",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "genre",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Genre"
+            }
+          },
+          {
+            "in": "query",
+            "name": "section",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Section"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransitionStatsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transition Stats Endpoint",
+        "tags": [
+          "phase-1"
+        ]
+      }
+    },
+    "/v2/analyze": {
+      "post": {
+        "operationId": "analyze_endpoint_v2_analyze_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnalyzeV2Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisV2"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Analyze Endpoint",
+        "tags": [
+          "analysis-v2"
+        ]
+      }
+    }
+  }
+}
