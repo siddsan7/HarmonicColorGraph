@@ -84,4 +84,3 @@ def test_get_transition_stats_returns_ranked_candidates():
     assert response.from_roman == "V"
     assert response.genre == "all"
     assert [candidate.chord for candidate in response.next] == ["I", "vi"]
-

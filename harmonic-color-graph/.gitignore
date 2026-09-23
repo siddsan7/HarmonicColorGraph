@@ -15,10 +15,15 @@
 .pytest_cache/
 pytest-cache-files-*/
 .tmp/
+playwright-report/
+test-results/
 
-# local datasets
+# local datasets and pipeline output
 data/raw/*
 !data/raw/.gitkeep
+data/artifacts/
+*.parquet
+*.model
 
 # next.js
 /.next/

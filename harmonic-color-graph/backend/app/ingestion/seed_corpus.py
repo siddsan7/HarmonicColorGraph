@@ -8,7 +8,6 @@ from app.db.base import Base
 from app.db.session import create_session_factory
 from app.services.corpus_ingestion import ingest_chordonomicon_corpus
 
-
 PHASE_ONE_TABLES = [
     "transition_theory_labels",
     "source_metadata",
@@ -96,9 +95,7 @@ def _reset_database(engine) -> None:
 
     table_list = ", ".join(f"public.{table}" for table in PHASE_ONE_TABLES)
     with engine.begin() as connection:
-        connection.execute(
-            text(f"truncate table {table_list} restart identity cascade")
-        )
+        connection.execute(text(f"truncate table {table_list} restart identity cascade"))
 
 
 if __name__ == "__main__":

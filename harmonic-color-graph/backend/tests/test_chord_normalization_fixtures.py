@@ -1,12 +1,8 @@
 import json
 from pathlib import Path
 
-
 FIXTURE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "data"
-    / "samples"
-    / "chord_normalization_cases.json"
+    Path(__file__).resolve().parents[2] / "data" / "samples" / "chord_normalization_cases.json"
 )
 
 
@@ -41,4 +37,3 @@ def test_chord_normalization_fixture_cases_are_self_describing():
         assert case["description"]
         assert "expected" in case
         assert "warnings" in case
-

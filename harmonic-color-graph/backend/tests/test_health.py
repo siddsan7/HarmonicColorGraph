@@ -14,4 +14,3 @@ def test_health_endpoint_reports_backend_status():
         "service": "harmonic-color-graph-backend",
         "phase": "phase-1",
     }
-

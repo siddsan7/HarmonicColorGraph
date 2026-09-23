@@ -36,4 +36,3 @@ def test_normalize_progression_handles_commas_and_empty_tokens():
         "F:maj",
     ]
     assert result.skipped_tokens == []
-

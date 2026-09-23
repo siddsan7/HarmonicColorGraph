@@ -15,7 +15,7 @@ def label_progression_relationships(
 ) -> list[TransitionRecord]:
     return [
         label_transition(from_roman, to_roman, mode_context)
-        for from_roman, to_roman in zip(roman_chords, roman_chords[1:])
+        for from_roman, to_roman in zip(roman_chords, roman_chords[1:], strict=False)
     ]
 
 
@@ -48,9 +48,7 @@ def label_transition(
 
     if from_core == "iv" and to_core == "I":
         labels.extend(["minor plagal cadence", "modal interchange"])
-        short_explanation = (
-            "The borrowed minor iv darkens the major key before resolving to tonic."
-        )
+        short_explanation = "The borrowed minor iv darkens the major key before resolving to tonic."
         technical_explanation = (
             "The iv chord borrows the lowered sixth scale degree from the "
             "parallel minor, then resolves back to the major tonic."
@@ -58,9 +56,7 @@ def label_transition(
 
     if from_core == "V" and to_core == "vi":
         labels.append("deceptive cadence")
-        short_explanation = (
-            "V sets up tonic resolution but moves to vi instead, creating a detour."
-        )
+        short_explanation = "V sets up tonic resolution but moves to vi instead, creating a detour."
         technical_explanation = (
             "The dominant expectation is diverted to the submediant rather than I."
         )
@@ -91,8 +87,7 @@ def label_transition(
         mode_context=mode_context,  # type: ignore[arg-type]
         relationship_labels=labels,
         short_explanation=short_explanation or _default_short_explanation(labels),
-        technical_explanation=technical_explanation
-        or _default_technical_explanation(labels),
+        technical_explanation=technical_explanation or _default_technical_explanation(labels),
     )
 
 

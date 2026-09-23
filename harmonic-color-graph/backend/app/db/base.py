@@ -18,4 +18,3 @@ from app.models.harmony import (  # noqa: E402,F401
     TransitionModel,
     TransitionTheoryLabelModel,
 )
-

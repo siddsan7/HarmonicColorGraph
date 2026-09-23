@@ -65,4 +65,3 @@ def test_aggregate_transitions_includes_contextual_counts():
         ("V", "vi"),
     ]
     assert all(edge.probability == 1.0 for edge in pop_edges)
-

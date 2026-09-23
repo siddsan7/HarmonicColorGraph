@@ -95,8 +95,7 @@ def analyze_progression(
         for candidate in candidates[1:3]
     ]
     best_confidence = min(
-        _confidence_for_candidate(best, normalized.chords)
-        * normalized.chord_parse_success_rate,
+        _confidence_for_candidate(best, normalized.chords) * normalized.chord_parse_success_rate,
         0.99,
     )
     return RomanAnalysis(
@@ -126,9 +125,7 @@ def _parse_key(key: str) -> ParsedKey:
 def _estimate_keys(chords: list[CanonicalChord]) -> list[ParsedKey]:
     candidate_roots = list(dict.fromkeys(chord.root for chord in chords))
     candidates = [
-        ParsedKey(root=root, mode=mode)
-        for root in candidate_roots
-        for mode in ("major", "minor")
+        ParsedKey(root=root, mode=mode) for root in candidate_roots for mode in ("major", "minor")
     ]
     return sorted(
         candidates,
@@ -143,9 +140,7 @@ def _score_candidate(candidate: ParsedKey, chords: list[CanonicalChord]) -> floa
     key_pc = NOTE_TO_PITCH_CLASS[candidate.root]
     scale = MAJOR_SCALE if candidate.mode == "major" else MINOR_SCALE
     diatonic_hits = sum(
-        1
-        for chord in chords
-        if (NOTE_TO_PITCH_CLASS[chord.root] - key_pc) % 12 in scale
+        1 for chord in chords if (NOTE_TO_PITCH_CLASS[chord.root] - key_pc) % 12 in scale
     )
     score = diatonic_hits / len(chords)
     quality_hits = sum(
@@ -175,11 +170,9 @@ def _quality_matches_candidate(
     interval: int,
     mode: str,
 ) -> bool:
-    expected = (
-        EXPECTED_MAJOR_QUALITIES
-        if mode == "major"
-        else EXPECTED_MINOR_QUALITIES
-    ).get(interval)
+    expected = (EXPECTED_MAJOR_QUALITIES if mode == "major" else EXPECTED_MINOR_QUALITIES).get(
+        interval
+    )
     if expected is None:
         return False
     if expected == "maj":

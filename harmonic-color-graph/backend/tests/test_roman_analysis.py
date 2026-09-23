@@ -40,4 +40,3 @@ def test_analyze_progression_marks_unparseable_chords_as_warnings():
     assert analysis.roman_chords == ["I", "V"]
     assert analysis.confidence < 1.0
     assert [warning.code for warning in analysis.warnings] == ["unparseable_chord"]
-

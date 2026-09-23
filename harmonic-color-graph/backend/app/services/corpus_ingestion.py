@@ -67,9 +67,7 @@ def ingest_chordonomicon_corpus(
 
         roman = analyze_progression(row.normalized_progression.raw_input, key=row.key)
         confidence_values.append(roman.confidence)
-        absolute_chords = [
-            chord.symbol for chord in row.normalized_progression.chords
-        ]
+        absolute_chords = [chord.symbol for chord in row.normalized_progression.chords]
 
         for chord in row.normalized_progression.chords:
             if chord.symbol in seen_chords:
@@ -85,11 +83,7 @@ def ingest_chordonomicon_corpus(
             )
             seen_chords.add(chord.symbol)
 
-        if (
-            not transition_only
-            and row.source_song_id
-            and row.source_song_id not in seen_song_ids
-        ):
+        if not transition_only and row.source_song_id and row.source_song_id not in seen_song_ids:
             session.add(
                 SongModel(
                     source_id=row.source_song_id,
@@ -120,9 +114,7 @@ def ingest_chordonomicon_corpus(
                 ],
             )
             session.add(progression)
-            progression_batch.append(
-                (progression, absolute_chords, roman.roman_chords)
-            )
+            progression_batch.append((progression, absolute_chords, roman.roman_chords))
 
         _count_transitions(
             transition_counts,
@@ -167,9 +159,7 @@ def ingest_chordonomicon_corpus(
         "progressions_loaded": rows_processed,
         "progressions_persisted": progressions_persisted,
         "progression_parse_success_rate": (
-            progression_success_count / rows_processed
-            if rows_processed
-            else 0.0
+            progression_success_count / rows_processed if rows_processed else 0.0
         ),
         "chord_parse_success_rate": parsed_tokens / total_tokens if total_tokens else 0.0,
         "roman_confidence_distribution": _confidence_distribution(confidence_values),
@@ -205,9 +195,7 @@ def _flush_progression_batch(
                 progression_id=progression.id,
                 position=index,
                 absolute_chord=absolute_chord,
-                roman_chord=(
-                    roman_chords[index] if index < len(roman_chords) else None
-                ),
+                roman_chord=(roman_chords[index] if index < len(roman_chords) else None),
             )
             for index, absolute_chord in enumerate(absolute_chords)
         )
@@ -222,6 +210,7 @@ def _count_transitions(
     for from_roman, to_roman in zip(
         progression.roman_chords,
         progression.roman_chords[1:],
+        strict=False,
     ):
         counts[
             (
@@ -262,9 +251,7 @@ def _build_transition_records(
         section,
         decade,
     ), count in counts.items():
-        totals_by_context[
-            (from_roman, mode_context, genre, subgenre, section, decade)
-        ] += count
+        totals_by_context[(from_roman, mode_context, genre, subgenre, section, decade)] += count
 
     transitions = []
     for (
@@ -277,9 +264,7 @@ def _build_transition_records(
         decade,
     ), count in counts.items():
         base = label_transition(from_roman, to_roman, mode_context)
-        total = totals_by_context[
-            (from_roman, mode_context, genre, subgenre, section, decade)
-        ]
+        total = totals_by_context[(from_roman, mode_context, genre, subgenre, section, decade)]
         transitions.append(
             TransitionRecord(
                 from_roman=from_roman,

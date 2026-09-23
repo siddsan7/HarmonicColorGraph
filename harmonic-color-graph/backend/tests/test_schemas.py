@@ -111,4 +111,3 @@ def test_canonical_chord_rejects_empty_symbol_and_invalid_root():
             pitch_classes=[0, 4, 7],
             intervals=[0, 4, 7],
         )
-

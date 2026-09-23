@@ -2,9 +2,10 @@ import csv
 import json
 import re
 from collections import Counter
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 
 from app.schemas import NormalizedProgression
 from app.theory.progression_normalizer import normalize_progression

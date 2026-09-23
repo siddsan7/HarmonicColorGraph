@@ -25,7 +25,7 @@ def extract_transition_edges(
 ) -> list[TransitionRecord]:
     return [
         label_transition(from_roman, to_roman, mode_context)
-        for from_roman, to_roman in zip(roman_chords, roman_chords[1:])
+        for from_roman, to_roman in zip(roman_chords, roman_chords[1:], strict=False)
     ]
 
 
@@ -38,6 +38,7 @@ def aggregate_transitions(
         for from_roman, to_roman in zip(
             progression.roman_chords,
             progression.roman_chords[1:],
+            strict=False,
         ):
             counts[
                 (
@@ -74,9 +75,7 @@ def aggregate_transitions(
         section,
         decade,
     ), count in counts.items():
-        totals_by_context[
-            (from_roman, mode_context, genre, subgenre, section, decade)
-        ] += count
+        totals_by_context[(from_roman, mode_context, genre, subgenre, section, decade)] += count
 
     transitions = []
     for (
@@ -89,9 +88,7 @@ def aggregate_transitions(
         decade,
     ), count in counts.items():
         base = label_transition(from_roman, to_roman, mode_context)
-        total = totals_by_context[
-            (from_roman, mode_context, genre, subgenre, section, decade)
-        ]
+        total = totals_by_context[(from_roman, mode_context, genre, subgenre, section, decade)]
         transitions.append(
             TransitionRecord(
                 from_roman=from_roman,

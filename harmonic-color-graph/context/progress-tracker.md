@@ -10,7 +10,7 @@ change.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F01 (repo hygiene & check scripts).
+- Current feature: F02 (CI - GitHub Actions).
 - Blocked: none.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
@@ -187,6 +187,48 @@ change.
   `docs/adr/ADR-001.md`–`ADR-008.md`; added this "v2 Plan —
   Active" section. Gate: backend pytest 57/57 passed, `npm run
   lint` clean, no code changed (docs-only feature).
+- Completed F01 (repo hygiene & check scripts): deleted the
+  stray root `package-lock.json` and confirmed
+  `next.config.ts`'s `turbopack.root` workaround is no longer
+  needed (removed it — `npm run build` is clean without it now
+  that the stray lockfile is gone); extended `.gitignore`
+  (`data/artifacts/`, `*.parquet`, `*.model`,
+  `playwright-report/`, `test-results/` — `backend/.tmp/` and
+  `backend/pytest-cache-files-*/` were already covered by
+  existing unanchored patterns); added `backend/.python-version`
+  (3.12) and `.nvmrc` (20); split `backend/pyproject.toml` into
+  runtime-only `[project.dependencies]` plus `dev`/`pipeline`/
+  `ml`/`oracle` extras, dropping `music21` and `alembic` from
+  runtime (kept `uvicorn` in runtime — it's how the ASGI server
+  actually starts, per `docs/phase-1-runbook.md`; verified with a
+  clean venv that `pip install -e .` + `python -c "import
+  app.main"` succeeds with neither `music21` nor `alembic`
+  installed); added ruff config (line-length 100, `E,F,I,UP,B`,
+  isort, plus `extend-immutable-calls` for FastAPI's `Depends`)
+  and fixed the resulting violations (5 `zip()` calls needed an
+  explicit `strict=`: 4 pairwise `zip(xs, xs[1:])` iterations got
+  `strict=False` by construction, `quality_metrics.py`'s
+  `zip(ingestion.rows, analyses)` got `strict=True` since those
+  two lists must stay the same length); ran `ruff format`; added
+  Vitest + Testing Library (`--legacy-peer-deps`, plus `vite` and
+  `@testing-library/dom` which don't auto-install under legacy
+  peer resolution) with `npm run typecheck`/`npm run test`
+  scripts and a placeholder `Button` render test; wrote
+  `scripts/check.ps1`, `scripts/check.sh`, and
+  `scripts/db_size.sql` implementing the Standard Check Gate.
+  While validating `check.sh`, hit the exact Windows Python
+  Store-alias problem the plan warns about in a way `command -v`
+  didn't catch (the alias shim is present on PATH, so existence
+  checks pass but execution fails with exit 49) — fixed by
+  probing candidates (`python3`, `python`, `py -3.12`) by actually
+  running `--version` rather than checking PATH membership. Gate:
+  `scripts/check.ps1 all` and `scripts/check.sh all` both green;
+  `git status` clean after the full run (no stray artifacts).
+- Known follow-up (out of scope for F01, not yet actioned):
+  `npm audit` shows 14 pre-existing vulnerabilities (1 critical,
+  in `sharp`/`qs`, transitively required by Next.js itself, not
+  by anything added in F01) — worth a dedicated look before v1.0
+  (F85) but not blocking v2 feature work.
 
 ## In Progress
 

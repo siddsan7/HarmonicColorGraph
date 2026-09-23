@@ -148,13 +148,13 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Commit:** `docs(plan): adopt roadmap v2 and implementation plan`
 
 ### F01 — Repo hygiene & check scripts [S]
-- [ ] Delete the stray untracked `HarmonicColorGraph/package-lock.json` at the git root (97 bytes; it caused the Turbopack root workaround). Keep `turbopack.root` only if still needed after `npm run build`.
-- [ ] `.gitignore`: add `data/artifacts/`, `backend/.tmp/`, `backend/pytest-cache-files-*/`, `*.parquet`, `*.model`, `playwright-report/`, `test-results/`.
-- [ ] Add `.python-version` (`3.12`) and `.nvmrc` (`20`).
-- [ ] Split `backend/pyproject.toml` dependencies: `[project.dependencies]` = runtime only (fastapi, pydantic, pydantic-settings, sqlalchemy, psycopg[binary], httpx, numpy). Extras: `dev` (pytest, pytest-cov, ruff, hypothesis), `pipeline` (polars, pyarrow, tqdm), `ml` (gensim, scikit-learn, scipy, umap-learn), `oracle` (music21). Remove `music21` and `alembic` from runtime.
-- [ ] Add `ruff` config (line length 100, isort rules) and run `ruff format` once (separate commit: `style: ruff format`).
-- [ ] Add `package.json` scripts `typecheck` (`tsc --noEmit`) and `test` (Vitest); add Vitest + Testing Library dev deps with one placeholder component test.
-- [ ] Create `scripts/check.ps1` and `scripts/check.sh` with subcommands `static | test | build | all`; add `scripts/db_size.sql`:
+- [x] Delete the stray untracked `HarmonicColorGraph/package-lock.json` at the git root (97 bytes; it caused the Turbopack root workaround). Keep `turbopack.root` only if still needed after `npm run build`.
+- [x] `.gitignore`: add `data/artifacts/`, `backend/.tmp/`, `backend/pytest-cache-files-*/`, `*.parquet`, `*.model`, `playwright-report/`, `test-results/`.
+- [x] Add `.python-version` (`3.12`) and `.nvmrc` (`20`).
+- [x] Split `backend/pyproject.toml` dependencies: `[project.dependencies]` = runtime only (fastapi, pydantic, pydantic-settings, sqlalchemy, psycopg[binary], httpx, numpy). Extras: `dev` (pytest, pytest-cov, ruff, hypothesis), `pipeline` (polars, pyarrow, tqdm), `ml` (gensim, scikit-learn, scipy, umap-learn), `oracle` (music21). Remove `music21` and `alembic` from runtime.
+- [x] Add `ruff` config (line length 100, isort rules) and run `ruff format` once (separate commit: `style: ruff format`).
+- [x] Add `package.json` scripts `typecheck` (`tsc --noEmit`) and `test` (Vitest); add Vitest + Testing Library dev deps with one placeholder component test.
+- [x] Create `scripts/check.ps1` and `scripts/check.sh` with subcommands `static | test | build | all`; add `scripts/db_size.sql`:
   ```sql
   select n.nspname, pg_size_pretty(sum(pg_total_relation_size(c.oid))) as size
   from pg_class c join pg_namespace n on n.oid = c.relnamespace

@@ -63,4 +63,3 @@ def _write_sample(path: Path) -> None:
                 )
                 + "\n"
             )
-

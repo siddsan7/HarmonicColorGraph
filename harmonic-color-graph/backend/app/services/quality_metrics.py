@@ -25,7 +25,7 @@ def build_quality_metrics_report(sample_path: str | Path) -> dict[str, Any]:
             section=row.section,
             decade=_release_decade(row.release_date),
         )
-        for row, analysis in zip(ingestion.rows, analyses)
+        for row, analysis in zip(ingestion.rows, analyses, strict=True)
     ]
     transitions = aggregate_transitions(transition_inputs)
     global_transitions = [
@@ -46,29 +46,19 @@ def build_quality_metrics_report(sample_path: str | Path) -> dict[str, Any]:
             if ingestion.progressions_loaded
             else 0.0
         ),
-        "roman_confidence_distribution": _confidence_distribution(
-            confidence_values
-        ),
+        "roman_confidence_distribution": _confidence_distribution(confidence_values),
         "normalized_progression_count": ingestion.progressions_loaded,
-        "transition_edge_count": sum(
-            transition.count for transition in global_transitions
-        ),
+        "transition_edge_count": sum(transition.count for transition in global_transitions),
         "top_global_transitions": _top_transition_rows(global_transitions),
         "top_genre_conditioned_transitions": _top_transition_rows(
-            [
-                transition
-                for transition in transitions
-                if transition.genre not in {None, "all"}
-            ]
+            [transition for transition in transitions if transition.genre not in {None, "all"}]
         ),
         "theory_label_coverage": (
             labeled_transition_count / len(transitions) if transitions else 0.0
         ),
         "api_latency_ms": _measure_analysis_latency_ms(ingestion),
         "warning_counts": dict(ingestion.warning_counts),
-        "top_unparseable_symbols": [
-            [symbol, count] for symbol, count in ingestion.top_failures
-        ],
+        "top_unparseable_symbols": [[symbol, count] for symbol, count in ingestion.top_failures],
     }
 
 
@@ -128,4 +118,3 @@ def _release_decade(release_date: str | None) -> int | None:
     except ValueError:
         return None
     return year - (year % 10)
-

@@ -1,13 +1,12 @@
 [project]
 name = "harmonic-color-graph-backend"
 version = "0.1.0"
-description = "FastAPI backend for Harmonic Color Graph phase 1."
+description = "FastAPI backend for Harmonic Color Graph."
 requires-python = ">=3.12"
 dependencies = [
-    "alembic>=1.17.2",
     "fastapi>=0.124.0",
     "httpx>=0.28.1",
-    "music21>=9.9.1",
+    "numpy>=2.2.0",
     "pydantic>=2.12.0",
     "pydantic-settings>=2.7.0",
     "psycopg[binary]>=3.2.0",
@@ -18,6 +17,23 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.0",
+    "hypothesis>=6.168.0",
+]
+pipeline = [
+    "polars>=1.20.0",
+    "pyarrow>=18.0.0",
+    "tqdm>=4.67.0",
+]
+ml = [
+    "gensim>=4.3.0",
+    "scikit-learn>=1.6.0",
+    "scipy>=1.15.0",
+    "umap-learn>=0.5.7",
+]
+oracle = [
+    "music21>=9.9.1",
 ]
 
 [tool.pytest.ini_options]
@@ -27,6 +43,21 @@ addopts = "-q -p no:cacheprovider"
 filterwarnings = [
     "ignore:Using `httpx` with `starlette.testclient` is deprecated:starlette.exceptions.StarletteDeprecationWarning",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.lint.flake8-bugbear]
+# FastAPI's Depends()/Query()/Path() are meant to be called in argument
+# defaults; that is how the framework's dependency injection works.
+extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path"]
 
 [tool.setuptools.packages.find]
 include = ["app*"]

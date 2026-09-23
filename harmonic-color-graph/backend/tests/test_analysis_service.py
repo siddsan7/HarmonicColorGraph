@@ -44,4 +44,3 @@ def test_analysis_service_propagates_warnings_and_confidence():
     assert response.roman_chords == ["I", "V"]
     assert response.confidence < 1.0
     assert [warning.code for warning in response.warnings] == ["unparseable_chord"]
-

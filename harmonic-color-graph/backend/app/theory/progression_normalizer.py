@@ -43,4 +43,3 @@ def _tokenize_progression(raw_progression: str | Sequence[str]) -> list[str]:
         parts = list(raw_progression)
 
     return [part.strip() for part in parts if part and part.strip()]
-

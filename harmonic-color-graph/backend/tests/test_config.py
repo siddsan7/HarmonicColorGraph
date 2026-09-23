@@ -3,10 +3,7 @@ from app.core.config import AppSettings
 
 def test_settings_read_database_url_and_demo_fallback():
     settings = AppSettings(
-        DATABASE_URL=(
-            "postgresql+psycopg://postgres:secret@"
-            "db.example.supabase.co:5432/postgres"
-        ),
+        DATABASE_URL=("postgresql+psycopg://postgres:secret@db.example.supabase.co:5432/postgres"),
         HCG_ENABLE_DEMO_FALLBACK=True,
     )
 

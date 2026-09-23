@@ -53,9 +53,7 @@ def next_chords_endpoint(
     section: str | None = None,
     session: Session = Depends(get_session),
 ) -> NextChordsResponse:
-    roman_progression = [
-        chord.strip() for chord in progression.split(",") if chord.strip()
-    ]
+    roman_progression = [chord.strip() for chord in progression.split(",") if chord.strip()]
     records, data_source, fallback_used, database_count = _transition_records_for_lookup(
         roman_progression[-1],
         session=session,
@@ -123,9 +121,7 @@ def _transition_records_for_lookup(
 
     if get_settings().demo_fallback_enabled:
         demo_records = [
-            transition
-            for transition in DEMO_TRANSITIONS
-            if transition.from_roman == from_roman
+            transition for transition in DEMO_TRANSITIONS if transition.from_roman == from_roman
         ]
         return demo_records, "demo_fallback", True, 0
 

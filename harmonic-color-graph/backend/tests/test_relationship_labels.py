@@ -42,4 +42,3 @@ def test_transition_explanations_are_creator_safe():
     assert "borrowed minor iv" in transition.short_explanation
     assert transition.technical_explanation is not None
     assert "parallel minor" in transition.technical_explanation
-

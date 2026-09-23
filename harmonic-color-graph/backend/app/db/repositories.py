@@ -33,9 +33,7 @@ class HarmonicRepository:
         return model
 
     def get_chord_by_symbol(self, symbol: str) -> ChordModel | None:
-        return self.session.scalar(
-            select(ChordModel).where(ChordModel.symbol == symbol)
-        )
+        return self.session.scalar(select(ChordModel).where(ChordModel.symbol == symbol))
 
     def insert_progression(
         self,
@@ -114,9 +112,7 @@ class HarmonicRepository:
         genre: str | None = None,
         release_date: str | None = None,
     ) -> SongModel:
-        existing = self.session.scalar(
-            select(SongModel).where(SongModel.source_id == source_id)
-        )
+        existing = self.session.scalar(select(SongModel).where(SongModel.source_id == source_id))
         if existing is not None:
             return existing
 
@@ -155,9 +151,7 @@ class HarmonicRepository:
         genre: str | None = None,
         section: str | None = None,
     ) -> list[TransitionModel]:
-        query = select(TransitionModel).where(
-            TransitionModel.from_roman == from_roman
-        )
+        query = select(TransitionModel).where(TransitionModel.from_roman == from_roman)
         if genre is not None:
             query = query.where(TransitionModel.genre == genre)
         if section is not None:

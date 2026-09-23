@@ -3,12 +3,8 @@ from pathlib import Path
 
 from app.theory.chord_normalizer import normalize_chord
 
-
 FIXTURE_PATH = (
-    Path(__file__).resolve().parents[2]
-    / "data"
-    / "samples"
-    / "chord_normalization_cases.json"
+    Path(__file__).resolve().parents[2] / "data" / "samples" / "chord_normalization_cases.json"
 )
 
 
