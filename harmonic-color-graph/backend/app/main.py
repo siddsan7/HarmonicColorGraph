@@ -7,14 +7,10 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api import phase1_router
+from app.core.config import get_settings
 from app.db.session import get_session
 
-CORS_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-    "http://localhost:3001",
-    "http://127.0.0.1:3001",
-]
+settings = get_settings()
 
 app = FastAPI(
     title="Harmonic Color Graph API",
@@ -24,20 +20,24 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=CORS_ORIGINS,
+    allow_origins=settings.cors_origins,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
+# The v1 baseline stays callable permanently at /v1/* once v2 routes land
+# (feature-specs/v2-implementation-plan.md F06); the unversioned aliases are
+# kept so existing clients (the demo UI) don't break until F14 moves the UI.
 app.include_router(phase1_router)
+app.include_router(phase1_router, prefix="/v1")
 
 
 @app.get("/health", tags=["system"])
 def health_check() -> dict[str, str]:
     return {
         "status": "ok",
-        "service": "harmonic-color-graph-backend",
-        "phase": "phase-1",
+        "version": settings.vercel_git_commit_sha,
+        "corpus_version": settings.hcg_corpus_version,
     }
 
 

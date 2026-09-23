@@ -21,17 +21,19 @@
 - **Local dev / scripts:** direct connection —
   `postgresql+psycopg://postgres:<password>@db.avnxcyulznofylsnydfg.supabase.co:5432/postgres`
 - **Deployed / serverless (`DATABASE_URL`, from F06 onward):** the
-  transaction pooler, port 6543. Get the exact pooler hostname from the
-  Supabase dashboard's Connect panel (Project Settings → Database →
-  Connection string → "Transaction pooler") rather than guessing it — the
-  `aws-<n>-<region>` prefix is assigned per project and isn't reliably
-  derivable from the region alone. Always use the `+psycopg` scheme
-  (`postgresql+psycopg://...`), never a bare `postgresql://` — this project
-  only has the psycopg v3 driver installed, and a bare scheme makes
-  SQLAlchemy default to the (missing) psycopg2 driver instead
-  (`app/db/session.py`, F05).
+  transaction pooler, port 6543 —
+  `postgresql+psycopg://postgres.avnxcyulznofylsnydfg:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres`.
+  Confirmed by direct connection test in F06 (not guessed — the
+  `aws-<n>-<region>` prefix isn't reliably derivable from the region alone;
+  `aws-1-us-west-1...` for this same project ref fails with "tenant/user
+  not found", so the index matters and shouldn't be assumed elsewhere).
+  Always use the `+psycopg` scheme (`postgresql+psycopg://...`), never a
+  bare `postgresql://` — this project only has the psycopg v3 driver
+  installed, and a bare scheme makes SQLAlchemy default to the (missing)
+  psycopg2 driver instead (`app/db/session.py`, F05).
 - **Pipeline loads (`DATABASE_URL_LOAD`, from F24 onward):** the session
-  pooler, port 5432 — same host convention as above.
+  pooler, port 5432, same host (`aws-0-us-west-1.pooler.supabase.com`) and
+  username (`postgres.avnxcyulznofylsnydfg`) convention as above.
 
 ## Schema
 

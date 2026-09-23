@@ -22,11 +22,10 @@ def test_health_endpoint_reports_backend_status():
     response = client.get("/health")
 
     assert response.status_code == 200
-    assert response.json() == {
-        "status": "ok",
-        "service": "harmonic-color-graph-backend",
-        "phase": "phase-1",
-    }
+    payload = response.json()
+    assert payload["status"] == "ok"
+    assert "version" in payload
+    assert "corpus_version" in payload
 
 
 def test_health_db_endpoint_reports_ok_when_database_reachable():
