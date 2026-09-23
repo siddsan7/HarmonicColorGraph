@@ -220,10 +220,10 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Commit:** `feat(deploy): FastAPI on Vercel`
 
 ### F07 — Deploy the web app to Vercel [M]
-- [ ] `create_project` `harmonic-color-graph`, root `harmonic-color-graph`, framework Next.js.
-- [ ] `vercel.json` rewrites `/api/hcg/:path*` → `${HCG_API_ORIGIN}/:path*` (set `HCG_API_ORIGIN` per environment; previews point at the API production URL until M2, then preview↔preview when useful).
-- [ ] Frontend API client `lib/api/client.ts` uses the relative `/api/hcg` in the browser; delete `NEXT_PUBLIC_PHASE1_API_URL` and the `localhost:8000` default (local dev uses a Next rewrite to `http://127.0.0.1:8000`).
-- [ ] Footer attribution: "Chord data: Chordonomicon (Kantarelis et al., 2024), CC BY-NC 4.0" with links.
+- [x] `create_project` `harmonic-color-graph`, root `harmonic-color-graph`, framework Next.js. (Disabled `ssoProtection` again, same reason as F06.)
+- [x] `vercel.json` rewrites `/api/hcg/:path*` → `${HCG_API_ORIGIN}/:path*` (set `HCG_API_ORIGIN` per environment; previews point at the API production URL until M2, then preview↔preview when useful). (Implemented in `next.config.ts`'s `rewrites()` instead of `vercel.json` — Vercel's modern `rewrites` array doesn't interpolate env vars into the destination; see `docs/runbooks/vercel.md`. `HCG_API_ORIGIN` set to the F06 API's production URL for both production and preview targets.)
+- [x] Frontend API client `lib/api/client.ts` uses the relative `/api/hcg` in the browser; delete `NEXT_PUBLIC_PHASE1_API_URL` and the `localhost:8000` default (local dev uses a Next rewrite to `http://127.0.0.1:8000`).
+- [x] Footer attribution: "Chord data: Chordonomicon (Kantarelis et al., 2024), CC BY-NC 4.0" with links.
 
 **Checks:** Production URL loads the workbench; analyzing `C - G - Am` works end to end (Playwright smoke `tests/e2e/smoke.spec.ts` against the preview URL); browser console has no CORS errors; the attribution is visible.
 **Commit:** `feat(deploy): Next.js on Vercel with same-origin API proxy`

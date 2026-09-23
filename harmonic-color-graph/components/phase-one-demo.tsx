@@ -15,65 +15,21 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import {
+  API_BASE_PATH,
+  analyzeProgression,
+  explainTransition,
+  fetchNextChords,
+  type AnalyzeProgressionResponse,
+  type ExplainTransitionResponse,
+  type NextChordsResponse,
+} from "@/lib/api/client"
 import { cn } from "@/lib/utils"
 
-const DEFAULT_API_BASE = "http://localhost:8000"
-const API_BASE = normalizeApiBase(
-  process.env.NEXT_PUBLIC_PHASE1_API_URL ?? DEFAULT_API_BASE
-)
 const SAMPLE_PROGRESSION = "C - G - Am"
 const SAMPLE_KEY = "C major"
 
 type DemoStatus = "idle" | "loading" | "success" | "error"
-type ModeContext = "major" | "minor" | "unknown"
-
-type ParseWarning = {
-  code: string
-  message: string
-  raw_value: string | null
-}
-
-type TransitionRecord = {
-  from_roman: string
-  to_roman: string
-  mode_context: ModeContext
-  relationship_labels: string[]
-  short_explanation: string | null
-  technical_explanation: string | null
-}
-
-type AnalyzeProgressionResponse = {
-  absolute_chords: string[]
-  roman_chords: string[]
-  detected_key: string
-  confidence: number
-  warnings: ParseWarning[]
-  relationships: TransitionRecord[]
-}
-
-type TransitionCandidate = {
-  chord: string
-  probability: number
-  relationship: string | null
-  count: number
-  relationship_labels: string[]
-}
-
-type NextChordsResponse = {
-  input: string[]
-  candidates: TransitionCandidate[]
-  data_source: string
-  fallback_used: boolean
-  database_transition_count: number
-}
-
-type ExplainTransitionResponse = {
-  from_roman: string
-  to_roman: string
-  labels: string[]
-  short_explanation: string
-  technical_explanation: string
-}
 
 type ExplanationRow = {
   id: string
@@ -141,12 +97,15 @@ export function PhaseOneDemo() {
     setError(null)
 
     try {
-      const analysisPayload = await postAnalyzeProgression(
+      const analysisPayload = await analyzeProgression(
         parsedChords,
         keyInput.trim() || null
       )
       const [nextPayload, explanationPayload] = await Promise.all([
-        fetchNextChords(analysisPayload.roman_chords),
+        fetchNextChords(analysisPayload.roman_chords, {
+          genre: "pop",
+          section: "chorus",
+        }),
         fetchLastTransitionExplanation(analysisPayload),
       ])
 
@@ -192,7 +151,7 @@ export function PhaseOneDemo() {
 
           <div className="flex max-w-full items-center gap-2 overflow-hidden rounded-lg border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
             <Server className="size-3.5 shrink-0" aria-hidden="true" />
-            <span className="truncate font-mono">{API_BASE}</span>
+            <span className="truncate font-mono">{API_BASE_PATH}</span>
             <Badge variant="outline" className={statusMeta.className}>
               {statusMeta.label}
             </Badge>
@@ -488,6 +447,8 @@ export function PhaseOneDemo() {
             )}
           </div>
         </section>
+
+        <SiteFooter />
       </div>
     </main>
   )
@@ -501,35 +462,30 @@ function EmptyResult({ label }: { label: string }) {
   )
 }
 
-async function postAnalyzeProgression(
-  chords: string[],
-  key: string | null
-): Promise<AnalyzeProgressionResponse> {
-  const response = await fetch(`${API_BASE}/analyze-progression`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      chords,
-      key,
-    }),
-  })
-
-  return readJson<AnalyzeProgressionResponse>(response)
-}
-
-async function fetchNextChords(
-  romanChords: string[]
-): Promise<NextChordsResponse> {
-  const params = new URLSearchParams({
-    progression: romanChords.join(","),
-    genre: "pop",
-    section: "chorus",
-  })
-  const response = await fetch(`${API_BASE}/next-chords?${params.toString()}`)
-
-  return readJson<NextChordsResponse>(response)
+function SiteFooter() {
+  return (
+    <footer className="border-t border-border pt-4 text-xs text-muted-foreground">
+      Chord data:{" "}
+      <a
+        href="https://arxiv.org/abs/2410.22046"
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        Chordonomicon (Kantarelis et al., 2024)
+      </a>
+      ,{" "}
+      <a
+        href="https://creativecommons.org/licenses/by-nc/4.0/"
+        target="_blank"
+        rel="noreferrer"
+        className="underline underline-offset-2 hover:text-foreground"
+      >
+        CC BY-NC 4.0
+      </a>
+      .
+    </footer>
+  )
 }
 
 async function fetchLastTransitionExplanation(
@@ -542,29 +498,8 @@ async function fetchLastTransitionExplanation(
   const fromRoman = analysis.roman_chords[analysis.roman_chords.length - 2]
   const toRoman = analysis.roman_chords[analysis.roman_chords.length - 1]
   const relationship = analysis.relationships.at(-1)
-  const params = new URLSearchParams({
-    from: fromRoman,
-    to: toRoman,
-    mode: relationship?.mode_context ?? "major",
-  })
-  const response = await fetch(
-    `${API_BASE}/explain-transition?${params.toString()}`
-  )
 
-  return readJson<ExplainTransitionResponse>(response)
-}
-
-async function readJson<T>(response: Response): Promise<T> {
-  if (!response.ok) {
-    const body = await response.text()
-    throw new Error(
-      body
-        ? `${response.status} ${response.statusText}: ${body}`
-        : `${response.status} ${response.statusText}`
-    )
-  }
-
-  return response.json() as Promise<T>
+  return explainTransition(fromRoman, toRoman, relationship?.mode_context ?? "major")
 }
 
 function buildExplanationRows(
@@ -629,13 +564,9 @@ function parseChordInput(input: string): string[] {
     .filter(Boolean)
 }
 
-function normalizeApiBase(value: string): string {
-  return value.replace(/\/+$/, "")
-}
-
 function readErrorMessage(caught: unknown): string {
   if (caught instanceof TypeError && caught.message === "Failed to fetch") {
-    return `FastAPI backend did not respond at ${API_BASE}.`
+    return `FastAPI backend did not respond at ${API_BASE_PATH}.`
   }
   if (caught instanceof Error) {
     return caught.message
