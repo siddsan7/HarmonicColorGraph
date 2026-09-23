@@ -138,11 +138,11 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 
 ### F00 — Plan adoption & agent memory [S]
 **Goal:** The repo's agent memory points at v2.
-- [ ] Copy `harmonic-color-graph-roadmap.md` → `harmonic-color-graph/docs/roadmap-v2.md` and this plan → `harmonic-color-graph/feature-specs/v2-implementation-plan.md` (skip if already present).
-- [ ] Update `AGENTS.md` read order: add `docs/roadmap-v2.md` and `feature-specs/v2-implementation-plan.md` after `progress-tracker.md`; mark `phase-1-feature-roadmap.md` as historical.
-- [ ] Rewrite `context/architecture.md` stack, storage, and deployment sections to match roadmap v2 §3 (Supabase + Vercel, Postgres property graph, offline pipeline).
-- [ ] Add `docs/adr/ADR-001…ADR-008.md` (one paragraph each: context, decision, consequences, revisit trigger), copied from roadmap §3.1.
-- [ ] Add a "v2 Plan — Active" section to `context/progress-tracker.md` (current feature F00; Blocked: none).
+- [x] Copy `harmonic-color-graph-roadmap.md` → `harmonic-color-graph/docs/roadmap-v2.md` and this plan → `harmonic-color-graph/feature-specs/v2-implementation-plan.md` (skip if already present).
+- [x] Update `AGENTS.md` read order: add `docs/roadmap-v2.md` and `feature-specs/v2-implementation-plan.md` after `progress-tracker.md`; mark `phase-1-feature-roadmap.md` as historical.
+- [x] Rewrite `context/architecture.md` stack, storage, and deployment sections to match roadmap v2 §3 (Supabase + Vercel, Postgres property graph, offline pipeline).
+- [x] Add `docs/adr/ADR-001…ADR-008.md` (one paragraph each: context, decision, consequences, revisit trigger), copied from roadmap §3.1.
+- [x] Add a "v2 Plan — Active" section to `context/progress-tracker.md` (current feature F00; Blocked: none).
 
 **Checks:** G1–G3 unchanged-green; `AGENTS.md` lists the new files; all 8 ADR files exist.
 **Commit:** `docs(plan): adopt roadmap v2 and implementation plan`

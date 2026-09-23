@@ -20,10 +20,19 @@ or making any architectural decision:
    scoping rules, and delivery approach
 6. `context/progress-tracker.md` — current phase,
    completed work, open questions, and next steps
-7. The active phase context named in `progress-tracker.md`
+7. `docs/roadmap-v2.md` — v2 product vision, verified
+   current state, target architecture, and milestones
+   (M0–M8); supersedes earlier roadmap documents
+8. `feature-specs/v2-implementation-plan.md` — the active
+   feature-by-feature build plan with acceptance checks;
+   execute it one feature at a time, in order, ticking
+   checkboxes as you go
+9. The active phase context named in `progress-tracker.md`
    — currently `context/phase-1-harmonic-data-graph-foundation.md`
-8. Any relevant feature spec in `feature-specs/`
-   once implementation-specific specs are added
+10. Any relevant feature spec in `feature-specs/` once
+    implementation-specific specs are added.
+    `feature-specs/phase-1-feature-roadmap.md` is historical
+    (superseded by `feature-specs/v2-implementation-plan.md`).
 
 Update `context/progress-tracker.md` after each
 meaningful implementation change.

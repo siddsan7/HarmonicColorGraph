@@ -3,20 +3,46 @@
 Update this file after every meaningful implementation
 change.
 
+## v2 Plan — Active
+
+- Executing `feature-specs/v2-implementation-plan.md` one
+  feature at a time, per its own §0 conventions (Standard
+  Check Gate after every feature; ask only for the §0.2 inputs
+  and before anything that costs money or deletes remote data;
+  stop and summarize at each milestone exit gate).
+- Current feature: F01 (repo hygiene & check scripts).
+- Blocked: none.
+- Known gap: the plan's cited companion documents
+  `phase_2_color_embeddings_recommendation_engine.md` and
+  `phase_3_llm_agents_productization.md` (and the pre-v2
+  `harmonic-color-graph-roadmap.md`) are not present in this
+  repo — only `context/phase-1-harmonic-data-graph-foundation.md`
+  exists locally. `docs/roadmap-v2.md` is self-contained enough
+  for M0–M3; features from M4 onward that cite specific "Phase 2
+  §…" / "Phase 3 §…" sections (color axes, LangGraph workflow
+  detail, etc.) will need those sections requested from
+  Siddharth or re-derived from the roadmap's summaries when
+  reached.
+
 ## Current Phase
 
-- Phase 1 - Data, Theory, and Graph Foundation.
-- Status: full-library CSV ingestion path implemented and
-  locally verified; full-provenance remote seed exceeded the
-  current Supabase project's storage limit, and Supabase is
-  temporarily refusing writes until storage/read-only recovery is
-  resolved.
+- Phase 1 (Data, Theory, and Graph Foundation) shipped: chord
+  normalization, v1 Roman analysis, transition lookup,
+  SQLAlchemy/Alembic schema, and a minimal demo UI are
+  implemented and were the basis for the defects and metrics
+  recorded in `docs/roadmap-v2.md` §2.
+- Now executing the v2 plan's M0 (Foundation & deploy
+  skeleton), which re-verifies and hotfixes this Phase 1
+  baseline before building v2 analysis on top of it.
 
 ## Current Goal
 
-- Implement Phase 1 from
-  `feature-specs/phase-1-feature-roadmap.md`, testing,
-  committing, and pushing after each feature.
+- Implement `feature-specs/v2-implementation-plan.md` in order,
+  one feature at a time, running the Standard Check Gate (§0.4)
+  after each and updating this tracker's Completed section with
+  gate results and key metrics.
+- `feature-specs/phase-1-feature-roadmap.md` is historical; do
+  not add new work there.
 
 ## Completed
 
@@ -152,6 +178,15 @@ change.
   corpus and persists chords plus aggregate transition records
   without the storage-heavy songs/progressions/progression-chord
   provenance tables.
+- Completed F00 (plan adoption & agent memory): `AGENTS.md` read
+  order now includes `docs/roadmap-v2.md` and
+  `feature-specs/v2-implementation-plan.md` and flags
+  `phase-1-feature-roadmap.md` as historical; rewrote
+  `context/architecture.md` Stack/Storage Model/Deployment Model
+  for the Supabase + Vercel v2 target; added
+  `docs/adr/ADR-001.md`–`ADR-008.md`; added this "v2 Plan —
+  Active" section. Gate: backend pytest 57/57 passed, `npm run
+  lint` clean, no code changed (docs-only feature).
 
 ## In Progress
 

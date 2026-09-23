@@ -2,23 +2,35 @@
 
 ## Stack
 
-| Layer              | Technology                         | Role |
-| ------------------ | ---------------------------------- | ---- |
-| Frontend           | Next.js 16, React 19, TypeScript   | Product demo, progression builder, graph/color UI, playback UI |
-| Styling            | Tailwind CSS 4, CSS custom props   | Responsive workbench styling and design tokens |
-| Backend            | FastAPI, Python                    | Phase 1 harmonic analysis and graph/statistics API |
-| Theory processing  | music21 plus custom parser rules   | Chord validation, key/Roman analysis, harmonic relationship detection |
-| Database           | PostgreSQL, SQLAlchemy, Alembic    | Chords, progressions, transitions, songs, labels, and metadata |
-| Vector storage     | PostgreSQL + pgvector              | Phase 2 chord/progression embeddings and similarity search |
-| ML/data            | gensim, scikit-learn, NetworkX     | Phase 2 embeddings, clustering, graph metrics, evaluation |
-| Audio              | Tone.js                            | Browser playback for original and recommended progressions |
-| LLM orchestration  | LangChain, LangGraph, Pydantic     | Phase 3 grounded tools, workflow routing, structured outputs |
-| Observability/eval | LangSmith, pytest, Ragas optional  | Tracing, regression tests, RAG and recommendation evaluation |
+Full detail and rationale: `docs/roadmap-v2.md` §3 and
+`docs/adr/ADR-001.md`–`ADR-008.md`. Summary:
 
-The current repository is a fresh Next.js app with context
-files. The backend, data, and ML folders are planned for
-Phase 1 and should be added incrementally as feature specs
-are written.
+| Layer              | Technology                                              | Role |
+| ------------------ | -------------------------------------------------------- | ---- |
+| Frontend           | Next.js 16, React 19, TypeScript, Tailwind 4, shadcn/ui  | Workbench, graph explorer, generator, similarity, assistant UI |
+| Graph UI           | Cytoscape.js + cytoscape-fcose                           | Harmonic graph explorer, paths, neighborhoods |
+| Audio              | Tone.js, @tonejs/midi                                    | Voice-led playback, compare mode, MIDI export |
+| Backend            | FastAPI, Pydantic v2, Python 3.12                        | `/v1` legacy + `/v2` analysis, recommend, generate, graph, color, similar, AI |
+| Theory processing  | In-house (`backend/app/theory/`); music21 as a dev-only oracle | Spelling, key/Roman v2, relationship catalog v2 (ADR-004: music21 never a runtime dependency) |
+| Persistence        | SQLAlchemy 2 (Core), psycopg 3                            | Query layer over Postgres; no ORM sessions in the request hot path |
+| Database           | Postgres 17 on Supabase, schema `hcg`, SQL migrations     | Property graph (nodes/edges), n-gram histories, patterns, facts, color profiles, corpus versions (ADR-002, ADR-005) |
+| Vector storage     | pgvector (HNSW, cosine)                                   | Function/chord/progression embeddings and similarity search |
+| Offline pipeline   | Polars, NumPy/SciPy, gensim, scikit-learn (extras only)   | Corpus build: analyze → aggregate → embeddings → color → snapshot (ADR-001; never imported by the API) |
+| LLM orchestration  | LangGraph, langchain-anthropic, Pydantic                  | Grounded tool-using assistant workflow (ADR-006) |
+| Observability/eval | LangSmith (optional), pytest, Vitest, Playwright, Ragas (optional) | CI gates, golden/regression tests, AI and recommender evaluation |
+| CI/CD              | GitHub Actions, Vercel Git integration                    | Backend/Postgres/frontend CI; preview deploys per PR, production on `main` |
+
+The repository root (`HarmonicColorGraph/`) holds the Next.js
+app at `harmonic-color-graph/` and the FastAPI service at
+`harmonic-color-graph/backend/`, deployed as two separate
+Vercel projects from the same repo (see Deployment Model).
+Phase 1 (chord normalization, v1 Roman analysis, transition
+lookup, SQLAlchemy/Alembic schema) is implemented and live in
+this layout; the v2 plan upgrades analysis, replaces Alembic
+with SQL migrations against Supabase, and adds the graph,
+color, embedding, generation, and AI layers incrementally —
+see `docs/roadmap-v2.md` and
+`feature-specs/v2-implementation-plan.md`.
 
 ## System Boundaries
 
@@ -81,19 +93,47 @@ are written.
 
 ## Storage Model
 
-- **PostgreSQL**: Primary structured store for chords,
-  Roman chords, progressions, progression positions,
-  transitions, songs, genres, sections, theory labels,
-  source metadata, and later color profiles.
-- **pgvector**: Phase 2 vector columns for chord and
-  progression embeddings. Keep structured metadata in normal
-  relational columns so retrieval can be filtered.
-- **Local files**: Raw Chordonomicon samples, processed
-  fixtures, notebooks, and generated model artifacts during
-  development.
+- **Postgres 17 on Supabase, schema `hcg`**: the single
+  structured and graph store — typed `nodes`/`edges` (the
+  harmonic property graph), `ngram_histories`, `patterns` +
+  `pattern_examples` + `song_refs`, `color_profiles`,
+  `embeddings`, `facts`, and `corpus_versions`. RLS is enabled
+  on every table; `hcg` is never exposed through the Supabase
+  Data API (the FastAPI service is the only reader/writer).
+  Legacy Phase 1 tables (`songs`, `progressions`,
+  `transitions`, …) are recreated inside `hcg` with the
+  corrected context keys from F04.
+- **`public` schema**: app-facing tables accessed directly
+  from the browser under Supabase Auth + RLS —
+  `saved_progressions`, `taste_profiles`, `feedback`,
+  `ai_query_logs`, `rate_limits`.
+- **Single migration system**: SQL files in
+  `supabase/migrations/` are the source of truth (ADR-005).
+  Alembic is retired once F05 lands (history kept under
+  `backend/legacy/alembic/`).
+- **pgvector**: `hcg.embeddings` with an HNSW (cosine) index
+  per subject type, for function/chord/progression similarity
+  search. Structured metadata stays in relational columns so
+  retrieval can be filtered before or alongside vector search.
+- **Storage budget** (ADR-007): free-plan Supabase caps the
+  database at 500 MB; target ≤ 300 MB for `hcg` including
+  indexes, measured after every load (`scripts/db_size.sql`).
+  Overflow order: tighten n-gram pruning → drop low-support
+  contexts → move `ngram_histories` to a compressed artifact in
+  Supabase Storage → Supabase Pro (needs approval).
+- **Offline artifacts**: the build pipeline (`backend/pipeline/`,
+  optional extras only) writes versioned, hashed Parquet
+  artifacts plus a manifest under `data/artifacts/<version>/`
+  (gitignored); a versioned loader COPYs them into `hcg` and
+  atomically flips `corpus_versions.active`.
+- **Local files**: raw Chordonomicon CSV (`data/raw/`,
+  gitignored), small committed fixtures (`data/samples/`,
+  `data/gold/`), notebooks, and generated model artifacts
+  during development.
 - **Browser state**: UI-only state such as current chord
   input, selected graph node, intent sliders, tempo, and
-  playback settings.
+  playback settings; the current progression itself is
+  mirrored into the URL so views are shareable.
 
 ## Data Pipeline
 
@@ -149,13 +189,32 @@ Phase 3 adds:
 
 ## Deployment Model
 
-- Frontend: Vercel is the natural target for the Next.js app.
-- Backend: Render, Fly.io, Railway, Cloud Run, or similar can
-  host FastAPI.
-- Database: Supabase, Neon, or managed PostgreSQL with
-  pgvector.
-- Batch jobs: Python scripts or scheduled jobs for ingestion,
-  normalization, transition aggregation, and embedding runs.
+- **Two Vercel projects, one repo**: `harmonic-color-graph-api`
+  (root `harmonic-color-graph/backend`, FastAPI zero-config,
+  Python 3.12) and `harmonic-color-graph` (root
+  `harmonic-color-graph/`, Next.js). The web app proxies
+  `/api/hcg/*` to the API through a `vercel.json` rewrite:
+  same-origin in the browser, no CORS in production, API URL
+  stays server-side.
+- **Database**: Supabase Postgres 17, reached through the
+  transaction pooler (port 6543) with SQLAlchemy `NullPool` and
+  `prepare_threshold=None` (serverless-safe; no connection at
+  import time).
+- **Keep-alive**: a daily Vercel Cron hits `/health/db` to keep
+  the free-plan project from pausing; the UI falls back to a
+  static graph snapshot (`public/snapshot/graph-core.json`) and
+  a degraded-mode banner when the database is unreachable.
+  Absolute chord analysis stays available even in degraded mode
+  because it does not depend on the database.
+- **CI/CD**: GitHub Actions runs backend unit tests, a
+  Postgres-backed integration job (`pgvector/pgvector:pg17`
+  service container), and frontend lint/typecheck/build/test on
+  every push; Vercel's Git integration builds a preview
+  deployment per PR and production on `main`.
+- **Batch jobs**: the offline pipeline (`backend/pipeline/`)
+  runs on demand on a machine with PyPI access (not inside a
+  Vercel function) and loads results into Supabase through the
+  versioned loader.
 
 ## Invariants
 

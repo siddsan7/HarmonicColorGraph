@@ -1,5 +1,11 @@
 # Phase 1 Feature Roadmap
 
+> **Historical.** This roadmap drove the original Phase 1 build
+> (features 01–15, all merged to `main` before `32191dc`).
+> Superseded by `feature-specs/v2-implementation-plan.md`, which
+> re-verifies Phase 1 behavior (F03/F04) before extending it.
+> Kept for history; do not add new work here.
+
 ## Purpose
 
 This file drafts the feature list needed to complete Phase 1:
