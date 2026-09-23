@@ -10,7 +10,7 @@ change.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F03 (v1 baseline snapshot & regression harness).
+- Current feature: F04 (transition lookup correctness hotfix).
 - Blocked: none.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
@@ -279,6 +279,27 @@ change.
   `set -e`. **F05 should reuse `postgresql+psycopg://` for the
   real `DATABASE_URL`/`DATABASE_URL_LOAD`**, not the bare
   `postgresql://` scheme the roadmap examples show.
+- Completed F03 (v1 baseline snapshot & regression harness):
+  `backend/tests/golden/capture_v1.py` runs
+  `analyze_progression_service` over 41 cases (the roadmap §2.2
+  defect reproductions, `code-standards.md`'s minimum regression
+  list, an explicit slash-chord/inversion case, and 25 common
+  progressions for coverage — the note above about the missing
+  companion "Phase 1 §12 step 10" document meant that exact list
+  couldn't be pulled verbatim, so it's approximated with
+  well-known progressions instead) and writes
+  `tests/golden/v1_analysis.json`; `tests/unit/test_v1_golden.py`
+  parametrizes over every case and asserts exact reproduction.
+  `tests/unit/test_analysis_regressions.py` encodes the plan's 10
+  named defects as `xfail(strict=True)`, each verified against
+  actual current output before writing the assertion (not just
+  reasoned about) — e.g. confirmed via the theory layer directly
+  that `Dm G` never considers "C major" as a key candidate
+  (`_estimate_keys` only tries roots literally present in the
+  chords) and that `C Am F G` ties "C major" and "A minor" at
+  0.95 with no `ambiguous` field to surface it. Gate: `pytest -q`
+  → 99 passed, 10 xfailed (matches the required "exactly 10
+  xfailed"); `scripts/check.sh all` green; `git status` clean.
 
 ## In Progress
 

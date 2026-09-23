@@ -1,0 +1,2709 @@
+[
+  {
+    "id": "defect_dm_g",
+    "chords": [
+      "Dm",
+      "G"
+    ],
+    "key": null,
+    "response": {
+      "absolute_chords": [
+        "D:min",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "v",
+        "I"
+      ],
+      "detected_key": "G major",
+      "confidence": 0.95,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "v",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_d7_g_c",
+    "chords": [
+      "D7",
+      "G",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "D:7",
+        "G:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "II7",
+        "V",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "II7",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_e7_am",
+    "chords": [
+      "E7",
+      "Am"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "E:7",
+        "A:min"
+      ],
+      "roman_chords": [
+        "III7",
+        "vi"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "III7",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_fm_c_no_key",
+    "chords": [
+      "Fm",
+      "C"
+    ],
+    "key": null,
+    "response": {
+      "absolute_chords": [
+        "F:min",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "i",
+        "V"
+      ],
+      "detected_key": "F major",
+      "confidence": 0.95,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_bdim_c",
+    "chords": [
+      "Bdim",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "B:dim",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "VII",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "VII",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_extensions_lost",
+    "chords": [
+      "Cmaj9",
+      "Fadd9",
+      "Gsus4",
+      "C"
+    ],
+    "key": null,
+    "response": {
+      "absolute_chords": [
+        "C:maj9",
+        "F:add9",
+        "G:sus4",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "IV",
+        "V",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 0.95,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_am_dm_e7_am",
+    "chords": [
+      "Am",
+      "Dm",
+      "E7",
+      "Am"
+    ],
+    "key": null,
+    "response": {
+      "absolute_chords": [
+        "A:min",
+        "D:min",
+        "E:7",
+        "A:min"
+      ],
+      "roman_chords": [
+        "i",
+        "iv",
+        "V7",
+        "i"
+      ],
+      "detected_key": "A minor",
+      "confidence": 0.95,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "iv",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "iv",
+          "to_roman": "V7",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V7",
+          "to_roman": "i",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_ab_bb_c",
+    "chords": [
+      "Ab",
+      "Bb",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "Ab:maj",
+        "Bb:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "bVI",
+        "bVII",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "bVI",
+          "to_roman": "bVII",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "bVII",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "defect_c_am_f_g_ambiguous",
+    "chords": [
+      "C",
+      "Am",
+      "F",
+      "G"
+    ],
+    "key": null,
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "A:min",
+        "F:maj",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "vi",
+        "IV",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 0.95,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_c_g_am_f",
+    "chords": [
+      "C",
+      "G",
+      "Am",
+      "F"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "G:maj",
+        "A:min",
+        "F:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V",
+        "vi",
+        "IV"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_f_g_c",
+    "chords": [
+      "F",
+      "G",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "F:maj",
+        "G:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "IV",
+        "V",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "IV",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_dm_g_c",
+    "chords": [
+      "Dm",
+      "G",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "D:min",
+        "G:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "ii",
+        "V",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "ii",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_fm_c_key_c_major",
+    "chords": [
+      "Fm",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "F:min",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "iv",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "iv",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "minor plagal cadence",
+            "modal interchange"
+          ],
+          "short_explanation": "The borrowed minor iv darkens the major key before resolving to tonic.",
+          "technical_explanation": "The iv chord borrows the lowered sixth scale degree from the parallel minor, then resolves back to the major tonic."
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_g_am_deceptive",
+    "chords": [
+      "G",
+      "Am"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "G:maj",
+        "A:min"
+      ],
+      "roman_chords": [
+        "V",
+        "vi"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_db7_c",
+    "chords": [
+      "Db7",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "Db:7",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "bII7",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "bII7",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "tritone substitution",
+            "subV-like resolution"
+          ],
+          "short_explanation": "bII7 resolves down by half step to I, creating a strong chromatic pull.",
+          "technical_explanation": "In a major-key context, bII7 can behave like a substitute dominant because its guide tones overlap with V7-related voice leading."
+        }
+      ]
+    }
+  },
+  {
+    "id": "regression_inversion_c_over_e",
+    "chords": [
+      "C",
+      "C/E",
+      "F",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "C:maj/E",
+        "F:maj",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "I",
+        "IV",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "I",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_iv_v_i",
+    "chords": [
+      "C",
+      "F",
+      "G",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "F:maj",
+        "G:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "IV",
+        "V",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_pop_loop_extended",
+    "chords": [
+      "C",
+      "G",
+      "Am",
+      "Em",
+      "F",
+      "C",
+      "F",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "G:maj",
+        "A:min",
+        "E:min",
+        "F:maj",
+        "C:maj",
+        "F:maj",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V",
+        "vi",
+        "iii",
+        "IV",
+        "I",
+        "IV",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "iii",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "iii",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "plagal cadence"
+          ],
+          "short_explanation": "IV moves back to I with a softer cadence.",
+          "technical_explanation": "The predominant IV returns to tonic without dominant-leading-tone pull."
+        },
+        {
+          "from_roman": "I",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_pop_punk",
+    "chords": [
+      "Am",
+      "F",
+      "C",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "A:min",
+        "F:maj",
+        "C:maj",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "vi",
+        "IV",
+        "I",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "plagal cadence"
+          ],
+          "short_explanation": "IV moves back to I with a softer cadence.",
+          "technical_explanation": "The predominant IV returns to tonic without dominant-leading-tone pull."
+        },
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_fifties_variant",
+    "chords": [
+      "C",
+      "Am",
+      "Dm",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "A:min",
+        "D:min",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "vi",
+        "ii",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "ii",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "ii",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_iii_vi_iv",
+    "chords": [
+      "C",
+      "Em",
+      "Am",
+      "F"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "E:min",
+        "A:min",
+        "F:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "iii",
+        "vi",
+        "IV"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "iii",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "iii",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_v_vi_iv_d",
+    "chords": [
+      "D",
+      "A",
+      "Bm",
+      "G"
+    ],
+    "key": "D major",
+    "response": {
+      "absolute_chords": [
+        "D:maj",
+        "A:maj",
+        "B:min",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V",
+        "vi",
+        "IV"
+      ],
+      "detected_key": "D major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_v_vi_iv_e",
+    "chords": [
+      "E",
+      "B",
+      "C#m",
+      "A"
+    ],
+    "key": "E major",
+    "response": {
+      "absolute_chords": [
+        "E:maj",
+        "B:maj",
+        "C#:min",
+        "A:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V",
+        "vi",
+        "IV"
+      ],
+      "detected_key": "E major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_v_vi_iv_g",
+    "chords": [
+      "G",
+      "D",
+      "Em",
+      "C"
+    ],
+    "key": "G major",
+    "response": {
+      "absolute_chords": [
+        "G:maj",
+        "D:maj",
+        "E:min",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V",
+        "vi",
+        "IV"
+      ],
+      "detected_key": "G major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_iv_vi_v",
+    "chords": [
+      "C",
+      "F",
+      "Am",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "F:maj",
+        "A:min",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "IV",
+        "vi",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_andalusian_cadence",
+    "chords": [
+      "Am",
+      "G",
+      "F",
+      "E"
+    ],
+    "key": "A minor",
+    "response": {
+      "absolute_chords": [
+        "A:min",
+        "G:maj",
+        "F:maj",
+        "E:maj"
+      ],
+      "roman_chords": [
+        "i",
+        "VII",
+        "VI",
+        "V"
+      ],
+      "detected_key": "A minor",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "VII",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VII",
+          "to_roman": "VI",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VI",
+          "to_roman": "V",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_minor_i_vi_vii",
+    "chords": [
+      "Am",
+      "F",
+      "G",
+      "Am"
+    ],
+    "key": "A minor",
+    "response": {
+      "absolute_chords": [
+        "A:min",
+        "F:maj",
+        "G:maj",
+        "A:min"
+      ],
+      "roman_chords": [
+        "i",
+        "VI",
+        "VII",
+        "i"
+      ],
+      "detected_key": "A minor",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "VI",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "chromatic mediant"
+          ],
+          "short_explanation": "This transition is associated with chromatic mediant.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "VI",
+          "to_roman": "VII",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VII",
+          "to_roman": "i",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_minor_circle",
+    "chords": [
+      "Am",
+      "Dm",
+      "G",
+      "C"
+    ],
+    "key": "A minor",
+    "response": {
+      "absolute_chords": [
+        "A:min",
+        "D:min",
+        "G:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "i",
+        "iv",
+        "VII",
+        "III"
+      ],
+      "detected_key": "A minor",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "iv",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "iv",
+          "to_roman": "VII",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VII",
+          "to_roman": "III",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_minor_i_vi_iii_vii",
+    "chords": [
+      "Em",
+      "C",
+      "G",
+      "D"
+    ],
+    "key": "E minor",
+    "response": {
+      "absolute_chords": [
+        "E:min",
+        "C:maj",
+        "G:maj",
+        "D:maj"
+      ],
+      "roman_chords": [
+        "i",
+        "VI",
+        "III",
+        "VII"
+      ],
+      "detected_key": "E minor",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "VI",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "chromatic mediant"
+          ],
+          "short_explanation": "This transition is associated with chromatic mediant.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "VI",
+          "to_roman": "III",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "III",
+          "to_roman": "VII",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_jazz_ii_v_i",
+    "chords": [
+      "Dm7",
+      "G7",
+      "Cmaj7"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "D:min7",
+        "G:7",
+        "C:maj7"
+      ],
+      "roman_chords": [
+        "ii7",
+        "V7",
+        "Imaj7"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "ii7",
+          "to_roman": "V7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "V7",
+          "to_roman": "Imaj7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_jazz_turnaround",
+    "chords": [
+      "Cmaj7",
+      "A7",
+      "Dm7",
+      "G7"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj7",
+        "A:7",
+        "D:min7",
+        "G:7"
+      ],
+      "roman_chords": [
+        "Imaj7",
+        "VI7",
+        "ii7",
+        "V7"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "Imaj7",
+          "to_roman": "VI7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VI7",
+          "to_roman": "ii7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        },
+        {
+          "from_roman": "ii7",
+          "to_roman": "V7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_v7_i",
+    "chords": [
+      "C",
+      "G7",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "G:7",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V7",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V7",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_maj7_dominant",
+    "chords": [
+      "C",
+      "Fmaj7",
+      "G7",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "F:maj7",
+        "G:7",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "IVmaj7",
+        "V7",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "IVmaj7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IVmaj7",
+          "to_roman": "V7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V7",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "authentic cadence",
+            "dominant resolution",
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "Dominant V resolves to tonic I, creating strong closure.",
+          "technical_explanation": "The dominant chord contains scale degree 7, which resolves by step to tonic in common-practice tonal syntax."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_v_vi_iv_bb",
+    "chords": [
+      "Bb",
+      "F",
+      "Gm",
+      "Eb"
+    ],
+    "key": "Bb major",
+    "response": {
+      "absolute_chords": [
+        "Bb:maj",
+        "F:maj",
+        "G:min",
+        "Eb:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "V",
+        "vi",
+        "IV"
+      ],
+      "detected_key": "Bb major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V",
+          "to_roman": "vi",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "deceptive cadence"
+          ],
+          "short_explanation": "V sets up tonic resolution but moves to vi instead, creating a detour.",
+          "technical_explanation": "The dominant expectation is diverted to the submediant rather than I."
+        },
+        {
+          "from_roman": "vi",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_secondary_dominant_iv",
+    "chords": [
+      "C",
+      "C7",
+      "F",
+      "Fm",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "C:7",
+        "F:maj",
+        "F:min",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "I7",
+        "IV",
+        "iv",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "I7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "I7",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "iv",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "iv",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "minor plagal cadence",
+            "modal interchange"
+          ],
+          "short_explanation": "The borrowed minor iv darkens the major key before resolving to tonic.",
+          "technical_explanation": "The iv chord borrows the lowered sixth scale degree from the parallel minor, then resolves back to the major tonic."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_v7_of_vi_no_key",
+    "chords": [
+      "C",
+      "E7",
+      "Am"
+    ],
+    "key": null,
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "E:7",
+        "A:min"
+      ],
+      "roman_chords": [
+        "III",
+        "V7",
+        "i"
+      ],
+      "detected_key": "A minor",
+      "confidence": 0.95,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "III",
+          "to_roman": "V7",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "V7",
+          "to_roman": "i",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_major_ii_borrowed",
+    "chords": [
+      "C",
+      "D",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "D:maj",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "II",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "II",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "II",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_mixolydian_loop",
+    "chords": [
+      "C",
+      "Bb",
+      "F",
+      "C"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "Bb:maj",
+        "F:maj",
+        "C:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "bVII",
+        "IV",
+        "I"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "bVII",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "bVII",
+          "to_roman": "IV",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV",
+          "to_roman": "I",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "plagal cadence"
+          ],
+          "short_explanation": "IV moves back to I with a softer cadence.",
+          "technical_explanation": "The predominant IV returns to tonic without dominant-leading-tone pull."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_minor_bvii_bvi_v",
+    "chords": [
+      "Em",
+      "D",
+      "C",
+      "B7"
+    ],
+    "key": "E minor",
+    "response": {
+      "absolute_chords": [
+        "E:min",
+        "D:maj",
+        "C:maj",
+        "B:7"
+      ],
+      "roman_chords": [
+        "i",
+        "VII",
+        "VI",
+        "V7"
+      ],
+      "detected_key": "E minor",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "i",
+          "to_roman": "VII",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VII",
+          "to_roman": "VI",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VI",
+          "to_roman": "V7",
+          "mode_context": "minor",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_i_vi_ii_v_major_two",
+    "chords": [
+      "C",
+      "A",
+      "D",
+      "G"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:maj",
+        "A:maj",
+        "D:maj",
+        "G:maj"
+      ],
+      "roman_chords": [
+        "I",
+        "VI",
+        "II",
+        "V"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I",
+          "to_roman": "VI",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "VI",
+          "to_roman": "II",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "II",
+          "to_roman": "V",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "circle-of-fifths motion"
+          ],
+          "short_explanation": "This transition is associated with circle-of-fifths motion.",
+          "technical_explanation": "The labels come from rule-based Roman numeral relationship analysis."
+        }
+      ]
+    }
+  },
+  {
+    "id": "common_blues_turnaround",
+    "chords": [
+      "C7",
+      "F7",
+      "C7",
+      "G7"
+    ],
+    "key": "C major",
+    "response": {
+      "absolute_chords": [
+        "C:7",
+        "F:7",
+        "C:7",
+        "G:7"
+      ],
+      "roman_chords": [
+        "I7",
+        "IV7",
+        "I7",
+        "V7"
+      ],
+      "detected_key": "C major",
+      "confidence": 1.0,
+      "warnings": [],
+      "relationships": [
+        {
+          "from_roman": "I7",
+          "to_roman": "IV7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        },
+        {
+          "from_roman": "IV7",
+          "to_roman": "I7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [
+            "plagal cadence"
+          ],
+          "short_explanation": "IV moves back to I with a softer cadence.",
+          "technical_explanation": "The predominant IV returns to tonic without dominant-leading-tone pull."
+        },
+        {
+          "from_roman": "I7",
+          "to_roman": "V7",
+          "mode_context": "major",
+          "count": 0,
+          "probability": 0.0,
+          "genre": null,
+          "subgenre": null,
+          "section": null,
+          "decade": null,
+          "relationship_labels": [],
+          "short_explanation": null,
+          "technical_explanation": null
+        }
+      ]
+    }
+  }
+]
