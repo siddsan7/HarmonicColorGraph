@@ -8,6 +8,9 @@ This version has breaking changes — APIs, conventions, and file structure may 
 Read the following files in order before implementing
 or making any architectural decision:
 
+0. `context/HANDOFF.md` — start here. Orientation for a new
+   session picking up this project: current state, established
+   conventions, known gaps, and where everything below lives.
 1. `context/project-overview.md` — product definition,
    goals, features, and scope
 2. `context/architecture.md` — system structure,
@@ -27,8 +30,9 @@ or making any architectural decision:
    feature-by-feature build plan with acceptance checks;
    execute it one feature at a time, in order, ticking
    checkboxes as you go
-9. The active phase context named in `progress-tracker.md`
-   — currently `context/phase-1-harmonic-data-graph-foundation.md`
+9. `context/phase-1-harmonic-data-graph-foundation.md` is
+   historical (superseded by `docs/roadmap-v2.md` and the v2
+   plan) — background only, not an active spec.
 10. Any relevant feature spec in `feature-specs/` once
     implementation-specific specs are added.
     `feature-specs/phase-1-feature-roadmap.md` is historical

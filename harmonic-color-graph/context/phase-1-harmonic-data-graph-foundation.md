@@ -1,5 +1,11 @@
 # Phase 1 - Harmonic Data Graph Foundation
 
+> **Historical.** This document drove the original Phase 1 build and is
+> preserved as background on what shipped and why. It is no longer the
+> active spec — `docs/roadmap-v2.md` and
+> `feature-specs/v2-implementation-plan.md` are. Start at
+> `context/HANDOFF.md` if you're picking this project up.
+
 ## Purpose
 
 Phase 1 builds the musical intelligence layer that later

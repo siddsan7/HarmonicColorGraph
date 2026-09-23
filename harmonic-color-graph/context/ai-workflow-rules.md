@@ -36,6 +36,13 @@ user intent
 Do not build Phase 3 features before the Phase 1/2 data
 foundation they require exists.
 
+This three-phase framing still holds at the concept level, but
+the active, numbered execution plan is
+`feature-specs/v2-implementation-plan.md`'s milestones M0–M8
+(see `docs/roadmap-v2.md` §7 for how they map to these phases).
+Work through that plan's features (F00, F01, …) in order; this
+file's scoping rules below apply to each one.
+
 ## Scoping Rules
 
 - Work on one feature unit at a time.

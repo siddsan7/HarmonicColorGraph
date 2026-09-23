@@ -1,7 +1,9 @@
 # Progress Tracker
 
 Update this file after every meaningful implementation
-change.
+change. New session? `context/HANDOFF.md` is the quick
+orientation; this file is the full current-status-plus-history
+detail it points to.
 
 ## v2 Plan — Active
 
