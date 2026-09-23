@@ -210,11 +210,11 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Commit:** `feat(db): hcg schema on Supabase, SQL migrations as single source, serverless-safe sessions`
 
 ### F06 — Deploy the API to Vercel [M]
-- [ ] Vercel `create_project` `harmonic-color-graph-api`, Git-connected to `siddsan7/HarmonicColorGraph`, root directory `harmonic-color-graph/backend`, framework FastAPI (entrypoint `app/main.py`).
-- [ ] `backend/vercel.json`: `functions."app/main.py": {maxDuration: 30, excludeFiles: "{tests/**,pipeline/**,legacy/**,**/*.parquet}"}`.
-- [ ] Env vars via `create_project_env` (production + preview): `DATABASE_URL`, `HCG_ENV`, `HCG_CORS_ORIGINS` (web URLs + localhost for dev).
-- [ ] Replace the hard-coded CORS list with settings; mount legacy routes at `/v1/*` **and** keep the unversioned aliases (the v1 baseline stays callable permanently; the UI moves to `/v2` in F14).
-- [ ] `/health` returns `{status, version (git sha from VERCEL_GIT_COMMIT_SHA), corpus_version}`.
+- [x] Vercel `create_project` `harmonic-color-graph-api`, Git-connected to `siddsan7/HarmonicColorGraph`, root directory `harmonic-color-graph/backend`, framework FastAPI (entrypoint `app/main.py`). (Used `create_project` with an inline `gitRepository`, not `create_git_project` — the latter 403s on this account's token scope, see `docs/runbooks/vercel.md`. Also had to explicitly disable `ssoProtection`, which defaults on for new projects and would have blocked public `curl` access.)
+- [x] `backend/vercel.json`: `functions."app/main.py": {maxDuration: 30, excludeFiles: "{tests/**,pipeline/**,legacy/**,**/*.parquet}"}`.
+- [x] Env vars via `create_project_env` (production + preview): `DATABASE_URL`, `HCG_ENV`, `HCG_CORS_ORIGINS` (web URLs + localhost for dev). (`HCG_CORS_ORIGINS` is a placeholder — local-dev origins only, since F07's production frontend URL doesn't exist yet; F07 must update it.)
+- [x] Replace the hard-coded CORS list with settings; mount legacy routes at `/v1/*` **and** keep the unversioned aliases (the v1 baseline stays callable permanently; the UI moves to `/v2` in F14).
+- [x] `/health` returns `{status, version (git sha from VERCEL_GIT_COMMIT_SHA), corpus_version}`.
 
 **Checks:** `list_deployments` shows `READY`; `curl https://<api>/health` → 200 and `/health/db` → 200; build log shows install without music21/gensim/polars; `get_runtime_logs` shows no errors after 10 smoke requests; cold-start `/health` < 3 s, warm < 300 ms (record in tracker).
 **Commit:** `feat(deploy): FastAPI on Vercel`

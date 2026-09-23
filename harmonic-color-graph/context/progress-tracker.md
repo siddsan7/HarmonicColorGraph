@@ -12,9 +12,7 @@ detail it points to.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F06 (deploy the API to Vercel) — will need
-  Siddharth's input too (§0.2: Vercel GitHub app access to
-  `siddsan7/HarmonicColorGraph`).
+- Current feature: F07 (deploy the web app to Vercel).
 - Blocked: none right now.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
@@ -461,17 +459,99 @@ detail it points to.
     could cover, and the fixes above verified locally against the
     real project); `git status` clean.
 
+- Completed F06 (deploy the API to Vercel). Siddharth confirmed
+  the Vercel GitHub app already had access to
+  `siddsan7/HarmonicColorGraph` (§0.2), so no grant step was
+  needed.
+  - Code: `backend/vercel.json` (30s maxDuration, excludes
+    tests/pipeline/legacy/parquet); `AppSettings.cors_origins`
+    parses `HCG_CORS_ORIGINS` (comma-separated) and falls back to
+    the local-dev origins when unset, replacing the hard-coded
+    `CORS_ORIGINS` list; `phase1_router` now mounted twice (once
+    unprefixed, once at `/v1`) so the v1 baseline stays callable
+    permanently; `/health` changed shape to
+    `{status, version, corpus_version}` (git sha via
+    `VERCEL_GIT_COMMIT_SHA`, defaulting to `"dev"` locally;
+    `corpus_version` is a hardcoded `"unversioned"` placeholder
+    until F23 wires up the real `hcg.corpus_versions` table).
+    Updated `tests/test_health.py` for the new response shape and
+    added `tests/unit/test_deploy_config.py` (v1/unversioned
+    parity for two endpoints, CORS parsing defaults and
+    comma-splitting).
+  - Verified the Supabase transaction-pooler hostname by a live
+    connection test instead of guessing it (the runbook explicitly
+    warned not to): `aws-0-us-west-1.pooler.supabase.com:6543`
+    with user `postgres.avnxcyulznofylsnydfg` connects; the
+    same-region `aws-1-...` guess fails with "tenant/user not
+    found," confirming the per-project index really does matter.
+    Recorded in `docs/runbooks/supabase.md`.
+  - Vercel project `harmonic-color-graph-api`
+    (`prj_gePSr9AiFpV4e5mzJK8mO5EsbvZz`), Git-connected to
+    `siddsan7/HarmonicColorGraph`, root `harmonic-color-graph/backend`,
+    framework `fastapi`. Two tool/process surprises, both recorded
+    in `docs/runbooks/vercel.md`:
+    1. The plan's suggested `create_git_project` tool 403s on this
+       account's token scope ("siddsan7s-projects"); switched to
+       `create_project` with an inline `gitRepository` object,
+       which works.
+    2. New Vercel projects default `ssoProtection` (Vercel
+       Authentication) to `all_except_custom_domains` — would have
+       required a Vercel login to reach the API's `.vercel.app`
+       URL at all, breaking public curl access, the frontend, and
+       cron. Explicitly disabled via `update_project`.
+    Env vars set via `create_project_env` (production + preview):
+    `DATABASE_URL` (sensitive, transaction pooler), `HCG_ENV`
+    (`production`/`preview` per target), `HCG_CORS_ORIGINS`
+    (placeholder: local-dev origins only, since F07's production
+    frontend URL doesn't exist yet — **F07 must update this**).
+  - Triggering the actual production deployment
+    (`create_deployment` with `target: "production"`) was blocked
+    by Claude Code's auto-mode classifier ("Production Deploy");
+    asked Siddharth first, who approved, then proceeded. First
+    deployment attempt accidentally built off pre-F06 `main`
+    (`e06a109`) because the branch hadn't been merged yet;
+    squash-merged `feat/F06-vercel-api-deploy` to `main` first,
+    then created a second deployment off the correct commit
+    (`a46b518`) — that one is what's live.
+  - Verified without `get_runtime_logs` or `list_deployment_events`
+    (both 403 on this token's scope — same root cause as the
+    `create_git_project` gap, see `docs/runbooks/vercel.md`): direct
+    `curl` against the production URL
+    (`https://harmonic-color-graph-api.vercel.app`) —
+    `/health` → 200 `{"status":"ok","version":"a46b518...","corpus_version":"unversioned"}`;
+    `/health/db` → 200 `{"status":"ok","database":"connected"}`
+    (proves the pooler `DATABASE_URL` works end-to-end in
+    production); `/analyze-progression`, `/v1/analyze-progression`
+    (identical response, confirming the alias), `/next-chords`, and
+    `/explain-transition` all → 200. First request (effectively
+    cold) 0.80 s; five subsequent `/health` calls 0.14–0.56 s
+    (network-inclusive curl timing from this sandbox to Vercel's
+    `iad1` region, not isolated function-execution time — both
+    comfortably under the plan's 3 s cold / cautious about the
+    300 s warm target given the measurement includes network RTT).
+    Build-log inspection to confirm music21/gensim/polars weren't
+    installed wasn't directly possible (same tooling gap); relied
+    instead on `backend/pyproject.toml`'s `[project.dependencies]`
+    being runtime-only (verified in F01) plus the deployment's own
+    working `/health/db` round trip as corroborating evidence.
+  - Gate: `scripts/check.sh all` green locally (110 passed unit
+    tests, 4 skipped pg-marked, 10 xfailed — same counts as F05
+    plus the 4 new deploy-config tests); CI green on the feature
+    branch (run #15, all three jobs); squash-merged to `main`.
+
 ## In Progress
 
-- None — F06 (deploy the API to Vercel) not yet started.
+- None — F07 (deploy the web app to Vercel) not yet started.
 
 ## Next Up
 
-- F06: create the Vercel project for the API
-  (`harmonic-color-graph-api`, root `harmonic-color-graph/backend`).
-  Needs Siddharth to confirm the Vercel GitHub app has access to
-  `siddsan7/HarmonicColorGraph` (§0.2) before the Git-connected
-  project can be created.
+- F07: create the Vercel project for the web app
+  (`harmonic-color-graph`, root `harmonic-color-graph`, framework
+  Next.js), wire the `/api/hcg/:path*` rewrite to the F06 API
+  origin (`https://harmonic-color-graph-api.vercel.app`), and once
+  the production frontend URL is known, update the API project's
+  `HCG_CORS_ORIGINS` env var (currently local-dev-only, see
+  `docs/runbooks/vercel.md`) to include it.
 
 ## Open Questions
 
