@@ -62,6 +62,32 @@ you're reading this. As of this handoff:
   gate results. It's long by design: it's the project's memory of *why*,
   not just *what*.
 
+## Milestone time estimates (made after M0 shipped, 2026-09-23)
+
+Rough order-of-magnitude, not a schedule — calibrated from M0's actual
+commit-timestamp data (9 S/M-sized features, ~15–90 min active time each)
+extrapolated with judgment for M1–M8's L-sized features, none of which
+existed in M0 (full-corpus runs, gold-set calibration loops, ML training,
+a LangGraph agent). Figures are agent-active work time, not calendar
+time. Full reasoning and per-feature M0 numbers are in the session
+transcript that produced this table; re-derive from
+`context/progress-tracker.md`'s Completed list if it's gone stale.
+
+| Milestone | Features (S/M/L) | Est. active hours | Main wildcard |
+|---|---|---|---|
+| M1 — Analysis v2 | 3M, 2L | 9–24 | F11/F12 calibration loops + accuracy targets; F12 needs a 20-min Siddharth review |
+| M2 — Corpus pipeline & graph | 1S, 4M, 2L | 10–27 | F21 is a literal full-corpus batch run — real compute hours, separate from agent time |
+| M3 — Prediction v2 | 2M, 1L | 5–13 | Smallest remaining milestone |
+| M4 — Color & voice leading | 1S, 4M | 4–11 | No L features — closest in shape to M0 |
+| M5 — Embeddings & hybrid recommender | 4M, 1L | 7–18 | Chord2Vec/embedding training, hybrid scorer tuning |
+| M6 — Generation, explorer, playback | 1S, 4M, 2L | 10–27 | Constrained generator + interactive graph explorer are open-ended |
+| M7 — Grounded AI assistant | 1S, 5M, 1L | 8–22 | LangGraph iteration tends to run long; needs `ANTHROPIC_API_KEY` |
+| M8 — Feedback, accounts, launch | 3S, 3M | 4–11 | F81 needs an auth-provider decision; F82 needs 3–5 human raters (outside agent control) |
+| **Total M1–M8** | | **~58–153** | |
+
+Treat this as a prior, not a commitment — recalibrate once M1 actually
+ships (sample size here is one milestone, and zero L-features).
+
 ## Conventions established this session (follow these, don't re-derive them)
 
 - **Git workflow:** one branch per feature (`feat/F##-short-name`), work
