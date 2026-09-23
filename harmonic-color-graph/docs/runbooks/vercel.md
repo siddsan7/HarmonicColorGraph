@@ -32,9 +32,17 @@ Set via `create_project_env`, not committed anywhere:
 | `HCG_ENV` | preview | `preview` | plain |
 | `HCG_CORS_ORIGINS` | production, preview | `http://localhost:3000,http://127.0.0.1:3000` (placeholder) | plain |
 
-`HCG_CORS_ORIGINS` still only lists local-dev origins — **F07 must add the
-production Next.js URL** once that project exists (`update_project_env` or
-re-run `create_project_env` with `upsert=true`).
+`HCG_CORS_ORIGINS` was updated in F07 (via `create_project_env` with
+`upsert=true`) to
+`https://harmonic-color-graph.vercel.app,http://localhost:3000,http://127.0.0.1:3000`.
+That change only takes effect on this project's *next* deployment/build —
+env var updates don't retroactively affect an already-running deployment —
+so it applies from F08 (or whenever this project next redeploys) onward.
+In practice CORS barely matters for the production frontend anyway: the
+Next.js server does the proxying server-side (see the web app section
+below), so the browser never makes a cross-origin request to this API in
+normal use; CORS only matters for direct API callers (local dev without
+the proxy, other tools, curl-based smoke tests).
 
 ## Deploying
 
@@ -77,3 +85,37 @@ tests against 5 endpoints (`/health`, `/health/db`,
 `/explain-transition`) all returned 200 with correct bodies, and
 `/health/db` returning `{"status": "ok", "database": "connected"}`
 confirms the production `DATABASE_URL` (pooler) works end-to-end.
+
+## Web app project (F07)
+
+- **Project:** `harmonic-color-graph`
+- **Project ID:** `prj_7qWHYz6bENIzUWg0dZz3drY6H8cg`
+- **Git-connected:** `siddsan7/HarmonicColorGraph`, root directory
+  `harmonic-color-graph`, framework `nextjs`.
+- **Production URL:** `https://harmonic-color-graph.vercel.app`.
+- **Deployment Protection:** disabled the same way and for the same
+  reason as the API project above.
+- **Env vars:** `HCG_API_ORIGIN` = `https://harmonic-color-graph-api.vercel.app`
+  for both production and preview targets (plain). Previews point at the
+  API's *production* URL for now, per the plan, until M2 wires up
+  preview↔preview.
+- **Same-origin API proxy:** implemented in `next.config.ts`'s
+  `rewrites()`, not `vercel.json` — Vercel's modern `rewrites` array in
+  `vercel.json` does not interpolate environment variables into the
+  `destination` field (only the legacy `routes` config supports
+  `${VAR}` interpolation via an explicit `env` array, and mixing `routes`
+  with a framework preset is discouraged). Next's own `rewrites()`
+  function reads `process.env.HCG_API_ORIGIN` at build time instead,
+  which Vercel evaluates separately per environment (production and
+  preview builds each get their own env vars), achieving the same result.
+  Browser requests to `/api/hcg/*` never leave the frontend's own origin,
+  so CORS is a non-issue for real usage.
+- **Verified in production:** loaded `https://harmonic-color-graph.vercel.app`,
+  clicked Analyze on the default `C - G - Am` sample — got a "Live result"
+  with correct Roman analysis (`I V vi`, deceptive cadence label), zero
+  browser console errors, and all three API calls
+  (`analyze-progression`, `next-chords`, `explain-transition`) went to
+  `harmonic-color-graph.vercel.app/api/hcg/*` (same origin) returning 200.
+  Also ran the Playwright smoke spec against production directly
+  (`PLAYWRIGHT_BASE_URL=https://harmonic-color-graph.vercel.app npx
+  playwright test`) — passed.

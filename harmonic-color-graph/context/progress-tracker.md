@@ -12,7 +12,8 @@ detail it points to.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F07 (deploy the web app to Vercel).
+- Current feature: F08 (keep-alive cron and graceful degradation) —
+  the last feature before M0 closes out.
 - Blocked: none right now.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
@@ -539,19 +540,84 @@ detail it points to.
     plus the 4 new deploy-config tests); CI green on the feature
     branch (run #15, all three jobs); squash-merged to `main`.
 
+- Completed F07 (deploy the web app to Vercel).
+  - Code: `lib/api/client.ts` — typed client for the v1 endpoints,
+    calling the relative `/api/hcg` path so the browser never
+    talks cross-origin to the FastAPI backend. Refactored
+    `components/phase-one-demo.tsx` to use it instead of its own
+    inlined fetch calls; dropped `NEXT_PUBLIC_PHASE1_API_URL` and
+    the `localhost:8000` default; added the
+    Chordonomicon/CC BY-NC 4.0 footer attribution (links: the
+    arXiv paper at `arxiv.org/abs/2410.22046` and
+    `creativecommons.org/licenses/by-nc/4.0/`, confirmed by web
+    search rather than guessed). Added
+    `lib/api/client.test.ts` (Vitest, mocked `fetch`).
+  - `next.config.ts` rewrites `/api/hcg/:path*` to
+    `HCG_API_ORIGIN` (default `http://127.0.0.1:8000` locally).
+    **Deviated from the plan's literal `vercel.json` rewrites**:
+    Vercel's modern `rewrites` array doesn't interpolate env vars
+    into the destination (checked via `search_vercel_documentation`
+    — only the legacy `routes` config supports `${VAR}`
+    interpolation, and mixing `routes` with the Next.js framework
+    preset is discouraged). Used Next's own `rewrites()` instead,
+    which reads `process.env` at build time per environment and
+    achieves the same result. Recorded in `docs/runbooks/vercel.md`.
+  - Added Playwright: `playwright.config.ts`,
+    `tests/e2e/smoke.spec.ts` (analyzes the default `C - G - Am`
+    sample, asserts the Roman analysis and footer render and no
+    CORS errors reach the console), `npm run test:e2e` script,
+    installed the Chromium binary. Not wired into CI's `frontend`
+    job (not asked for by this feature; can be added later if
+    wanted) — ran manually against local dev and, after deploying,
+    against the live production URL via `PLAYWRIGHT_BASE_URL`.
+  - Verified locally first: started the real FastAPI backend and
+    the Next.js dev server (via `.claude/launch.json`, new — the
+    browser preview tool needs it) and drove the analyze flow
+    through the browser pane. Hit one unrelated snag: Turbopack's
+    persistent cache panicked (`turbo-persistence` "range start
+    index ... out of range") on the first `next dev` right after a
+    `next build` in the same `.next` directory — deleting `.next`
+    and restarting fixed it; not a code bug, just a cache
+    collision between build and dev sharing one cache dir.
+  - Vercel project `harmonic-color-graph`
+    (`prj_7qWHYz6bENIzUWg0dZz3drY6H8cg`), Git-connected, root
+    `harmonic-color-graph`, framework `nextjs`; disabled
+    `ssoProtection` again (same default-on gotcha as F06). Env var
+    `HCG_API_ORIGIN` = the F06 API's production URL, for both
+    production and preview (previews point at the API's production
+    URL until M2, per the plan). Also updated the *API* project's
+    `HCG_CORS_ORIGINS` to include the new frontend URL (was
+    local-dev-only since F06); takes effect on the API's next
+    deployment, not retroactively.
+  - Production deployment (`create_deployment`, asked Siddharth
+    first per the same auto-mode-classifier block as F06) built
+    correctly off `main` at `333f2fa` on the first attempt (learned
+    from F06's mistake — merged to `main` *before* deploying this
+    time). Live at `https://harmonic-color-graph.vercel.app`.
+    Verified in the browser: page loads, clicking Analyze on the
+    default sample gives a "Live result" with correct Roman
+    analysis (`I V vi`, deceptive cadence label), zero console
+    errors, and all three API calls went to
+    `harmonic-color-graph.vercel.app/api/hcg/*` (confirmed
+    same-origin, no CORS) returning 200. Playwright smoke spec
+    passed against production directly.
+  - Gate: `scripts/check.sh all` green locally; CI green on the
+    feature branch (run #18, all three jobs); squash-merged to
+    `main`.
+
 ## In Progress
 
-- None — F07 (deploy the web app to Vercel) not yet started.
+- None — F08 (keep-alive cron and graceful degradation) not yet
+  started.
 
 ## Next Up
 
-- F07: create the Vercel project for the web app
-  (`harmonic-color-graph`, root `harmonic-color-graph`, framework
-  Next.js), wire the `/api/hcg/:path*` rewrite to the F06 API
-  origin (`https://harmonic-color-graph-api.vercel.app`), and once
-  the production frontend URL is known, update the API project's
-  `HCG_CORS_ORIGINS` env var (currently local-dev-only, see
-  `docs/runbooks/vercel.md`) to include it.
+- F08: `app/api/cron/keepalive/route.ts` (bearer-secret-gated,
+  calls `/api/hcg/health/db`), `vercel.json` cron entry on the web
+  app project (`0 15 * * *`, needs a `CRON_SECRET` env var — a
+  §0.2 input, or generate one and record the ref, never the value),
+  and a UI status pill / degraded-mode banner. This is the last
+  feature before the M0 exit gate.
 
 ## Open Questions
 
