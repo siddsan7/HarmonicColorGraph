@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.harmony import (
@@ -148,18 +148,36 @@ class HarmonicRepository:
         self,
         from_roman: str,
         *,
+        mode: str = "major",
         genre: str | None = None,
         section: str | None = None,
     ) -> list[TransitionModel]:
-        query = select(TransitionModel).where(TransitionModel.from_roman == from_roman)
+        """Rows for `from_roman`/`mode`, restricted in SQL to the buckets a
+        genre/section backoff chain could ever use (global; genre alone;
+        section alone; genre+section together, when both are given) - never
+        every genre or section this chord happens to appear under
+        (feature-specs/v2-implementation-plan.md, F04)."""
+        buckets = [and_(TransitionModel.genre.is_(None), TransitionModel.section.is_(None))]
         if genre is not None:
-            query = query.where(TransitionModel.genre == genre)
+            buckets.append(and_(TransitionModel.genre == genre, TransitionModel.section.is_(None)))
         if section is not None:
-            query = query.where(TransitionModel.section == section)
-        query = query.order_by(
-            TransitionModel.probability.desc(),
-            TransitionModel.count.desc(),
-            TransitionModel.to_roman.asc(),
+            buckets.append(
+                and_(TransitionModel.genre.is_(None), TransitionModel.section == section)
+            )
+        if genre is not None and section is not None:
+            buckets.append(and_(TransitionModel.genre == genre, TransitionModel.section == section))
+
+        query = (
+            select(TransitionModel)
+            .where(TransitionModel.from_roman == from_roman)
+            .where(TransitionModel.mode_context == mode)
+            .where(TransitionModel.decade.is_(None))
+            .where(or_(*buckets))
+            .order_by(
+                TransitionModel.probability.desc(),
+                TransitionModel.count.desc(),
+                TransitionModel.to_roman.asc(),
+            )
         )
         return list(self.session.scalars(query))
 
@@ -167,6 +185,7 @@ class HarmonicRepository:
         self,
         from_roman: str,
         *,
+        mode: str = "major",
         genre: str | None = None,
         section: str | None = None,
     ) -> list[TransitionRecord]:
@@ -176,7 +195,6 @@ class HarmonicRepository:
                 to_roman=model.to_roman,
                 mode_context=model.mode_context or "unknown",
                 genre=model.genre,
-                subgenre=model.subgenre,
                 section=model.section,
                 decade=model.decade,
                 count=model.count,
@@ -185,6 +203,7 @@ class HarmonicRepository:
             )
             for model in self.list_transitions_from(
                 from_roman,
+                mode=mode,
                 genre=genre,
                 section=section,
             )

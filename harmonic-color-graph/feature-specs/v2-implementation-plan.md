@@ -188,10 +188,10 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 
 ### F04 — Transition lookup correctness hotfix [S]
 **Goal:** The v1 baseline returns honest probabilities (needed for fair evaluation in F31).
-- [ ] Reproduce the bug first in `tests/unit/test_transition_lookup_contexts.py`: for the 5-progression fixture from roadmap §2.2, assert no duplicate `chord` in candidates and that probabilities per query sum to 1 (±1e-9).
-- [ ] Change aggregation keys to `(from, to, mode, context_type, context_value)` with `context_type ∈ {global, genre, section, decade, genre_section}`, each normalized within its own context. Stop keying rows by subgenre and decade at the same time as genre/section.
-- [ ] Lookup: filter by `mode` (new query param, default from analysis or `major`) and an exact context; back off `genre_section → genre → section → global`; report `context_used.backoff` in the response.
-- [ ] Mirror the key change in `corpus_ingestion._count_transitions` and the repository query (filter context in SQL, not Python).
+- [x] Reproduce the bug first in `tests/unit/test_transition_lookup_contexts.py`: for the 5-progression fixture from roadmap §2.2, assert no duplicate `chord` in candidates and that probabilities per query sum to 1 (±1e-9).
+- [x] Change aggregation keys to `(from, to, mode, context_type, context_value)` with `context_type ∈ {global, genre, section, decade, genre_section}`, each normalized within its own context. Stop keying rows by subgenre and decade at the same time as genre/section. (Implemented as `(from, to, mode, genre, section, decade)` tuples where exactly one of genre/section/decade is set per bucket — see tracker for why this reuses `TransitionRecord`'s existing fields instead of adding a literal `context_type`/`context_value` pair.)
+- [x] Lookup: filter by `mode` (new query param, default from analysis or `major`) and an exact context; back off `genre_section → genre → section → global`; report `context_used.backoff` in the response.
+- [x] Mirror the key change in `corpus_ingestion._count_transitions` and the repository query (filter context in SQL, not Python). (Went further: `corpus_ingestion` now imports the shared `count_transitions`/`build_transition_records` from `transition_graph` instead of maintaining a second copy of the same logic.)
 
 **Checks:** New tests pass; the v1 golden still matches for analysis; `/next-chords?progression=I,V,vi` on the fixture returns unique candidates summing to 1.
 **Commit:** `fix(lookup): per-context normalized transitions, mode-aware lookup with backoff`

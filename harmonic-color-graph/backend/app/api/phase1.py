@@ -49,6 +49,7 @@ def analyze_progression_endpoint(
 @router.get("/next-chords", response_model=NextChordsResponse)
 def next_chords_endpoint(
     progression: Annotated[str, Query(min_length=1)],
+    mode: str = "major",
     genre: str | None = None,
     section: str | None = None,
     session: Session = Depends(get_session),
@@ -56,11 +57,15 @@ def next_chords_endpoint(
     roman_progression = [chord.strip() for chord in progression.split(",") if chord.strip()]
     records, data_source, fallback_used, database_count = _transition_records_for_lookup(
         roman_progression[-1],
+        mode=mode,
+        genre=genre,
+        section=section,
         session=session,
     )
     response = get_next_chords(
         roman_progression,
         records,
+        mode=mode,
         genre=genre,
         section=section,
     )
@@ -89,17 +94,22 @@ def explain_transition_endpoint(
 @router.get("/transition-stats", response_model=TransitionStatsResponse)
 def transition_stats_endpoint(
     from_roman: Annotated[str, Query(alias="from", min_length=1)],
+    mode: str = "major",
     genre: str | None = None,
     section: str | None = None,
     session: Session = Depends(get_session),
 ) -> TransitionStatsResponse:
     records, data_source, fallback_used, database_count = _transition_records_for_lookup(
         from_roman,
+        mode=mode,
+        genre=genre,
+        section=section,
         session=session,
     )
     response = get_transition_stats(
         from_roman,
         records,
+        mode=mode,
         genre=genre,
         section=section,
     )
@@ -112,16 +122,26 @@ def transition_stats_endpoint(
 def _transition_records_for_lookup(
     from_roman: str,
     *,
+    mode: str,
+    genre: str | None,
+    section: str | None,
     session: Session,
 ):
     repository = HarmonicRepository(session)
-    database_records = repository.list_transition_records_from(from_roman)
+    database_records = repository.list_transition_records_from(
+        from_roman,
+        mode=mode,
+        genre=genre,
+        section=section,
+    )
     if database_records:
         return database_records, "database", False, len(database_records)
 
     if get_settings().demo_fallback_enabled:
         demo_records = [
-            transition for transition in DEMO_TRANSITIONS if transition.from_roman == from_roman
+            transition
+            for transition in DEMO_TRANSITIONS
+            if transition.from_roman == from_roman and transition.mode_context == mode
         ]
         return demo_records, "demo_fallback", True, 0
 

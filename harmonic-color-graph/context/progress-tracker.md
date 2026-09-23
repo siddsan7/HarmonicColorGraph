@@ -10,8 +10,12 @@ change.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F04 (transition lookup correctness hotfix).
-- Blocked: none.
+- Current feature: F05 (Supabase environment & single migration
+  system) — blocked on a Siddharth decision (§0.2), see Blocked.
+- Blocked: F05 needs Siddharth to choose between restoring the
+  paused Supabase project `bqaateqbbavwnbyfuqvk` (if still inside
+  its 90-day window) or creating a new free project, plus
+  approval that a new project (if needed) is free-tier ($0).
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -300,6 +304,76 @@ change.
   0.95 with no `ambiguous` field to surface it. Gate: `pytest -q`
   → 99 passed, 10 xfailed (matches the required "exactly 10
   xfailed"); `scripts/check.sh all` green; `git status` clean.
+- Completed F04 (transition lookup correctness hotfix). Root
+  cause confirmed exactly (`app/services/transition_graph.py`'s
+  old `aggregate_transitions`): every progression always wrote a
+  "global" row, plus — if it had a genre or section — one more
+  row keyed by `(genre, subgenre, section, decade)` *together*.
+  Two songs sharing a genre+section but differing in subgenre or
+  decade landed in different buckets, so a genre+section query
+  returned one duplicated, over-confident candidate per bucket
+  instead of one candidate normalized across all of them; lookup
+  also never filtered by mode at all. Reproduced first in
+  `tests/unit/test_transition_lookup_contexts.py` (5 fixture
+  progressions per roadmap §2.2) against the unfixed code —
+  confirmed it failed with the exact `[IV, IV, IV, ii]`-style
+  duplication before writing the fix.
+  - Design choice worth remembering: rather than adding literal
+    `context_type`/`context_value` fields (which the plan's
+    checklist wording suggests), the fix reuses
+    `TransitionRecord`'s existing `genre`/`section`/`decade`
+    fields and just changes *how* they're populated — a row now
+    varies exactly one of those dimensions (or genre+section
+    together), never a composite with subgenre. This was
+    necessary to satisfy "the v1 golden still matches for
+    analysis": `TransitionRecord` is also the type
+    `AnalyzeProgressionResponse.relationships` uses, so adding
+    fields to it would have changed every golden case's captured
+    JSON shape for no analysis-related reason. Confirmed
+    `tests/unit/test_v1_golden.py` stayed green throughout.
+  - `transition_graph.py`: new shared `context_buckets`,
+    `count_transitions` (streaming, mutates a `Counter` in
+    place), and `build_transition_records` (normalizes each
+    bucket independently). `corpus_ingestion.py` now imports and
+    reuses these instead of maintaining a second copy — the old
+    duplicate `_count_transitions`/`_build_transition_records`
+    are gone, removing the exact kind of drift risk that let this
+    bug hide in two places.
+  - `transition_lookup.py`: `get_transition_stats`/
+    `get_next_chords` take a new `mode` parameter (default
+    `"major"`) and walk a backoff chain — `genre_section → genre
+    → section → global` when both genre and section are given,
+    shorter chains when only one is — stopping at the first
+    non-empty bucket. Added `ContextUsed` (`mode`, `genre`,
+    `section`, `backoff: list[str]`) and a `context_used` field
+    on `NextChordsResponse`/`TransitionStatsResponse` reporting
+    the path actually tried.
+  - `db/repositories.py`: `list_transitions_from` /
+    `list_transition_records_from` now take `mode` and build a
+    SQL `OR` across exactly the buckets a backoff chain could use
+    (global; genre-alone; section-alone; genre+section together)
+    instead of fetching every row for a chord regardless of
+    context. `app/api/phase1.py`'s `_transition_records_for_lookup`
+    now actually forwards `genre`/`section`/`mode` to that query —
+    previously it fetched unfiltered and relied entirely on
+    Python-side filtering downstream, which was the other half of
+    "filter context in SQL, not Python."
+  - Fixed two more real call sites the change broke:
+    `quality_metrics.py` filtered global/genre-conditioned rows
+    against the old sentinel string `"all"`, which no longer
+    exists now that global rows use `None` — silently zeroed
+    `transition_edge_count` until caught by
+    `test_quality_metrics.py`. Several existing tests
+    (`test_transition_graph.py`, `test_transition_lookup.py`,
+    `test_database_repositories.py`, `test_corpus_ingestion.py`)
+    also assumed the old `genre="all"` convention or the old
+    "most-specific-bucket-first" repository ordering and needed
+    rewriting to match the new contract.
+  - Gate: `pytest -q` → 104 passed, 10 xfailed (same 10 as F03,
+    untouched); `tests/unit/test_v1_golden.py` green; the F04
+    reproduction tests confirmed failing against the pre-fix code
+    before the fix, then passing after; `scripts/check.sh all`
+    green; `git status` clean.
 
 ## In Progress
 

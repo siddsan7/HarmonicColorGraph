@@ -31,7 +31,7 @@ def build_quality_metrics_report(sample_path: str | Path) -> dict[str, Any]:
     global_transitions = [
         transition
         for transition in transitions
-        if transition.genre == "all" and transition.section == "all"
+        if transition.genre is None and transition.section is None and transition.decade is None
     ]
     labeled_transition_count = sum(
         1 for transition in transitions if transition.relationship_labels
@@ -51,7 +51,7 @@ def build_quality_metrics_report(sample_path: str | Path) -> dict[str, Any]:
         "transition_edge_count": sum(transition.count for transition in global_transitions),
         "top_global_transitions": _top_transition_rows(global_transitions),
         "top_genre_conditioned_transitions": _top_transition_rows(
-            [transition for transition in transitions if transition.genre not in {None, "all"}]
+            [transition for transition in transitions if transition.genre is not None]
         ),
         "theory_label_coverage": (
             labeled_transition_count / len(transitions) if transitions else 0.0

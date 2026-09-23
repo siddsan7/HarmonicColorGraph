@@ -6,13 +6,12 @@ from typing import Any
 from sqlalchemy.orm import Session
 
 from app.ingestion.chordonomicon import iter_chordonomicon_rows
-from app.schemas import TransitionRecord
 from app.services.transition_graph import (
-    ContextKey,
     ProgressionTransitionInput,
     TransitionKey,
+    build_transition_records,
+    count_transitions,
 )
-from app.theory.relationships import label_transition
 from app.theory.roman_analysis import analyze_progression
 
 
@@ -116,7 +115,7 @@ def ingest_chordonomicon_corpus(
             session.add(progression)
             progression_batch.append((progression, absolute_chords, roman.roman_chords))
 
-        _count_transitions(
+        count_transitions(
             transition_counts,
             ProgressionTransitionInput(
                 roman_chords=roman.roman_chords,
@@ -136,14 +135,13 @@ def ingest_chordonomicon_corpus(
     if not transition_only:
         _flush_progression_batch(session, progression_batch)
 
-    transitions = _build_transition_records(transition_counts)
+    transitions = build_transition_records(transition_counts)
     session.add_all(
         TransitionModel(
             from_roman=transition.from_roman,
             to_roman=transition.to_roman,
             mode_context=transition.mode_context,
             genre=transition.genre,
-            subgenre=transition.subgenre,
             section=transition.section,
             decade=transition.decade,
             count=transition.count,
@@ -201,97 +199,6 @@ def _flush_progression_batch(
         )
     session.add_all(progression_chords)
     batch.clear()
-
-
-def _count_transitions(
-    counts: Counter[TransitionKey],
-    progression: ProgressionTransitionInput,
-) -> None:
-    for from_roman, to_roman in zip(
-        progression.roman_chords,
-        progression.roman_chords[1:],
-        strict=False,
-    ):
-        counts[
-            (
-                from_roman,
-                to_roman,
-                progression.mode_context,
-                "all",
-                None,
-                "all",
-                None,
-            )
-        ] += 1
-
-        if progression.genre or progression.section:
-            counts[
-                (
-                    from_roman,
-                    to_roman,
-                    progression.mode_context,
-                    progression.genre or "all",
-                    progression.subgenre,
-                    progression.section or "all",
-                    progression.decade,
-                )
-            ] += 1
-
-
-def _build_transition_records(
-    counts: Counter[TransitionKey],
-) -> list[TransitionRecord]:
-    totals_by_context: Counter[ContextKey] = Counter()
-    for (
-        from_roman,
-        _to_roman,
-        mode_context,
-        genre,
-        subgenre,
-        section,
-        decade,
-    ), count in counts.items():
-        totals_by_context[(from_roman, mode_context, genre, subgenre, section, decade)] += count
-
-    transitions = []
-    for (
-        from_roman,
-        to_roman,
-        mode_context,
-        genre,
-        subgenre,
-        section,
-        decade,
-    ), count in counts.items():
-        base = label_transition(from_roman, to_roman, mode_context)
-        total = totals_by_context[(from_roman, mode_context, genre, subgenre, section, decade)]
-        transitions.append(
-            TransitionRecord(
-                from_roman=from_roman,
-                to_roman=to_roman,
-                mode_context=mode_context,  # type: ignore[arg-type]
-                count=count,
-                probability=count / total if total else 0.0,
-                genre=genre,
-                subgenre=subgenre,
-                section=section,
-                decade=decade,
-                relationship_labels=base.relationship_labels,
-                short_explanation=base.short_explanation,
-                technical_explanation=base.technical_explanation,
-            )
-        )
-
-    return sorted(
-        transitions,
-        key=lambda transition: (
-            transition.genre or "",
-            transition.section or "",
-            transition.from_roman,
-            -transition.count,
-            transition.to_roman,
-        ),
-    )
 
 
 def _confidence_distribution(values: list[float]) -> dict[str, float]:

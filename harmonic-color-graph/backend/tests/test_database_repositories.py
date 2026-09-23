@@ -74,7 +74,9 @@ def test_repository_inserts_and_queries_small_fixture():
         assert progression.id is not None
         assert transition.id is not None
         assert repository.get_chord_by_symbol("C:maj7").root == "C"
-        assert repository.list_transitions_from("V", genre="pop")[0].to_roman == "I"
+        assert (
+            repository.list_transitions_from("V", genre="pop", section="chorus")[0].to_roman == "I"
+        )
 
 
 def test_alembic_migration_file_exists():

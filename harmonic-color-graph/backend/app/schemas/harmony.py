@@ -121,6 +121,13 @@ class TransitionCandidate(StrictModel):
     relationship_labels: list[str] = Field(default_factory=list)
 
 
+class ContextUsed(StrictModel):
+    mode: str = "major"
+    genre: str | None = None
+    section: str | None = None
+    backoff: list[str] = Field(default_factory=list)
+
+
 class AnalyzeProgressionRequest(StrictModel):
     chords: list[str] = Field(min_length=1)
     key: str | None = None
@@ -140,6 +147,7 @@ class AnalyzeProgressionResponse(StrictModel):
 class NextChordsResponse(StrictModel):
     input: list[str]
     candidates: list[TransitionCandidate]
+    context_used: ContextUsed = Field(default_factory=ContextUsed)
     data_source: str = "unknown"
     fallback_used: bool = False
     database_transition_count: int = 0
@@ -158,6 +166,7 @@ class TransitionStatsResponse(StrictModel):
     genre: str | None = None
     section: str | None = None
     next: list[TransitionCandidate] = Field(default_factory=list)
+    context_used: ContextUsed = Field(default_factory=ContextUsed)
     data_source: str = "unknown"
     fallback_used: bool = False
     database_transition_count: int = 0

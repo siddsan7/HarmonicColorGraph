@@ -21,24 +21,28 @@ def test_ingest_chordonomicon_corpus_persists_progressions_and_transitions():
         report = ingest_chordonomicon_corpus(sample_path, session=session)
         repository = HarmonicRepository(session)
 
-        pop_next = repository.list_transitions_from(
+        # A genre+section query's SQL-side bucket filter returns every
+        # candidate bucket a backoff chain could use (F04) - the
+        # genre_section-specific row and the global row - not just one.
+        pop_candidates = repository.list_transitions_from(
             "V",
             genre="pop",
             section="chorus",
         )
-        global_next = repository.list_transitions_from(
-            "V",
-            genre="all",
-            section="all",
+        genre_section_row = next(
+            row for row in pop_candidates if row.genre == "pop" and row.section == "chorus"
+        )
+        global_row = next(
+            row for row in pop_candidates if row.genre is None and row.section is None
         )
 
         assert report.rows_processed == 3
         assert report.progressions_persisted == 3
         assert report.transitions_persisted > 0
         assert report.metrics["rows_processed"] == 3
-        assert pop_next[0].to_roman == "vi"
-        assert pop_next[0].count == 2
-        assert global_next[0].count == 3
+        assert genre_section_row.to_roman == "vi"
+        assert genre_section_row.count == 2
+        assert global_row.count == 3
         assert repository.get_chord_by_symbol("C:maj") is not None
 
 
