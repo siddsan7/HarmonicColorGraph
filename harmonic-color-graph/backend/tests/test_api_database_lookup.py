@@ -1,5 +1,6 @@
 from collections.abc import Generator
 
+import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
@@ -11,6 +12,18 @@ from app.db.repositories import HarmonicRepository
 from app.db.session import get_session
 from app.main import app
 from app.schemas import TransitionRecord
+
+
+@pytest.fixture(autouse=True)
+def _clear_overrides_and_settings_cache():
+    # Without this, app.dependency_overrides[get_session] - set below via
+    # _client_with_database() and never reset - leaks into every test
+    # module imported after this one in the same pytest session (app is a
+    # shared, process-wide FastAPI instance), silently replacing their real
+    # get_session() dependency with whatever fixture this file set up last.
+    yield
+    app.dependency_overrides.clear()
+    get_settings.cache_clear()
 
 
 def test_next_chords_endpoint_reads_database_transitions(monkeypatch):

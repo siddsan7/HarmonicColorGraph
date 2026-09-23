@@ -47,7 +47,11 @@ def main() -> None:
     parser.add_argument(
         "--create-schema",
         action="store_true",
-        help="Create SQLAlchemy tables before ingesting. Use only for local smoke runs.",
+        help=(
+            "Create tables before ingesting: SQLAlchemy metadata for SQLite "
+            "(local smoke runs), or supabase/migrations/*.sql for Postgres "
+            "(F05 - the SQL files are the single source of truth, ADR-005)."
+        ),
     )
     parser.add_argument(
         "--reset-database",
@@ -60,7 +64,7 @@ def main() -> None:
     if args.reset_database:
         _reset_database(session_factory.kw["bind"])
     if args.create_schema:
-        Base.metadata.create_all(session_factory.kw["bind"])
+        _create_schema(session_factory.kw["bind"])
 
     with session_factory() as session:
         report = ingest_chordonomicon_corpus(
@@ -87,13 +91,27 @@ def main() -> None:
         print(json.dumps(payload, indent=2, sort_keys=True))
 
 
+def _create_schema(engine) -> None:
+    if engine.dialect.name == "sqlite":
+        Base.metadata.create_all(engine)
+        return
+
+    migrations_dir = Path(__file__).resolve().parents[3] / "supabase" / "migrations"
+    with engine.begin() as connection:
+        for migration_path in sorted(migrations_dir.glob("*.sql")):
+            for statement in migration_path.read_text(encoding="utf-8").split(";"):
+                statement = statement.strip()
+                if statement:
+                    connection.execute(text(statement))
+
+
 def _reset_database(engine) -> None:
     if engine.dialect.name == "sqlite":
         Base.metadata.drop_all(engine)
         Base.metadata.create_all(engine)
         return
 
-    table_list = ", ".join(f"public.{table}" for table in PHASE_ONE_TABLES)
+    table_list = ", ".join(f"hcg.{table}" for table in PHASE_ONE_TABLES)
     with engine.begin() as connection:
         connection.execute(text(f"truncate table {table_list} restart identity cascade"))
 

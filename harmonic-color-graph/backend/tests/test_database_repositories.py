@@ -79,9 +79,13 @@ def test_repository_inserts_and_queries_small_fixture():
         )
 
 
-def test_alembic_migration_file_exists():
+def test_legacy_alembic_migration_file_is_preserved():
     migration_path = (
-        Path(__file__).resolve().parents[1] / "alembic" / "versions" / "0001_phase1_core_schema.py"
+        Path(__file__).resolve().parents[1]
+        / "legacy"
+        / "alembic"
+        / "versions"
+        / "0001_phase1_core_schema.py"
     )
 
     assert migration_path.exists()

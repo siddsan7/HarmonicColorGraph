@@ -10,12 +10,10 @@ change.
   Check Gate after every feature; ask only for the §0.2 inputs
   and before anything that costs money or deletes remote data;
   stop and summarize at each milestone exit gate).
-- Current feature: F05 (Supabase environment & single migration
-  system) — blocked on a Siddharth decision (§0.2), see Blocked.
-- Blocked: F05 needs Siddharth to choose between restoring the
-  paused Supabase project `bqaateqbbavwnbyfuqvk` (if still inside
-  its 90-day window) or creating a new free project, plus
-  approval that a new project (if needed) is free-tier ($0).
+- Current feature: F06 (deploy the API to Vercel) — will need
+  Siddharth's input too (§0.2: Vercel GitHub app access to
+  `siddsan7/HarmonicColorGraph`).
+- Blocked: none right now.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -375,21 +373,103 @@ change.
     before the fix, then passing after; `scripts/check.sh all`
     green; `git status` clean.
 
+- Completed F05 (Supabase environment & single migration
+  system). The old project `bqaateqbbavwnbyfuqvk` is paused and,
+  per Siddharth, already over the 500 MB free-tier quota even
+  while paused (presumably WAL/dead-tuple bloat left over from
+  the disk-full seed's rolled-back transaction), so restoring it
+  wouldn't fit the free tier regardless of the 90-day window —
+  Siddharth chose to create a new project instead. Left the old
+  one alone rather than deleting it (costs nothing extra paused;
+  his call whenever he wants to clean it up).
+  - Tooling saga worth remembering: `create_project` initially
+    failed with "Cost confirmation ID does not match the expected
+    cost," and this MCP integration exposed no way to obtain one
+    (unlike Vercel's toolset, which has `get_purchase_quote`).
+    Had Siddharth create the project by hand in the dashboard as
+    the practical workaround. A `get_cost`/`confirm_cost` tool
+    pair then became available mid-session — even after calling
+    both (confirmed $0/month) `create_project` still rejected the
+    same way, because its exposed schema has no parameter to
+    carry the confirmation ID through. Likely a genuine gap
+    between this integration's tool surface and the underlying
+    Supabase MCP server's real schema, not something resolvable
+    from this side — if project creation needs to happen
+    programmatically later (e.g. a throwaway project for
+    something), expect the same wall.
+  - New project: ref `avnxcyulznofylsnydfg`, region `us-west-1`
+    (`us-west-2` from the plan isn't in this tool's region enum),
+    org `xedymbrbupnfuxtzczmc`, free tier, `ACTIVE_HEALTHY`.
+    Recorded in `docs/runbooks/supabase.md` (ref only; the DB
+    password lives in `backend/.env`, gitignored, and nowhere
+    else yet — Vercel env vars once F06 exists).
+  - Applied `supabase/migrations/0001_hcg_schema.sql` for real:
+    `list_tables(schemas=["hcg"])` shows all 11 tables with RLS
+    enabled; `get_advisors(security)` shows only the expected
+    INFO-level "RLS enabled, no policy" on each (no ERROR);
+    `db_size.sql` → 11 MB total (well under both the 300 MB
+    target and 500 MB free-tier cap). Migration name recorded as
+    `hcg_schema` rather than the exact file stem
+    `0001_hcg_schema` (naming slip) — applied SQL is
+    byte-identical to the committed file and the schema itself
+    verified correct, so left as-is rather than risk hand-editing
+    Supabase's internal migration-tracking table to fix cosmetics.
+  - Verified locally against the real project (not just CI's
+    ephemeral one): direct connection
+    (`db.avnxcyulznofylsnydfg.supabase.co:5432`) returns
+    `search_path = hcg,extensions,public` as configured, and
+    `GET /health/db` returns 200 through the actual FastAPI app.
+    The exact transaction-pooler hostname (port 6543, needed once
+    F06 deploys to Vercel) wasn't guessed — Supabase's
+    `aws-<n>-<region>` prefix isn't reliably derivable from the
+    region alone; runbook says to pull it from the dashboard's
+    Connect panel when F06 needs it.
+  - Two real pre-existing bugs found and fixed by actually
+    pointing `backend/.env` at a live (currently empty) database
+    instead of the ambient local SQLite fallback file:
+    1. `tests/test_api_database_lookup.py` set
+       `app.dependency_overrides[get_session]` in each test via
+       `_client_with_database()` but never cleared it. Since
+       `app` is one process-wide FastAPI instance, this override
+       silently leaked into every test module that imports it and
+       runs afterward in the same pytest session (alphabetically,
+       `test_api_database_lookup.py` before
+       `test_api_endpoints.py`) — meaning
+       `test_api_endpoints.py`'s `/next-chords` and
+       `/transition-stats` tests were never actually exercising
+       the real (unoverridden) `get_session()` dependency in any
+       full-suite run, including every prior CI run. Fixed with an
+       autouse fixture that clears both
+       `app.dependency_overrides` and the `get_settings` cache
+       after each test.
+    2. Once that leak was fixed, `test_api_endpoints.py`'s two
+       DB-backed tests failed for a second, independent reason:
+       one queried `genre="all", section="all"`, the pre-F04
+       sentinel convention that no longer means anything (global
+       rows use `None` now); both assumed the endpoint would just
+       have data available with no setup. Fixed by having them
+       explicitly enable `HCG_ENABLE_DEMO_FALLBACK` (the
+       mechanism that already exists for exactly "no real
+       database configured yet" scenarios) instead of depending on
+       either the old sentinel or leaked state.
+  - Gate: `pytest -q` → 106 passed, 4 skipped (pg-marked, no
+    `TEST_DATABASE_URL` locally), 10 xfailed; `scripts/check.sh
+    all` green; CI green (twice — once before the live project
+    existed, validating everything CI's own ephemeral Postgres
+    could cover, and the fixes above verified locally against the
+    real project); `git status` clean.
+
 ## In Progress
 
-- Resolve the Supabase write/read-only state caused by the
-  disk-full full-provenance seed attempt, then run the
-  full-library `--transition-only` seed for database-backed
-  Phase 1 recommendations.
+- None — F06 (deploy the API to Vercel) not yet started.
 
 ## Next Up
 
-- In the Supabase dashboard, upgrade/add storage or otherwise
-  clear the read-only state caused by the disk-full failure.
-- Run `seed_corpus ..\data\raw\chordonomicon_v2.csv
-  --reset-database --transition-only --batch-size 1000`.
-- Run API smoke checks against database-backed transition
-  results.
+- F06: create the Vercel project for the API
+  (`harmonic-color-graph-api`, root `harmonic-color-graph/backend`).
+  Needs Siddharth to confirm the Vercel GitHub app has access to
+  `siddsan7/HarmonicColorGraph` (§0.2) before the Git-connected
+  project can be created.
 
 ## Open Questions
 

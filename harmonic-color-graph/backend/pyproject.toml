@@ -40,6 +40,9 @@ oracle = [
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q -p no:cacheprovider"
+markers = [
+    "pg: Postgres integration test; needs TEST_DATABASE_URL (skipped otherwise)",
+]
 filterwarnings = [
     "ignore:Using `httpx` with `starlette.testclient` is deprecated:starlette.exceptions.StarletteDeprecationWarning",
 ]

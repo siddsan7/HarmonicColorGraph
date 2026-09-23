@@ -1,7 +1,13 @@
-from fastapi import FastAPI
+from typing import Annotated
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
+from sqlalchemy.orm import Session
 
 from app.api import phase1_router
+from app.db.session import get_session
 
 CORS_ORIGINS = [
     "http://localhost:3000",
@@ -33,3 +39,21 @@ def health_check() -> dict[str, str]:
         "service": "harmonic-color-graph-backend",
         "phase": "phase-1",
     }
+
+
+@app.get("/health/db", tags=["system"], response_model=None)
+def health_db_check(session: Annotated[Session, Depends(get_session)]) -> dict | JSONResponse:
+    try:
+        session.execute(text("select 1"))
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": {
+                    "code": "db_unavailable",
+                    "message": "The database is not reachable.",
+                    "details": {},
+                }
+            },
+        )
+    return {"status": "ok", "database": "connected"}

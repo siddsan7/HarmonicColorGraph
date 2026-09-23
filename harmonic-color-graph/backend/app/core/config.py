@@ -11,6 +11,12 @@ class AppSettings(BaseSettings):
         default="sqlite+pysqlite:///./.tmp/harmonic_color_graph.db",
         alias="DATABASE_URL",
     )
+    database_url_load: str | None = Field(
+        default=None,
+        alias="DATABASE_URL_LOAD",
+    )
+    hcg_env: str = Field(default="development", alias="HCG_ENV")
+    hcg_cors_origins: str = Field(default="", alias="HCG_CORS_ORIGINS")
     hcg_enable_demo_fallback: bool = Field(
         default=False,
         alias="HCG_ENABLE_DEMO_FALLBACK",
