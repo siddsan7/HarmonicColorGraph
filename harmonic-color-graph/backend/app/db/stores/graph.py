@@ -7,6 +7,7 @@ the loader retains previous versions so in-flight statements can finish.
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from sqlalchemy import text
@@ -26,6 +27,25 @@ class _ActiveStore:
 
     def _all(self, query: str, **params: Any) -> list[dict[str, Any]]:
         return [dict(row) for row in self.session.execute(text(query), params).mappings()]
+
+    def context(self, context_id: int) -> dict[str, Any] | None:
+        return self._one(
+            "select id, type, value, label from hcg.contexts where id = :context_id",
+            context_id=context_id,
+        )
+
+    def context_by_key(self, context: str) -> dict[str, Any] | None:
+        context_type, separator, value = context.partition(":")
+        if context == "global":
+            value = ""
+        elif not separator or not value:
+            return None
+        return self._one(
+            """select id, type, value, label from hcg.contexts
+               where type = :context_type and value = :value""",
+            context_type=context_type,
+            value=value,
+        )
 
 
 class GraphStore(_ActiveStore):
@@ -76,25 +96,6 @@ class GraphStore(_ActiveStore):
             **params,
         )
 
-    def context(self, context_id: int) -> dict[str, Any] | None:
-        return self._one(
-            "select id, type, value, label from hcg.contexts where id = :context_id",
-            context_id=context_id,
-        )
-
-    def context_by_key(self, context: str) -> dict[str, Any] | None:
-        context_type, separator, value = context.partition(":")
-        if context == "global":
-            value = ""
-        elif not separator or not value:
-            return None
-        return self._one(
-            """select id, type, value, label from hcg.contexts
-               where type = :context_type and value = :value""",
-            context_type=context_type,
-            value=value,
-        )
-
     def function_adjacency(self, context_id: int) -> list[dict[str, Any]]:
         return self._all(
             """select e.version, e.src, e.dst, e.type, e.context_id,
@@ -134,6 +135,56 @@ class NgramStore(_ActiveStore):
             context_id=context_id,
             ord=order,
             history=history,
+        )
+
+    def histories(self, requests: Sequence[tuple[int, int, str]]) -> list[dict[str, Any]]:
+        """F30: fetch every (context_id, order, history) row a single
+        prediction request needs -- every order/context in its backoff
+        chain -- in one round trip, instead of one query per chain step.
+        """
+        if not requests:
+            return []
+        clauses = []
+        params: dict[str, Any] = {}
+        for index, (context_id, order, history) in enumerate(requests):
+            clauses.append(f"(context_id = :c{index} and ord = :o{index} and history = :h{index})")
+            params[f"c{index}"] = context_id
+            params[f"o{index}"] = order
+            params[f"h{index}"] = history
+        return self._all(
+            f"""select context_id, ord, history, total, distinct_next, next, cont
+               from hcg.ngram_histories
+               where version = hcg.v() and ({" or ".join(clauses)})""",
+            **params,
+        )
+
+    def count_of_counts(self, requests: Sequence[tuple[int, int]]) -> list[dict[str, Any]]:
+        """F30: per (context_id, order) counts of how many (history, next
+        token) pairs have a raw count of exactly 1 or 2, pooled across every
+        history at that context and order. Feeds the single-discount
+        interpolated Kneser-Ney formula `D = n1 / (n1 + 2*n2)`. Cached by
+        the caller (KN discounts change only when the corpus version
+        changes, unlike the per-request history fetch above).
+        """
+        if not requests:
+            return []
+        clauses = []
+        params: dict[str, Any] = {}
+        for index, (context_id, order) in enumerate(requests):
+            clauses.append(f"(context_id = :c{index} and ord = :o{index})")
+            params[f"c{index}"] = context_id
+            params[f"o{index}"] = order
+        return self._all(
+            f"""select context_id, ord,
+                      count(*) filter (where raw_count = 1) as n1,
+                      count(*) filter (where raw_count = 2) as n2
+               from (
+                   select h.context_id, h.ord, (kv.value)::int as raw_count
+                   from hcg.ngram_histories h, jsonb_each_text(h.next) as kv
+                   where h.version = hcg.v() and ({" or ".join(clauses)})
+               ) counts
+               group by context_id, ord""",
+            **params,
         )
 
 
