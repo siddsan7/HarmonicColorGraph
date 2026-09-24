@@ -9,10 +9,11 @@ detail it points to.
 
 - 2026-09-24 latest: F30 PR #6 passed backend unit, Postgres integration,
   frontend, Compose smoke, and preview checks; squash merge `b1d560b`.
-  F28's remaining metrics are being finalized on `codex/f28-cache-metrics`
-  with local backend tests and Ruff checks passing. F31 evaluation and
-  F32 recommendation API/UI are in separate worktrees. Their PRs remain
-  pending.
+  F28's remaining metrics passed the same checks in PR #7; squash merge
+  `3f31b69`. Production `/health/db`, `/v2/graph/node/M%3AI`, and the web
+  home page each returned HTTP 200 after merge, with the graph route on
+  active `cv-2026-09-a`. F31 evaluation and F32 recommendation API/UI
+  are in separate worktrees. Their PRs remain pending.
 - 2026-09-24 workflow reset: implementation now goes through GitHub PRs.
   Use `codex/` branches, choose reviewable PR boundaries by dependency,
   run the Standard Check Gate and feature acceptance checks, inspect CI

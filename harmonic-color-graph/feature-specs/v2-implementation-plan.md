@@ -895,8 +895,8 @@ queue depth
 
 **Completed 2026-09-24.** The cache and rate-limit foundation shipped in
 PRs #1 and #3. Structured metric events for cache hits, misses, hit rate,
-Redis latency, rate-limit hits, and the worker's ready-queue depth are added
-in `codex/f28-cache-metrics`; the existing cache/version, expiry, and
+Redis latency, rate-limit hits, and the worker's ready-queue depth merged
+through PR #7 (`3f31b69`); the existing cache/version, expiry, and
 cross-instance limit tests plus new metric-event tests pass locally. This
 uses safe application-log events until F80 adds the full telemetry exporter.
 
