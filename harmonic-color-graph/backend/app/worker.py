@@ -1,9 +1,13 @@
-"""F09 worker bootstrap; F27 replaces the heartbeat with queue consumption."""
+"""Durable worker process with Postgres reconciliation and Redis wakeups."""
 
 import logging
 import signal
 import threading
 
+from app.core.config import get_settings
+from app.db.session import create_session_factory
+from app.jobs.queue import JobQueue
+from app.jobs.worker_runtime import JobWorker
 from app.runtime_check import check_dependencies
 
 logger = logging.getLogger(__name__)
@@ -19,13 +23,15 @@ def main() -> None:
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
     check_dependencies()
-    logger.info("Worker bootstrap connected to Postgres and Redis; job processing begins in F27")
-    while not stop_event.wait(15):
-        try:
-            check_dependencies()
-        except Exception:
-            logger.exception("Worker dependency check failed")
-            raise
+    settings = get_settings()
+    if not settings.redis_url:
+        raise RuntimeError("REDIS_URL is required for the job worker")
+    queue = JobQueue.from_url(settings.redis_url)
+    try:
+        logger.info("Worker connected; reconciling durable queued jobs")
+        JobWorker(create_session_factory(), queue, settings).run_forever(stop_event.is_set)
+    finally:
+        queue.close()
 
 
 if __name__ == "__main__":

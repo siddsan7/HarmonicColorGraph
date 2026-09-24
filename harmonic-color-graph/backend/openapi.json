@@ -457,6 +457,84 @@
         "title": "ContextUsed",
         "type": "object"
       },
+      "EmbeddingRebuildPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "corpus_version": {
+            "pattern": "^cv-[0-9]{4}-[0-9]{2}-[a-z0-9]{1,12}$",
+            "title": "Corpus Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "corpus_version"
+        ],
+        "title": "EmbeddingRebuildPayload",
+        "type": "object"
+      },
+      "EmbeddingRebuildRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/EmbeddingRebuildPayload"
+          },
+          "type": {
+            "const": "embedding_rebuild",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "payload"
+        ],
+        "title": "EmbeddingRebuildRequest",
+        "type": "object"
+      },
+      "EvaluationRunPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "song_limit": {
+            "default": 100,
+            "maximum": 20000.0,
+            "minimum": 1.0,
+            "title": "Song Limit",
+            "type": "integer"
+          },
+          "suite": {
+            "enum": [
+              "keys",
+              "labels"
+            ],
+            "title": "Suite",
+            "type": "string"
+          }
+        },
+        "required": [
+          "suite"
+        ],
+        "title": "EvaluationRunPayload",
+        "type": "object"
+      },
+      "EvaluationRunRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/EvaluationRunPayload"
+          },
+          "type": {
+            "const": "evaluation_run",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "payload"
+        ],
+        "title": "EvaluationRunRequest",
+        "type": "object"
+      },
       "ExamplesData": {
         "properties": {
           "context": {
@@ -568,6 +646,40 @@
           "technical_explanation"
         ],
         "title": "ExplainTransitionResponse",
+        "type": "object"
+      },
+      "GraphRebuildPayload": {
+        "additionalProperties": false,
+        "properties": {
+          "corpus_version": {
+            "pattern": "^cv-[0-9]{4}-[0-9]{2}-[a-z0-9]{1,12}$",
+            "title": "Corpus Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "corpus_version"
+        ],
+        "title": "GraphRebuildPayload",
+        "type": "object"
+      },
+      "GraphRebuildRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "payload": {
+            "$ref": "#/components/schemas/GraphRebuildPayload"
+          },
+          "type": {
+            "const": "graph_rebuild",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "payload"
+        ],
+        "title": "GraphRebuildRequest",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -2357,6 +2469,250 @@
         "summary": "Graph Path",
         "tags": [
           "graph-v2"
+        ]
+      }
+    },
+    "/v2/jobs": {
+      "post": {
+        "operationId": "create_job_v2_jobs_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-HCG-Jobs-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Hcg-Jobs-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "discriminator": {
+                  "mapping": {
+                    "embedding_rebuild": "#/components/schemas/EmbeddingRebuildRequest",
+                    "evaluation_run": "#/components/schemas/EvaluationRunRequest",
+                    "graph_rebuild": "#/components/schemas/GraphRebuildRequest"
+                  },
+                  "propertyName": "type"
+                },
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/GraphRebuildRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EmbeddingRebuildRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EvaluationRunRequest"
+                  }
+                ],
+                "title": "Request"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Job",
+        "tags": [
+          "jobs-v2"
+        ]
+      }
+    },
+    "/v2/jobs/{job_id}": {
+      "get": {
+        "operationId": "get_job_v2_jobs__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-HCG-Jobs-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Hcg-Jobs-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Job",
+        "tags": [
+          "jobs-v2"
+        ]
+      }
+    },
+    "/v2/jobs/{job_id}/cancel": {
+      "post": {
+        "operationId": "cancel_job_v2_jobs__job_id__cancel_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-HCG-Jobs-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Hcg-Jobs-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Job",
+        "tags": [
+          "jobs-v2"
+        ]
+      }
+    },
+    "/v2/jobs/{job_id}/events": {
+      "get": {
+        "operationId": "get_job_events_v2_jobs__job_id__events_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-HCG-Jobs-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Hcg-Jobs-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Job Events",
+        "tags": [
+          "jobs-v2"
         ]
       }
     }

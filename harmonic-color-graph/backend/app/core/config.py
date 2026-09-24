@@ -23,6 +23,11 @@ class AppSettings(BaseSettings):
         alias="DATABASE_URL_LOAD",
     )
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
+    hcg_jobs_admin_token: str | None = Field(default=None, alias="HCG_JOBS_ADMIN_TOKEN")
+    hcg_artifact_root: str = Field(default="../data/artifacts", alias="HCG_ARTIFACT_ROOT")
+    hcg_evaluation_source: str = Field(
+        default="../data/samples/mini_corpus.csv", alias="HCG_EVALUATION_SOURCE"
+    )
     hcg_env: str = Field(default="development", alias="HCG_ENV")
     hcg_cors_origins: str = Field(default="", alias="HCG_CORS_ORIGINS")
     hcg_corpus_version: str = Field(default="unversioned", alias="HCG_CORPUS_VERSION")

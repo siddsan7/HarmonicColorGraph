@@ -9,7 +9,7 @@ COPY pyproject.toml ./
 COPY app ./app
 COPY pipeline ./pipeline
 
-RUN pip install --no-cache-dir . \
+RUN pip install --no-cache-dir '.[pipeline]' \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin hcg \
     && chown -R hcg:hcg /app
 

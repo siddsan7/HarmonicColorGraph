@@ -1,0 +1,107 @@
+"""Single-process worker. The DB ledger recovers queued work after Redis loss."""
+
+from __future__ import annotations
+
+import logging
+import time
+from collections.abc import Callable
+from uuid import uuid4
+
+from pydantic import ValidationError
+from redis.exceptions import RedisError
+from sqlalchemy.orm import Session
+
+from app.core.config import AppSettings
+from app.jobs.handlers import JobTypeUnavailableError, run_job
+from app.jobs.queue import JobQueue
+from app.jobs.repository import JobRepository, parse_job_id
+
+logger = logging.getLogger(__name__)
+
+
+class JobWorker:
+    def __init__(
+        self,
+        session_factory: Callable[[], Session],
+        queue: JobQueue,
+        settings: AppSettings,
+        worker_id: str | None = None,
+    ):
+        self.session_factory = session_factory
+        self.queue = queue
+        self.settings = settings
+        self.worker_id = worker_id or str(uuid4())
+
+    def reconcile(self, *, force: bool = False) -> int:
+        with self.session_factory() as session:
+            queued_ids = JobRepository(session).queued_ids()
+        for job_id in queued_ids:
+            self.queue.enqueue(job_id, force=force)
+        return len(queued_ids)
+
+    def process_one(self, timeout: int = 5) -> bool:
+        raw_id = self.queue.receive(timeout=timeout)
+        if raw_id is None:
+            return False
+        try:
+            job_id = parse_job_id(raw_id)
+        except ValueError:
+            logger.warning("Discarded malformed queue job ID")
+            return False
+
+        with self.session_factory() as session:
+            job = JobRepository(session).claim(job_id, self.worker_id)
+        if job is None:
+            return False  # Duplicate wakeup, cancelled, or already claimed.
+
+        def progress(value: float, stage: str, processed: int | None, total: int | None) -> None:
+            with self.session_factory() as session:
+                JobRepository(session).update_progress(
+                    job_id,
+                    self.worker_id,
+                    progress=value,
+                    stage=stage,
+                    processed=processed,
+                    total=total,
+                )
+
+        try:
+            result = run_job(job["type"], job["payload"], self.settings, progress)
+        except (ValidationError, JobTypeUnavailableError, FileNotFoundError, ValueError) as exc:
+            logger.warning("Job %s failed validation: %s", job_id, type(exc).__name__)
+            with self.session_factory() as session:
+                JobRepository(session).fail(job_id, self.worker_id, "invalid_job", str(exc))
+        except Exception:
+            logger.exception("Job %s failed", job_id)
+            with self.session_factory() as session:
+                JobRepository(session).fail(
+                    job_id,
+                    self.worker_id,
+                    "job_failed",
+                    "Job execution failed; inspect worker logs.",
+                )
+        else:
+            with self.session_factory() as session:
+                JobRepository(session).complete(job_id, self.worker_id, result)
+        return True
+
+    def run_forever(self, should_stop: Callable[[], bool]) -> None:
+        recovered = False
+        next_reconcile = 0.0
+        while not should_stop():
+            try:
+                now = time.monotonic()
+                if now >= next_reconcile:
+                    count = self.reconcile(force=not recovered)
+                    if count:
+                        logger.info("Reconciled %d queued jobs", count)
+                    recovered = True
+                    next_reconcile = now + 30
+                self.process_one(timeout=5)
+            except RedisError:
+                logger.warning("Redis queue unavailable; retrying")
+                recovered = False
+                time.sleep(3)
+            except Exception:
+                logger.exception("Worker loop failed; retrying")
+                time.sleep(3)

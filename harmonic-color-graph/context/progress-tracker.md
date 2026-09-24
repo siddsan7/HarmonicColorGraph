@@ -15,15 +15,14 @@ detail it points to.
   The user explicitly asked the agent to merge passing PRs and continue
   across feature and milestone boundaries without confirmation pauses.
 - Production-readiness additions are incorporated into the active v2 plan:
-  F09 (Docker/local stack) was skipped chronologically and is being built
-  now, then F23 onward resumes. F27–F29 add jobs, Redis, and reliability;
+  F09 (Docker/local stack) was skipped chronologically and is now merged
+  through PR #1, followed by F23–F26 and F28 cache foundation. F27–F29 add jobs, Redis, and reliability;
   F70.5 adds MCP; F75 and F83 are expanded. Milestone exit gates and
-  architectural principles have been updated. M0's new F09 gate remains
-  open until the local stack can be run and verified.
-- Current working branch: `codex/production-readiness-roadmap`. F09 and
-  F23 implementation is underway; neither is marked complete yet. Docker
-  is unavailable on this host, so Compose runtime acceptance must be
-  verified in an environment with Docker before F09 can be closed.
+  architectural principles have been updated. PR #1 passed unit, frontend,
+  Postgres integration, and Compose smoke CI; squash merge `52951fb`.
+- Current working branch: `codex/durable-jobs`, with F27 code and integration
+  test in progress. Docker is unavailable locally; Compose acceptance ran
+  successfully in GitHub CI.
 - Executing `feature-specs/v2-implementation-plan.md` one
   feature at a time, per its own §0 conventions (Standard
   Check Gate after every feature; ask only for indispensable
