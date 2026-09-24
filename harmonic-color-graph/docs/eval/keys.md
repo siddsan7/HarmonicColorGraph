@@ -2,7 +2,7 @@
 
 Weights and softmax temperature fit by grid search on the dev half of `data/gold/keys.jsonl` (20 templates x 4 transpositions; C and F# transpositions are dev, Eb and A are held-out test).
 
-The 80-item gold set is provisional pending Siddharth's musician review. For inputs longer than eight chords, the calibrated temperature increases smoothly up to 2× to avoid song-length confidence saturation; this preserves the ranked keys.
+The 80-item gold set is provisional. Siddharth's musician review has not been done yet, so the metrics below measure agreement with provisional fixtures. For inputs longer than eight chords, the calibrated temperature increases smoothly up to 2× to avoid song-length confidence saturation; this preserves the ranked keys.
 
 - Profile: **temperley**
 - Weights: `{"profile_correlation": 1.5, "chord_fit": 1.0, "cadence_count": 0.0, "final_is_tonic": 0.6, "first_is_tonic": 0.2, "minor_plagal": 0.8}`

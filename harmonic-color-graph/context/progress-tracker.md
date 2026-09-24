@@ -22,13 +22,15 @@ detail it points to.
   throughput failure under coverage tracing was fixed by timing the
   production analyzer in an uninstrumented child interpreter. The corrected
   main CI run passed all three jobs.
-- Siddharth chose provisional key and Roman gold fixtures and will review
-  `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. Their human
-  review checkboxes remain open in the plan; no implementation is waiting
-  on that review.
+- The musician review of `data/gold/keys.jsonl` and
+  `data/gold/roman.jsonl` has **not been done yet**. Siddharth chose to
+  use provisional fixtures and review them later. Gold scores reported
+  here measure agreement with those fixtures; they do not establish
+  musician-validated accuracy. Both human-review checkboxes remain open
+  in the plan, and independent implementation can continue.
 - Blocked: none.
-- Current focus: M2 corpus pipeline work; musician review of the M1 gold
-  remains deferred.
+- Current focus: M2 corpus pipeline work; the M1 gold fixture review
+  remains outstanding.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2

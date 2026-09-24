@@ -2,9 +2,9 @@
 
 ## Provisional gold set
 
-`data/gold/roman.jsonl` has 60 items (20 hand-authored harmonic templates in three transpositions), covering 192 chord tokens. The current v2 analyzer matches **192/192 cores (100%)** and **192/192 figures (100%)**. The transposed instances yield identical core tokens. This fixture set is provisional pending Siddharth's musician review.
+`data/gold/roman.jsonl` has 60 items (20 hand-authored harmonic templates in three transpositions), covering 192 chord tokens. The current v2 analyzer matches **192/192 cores (100%)** and **192/192 figures (100%)**. The transposed instances yield identical core tokens. Siddharth's musician review has not been done yet; the set and these metrics remain provisional.
 
-The `slow` throughput check runs 1,000 four-chord sections with a provided key; measured local throughput was approximately 5,152 sections/s/core, above the 1,000 target.
+The `slow` throughput check times 2,000 four-chord sections with a provided key in an uninstrumented child interpreter; measured local throughput was approximately 5,152 sections/s/core, above the 1,000 target.
 
 ## Independent oracle
 

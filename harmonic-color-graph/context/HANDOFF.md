@@ -76,10 +76,12 @@ you're reading this. As of this handoff:
   1,000 sections/s gate. Its benchmark was moved to an uninstrumented child
   interpreter so it measures production throughput without relaxing the gate.
   The follow-up main CI run passed all three jobs.
-- **Provisional gold review:** Siddharth explicitly chose to review
-  `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. The plan
-  leaves those two human-review checkboxes open. Continue independent
-  implementation and shipping without waiting for that review.
+- **Musician review has not been done yet:** Siddharth explicitly chose to
+  review `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. Both
+  sets remain provisional, and their reported scores are automated results
+  against those provisional fixtures, not musician-validated accuracy.
+  The two human-review checkboxes remain open in the plan. Continue
+  independent work without waiting for the review.
 - **Next:** M2 corpus pipeline work. See `context/progress-tracker.md` for
   the detailed M1 metrics.
 - **Read the full chronological detail in `context/progress-tracker.md`'s

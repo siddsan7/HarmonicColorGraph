@@ -130,12 +130,13 @@ project:
 
 ### Current Scope
 
-- Current active execution: the v2 implementation plan. M0 is
-  merged and live; M1 F10–F14 is implemented and passing local
-  checks on the feature branch, with CI and production verification
-  pending. The key and Roman gold sets are provisional until
-  Siddharth's later musician review. `context/HANDOFF.md` and
-  `context/progress-tracker.md` hold the current ship state.
+- Current active execution: the v2 implementation plan. M0 and M1
+  F10–F14 are merged and live; the local gate, CI, and production
+  workbench checks passed. The musician review of the key and Roman
+  gold sets has **not been done yet**. Those fixtures and the metrics
+  measured against them remain provisional until Siddharth reviews them.
+  `context/HANDOFF.md` and `context/progress-tracker.md` hold the current
+  ship state.
 - Build the harmonic data/theory backend and document the
   project so future implementation follows the intended
   graph-first architecture.
