@@ -64,26 +64,32 @@ The older Phase 1 plans are historical.
   Local FastAPI reads against the live DB returned HTTP 200 and the active
   version for graph node, neighborhood, explanation, and examples. See
   `docs/eval/corpus-cv-2026-09-a.md`.
-- Current branch: `codex/m2-live-evidence`, documenting the measured load.
+- PR #5 ([measured M2 load report](https://github.com/siddsan7/HarmonicColorGraph/pull/5))
+  passed all four CI jobs and was squash-merged at `ed706af`. The report
+  and measured gates are now on `main`. Current branch: `codex/kn-predictor`
+  from that merge; no F30 code has been written yet. A quiet hourly
+  continuation heartbeat is active on this task to resume after usage resets.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Commit the measured load report and context updates on
-   `codex/m2-live-evidence`, open a small PR, verify, and self-merge.
+1. Implement F30 Kneser–Ney prediction on `codex/kn-predictor`, including
+   in-memory and one-round-trip Postgres n-gram stores, context backoff,
+   realization, and its acceptance tests. Start with the F30 specification
+   in `feature-specs/v2-implementation-plan.md`.
    The GitHub connector's PR write methods returned 403 despite read access;
    authenticated GitHub REST using the existing Git credential manager
-   created and merged PRs #1–#4. Use the connector first and the same REST
+   created and merged PRs #1–#5. Use the connector first and the same REST
    fallback if necessary; never print the credential.
 2. Verify the deployed API/web production routes after the main branch
    build. Supabase migrations 0001–0005 are applied. Supabase advisors had
    only informational private-schema RLS notices and unused-index findings
    at the last read. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-3. Implement F30 Kneser–Ney predictor, F31 evaluation, and F32 recommendation
-   UI from a fresh branch; then continue the remaining plan in order.
+3. After F30, implement F31 evaluation and F32 recommendation UI through
+   reviewable PRs; then continue the remaining plan in order.
    Finish F28 acceptance metrics along that path.
    Record CI and live evidence before closing each milestone gate.
 4. Update this file and `context/progress-tracker.md` after each merge,

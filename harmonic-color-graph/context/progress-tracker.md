@@ -28,7 +28,10 @@ detail it points to.
   squash merge `d84fd22`. All four CI jobs passed, including a real
   Compose API→Redis→worker evaluation. Live migrations 0004 and 0005 are
   applied. PR #4's support threshold correction passed all four CI jobs,
-  squash merge `cd75117`. Current branch: `codex/m2-live-evidence`.
+  squash merge `cd75117`. PR #5 committed the measured corpus report and
+  passed all four CI jobs; squash merge `ed706af`. Current branch:
+  `codex/kn-predictor` (no F30 code yet). An hourly quiet continuation
+  heartbeat is active so work resumes after the usage window resets.
 - The first full-corpus load rolled back on 2026-09-24 because Supabase's
   default 2-minute statement timeout cancelled the large edge COPY.
   The original text-heavy edge table briefly allocated 542 MB; it had
