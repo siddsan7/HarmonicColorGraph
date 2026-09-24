@@ -84,32 +84,34 @@ The older Phase 1 plans are historical.
 - The GitHub connector's PR-write methods still return 403 despite read
   access. Authenticated GitHub REST through the existing Git credential
   manager merged PR #6; never print the credential.
-- F28's remaining metrics are implemented on `codex/f28-cache-metrics`:
+- F28's remaining metrics merged through
+  [PR #7](https://github.com/siddsan7/HarmonicColorGraph/pull/7)
+  at `3f31b69` after all four CI jobs and preview passed:
   structured, privacy-safe cache hit/miss/hit-rate, Redis latency,
-  rate-limit hit, and periodic worker queue-depth events. Local backend
-  tests and Ruff checks pass; CI/PR verification remains. F31 and F32
-  are in isolated subagent worktrees and are not yet merged.
+  rate-limit hit, and periodic worker queue-depth events. Production
+  verification after merge: `/health/db` returned 200 and connected,
+  `/v2/graph/node/M%3AI` returned 200 with active `cv-2026-09-a`, and
+  the web app returned 200. F31 and F32 are in isolated subagent
+  worktrees and are not yet merged.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Get `codex/f28-cache-metrics` through a PR: verify CI and diff, then
-   merge. Continue the F31 and F32 isolated worktrees and rebase on main.
-2. Complete F31 (leak-free evaluation harness) next — it's the natural
+1. Complete F31 (leak-free evaluation harness) next — it's the natural
    follow-up to F30 (needs `InMemoryNgramStore`, and should replace F30's
    placeholder mixing constant `DEFAULT_MIXING_K = 100.0` in
    `backend/app/predict/ngram.py` with a value actually tuned on its dev
    split), then F32 (statistical recommend-next-chords endpoint + UI)
    through reviewable PRs; then continue the remaining plan in order.
    Record CI and live evidence before closing each milestone gate.
-3. Verify the deployed API/web production routes after the main branch
+2. Verify the deployed API/web production routes after the main branch
    build. Supabase migrations 0001–0005 are applied. Supabase advisors had
    only informational private-schema RLS notices and unused-index findings
    at the last read. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-4. Update this file and `context/progress-tracker.md` after each merge,
+3. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 
