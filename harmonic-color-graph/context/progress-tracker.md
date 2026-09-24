@@ -27,7 +27,8 @@ detail it points to.
   and manual retry plus F28 public graph rate limits passed CI in PR #3,
   squash merge `d84fd22`. All four CI jobs passed, including a real
   Compose API→Redis→worker evaluation. Live migrations 0004 and 0005 are
-  applied. Current branch: `codex/corpus-storage-budget`.
+  applied. PR #4's support threshold correction passed all four CI jobs,
+  squash merge `cd75117`. Current branch: `codex/m2-live-evidence`.
 - The first full-corpus load rolled back on 2026-09-24 because Supabase's
   default 2-minute statement timeout cancelled the large edge COPY.
   The original text-heavy edge table briefly allocated 542 MB; it had
@@ -39,7 +40,13 @@ detail it points to.
   aborted relations were vacuumed after verifying zero committed rows;
   database size returned to 12.6 MB. The current branch prunes contextual
   transitions with count < 5 while retaining all global transitions and
-  complete n-grams. Docker is unavailable
+  complete n-grams. The third full load succeeded and atomically activated
+  `cv-2026-09-a`: 32,640 nodes, 791,074 edges, 149,499 n-gram histories,
+  8,896 patterns, 44,480 pattern examples. Measured `hcg` size is
+  266.8 MiB (300 MiB gate); database is 277.9 MiB (400 MiB gate).
+  Local FastAPI against the live DB returned HTTP 200 and active-version
+  graph/evidence reads. The measured report is in
+  `docs/eval/corpus-cv-2026-09-a.md`. Docker is unavailable
   locally; Compose acceptance runs in GitHub CI.
 - Executing `feature-specs/v2-implementation-plan.md` one
   feature at a time, per its own §0 conventions (Standard
