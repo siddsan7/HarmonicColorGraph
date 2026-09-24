@@ -10,6 +10,7 @@ from app.api import phase1_router
 from app.api.analysis_v2 import router as analysis_v2_router
 from app.api.examples_v2 import router as examples_v2_router
 from app.api.graph_v2 import router as graph_v2_router
+from app.api.jobs_v2 import router as jobs_v2_router
 from app.core.config import get_settings
 from app.core.redis import ping_redis
 from app.db.session import get_session
@@ -37,6 +38,7 @@ app.include_router(phase1_router, prefix="/v1")
 app.include_router(analysis_v2_router)
 app.include_router(graph_v2_router)
 app.include_router(examples_v2_router)
+app.include_router(jobs_v2_router)
 
 
 @app.get("/health", tags=["system"])
