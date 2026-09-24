@@ -714,7 +714,7 @@ feat(jobs): Redis-backed background queue and worker runtime
 
 ---
 
-### F28 — Redis Cache, Rate-Limit & Ephemeral Infrastructure `[M]`
+### F28 — Redis Cache, Rate-Limit & Ephemeral Infrastructure `[M]` — DONE
 
 **Goal:** Introduce Redis as the shared low-latency infrastructure layer for ephemeral application state.
 
@@ -885,13 +885,20 @@ queue depth
 
 #### Acceptance checks
 
-- [ ] Graph API returns identical payload on cache hit/miss.
-- [ ] Corpus version is part of cache keys.
-- [ ] New corpus activation cannot serve stale graph values.
-- [ ] Multiple API processes observe the same rate limit.
-- [ ] TTL expiration behaves correctly.
-- [ ] Redis outage does not break DB-free harmonic analysis.
-- [ ] Cache-hit and miss metrics are emitted.
+- [x] Graph API returns identical payload on cache hit/miss.
+- [x] Corpus version is part of cache keys.
+- [x] New corpus activation cannot serve stale graph values.
+- [x] Multiple API processes observe the same rate limit.
+- [x] TTL expiration behaves correctly.
+- [x] Redis outage does not break DB-free harmonic analysis.
+- [x] Cache-hit and miss metrics are emitted.
+
+**Completed 2026-09-24.** The cache and rate-limit foundation shipped in
+PRs #1 and #3. Structured metric events for cache hits, misses, hit rate,
+Redis latency, rate-limit hits, and the worker's ready-queue depth are added
+in `codex/f28-cache-metrics`; the existing cache/version, expiry, and
+cross-instance limit tests plus new metric-event tests pass locally. This
+uses safe application-log events until F80 adds the full telemetry exporter.
 
 **Commit:**
 
