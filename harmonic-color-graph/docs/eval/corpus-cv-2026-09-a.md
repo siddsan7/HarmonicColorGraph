@@ -1,5 +1,34 @@
 # Corpus Analysis Report -- `cv-2026-09-a`
 
+## Live M2 load — 2026-09-24
+
+- **Active version:** `cv-2026-09-a` in the private Supabase `hcg` schema.
+- **Stored graph:** 32,640 nodes and 791,074 edges. Of those edges,
+  697,712 are `TRANSITIONS_TO`; all 22,955 global transitions are kept.
+  Contextual transitions observed fewer than five times are excluded from
+  public graph traversal, leaving higher-support contextual edges. The
+  complete 1,665,611-row transition artifact and all 149,499 n-gram
+  histories remain available for prediction and provenance.
+- **Evidence:** 8,896 patterns, 44,480 pattern examples, 250 transition
+  examples, 7,140 song references, and 22,955 facts loaded.
+- **Measured storage:** `hcg` 266.8 MiB / 300 MiB gate; whole database
+  277.9 MiB / 400 MiB gate. Artifact hashes and row counts were checked
+  before atomic activation.
+- **Read check:** local FastAPI against the live database returned HTTP 200
+  and the active corpus version for graph node, neighborhood, edge
+  explanation, pattern examples, and transition examples. This confirms
+  the database-backed routes; deployment-specific checks remain separate.
+- **Reliability gate:** PRs #1–#4 passed unit, frontend, Postgres integration,
+  and Compose CI. The Compose check submitted an evaluation job through
+  the API and observed completion by the Redis-backed worker. Retry,
+  idempotency, dead-letter, and lease recovery cases passed Postgres CI.
+
+The first load attempt rolled back on Supabase's two-minute statement
+timeout. The second used compact integer-key edges and rolled back at
+409.4 MiB in `hcg`. Both attempts left no active version; the empty
+aborted relations were verified and vacuumed. The third load used the
+five-observation contextual edge threshold and activated within budget.
+
 - Songs analyzed: 679,807
 - Sections analyzed: 2,248,238
 - Tokens analyzed: 44,500,844

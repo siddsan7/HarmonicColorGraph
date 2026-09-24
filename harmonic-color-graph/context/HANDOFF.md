@@ -8,12 +8,13 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-24
 
-- `main` contains F00–F09, F10–F14, and F20–F26, plus part of F28. PR #1
+- `main` contains F00–F09, F10–F14, and F20–F29, with remaining F28
+  metrics work. PR #1
   ([production readiness foundation](https://github.com/siddsan7/HarmonicColorGraph/pull/1))
   passed all four CI jobs and was squash-merged at `52951fb` on 2026-09-24.
-  M0 and M1 shipped under
-  the earlier plan; M2's analyzed corpus and aggregate artifacts exist
-  locally. F21's 20-song musical spot-check scored 17/20 and exposed a
+  M0 and M1 shipped under the earlier plan. M2's full analyzed corpus
+  is now loaded and active in Supabase. F21's 20-song musical spot-check
+  scored 17/20 and exposed a
   relative-key selection gap at section boundaries. See
   `docs/eval/corpus-cv-2026-09-a.md`. The M1 gold sets have been reviewed
   by Claude at Siddharth's request; this was not a literal human pass.
@@ -42,7 +43,9 @@ The older Phase 1 plans are historical.
   squash-merged at `d84fd22`. F29 retries, idempotency, dead letters,
   worker leases, and manual retry are merged. F28 public graph rate limits
   are wired. Migrations `0004_job_reliability` and `0005_compact_edges`
-  have been applied live. Current branch: `codex/corpus-storage-budget`.
+  have been applied live. PR #4
+  ([storage gate correction](https://github.com/siddsan7/HarmonicColorGraph/pull/4))
+  passed all four CI jobs and was squash-merged at `cd75117`.
   The first live `cv-2026-09-a` load rolled back after Supabase's 2-minute
   statement timeout on 1.66M text-heavy edge rows. No corpus version was
   activated. `hcg.edges` was verified empty and vacuumed to reclaim the
@@ -52,26 +55,36 @@ The older Phase 1 plans are historical.
   `hcg=409.4 MB` (limit 300), database `420.5 MB` (limit 400). No corpus
   version is active. All large empty aborted relations were verified to
   have zero committed rows and vacuumed; database size returned to 12.6 MB.
-  The current branch prunes contextual transition edges with count < 5,
+  The merged loader prunes contextual transition edges with count < 5,
   retaining all global edges and the complete predictive n-gram artifacts.
+- The third full load **succeeded**: active version `cv-2026-09-a`, 32,640
+  nodes, 791,074 edges (697,712 transitions), 149,499 n-gram histories,
+  8,896 patterns, and 44,480 pattern examples. `hcg` uses 266.8 MiB of
+  its 300 MiB gate and the whole database 277.9 MiB of its 400 MiB gate.
+  Local FastAPI reads against the live DB returned HTTP 200 and the active
+  version for graph node, neighborhood, explanation, and examples. See
+  `docs/eval/corpus-cv-2026-09-a.md`.
+- Current branch: `codex/m2-live-evidence`, documenting the measured load.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Verify, commit, and PR the contextual edge pruning on
-   `codex/corpus-storage-budget`; wait for CI and self-merge.
+1. Commit the measured load report and context updates on
+   `codex/m2-live-evidence`, open a small PR, verify, and self-merge.
    The GitHub connector's PR write methods returned 403 despite read access;
    authenticated GitHub REST using the existing Git credential manager
-   created and merged PRs #1–#3. Use the connector first and the same REST
+   created and merged PRs #1–#4. Use the connector first and the same REST
    fallback if necessary; never print the credential.
-2. Retry the full corpus load and confirm the size guard, atomic activation,
-   graph/evidence API reads, migration history, and Supabase advisors.
-   The loader uses the direct database URL from gitignored
+2. Verify the deployed API/web production routes after the main branch
+   build. Supabase migrations 0001–0005 are applied. Supabase advisors had
+   only informational private-schema RLS notices and unused-index findings
+   at the last read. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-3. Finish F28 acceptance metrics and implement F30 onward in plan order
-   from a fresh branch after M2 is live.
+3. Implement F30 Kneser–Ney predictor, F31 evaluation, and F32 recommendation
+   UI from a fresh branch; then continue the remaining plan in order.
+   Finish F28 acceptance metrics along that path.
    Record CI and live evidence before closing each milestone gate.
 4. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
