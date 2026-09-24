@@ -1,0 +1,13 @@
+.env
+.env.*
+.venv/
+.tmp/
+__pycache__/
+.ruff_cache/
+.pytest_cache/
+pytest-cache-files-*/
+tests/
+legacy/
+*.db
+*.db-journal
+*.egg-info/

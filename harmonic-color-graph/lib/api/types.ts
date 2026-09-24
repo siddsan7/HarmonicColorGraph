@@ -72,6 +72,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/health/redis": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Health Redis Check */
+        get: operations["health_redis_check_health_redis_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/next-chords": {
         parameters: {
             query?: never;
@@ -185,6 +202,91 @@ export interface paths {
         put?: never;
         /** Analyze Endpoint */
         post: operations["analyze_endpoint_v2_analyze_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/examples": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Examples */
+        get: operations["examples_v2_examples_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/graph/explain-edge": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Explain Edge */
+        get: operations["explain_edge_v2_graph_explain_edge_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/graph/neighborhood": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Neighborhood */
+        get: operations["neighborhood_v2_graph_neighborhood_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/graph/node/{node_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Graph Node */
+        get: operations["graph_node_v2_graph_node__node_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/graph/path": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Graph Path */
+        post: operations["graph_path_v2_graph_path_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -319,6 +421,37 @@ export interface components {
             /** Section */
             section?: string | null;
         };
+        /** ExamplesData */
+        ExamplesData: {
+            /** Context */
+            context: string;
+            /** Examples */
+            examples: components["schemas"]["SongExample"][];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "pattern" | "transition";
+            /** Subject */
+            subject: string;
+        };
+        /** ExamplesMeta */
+        ExamplesMeta: {
+            /** Corpus Version */
+            corpus_version: string;
+        };
+        /** ExamplesResponse */
+        ExamplesResponse: {
+            data: components["schemas"]["ExamplesData"];
+            meta: components["schemas"]["ExamplesMeta"];
+            /**
+             * Warnings
+             * @default []
+             */
+            warnings: {
+                [key: string]: string;
+            }[];
+        };
         /** ExplainTransitionResponse */
         ExplainTransitionResponse: {
             /** From Roman */
@@ -388,6 +521,38 @@ export interface components {
             message: string;
             /** Raw Value */
             raw_value?: string | null;
+        };
+        /** PathRequest */
+        PathRequest: {
+            /**
+             * Constraint
+             * @default none
+             * @enum {string}
+             */
+            constraint: "none" | "increasing_chromaticity" | "max_chromaticity";
+            /**
+             * Context
+             * @default global
+             */
+            context: string;
+            /** Edge Types */
+            edge_types?: string[] | null;
+            /** From */
+            from: string;
+            /**
+             * K
+             * @default 3
+             */
+            k: number;
+            /** Max Chromaticity */
+            max_chromaticity?: number | null;
+            /**
+             * Max Len
+             * @default 6
+             */
+            max_len: number;
+            /** To */
+            to: string;
         };
         /** RelationshipFact */
         RelationshipFact: {
@@ -479,6 +644,25 @@ export interface components {
              * @default false
              */
             unresolved: boolean;
+        };
+        /** SongExample */
+        SongExample: {
+            /** Decade */
+            decade: string | null;
+            /** Genre */
+            genre: string | null;
+            /** Position */
+            position: number | null;
+            /** Rank */
+            rank: number;
+            /** Section */
+            section: string | null;
+            /** Section Ordinal */
+            section_ordinal: number;
+            /** Song Id */
+            song_id: string;
+            /** Spotify Id */
+            spotify_id: string | null;
         };
         /** TransitionCandidate */
         TransitionCandidate: {
@@ -671,6 +855,26 @@ export interface operations {
         };
     };
     health_db_check_health_db_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    health_redis_check_health_redis_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -912,6 +1116,173 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnalysisV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    examples_v2_examples_get: {
+        parameters: {
+            query?: {
+                pattern_id?: string | null;
+                transition?: string | null;
+                context?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamplesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    explain_edge_v2_graph_explain_edge_get: {
+        parameters: {
+            query: {
+                src: string;
+                dst: string;
+                context?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    neighborhood_v2_graph_neighborhood_get: {
+        parameters: {
+            query: {
+                id: string;
+                context?: string;
+                edge_types?: string | null;
+                min_prob?: number;
+                limit?: number;
+                hops?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    graph_node_v2_graph_node__node_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                node_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    graph_path_v2_graph_path_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

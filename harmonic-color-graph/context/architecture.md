@@ -14,11 +14,15 @@ Full detail and rationale: `docs/roadmap-v2.md` §3 and
 | Theory processing  | In-house (`backend/app/theory/`); music21 as a dev-only oracle | Spelling, key/Roman v2, relationship catalog v2 (ADR-004: music21 never a runtime dependency) |
 | Persistence        | SQLAlchemy 2 (Core), psycopg 3                            | Query layer over Postgres; no ORM sessions in the request hot path |
 | Database           | Postgres 17 on Supabase, schema `hcg`, SQL migrations     | Property graph (nodes/edges), n-gram histories, patterns, facts, color profiles, corpus versions (ADR-002, ADR-005) |
+| Local runtime      | Docker Compose, `pgvector/pgvector:pg17`                 | Reproducible API, worker, Postgres, Redis, and optional frontend stack; configuration only through settings/environment |
+| Jobs               | Redis-backed queue + shared Python worker runtime        | Long-running corpus, graph, embedding, and evaluation tasks; durable job records in Postgres |
+| Ephemeral state    | Redis                                                    | Versioned L2 cache, distributed rate counters, queue internals, short-lived coordination; never the durable source of truth |
 | Vector storage     | pgvector (HNSW, cosine)                                   | Function/chord/progression embeddings and similarity search |
 | Offline pipeline   | Polars, NumPy/SciPy, gensim, scikit-learn (extras only)   | Corpus build: analyze → aggregate → embeddings → color → snapshot (ADR-001; never imported by the API) |
 | LLM orchestration  | LangGraph, langchain-anthropic, Pydantic                  | Grounded tool-using assistant workflow (ADR-006) |
-| Observability/eval | LangSmith (optional), pytest, Vitest, Playwright, Ragas (optional) | CI gates, golden/regression tests, AI and recommender evaluation |
-| CI/CD              | GitHub Actions, Vercel Git integration                    | Backend/Postgres/frontend CI; preview deploys per PR, production on `main` |
+| MCP interface      | MCP server + shared typed domain services                | Validated harmonic tools for external AI clients without HTTP self-calls or arbitrary SQL |
+| Observability/eval | OpenTelemetry, structured logs, LangSmith (optional), pytest, Vitest, Playwright, Ragas (optional) | Correlated system traces/metrics, agent traces, CI and resilience gates |
+| CI/CD              | GitHub Actions, Vercel Git integration                    | PR checks and preview; agent merges passing PRs, production on `main` |
 
 The repository root (`HarmonicColorGraph/`) holds the Next.js
 app at `harmonic-color-graph/` and the FastAPI service at
@@ -49,7 +53,14 @@ see `docs/roadmap-v2.md` and
   conversion, theory labels, and voice-leading helpers.
 - `backend/app/services/` - Planned application services for
   ingestion, analysis, transition statistics,
-  recommendation, scoring, and explanation formatting.
+  recommendation, scoring, explanation formatting, and the
+  shared business logic called by API, workers, LangGraph,
+  and MCP.
+- `backend/app/jobs/` - Planned typed job schemas, queue
+  adapter, worker handlers, retry/lease rules, and progress
+  reporting; handlers call shared services.
+- `backend/app/mcp/` - Planned MCP tool/resource interface
+  over shared services and validated schemas.
 - `backend/app/db/` - Planned database engine/session setup,
   migrations, repositories, and query helpers.
 - `backend/app/models/` - Planned SQLAlchemy persistence
@@ -97,7 +108,8 @@ see `docs/roadmap-v2.md` and
   structured and graph store — typed `nodes`/`edges` (the
   harmonic property graph), `ngram_histories`, `patterns` +
   `pattern_examples` + `song_refs`, `color_profiles`,
-  `embeddings`, `facts`, and `corpus_versions`. RLS is enabled
+  `embeddings`, `facts`, `corpus_versions`, durable `jobs`, and
+  `idempotency_keys`. RLS is enabled
   on every table; `hcg` is never exposed through the Supabase
   Data API (the FastAPI service is the only reader/writer).
   Legacy Phase 1 tables (`songs`, `progressions`,
@@ -106,7 +118,14 @@ see `docs/roadmap-v2.md` and
 - **`public` schema**: app-facing tables accessed directly
   from the browser under Supabase Auth + RLS —
   `saved_progressions`, `taste_profiles`, `feedback`,
-  `ai_query_logs`, `rate_limits`.
+  `ai_query_logs`. Ephemeral rate counters live in Redis once
+  F28 replaces the earlier Postgres design.
+- **Redis**: reconstructable version-keyed cache, distributed
+  rate counters, queue internals, locks, and temporary progress.
+  Corpus/model versions are part of cache keys. L1 process
+  cache may sit above Redis; Postgres remains the durable L3.
+  Redis outages bypass read caches, while enqueue attempts
+  fail explicitly and feature-specific rate policies apply.
 - **Single migration system**: SQL files in
   `supabase/migrations/` are the source of truth (ADR-005).
   Alembic is retired once F05 lands (history kept under
@@ -130,6 +149,10 @@ see `docs/roadmap-v2.md` and
   gitignored), small committed fixtures (`data/samples/`,
   `data/gold/`), notebooks, and generated model artifacts
   during development.
+- **Local production stack**: Compose runs pgvector Postgres,
+  Redis, API, and worker, with an optional frontend; health
+  checks and an example environment file make fresh-clone
+  startup reproducible. Docker does not alter domain logic.
 - **Browser state**: UI-only state such as current chord
   input, selected graph node, intent sliders, tempo, and
   playback settings; the current progression itself is
@@ -180,10 +203,14 @@ Phase 2 adds:
 - `POST /recommend-next-chords`
 - `POST /recommend-progression`
 - `GET /similar-progressions`
+- `POST /v2/jobs`, `GET /v2/jobs/{job_id}`, cancellation,
+  and job events for durable async work.
 
 Phase 3 adds:
 
 - `POST /ai/query`
+- MCP tools over the same validated domain services exposed
+  to API and LangGraph; no MCP-supplied SQL or file paths.
 
 ## Auth and Access Model
 
@@ -217,12 +244,19 @@ Phase 3 adds:
 - **CI/CD**: GitHub Actions runs backend unit tests, a
   Postgres-backed integration job (`pgvector/pgvector:pg17`
   service container), and frontend lint/typecheck/build/test on
-  every push; Vercel's Git integration builds a preview
-  deployment per PR and production on `main`.
+  every PR; Vercel's Git integration builds a preview
+  deployment per PR and production on `main`. Implementing
+  agents merge verified PRs and confirm the resulting deploy.
 - **Batch jobs**: the offline pipeline (`backend/pipeline/`)
-  runs on demand on a machine with PyPI access (not inside a
+  runs on a worker machine with PyPI access (not inside a
   Vercel function) and loads results into Supabase through the
-  versioned loader.
+  versioned loader. F27 adds a Redis-backed queue with durable
+  Postgres job state; F29 adds idempotency, capped retry with
+  jitter, expiring worker leases, and dead-letter recovery.
+- **Observability**: OpenTelemetry correlates HTTP, Postgres,
+  Redis, jobs, retrieval, and LangGraph work through trace IDs.
+  Structured logs redact secrets. Optional LangSmith traces
+  agent/model/tool behavior without becoming a dependency.
 
 ## Invariants
 
@@ -242,3 +276,12 @@ Phase 3 adds:
 8. Large datasets, generated models, and local notebooks
    outputs should not be committed unless they are intentional
    small fixtures.
+9. API, worker, LangGraph, and MCP interfaces share domain
+   services and validated input/output contracts.
+10. Postgres owns durable truth; Redis owns only temporary or
+    reconstructable state. Queued work uses persistent job
+    records and at-least-once, idempotent execution.
+11. Dependencies have bounded timeouts and documented fallbacks;
+    deterministic features continue when optional providers
+    fail. Traces, metrics, and structured error categories are
+    part of production correctness.

@@ -5,6 +5,8 @@
 > Superseded by `feature-specs/v2-implementation-plan.md`, which
 > re-verifies Phase 1 behavior (F03/F04) before extending it.
 > Kept for history; do not add new work here.
+> Production-readiness additions (F09, F27–F29, F70.5, expanded F75/F83)
+> and the PR delivery workflow are in the active v2 implementation plan.
 
 ## Purpose
 

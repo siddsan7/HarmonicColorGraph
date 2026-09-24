@@ -1,10 +1,9 @@
 name: CI
 
-# push has no branch filter so a feature branch can be validated on its own
-# (no PR-hosting tool is wired up yet); this double-runs once PRs exist,
-# which is an acceptable tradeoff until then.
+# Feature branches validate through pull requests; main validates after merge.
 on:
   push:
+    branches: [main]
   pull_request:
 
 concurrency:
@@ -154,3 +153,40 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  compose:
+    name: local stack (Compose smoke)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare disposable local configuration
+        run: cp .env.docker.example .env.docker
+
+      - name: Build and start full stack
+        timeout-minutes: 15
+        run: docker compose up --build -d
+
+      - name: Check application and dependencies
+        timeout-minutes: 6
+        run: |
+          curl --fail --silent --show-error --retry 60 --retry-delay 5 --retry-connrefused http://127.0.0.1:8000/health
+          curl --fail --silent --show-error http://127.0.0.1:8000/health/db
+          curl --fail --silent --show-error http://127.0.0.1:8000/health/redis
+          curl --fail --silent --show-error --retry 60 --retry-delay 5 --retry-connrefused http://127.0.0.1:3000/
+          docker compose exec -T worker python -m app.runtime_check dependencies
+          worker_id=$(docker compose ps -q worker)
+          for attempt in $(seq 1 60); do
+            worker_health=$(docker inspect --format '{{.State.Health.Status}}' "$worker_id")
+            if [ "$worker_health" = healthy ]; then break; fi
+            sleep 5
+          done
+          test "$worker_health" = healthy
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=150
+
+      - name: Remove disposable stack and volume
+        if: always()
+        run: docker compose down --volumes --remove-orphans

@@ -1,5 +1,10 @@
 # Phase 1 Supabase Gap Closure Implementation Plan
 
+> **Historical.** This plan predates the active
+> `feature-specs/v2-implementation-plan.md`. Follow that plan for all
+> remaining work, including the production-readiness additions (F09,
+> F27–F29, F70.5, expanded F75/F83) and the PR workflow.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Turn the Phase 1 demo into a Supabase-backed product path that can ingest the full Chordonomicon progression library, persist analyzed progressions/transitions, and serve APIs from database-backed statistics.

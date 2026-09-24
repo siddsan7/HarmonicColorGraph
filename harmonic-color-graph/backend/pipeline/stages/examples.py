@@ -85,16 +85,26 @@ def run_examples(
                     MAX_CANDIDATES_PER_KEY
                 ):
                     pattern_candidates[canonical].append(
-                        {"song_id": song_id, "section": row["section"], "ordinal": row["ordinal"]}
+                        {
+                            "song_id": song_id,
+                            "section": row["section"],
+                            "ordinal": row["ordinal"],
+                            "position": start,
+                        }
                     )
 
-        for a, b in zip(tokens, tokens[1:], strict=False):
+        for position, (a, b) in enumerate(zip(tokens, tokens[1:], strict=False)):
             pair = (a, b)
             if pair in transition_keys and len(transition_candidates[pair]) < (
                 MAX_CANDIDATES_PER_KEY
             ):
                 transition_candidates[pair].append(
-                    {"song_id": song_id, "section": row["section"], "ordinal": row["ordinal"]}
+                    {
+                        "song_id": song_id,
+                        "section": row["section"],
+                        "ordinal": row["ordinal"],
+                        "position": position,
+                    }
                 )
 
     summary = ExamplesSummary()
@@ -135,6 +145,7 @@ def run_examples(
         "song_id": pl.Utf8,
         "section": pl.Utf8,
         "ordinal": pl.Int64,
+        "position": pl.Int64,
         "rank": pl.Int64,
     }
     transition_examples_schema = {
@@ -144,6 +155,7 @@ def run_examples(
         "song_id": pl.Utf8,
         "section": pl.Utf8,
         "ordinal": pl.Int64,
+        "position": pl.Int64,
         "rank": pl.Int64,
     }
     song_refs_schema = {
@@ -204,6 +216,7 @@ def _select_examples(
                     "song_id": candidate["song_id"],
                     "section": candidate["section"],
                     "ordinal": candidate["ordinal"],
+                    "position": candidate["position"],
                     "rank": rank,
                 }
             )

@@ -4,6 +4,7 @@ import {
   API_BASE_PATH,
   analyzeProgression,
   explainTransition,
+  fetchExamples,
   fetchNextChords,
 } from "@/lib/api/client"
 
@@ -55,5 +56,23 @@ describe("api client", () => {
     await expect(explainTransition("V", "I", "major")).rejects.toThrow(
       "500 Server Error: boom"
     )
+  })
+
+  it("loads corpus examples through the same-origin proxy", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse({
+      data: { kind: "transition", subject: "M:V->M:I", context: "global", examples: [{
+        song_id: "s1", spotify_id: null, genre: "pop", decade: null,
+        section: null, section_ordinal: 0, position: 4, rank: 1,
+      }] },
+      meta: { corpus_version: "cv-test" }, warnings: [],
+    }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    const result = await fetchExamples({ transition: "M:V->M:I", limit: 2 })
+
+    expect(fetchMock.mock.calls[0][0]).toBe(
+      `${API_BASE_PATH}/v2/examples?transition=M%3AV-%3EM%3AI&context=global&limit=2`
+    )
+    expect(result.data.examples[0].position).toBe(4)
   })
 })

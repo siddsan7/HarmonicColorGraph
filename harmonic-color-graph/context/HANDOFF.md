@@ -1,210 +1,101 @@
 # Handoff
 
-Read this first if you're picking up this project in a new session. It's
-the orientation layer — a map of what exists and where to find it, not a
-duplicate of it. Everything here should stay true; when it drifts from
-reality, fix it rather than leaving it stale (that's the point of this
-file).
+Read this first when continuing Harmonic Color Graph. The active source of
+truth is `feature-specs/v2-implementation-plan.md`; `docs/roadmap-v2.md`
+describes the target product and architecture, and
+`context/progress-tracker.md` holds the detailed implementation history.
+The older Phase 1 plans are historical.
 
-## What this project is
+## Current state — 2026-09-24
 
-Harmonic Color Graph: a domain-specific harmonic-intelligence engine
-(chord analysis, a corpus-derived transition graph, harmonic color,
-intent-driven recommendation, generation, a grounded AI assistant) built
-graph/theory-first, LLM last. Full product vision:
-`context/project-overview.md`.
+- `main` contains F00–F08, F10–F14, and F20–F22. M0 and M1 shipped under
+  the earlier plan; M2's analyzed corpus and aggregate artifacts exist
+  locally. F21's 20-song musical spot-check scored 17/20 and exposed a
+  relative-key selection gap at section boundaries. See
+  `docs/eval/corpus-cv-2026-09-a.md`. The M1 gold sets have been reviewed
+  by Claude at Siddharth's request; this was not a literal human pass.
+- The attached production-readiness additions have been integrated into
+  the active plan: F09, F27–F29, F70.5, expanded F75/F83, new milestone
+  gates, and shared-service/reliability principles. The roadmap and
+  context files reflect the same architecture. F09 was skipped in the
+  original chronology and is being backfilled before continuing M2.
+- The user replaced the earlier no-PR workaround with a GitHub PR workflow.
+  GitHub connector access to `siddsan7/HarmonicColorGraph` is confirmed.
+  Use `codex/` branches, choose reviewable PR boundaries, run checks and
+  inspect the diff/CI, then squash-merge passing PRs yourself. Continue
+  across feature and milestone gates without routine permission requests.
+  Only indispensable user-only input, new cost, or irreversible remote
+  deletion needs a pause; keep independent work moving when one path is
+  blocked.
+- Current branch: `codex/production-readiness-roadmap`. **No PR has been
+  opened or merged yet; the following is local work, not shipped code.**
+  F09's Compose stack and CI smoke job are written. F23's graph migration
+  and active-version stores are written. F24's streaming, atomic loader
+  is written; its full-corpus artifact integrity pass succeeded locally
+  with 2,248,238 sections and 1,665,611 transition rows. F25 graph
+  endpoints/path service and F26 evidence endpoint/UI are written. The
+  F26 examples stage was rerun to record true chord positions with the
+  same 44,480 pattern and 250 transition example counts. F28's versioned
+  Redis cache is already used by graph endpoints; rate-limit primitives
+  exist but are not yet wired to all future endpoints. F27 job files are
+  **in progress and must be kept out of the first PR until complete**.
+- The local `scripts/check.ps1 all` gate passed after those changes on
+  2026-09-24: Ruff, frontend lint/types, unit tests, Vitest, Next build,
+  and FastAPI import. Postgres integration tests skipped locally because
+  `TEST_DATABASE_URL` is unset. Docker is not installed on this host, so
+  the new Compose CI smoke job is the runtime gate. Neither production
+  schema migration nor corpus load has run yet.
 
-## What's actually running the show right now
+## Immediate next steps
 
-The project is executing **`feature-specs/v2-implementation-plan.md`**,
-one numbered feature (F00, F01, F02, …) at a time, in order, per that
-plan's own §0 conventions. That plan — plus its companion
-**`docs/roadmap-v2.md`** (product vision, verified current state, target
-architecture, milestones M0–M8) — is the active spec. It supersedes the
-older Phase 1 docs (`context/phase-1-harmonic-data-graph-foundation.md`,
-`feature-specs/phase-1-feature-roadmap.md`), both now marked historical.
+1. Review `git status` and stage a first PR containing the production
+   plan/context updates, F09, and F23–F26 graph/evidence slice. F28 cache
+   primitives can accompany that graph slice. **Exclude**
+   `supabase/migrations/0003_jobs.sql`, `backend/app/jobs/`, and
+   `backend/app/api/jobs_v2.py` from PR 1: F27 is unfinished. Run
+   `git diff --check`, secret scan, generated OpenAPI drift check, and
+   the Standard Check Gate, then push and open the PR through the GitHub
+   connector. Attach it to the task, wait for all CI jobs including
+   Compose/Postgres, fix failures, and squash-merge.
+2. After the PR passes, apply `0002_graph.sql` to the live Supabase
+   project (`avnxcyulznofylsnydfg`) using its migration tool. It is
+   additive and uses private `hcg` tables. Verify migration history and
+   security/performance advisors. Test `hcg-build load` on a small
+   version first, then load `data/artifacts/cv-2026-09-a` if the 300 MB
+   `hcg` and 400 MB database guards permit it. Confirm atomic activation,
+   active-version graph/evidence APIs, and production health. The loader
+   uses `DATABASE_URL_LOAD` from gitignored `backend/.env`; never print or
+   commit credentials.
+3. Complete F27 worker/job integration and F28 distributed rate-limit
+   wiring, then F29 retry/idempotency/lease/dead-letter semantics in
+   another reviewable PR. Continue F30 onward in plan order. Do not mark
+   F09/F23–F29 acceptance checkboxes complete before their CI and live
+   evidence exists.
+4. Update this file and `context/progress-tracker.md` after each merge,
+   deployment, or discovered blocker. Before any usage limit, record
+   the exact branch/PR/merge state and next command or tool action here.
 
-**Read `feature-specs/v2-implementation-plan.md` §0 in full before doing
-anything else.** It defines the Standard Check Gate (run after every
-feature), the git workflow, and — critically — exactly when to stop and
-ask Siddharth instead of guessing (§0.2 lists the inputs only he can
-provide; the plan also says never spend money or delete remote resources
-without asking first).
+## Operational references and invariants
 
-## Where things stand
-
-Check `context/progress-tracker.md`'s **"v2 Plan — Active"** section at the
-top for the current feature and any live blocker — that's kept current
-and is the source of truth, more current than anything below by the time
-you're reading this. As of this handoff:
-
-- **Done and merged to `main`:** F00–F08 — **milestone M0 is complete.**
-  Chord analysis, transition lookup, and the golden/regression test
-  harness are re-verified and hotfixed; the project has a real Supabase
-  Postgres project with a versioned SQL migration, serverless-safe
-  sessions, `GET /health/db`, and CI (`.github/workflows/ci.yml`, three
-  jobs: backend unit, backend-postgres integration, frontend). Both
-  Vercel projects are live in production: the FastAPI API at
-  `harmonic-color-graph-api.vercel.app` (F06) and the Next.js web app at
-  `harmonic-color-graph.vercel.app` (F07), talking to each other through
-  a same-origin proxy — see `docs/runbooks/vercel.md`. F08 added a daily
-  `CRON_SECRET`-gated keep-alive route (`vercel.json`'s `crons`, production
-  only), plus a status pill and a non-blocking degraded-mode banner that
-  shows instead of crashing when the DB is unreachable — verified live in
-  production (see `docs/runbooks/vercel.md`'s "Cron and status" section).
-- **M1 F10–F14 merged to `main` and live in production:**
-  The inherited F10/F11 dirty worktree was completed rather than reset.
-  `theory/spelling.py` and the additive chord schema cover F10; the full
-  Chordonomicon vocabulary report reaches **99.9683%** token parse.
-  `theory/keys.py` covers 24 major/minor keys, song/local keys, and
-  modulation events. The held-out key gold half has **90% top-1, 95%
-  top-2, ECE 0.052**; a 20k-song run found **2.3%** at p≥0.95 and
-  **20.9%** section/song disagreement after a length-aware temperature
-  fix. `theory/roman.py` supplies v2 functional tokens: provisional
-  Roman gold **192/192 cores and figures**, music21 oracle **162/165**
-  diatonic degree/quality agreement. `relationships_v2.py` supplies 20
-  fact-bearing rules and **86.4%** transition coverage on the 20k-song
-  sample. `POST /v2/analyze` and the Next.js workbench are wired through
-  generated OpenAPI types; the v1 routes remain callable.
-- **Verified and shipped:** The full local gate and all three branch CI
-  jobs passed. The inherited F03 xfails are removed and passing under v2.
-  Local and production Playwright checks pass `D7 G C` and `C Am F G`
-  through the real FastAPI/Next.js proxy; desktop and mobile screenshots
-  were visually inspected. Squash commit `ed3a584` is on `main`, and both
-  Vercel deployments report success. The first main CI run exposed a
-  coverage-instrumented F12 throughput test at 993 sections/s against its
-  1,000 sections/s gate. Its benchmark was moved to an uninstrumented child
-  interpreter so it measures production throughput without relaxing the gate.
-  The follow-up main CI run passed all three jobs.
-- **Musician review has not been done yet:** Siddharth explicitly chose to
-  review `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. Both
-  sets remain provisional, and their reported scores are automated results
-  against those provisional fixtures, not musician-validated accuracy.
-  The two human-review checkboxes remain open in the plan. Continue
-  independent work without waiting for the review.
-- **M2 is well underway: F20, F21, and F22 are all done.** `hcg-build run`
-  (`backend/pipeline/cli.py`) orchestrates a 10-stage build (`ingest →
-  analyze → aggregate → ngrams → patterns → examples → color →
-  embeddings → snapshot → export`); everything through `examples` is now
-  implemented (only `color`/`embeddings`/`snapshot`/`export` remain typed
-  stubs for later milestones). It has been run end-to-end against the
-  real 679,807-song corpus (`cv-2026-09-a`) and every F21/F22 acceptance
-  check passes — see `context/progress-tracker.md`'s F21/F22 Completed
-  entry for the full results, and read it before touching the
-  `aggregate`/`ngrams`/`patterns` stages: getting this to run cleanly at
-  real scale took five separate memory incidents (two of them dropped
-  the machine to <1 GB free physical memory) and produced a new
-  structural safety net, `backend/pipeline/memory_guard.py`, that now
-  wraps every stage automatically. If you're adding a new stage or
-  editing an existing one and it touches per-item Python dicts/sets over
-  the full corpus, read that file's docstring first — it is a direct
-  index of the mistakes already made here, and the guard will catch a
-  new one automatically, but understanding *why* the existing stages are
-  shaped the way they are will save you the same hours it cost this
-  session. **Next:** F23, the graph schema migration (Supabase). Siddharth's
-  spot-check of F21's 20-song sample and the M1 gold-set review both
-  remain outstanding human-review items — not blockers for continuing.
-- **Read the full chronological detail in `context/progress-tracker.md`'s
-  "Completed" list** — each entry documents what was built, what broke
-  and how it was actually fixed (not just what was intended), and the
-  gate results. It's long by design: it's the project's memory of *why*,
-  not just *what*.
-
-## Conventions established this session (follow these, don't re-derive them)
-
-- **Git workflow:** one branch per feature (`feat/F##-short-name`), work
-  and commit there, push, then squash-merge into `main` yourself once
-  checks pass, then delete the branch. This was an explicit choice
-  Siddharth made when asked (branch+PR was the plan's literal text, but
-  no PR-hosting tool works here yet — see below) — don't re-ask, just do
-  it, and re-ask only if he says otherwise.
-- **No working PR tool.** GitKraken's `pull_request_create` needs
-  interactive `gk auth login` (can't be completed non-interactively); no
-  `gh` CLI is installed. So there's no way to open a real GitHub PR right
-  now. The CI workflow's `push` trigger has no branch filter specifically
-  so a feature branch self-validates via Actions before you merge it —
-  treat "CI green on the branch" as the merge gate, not a PR check.
-- **CI validation is not optional.** After pushing a feature branch, wait
-  for and check its Actions run (browser: navigate to
-  `https://github.com/siddsan7/HarmonicColorGraph/actions/workflows/ci.yml`,
-  `find` the commit, follow the run) before merging. This session found
-  and fixed real bugs *only* visible in CI or against a real database —
-  local-only "it works on my machine" was repeatedly wrong. See
-  progress-tracker.md's F02/F05 entries for specifics (Windows Python
-  Store-alias detection, a psycopg2-vs-psycopg3 URL scheme bug, a
-  `bash -e` swallowing bug, a missing `extensions` schema on plain
-  Postgres, gitignored directories not existing in a fresh checkout, and
-  a test-isolation leak that had been silently masking two tests since
-  before this session).
-- **Check gate:** `harmonic-color-graph/scripts/check.sh` (or `.ps1`) with
-  `static | test | build | all`. Run `all` before finishing any feature.
-  On Windows, plain `python`/`python3` can silently be the Microsoft
-  Store alias even when a real interpreter is installed — the scripts
-  already probe for a working interpreter by executing candidates, not
-  by checking PATH; don't regress that if you touch them.
-- **Tick checkboxes in the plan file itself** as you complete each
-  bullet, and add a dated, detailed entry to progress-tracker.md's
-  Completed list — not just "done," but what was verified and any bug
-  found along the way. Future-you (or the next session) needs the *why*.
-- **`.env` (backend, gitignored) holds the real Supabase DB password.**
-  Never put it in a commit, a doc, or a tracker entry — the ref is fine to
-  record (see `docs/runbooks/supabase.md`), the password is not.
-
-## Known gaps to work around, not silently paper over
-
-- The plan's own companion documents —
-  `phase_2_color_embeddings_recommendation_engine.md`,
-  `phase_3_llm_agents_productization.md`, and the pre-v2
-  `harmonic-color-graph-roadmap.md` — were referenced by the cloud
-  workspace that authored `docs/roadmap-v2.md` but never made it into
-  this repo. `docs/roadmap-v2.md` is self-contained enough to execute
-  M0–M3. Features from M4 onward that cite specific "Phase 2 §…" /
-  "Phase 3 §…" sections will need those sections requested from
-  Siddharth, or the missing detail reasoned out from the roadmap's own
-  summaries — flag it plainly rather than inventing specifics.
-- The Supabase MCP integration's `create_project` needs a
-  `get_cost` → `confirm_cost` → `create_project` flow, but even after
-  confirming cost, `create_project`'s exposed tool schema has no
-  parameter to carry the confirmation through — it fails every time with
-  "Cost confirmation ID does not match the expected cost." This looks
-  like a genuine gap between this integration's exposed tools and the
-  real Supabase MCP server, not something fixable from this side. If a
-  future feature needs a new Supabase project (or branch — same
-  mechanism), expect this and ask Siddharth to create it by hand in the
-  dashboard rather than spending time retrying the API.
-- The old Supabase project (`bqaateqbbavwnbyfuqvk`) is paused and,
-  per Siddharth, already over the 500 MB free-tier quota even while
-  paused. It was left alone (costs nothing extra paused) rather than
-  deleted. The active project is `avnxcyulznofylsnydfg` — see
-  `docs/runbooks/supabase.md`.
-- Vercel MCP gotchas from F06/F07, all detailed in
-  `docs/runbooks/vercel.md`: new projects default `ssoProtection` on
-  (blocks public `curl`/browser access — must be explicitly disabled);
-  `create_git_project` 403s on this account's token scope, use
-  `create_project` with an inline `gitRepository` instead; the same
-  scope gap blocks `get_runtime_logs`/`list_deployment_events`, so
-  verify deployments with direct `curl`/Playwright instead; and
-  `vercel.json`'s modern `rewrites` array can't interpolate env vars
-  into the destination, so the API proxy is a Next.js `rewrites()` in
-  `next.config.ts`, not `vercel.json`. Triggering a production
-  deployment also needs explicit user confirmation — the auto-mode
-  classifier blocks `create_deployment` with `target: "production"`.
-
-## Orientation map (what to read, in what order, for what)
-
-1. **This file** — orientation only.
-2. `feature-specs/v2-implementation-plan.md` §0 — the process rules.
-3. `context/progress-tracker.md` — current status + full history.
-4. `docs/roadmap-v2.md` — product vision, architecture, milestones.
-5. `feature-specs/v2-implementation-plan.md` (the rest) — the feature
-   you're actually implementing.
-6. `context/architecture.md`, `context/code-standards.md`,
-   `context/ui-context.md`, `context/ai-workflow-rules.md` — standing
-   rules that don't change per-feature.
-7. `docs/runbooks/` — operational how-tos (Supabase today; more will
-   accumulate as F06+ add Vercel, the pipeline, etc.).
-8. `docs/adr/ADR-001.md`–`ADR-008.md` — the *why* behind irreversible-ish
-   architecture choices, one per decision.
-
-`AGENTS.md` encodes this same order for the read-order convention this
-repo already had; this file is now step 0 in that order.
+- `harmonic-color-graph/data/raw/chordonomicon_v2.csv` is gitignored;
+  `data/artifacts/cv-2026-09-a/` is the full real-corpus pipeline output.
+  Do not commit either. The pipeline's `memory_guard.py` was added after
+  real full-corpus memory incidents; read its docstring before changing
+  a stage that aggregates millions of rows.
+- `supabase/migrations/*.sql` is the schema source of truth. The live
+  Supabase project is on its free tier and was `ACTIVE_HEALTHY` at the
+  last read. `hcg` is private and RLS-enabled. No raw dataset or secrets
+  belong in the repository; do not delete remote data without explicit
+  authorization. See `docs/runbooks/supabase.md`.
+- FastAPI, workers, LangGraph, and MCP must call shared domain services.
+  Postgres owns durable truth; Redis holds reconstructable cache, rate
+  counters, and queue coordination. At-least-once jobs require bounded
+  retries, idempotency, leases, and inspectable failures.
+- The API and web app run as separate Vercel projects; the Next.js proxy
+  uses `HCG_API_ORIGIN`. See `docs/runbooks/vercel.md`. The daily F08
+  keep-alive is production-only.
+- `AGENTS.md` supplies the full read order. Next.js work must read the
+  relevant `node_modules/next/dist/docs/` guide before editing. The
+  normal verification command is `scripts/check.ps1 all` on Windows or
+  `scripts/check.sh all` on Unix. On Windows, use `py -3.12` rather than
+  the possible `python` Store alias.

@@ -22,6 +22,7 @@ class AppSettings(BaseSettings):
         default=None,
         alias="DATABASE_URL_LOAD",
     )
+    redis_url: str | None = Field(default=None, alias="REDIS_URL")
     hcg_env: str = Field(default="development", alias="HCG_ENV")
     hcg_cors_origins: str = Field(default="", alias="HCG_CORS_ORIGINS")
     hcg_corpus_version: str = Field(default="unversioned", alias="HCG_CORPUS_VERSION")

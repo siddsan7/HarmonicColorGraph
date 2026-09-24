@@ -146,6 +146,26 @@ def test_transition_examples_use_top_global_transitions(tmp_path: Path):
     transition_examples = pl.read_parquet(output_dir / "transition_examples.parquet")
     # only the top-1 transition (M:V -> M:I, count 100) should have examples
     assert set(transition_examples["transition"].to_list()) == {"M:V->M:I"}
+    assert transition_examples["position"].to_list() == [0]
+
+
+def test_example_positions_are_chord_offsets_not_section_ordinals(tmp_path: Path):
+    tokens = ["M:vi", "M:ii", "M:I", "M:IV", "M:V", "M:I"]
+    sections_path, output_dir = _setup(
+        tmp_path,
+        [_section_row(0, "song-0", tokens)],
+        [_pattern_row("M:I M:IV M:V")],
+        [_transition_row("M:V", "M:I", count=100)],
+    )
+
+    run_examples(sections_path, output_dir)
+
+    pattern_example = pl.read_parquet(output_dir / "pattern_examples.parquet").row(0, named=True)
+    transition_example = pl.read_parquet(output_dir / "transition_examples.parquet").row(
+        0, named=True
+    )
+    assert (pattern_example["ordinal"], pattern_example["position"]) == (0, 2)
+    assert (transition_example["ordinal"], transition_example["position"]) == (0, 4)
 
 
 def test_deterministic_across_repeated_runs(tmp_path: Path):

@@ -1,7 +1,7 @@
 # Harmonic Color Graph — Roadmap v2 (Supabase + Vercel)
 
-> Revision 2 — 2026-09-23. Replaces the previous roadmap in this Project.
-> Companion document: `harmonic-color-graph-implementation-plan.md` (feature-by-feature build plan with checks).
+> Revision 3 — 2026-09-24. Adds production-readiness work and a PR-based delivery workflow.
+> Companion document: `feature-specs/v2-implementation-plan.md` (active feature-by-feature build plan with checks).
 > Source-of-vision documents: `phase_1_harmonic_data_graph_foundation.md`, `phase_2_color_embeddings_recommendation_engine.md`, `phase_3_llm_agents_productization.md`.
 
 ---
@@ -24,6 +24,10 @@ The previous roadmap diagnosed the Phase 1 code well (first-order prediction, we
 | 10 | "Check the license." | Checked: **Chordonomicon is CC BY-NC 4.0.** | Portfolio and non-commercial use are fine, with attribution in the UI and README. Commercial use needs different data (out of scope). |
 | 11 | Storage: "don't dump raw data into Postgres." | Right idea, no numbers. The June `DiskFull` failure came from the free plan's storage limits (**500 MB database quota, 1 GB disk**). | Explicit storage budget (≤ 300 MB), measured at every load, with a documented fallback. |
 | 12 | No per-feature verification. | You asked for checks after every feature. | The implementation plan defines a standard gate plus feature-specific acceptance checks. |
+| 13 | Local services require separate setup; long jobs have no durable worker boundary. | Development and production behavior cannot be reproduced or recovered consistently. | F09 adds Compose; F27 adds a Redis-backed queue and worker with Postgres job records; F29 adds leases, retry, idempotency, and dead-letter handling. |
+| 14 | Process-local caching and relational rate counters. | Multiple API instances cannot share temporary coordination efficiently. | F28 adds versioned Redis L2 cache and distributed rate limiting with explicit outage policies; Postgres remains durable truth. |
+| 15 | Typed tools serve only the internal agent. | External AI clients cannot use the same validated harmonic capabilities. | F70.5 adds MCP over shared domain services and F70 schemas. |
+| 16 | LangSmith-only AI tracing and happy-path performance checks. | System failures, queue behavior, and cross-service latency remain hard to diagnose. | F75 adds OpenTelemetry plus optional LangSmith; F83 adds reproducible chaos scenarios and a resilience matrix. |
 
 ---
 
@@ -135,16 +139,25 @@ I-V-vi vs ii-V-vi         -> identical rankings (first-order only)
    SUPABASE (Postgres 17, schema `hcg`, RLS on, not exposed via Data API)
      property graph: nodes / edges (typed)   n-gram histories   patterns + examples
      color_profiles   embeddings (pgvector, HNSW)   facts (grounding)   corpus_versions
-     app data: feedback, saved_progressions (Auth), ai_query_logs, rate_limits
-                                   |
+     app data: feedback, saved_progressions (Auth), ai_query_logs
+     durable jobs + idempotency keys
+                                   ^
+                                   | durable data and job state
    VERCEL project "harmonic-color-graph-api"  — FastAPI (Python 3.12, fluid compute)
      /v1/* (legacy baseline)   /v2/analyze  /v2/recommend-next-chords  /v2/find-substitutes
      /v2/generate-progression  /v2/similar-*  /v2/graph/*  /v2/color/*  /v2/examples
      /v2/ai/query (LangGraph + Claude, SSE)   /health, /health/db
+     /v2/jobs/* (durable asynchronous work)
                                    |
    VERCEL project "harmonic-color-graph"  — Next.js 16 (rewrites /api/hcg/* -> API)
      Workbench | Graph Explorer (Cytoscape) | Generator | Similarity | Assistant | About/Eval
      Tone.js voice-led playback, compare mode, MIDI export
+
+   API -> REDIS (versioned cache, queue, rate counters) -> WORKER
+   WORKER -> shared domain/pipeline services -> SUPABASE
+   MCP + LangGraph + API + WORKER -> the same validated domain services
+   LOCAL: Compose packages pgvector Postgres, Redis, API, worker, and optional web.
+   TELEMETRY: OpenTelemetry spans/metrics/logs across services; optional LangSmith for AI.
 ```
 
 ### 3.1 Architecture decisions (ADRs, to be committed under `docs/adr/`)
@@ -157,13 +170,15 @@ I-V-vi vs ii-V-vi         -> identical rankings (first-order only)
 - **ADR-006 LLM is an interface, never an oracle.** LangGraph in the FastAPI service, Claude via `langchain-anthropic` (model set in env), safe typed tools only, Pydantic-validated structured outputs, and fact-ID citation enforced by a validator node.
 - **ADR-007 Storage budget.** Free plan: 500 MB database. Target ≤ 300 MB for `hcg` including indexes, checked after every load. Overflow options, in order: tighten pruning → move n-gram histories to a compressed artifact in Supabase Storage loaded by the API → upgrade to Pro (your decision).
 - **ADR-008 Licensing.** Chordonomicon is CC BY-NC 4.0: attribution in the footer, About page, and README; the project stays non-commercial (also required by Vercel Hobby). The corpus manifest records license per source.
+- **Production boundaries.** FastAPI, workers, LangGraph, and MCP call shared domain services. Postgres stores durable truth; Redis stores reconstructable coordination. Worker execution is at-least-once with idempotent side effects. Optional dependencies degrade according to explicit policies, and every major path emits traceable errors and metrics.
 
 ### 3.2 Deployment topology
 
 - **Two Vercel projects from one repo:** `harmonic-color-graph` (root `harmonic-color-graph/`, Next.js) and `harmonic-color-graph-api` (root `harmonic-color-graph/backend/`, FastAPI zero-config). The web app proxies `/api/hcg/*` to the API through a rewrite: same-origin in the browser, no CORS in production, and the API URL stays server-side.
 - **Supabase:** restore `bqaateqbbavwnbyfuqvk` if it is still in the 90-day window, otherwise create a new free project in the same org. Connect through the **transaction pooler** (port 6543) with SQLAlchemy `NullPool` and psycopg `prepare_threshold=None` (serverless-safe).
 - **Keep-alive:** a daily Vercel Cron (Hobby allows daily) calls `/health/db`, which runs a real query. The UI degrades to a read-only static graph snapshot if the database is unreachable.
-- **CI/CD:** GitHub Actions (backend tests including Postgres integration, frontend lint/typecheck/build, OpenAPI type drift check). Vercel Git integration creates preview deployments per PR and production on `main`.
+- **CI/CD:** GitHub Actions (backend tests including Postgres integration, frontend lint/typecheck/build, OpenAPI type drift check). Vercel Git integration creates preview deployments per PR and production on `main`. All implementation changes use reviewable PRs; the implementing agent may merge passing PRs, verify production, and continue through milestones without routine permission stops.
+- **Local runtime and workers:** F09 provides one-command Compose startup and health checks. F27 moves graph/embedding rebuilds and evaluation runs to a Redis-backed worker with durable Postgres job records. F28 adds shared cache/rate counters. F29 ensures bounded retries, worker leases, idempotency, and dead-letter recovery.
 
 ---
 
@@ -193,7 +208,7 @@ I-V-vi vs ii-V-vi         -> identical rankings (first-order only)
 - `embeddings(subject_type, subject_id, model, dim, vec vector(64))` with an HNSW cosine index.
 - `facts(fact_id, kind, subject, template, params jsonb)`: stable IDs the AI layer cites (`rule:modal_interchange`, `transition:M:iv->M:I:global`).
 - `corpus_versions(version, manifest jsonb, active bool, loaded_at)`.
-- App: `feedback`, `saved_progressions` (RLS by `auth.uid()`), `ai_query_logs`, `rate_limits`.
+- App: `feedback`, `saved_progressions` (RLS by `auth.uid()`), `ai_query_logs`. Durable `hcg.jobs` and `hcg.idempotency_keys` support asynchronous work. Ephemeral rate counters move to Redis in F28.
 
 ---
 
@@ -209,7 +224,7 @@ I-V-vi vs ii-V-vi         -> identical rankings (first-order only)
 
 **Generation.** Constrained beam search: hard constraints (length, key, start/end, cadence, chromaticity cap, required chords) and soft objectives (tension curves, color targets, novelty), returning diverse paths with per-step explanations.
 
-**AI assistant (Phase 3).** LangGraph workflow: Intent → Parse/Analyze → Route (recommend | explain | generate | similar | compare) → Retrieve (graph | vector | theory) → Color score → Validate → Rank → Explain → Format playback → Final. Structured output with `claims[{text, fact_ids}]`; the validator rejects any chord not produced by a tool or any claim without a fact. SSE streaming, rate limiting, cost cap, logs, optional LangSmith.
+**AI assistant (Phase 3).** LangGraph workflow: Intent → Parse/Analyze → Route (recommend | explain | generate | similar | compare) → Retrieve (graph | vector | theory) → Color score → Validate → Rank → Explain → Format playback → Final. Structured output with `claims[{text, fact_ids}]`; the validator rejects any chord not produced by a tool or any claim without a fact. SSE streaming, rate limiting, cost cap, OpenTelemetry, and optional LangSmith. F70.5 exposes the same deterministic, typed tools through MCP without duplicating service logic.
 
 ---
 
@@ -233,15 +248,15 @@ I-V-vi vs ii-V-vi         -> identical rankings (first-order only)
 
 | Milestone | Theme | Phase-doc coverage | Outcome |
 |---|---|---|---|
-| **M0** Foundation & deploy skeleton | CI, baseline goldens, lookup hotfix, Supabase restored/created, single migration system, API + web on Vercel, keep-alive | Roadmap Phase 0; P3 §15 | Existing app is live, measured, and protected by CI. |
+| **M0** Foundation & deploy skeleton | CI, baseline goldens, lookup hotfix, Supabase restored/created, single migration system, API + web on Vercel, keep-alive, F09 Compose stack | Roadmap Phase 0; P3 §15 | Existing app is live, measured, protected by CI, and reproducible locally. |
 | **M1** Harmonic analysis v2 | chord features, 24-key finder, functional Roman v2, relationship catalog v2, `/v2/analyze` + UI | P1 §8–§10, §12 steps 3–7 | Analysis is trustworthy enough to learn from. |
-| **M2** Corpus pipeline & harmonic graph | manifest, full-corpus build, aggregates, graph schema, loader, graph APIs, evidence | P1 §4–§7, §13; P2 §7.4 | The project becomes a real harmonic graph in Supabase. |
+| **M2** Corpus pipeline & harmonic graph | manifest, full-corpus build, aggregates, graph schema, loader, graph APIs, evidence, F27–F29 jobs/Redis/reliability | P1 §4–§7, §13; P2 §7.4 | The graph is live and long-running work is recoverable. |
 | **M3** Prediction v2 | KN n-grams with context backoff, realization, evaluation harness, `/v2/recommend` | Roadmap P4; P1 §11 `/next-chords` | Predictions depend on the whole progression and are measured. |
 | **M4** Color & voice leading | voice-leading engine, measurable + perceptual color, color storage, color UI | P2 §4–§6, §10.2 | The "color" in Harmonic Color Graph exists and is explainable. |
 | **M5** Embeddings, similarity & hybrid recommender | Word2Vec + FastRP, pgvector search, candidates + hybrid scorer, substitutes, intent sliders | P2 §7–§9, §11; Roadmap P5–P6 | Recommendations by creative intent, with similarity search. |
 | **M6** Generation, graph explorer & playback | beam-search generator, Tone.js engine, app shell, Cytoscape explorer, generator/compare/MIDI, similarity map | P2 §10; Roadmap P8–P9 | It feels like a harmonic graph database you can play. |
-| **M7** Grounded AI assistant | tools, LangGraph workflow, validator, streaming endpoint + limits, assistant UI, observability, AI eval | P3 §3–§12 | Natural-language control, grounded and evaluated. |
-| **M8** Feedback, accounts, polish & launch | feedback loop, saved progressions + taste profile, listening study, performance/resilience, docs, release | P3 §13–§20; P2 §12.3 | Recruiter-ready v1.0 in production. |
+| **M7** Grounded AI assistant | tools, F70.5 MCP, LangGraph workflow, validator, streaming endpoint + limits, assistant UI, F75 OpenTelemetry + LangSmith, AI eval | P3 §3–§12 | Natural-language and MCP control, grounded, traceable, and evaluated. |
+| **M8** Feedback, accounts, polish & launch | feedback loop, saved progressions + taste profile, listening study, F83 performance/chaos/resilience, docs, release | P3 §13–§20; P2 §12.3 | Recruiter-ready v1.0 in production with documented failure behavior. |
 
 Stretch (not required for done): **S1** Neo4j/AuraDB export · **S2** DSPy intent-parser optimization · **S3** genre-specific agent presets · **S4** Hooktheory comparison · **S5** audio chord extraction · **S6** DAW/MIDI-out bridge.
 
@@ -261,16 +276,50 @@ Stretch (not required for done): **S1** Neo4j/AuraDB export · **S2** DSPy inten
 | LLM cost or abuse on a public demo | Rate limiting, daily budget cap, cheap model for intent parsing, deterministic fallback. |
 | Licensing | CC BY-NC attribution; non-commercial positioning; manifest tracks licenses. |
 | Scope creep | Milestone gates; stretch items stay stretch. |
+| Duplicate or stuck asynchronous work | Postgres job state, idempotency keys, leases, capped retries, dead-letter inspection, and crash tests. |
+| Redis, database, or LLM outage | Per-feature fallback policies and chaos tests; preserve deterministic capabilities when dependencies are unrelated. |
+| Opaque production failures | Correlated OpenTelemetry traces, structured logs, queue/cache metrics, optional LangSmith agent traces, and a committed resilience matrix. |
 
 ---
 
 ## 9. Immediate next tickets
 
-1. F00–F02: plan docs into the repo, hygiene, CI.
-2. F03–F04: v1 golden snapshot + transition lookup hotfix.
-3. F05: Supabase restore-or-create, `hcg` schema, SQL migrations as the single system.
-4. F06–F08: API and web on Vercel, keep-alive.
-5. F11–F12: 24-key finder and functional Roman v2 (the gate for everything else).
+The active implementation plan and `context/progress-tracker.md` hold the
+current next feature. Reconcile chronologically skipped F09 first, then
+continue the numbered plan in dependency order. Deliver coherent slices
+through passing PRs, merge them, and record the shipped state in
+`context/HANDOFF.md`.
 
 Shortest path to a product that is visibly better:
 **CI → deploy skeleton → analysis v2 → corpus build → graph + prediction v2 → color → hybrid recommender → explorer + playback → assistant.**
+
+## 10. Production-readiness feature and exit gates
+
+The active implementation plan contains the detailed checklists. These
+additions are required release scope:
+
+| Feature | Placement | Required outcome |
+|---|---|---|
+| F09 Docker/local production stack | M0, after F08 | Fresh clone plus environment file starts pgvector Postgres, Redis, API, and worker with healthy dependencies; data survives restarts; no secrets in Compose. |
+| F27 Background queue and worker | M2, after F26 | Typed job API and persistent `hcg.jobs` records; graph/embedding rebuild and evaluation job types; visible progress; queue and worker survive restarts. |
+| F28 Redis cache/rate/ephemeral infrastructure | M2 | L1/L2/Postgres cache hierarchy with corpus-version keys and TTLs; shared rate limits and queue metrics; documented Redis outage behavior. |
+| F29 Retry/idempotency/dead letters | M2 | Same key and payload reuse one logical job; changed payload conflicts; capped backoff with jitter, expiring leases, safe duplicate execution, dead-letter inspection and manual retry. |
+| F70.5 MCP server | M7, after F70 | At least five major validated harmonic tools; schemas compatible with typed internal tools; direct shared-service output; in-process invocation tests. |
+| F75 OpenTelemetry + LangSmith | M7, replaces earlier F75 scope | API/data/tool/model and worker trace correlation; latency, queue/cache, AI usage metrics; structured secret-safe logs; optional LangSmith agent traces. |
+| F83 Performance, chaos, resilience | M8, expands earlier F83 scope | Cold/warm p50/p95/p99 across key `/v2` routes; ten reproducible failure scenarios; committed `docs/eval/resilience.md`; no stuck jobs or duplicate artifacts. |
+
+**M0 exit:** Existing gates plus clean-environment Compose startup and healthy
+Postgres, Redis, API, and worker.
+
+**M2 exit:** Production corpus and graph APIs live; background jobs and Redis
+caching operational; at least one end-to-end async job succeeds; retry,
+idempotency, and dead-letter integration tests pass.
+
+**M7 exit:** Natural-language results remain grounded, validated, playable,
+logged, and evaluated; equivalent deterministic capabilities are available
+through MCP; OpenTelemetry spans cover API through data, tools, and model,
+with LangSmith agent traces when configured.
+
+**M8 exit:** Performance report and resilience matrix are complete; chaos
+scenarios pass; no known stuck-job or duplicate-side-effect paths remain;
+production observability is functioning.

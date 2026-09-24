@@ -28,8 +28,8 @@ or making any architectural decision:
    (M0–M8); supersedes earlier roadmap documents
 8. `feature-specs/v2-implementation-plan.md` — the active
    feature-by-feature build plan with acceptance checks;
-   execute it one feature at a time, in order, ticking
-   checkboxes as you go
+   reconcile chronologically skipped features, then execute
+   in dependency order, ticking checkboxes as you go
 9. `context/phase-1-harmonic-data-graph-foundation.md` is
    historical (superseded by `docs/roadmap-v2.md` and the v2
    plan) — background only, not an active spec.
@@ -40,6 +40,16 @@ or making any architectural decision:
 
 Update `context/progress-tracker.md` after each
 meaningful implementation change.
+
+Use reviewable PRs for implementation changes. The user has
+authorized the implementing agent to merge passing PRs and
+continue across features and milestones without routine
+permission requests. Choose PR size by a coherent deployable
+outcome, verify CI and previews, and record merged PRs and
+production checks in the progress tracker and handoff. Before
+a session or usage limit, update all relevant context and the
+handoff with the exact shipped state and next step. Follow
+`context/ai-workflow-rules.md` for the full delivery process.
 
 If implementation changes the architecture, scope, or
 standards documented in the context files, update the

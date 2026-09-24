@@ -84,6 +84,71 @@ export type HealthDbResult =
   | { ok: true; data: HealthDbOk }
   | { ok: false; data: HealthDbError }
 
+export type SongExample = {
+  song_id: string
+  spotify_id: string | null
+  genre: string | null
+  decade: string | null
+  section: string | null
+  section_ordinal: number
+  position: number | null
+  rank: number
+}
+
+export type ExamplesResponse = {
+  data: {
+    kind: "pattern" | "transition"
+    subject: string
+    context: string
+    examples: SongExample[]
+  }
+  meta: { corpus_version: string }
+  warnings: { code: string; message: string }[]
+}
+
+function isSongExample(value: unknown): value is SongExample {
+  if (typeof value !== "object" || value === null) return false
+  const item = value as Record<string, unknown>
+  return typeof item.song_id === "string" &&
+    (item.spotify_id === null || typeof item.spotify_id === "string") &&
+    (item.genre === null || typeof item.genre === "string") &&
+    (item.decade === null || typeof item.decade === "string") &&
+    (item.section === null || typeof item.section === "string") &&
+    typeof item.section_ordinal === "number" &&
+    (item.position === null || typeof item.position === "number") &&
+    typeof item.rank === "number"
+}
+
+export async function fetchExamples(options: {
+  patternId?: string
+  transition?: string
+  context?: string
+  limit?: number
+}): Promise<ExamplesResponse> {
+  const params = new URLSearchParams()
+  if (options.patternId) params.set("pattern_id", options.patternId)
+  if (options.transition) params.set("transition", options.transition)
+  params.set("context", options.context ?? "global")
+  params.set("limit", String(options.limit ?? 5))
+  const payload: unknown = await apiFetch<unknown>(`/v2/examples?${params.toString()}`)
+  if (typeof payload !== "object" || payload === null) throw new Error("Invalid examples response.")
+  const response = payload as Record<string, unknown>
+  const data = response.data
+  const meta = response.meta
+  const exampleData = data as Record<string, unknown> | null
+  if (
+    typeof data !== "object" || exampleData === null ||
+    typeof meta !== "object" || meta === null ||
+    (exampleData.kind !== "pattern" && exampleData.kind !== "transition") ||
+    typeof exampleData.subject !== "string" ||
+    typeof exampleData.context !== "string" ||
+    !Array.isArray(exampleData.examples) ||
+    !exampleData.examples.every(isSongExample) ||
+    typeof (meta as Record<string, unknown>).corpus_version !== "string"
+  ) throw new Error("Invalid examples response.")
+  return payload as ExamplesResponse
+}
+
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_PATH}${path}`, init)
 
