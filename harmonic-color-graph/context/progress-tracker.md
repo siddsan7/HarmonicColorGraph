@@ -20,13 +20,15 @@ detail it points to.
   projects. The full local gate, all three branch CI jobs, and local and
   production Playwright workbench checks passed. A borderline main-CI
   throughput failure under coverage tracing was fixed by timing the
-  production analyzer in an uninstrumented child interpreter.
+  production analyzer in an uninstrumented child interpreter. The corrected
+  main CI run passed all three jobs.
 - Siddharth chose provisional key and Roman gold fixtures and will review
   `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. Their human
   review checkboxes remain open in the plan; no implementation is waiting
   on that review.
 - Blocked: none.
-- Current focus: confirm CI on the benchmark correction; M2 follows M1.
+- Current focus: M2 corpus pipeline work; musician review of the M1 gold
+  remains deferred.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -68,7 +70,8 @@ detail it points to.
   coverage tracing measured 993 sections/s, while the branch had passed.
   The benchmark now runs its 2,000-section timed batch without tracing and
   still requires at least 1,000 sections/s. This checks actual production
-  throughput without a near-threshold coverage artifact.
+  throughput without a near-threshold coverage artifact. Both the repair
+  branch run `35936962947` and main run `35937138315` passed all three jobs.
 
 - **2026-09-23 — M1 F10–F14 implementation.** Continued the inherited
   uncommitted F10/F11 branch and completed the milestone in order. F10

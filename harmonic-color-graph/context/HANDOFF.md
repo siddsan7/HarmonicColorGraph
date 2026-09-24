@@ -75,12 +75,13 @@ you're reading this. As of this handoff:
   coverage-instrumented F12 throughput test at 993 sections/s against its
   1,000 sections/s gate. Its benchmark was moved to an uninstrumented child
   interpreter so it measures production throughput without relaxing the gate.
+  The follow-up main CI run passed all three jobs.
 - **Provisional gold review:** Siddharth explicitly chose to review
   `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. The plan
   leaves those two human-review checkboxes open. Continue independent
   implementation and shipping without waiting for that review.
-- **Next:** confirm the CI run for the benchmark correction, then proceed
-  to M2. See `context/progress-tracker.md` for the detailed M1 metrics.
+- **Next:** M2 corpus pipeline work. See `context/progress-tracker.md` for
+  the detailed M1 metrics.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the
