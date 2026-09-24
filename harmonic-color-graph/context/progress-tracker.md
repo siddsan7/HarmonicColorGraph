@@ -28,7 +28,10 @@ detail it points to.
   squash merge `d84fd22`. All four CI jobs passed, including a real
   Compose API→Redis→worker evaluation. Live migrations 0004 and 0005 are
   applied. PR #4's support threshold correction passed all four CI jobs,
-  squash merge `cd75117`. Current branch: `codex/m2-live-evidence`.
+  squash merge `cd75117`. PR #5 committed the measured corpus report and
+  passed all four CI jobs; squash merge `ed706af`. Current branch:
+  `codex/kn-predictor` (no F30 code yet). An hourly quiet continuation
+  heartbeat is active so work resumes after the usage window resets.
 - The first full-corpus load rolled back on 2026-09-24 because Supabase's
   default 2-minute statement timeout cancelled the large edge COPY.
   The original text-heavy edge table briefly allocated 542 MB; it had
@@ -1073,6 +1076,94 @@ same-origin proxy (`{"status":"ok","database":"connected"}` on
 both, checked right after the F08 redeploy). Tracker updated (this
 entry). M0 (Foundation & deploy skeleton) is complete; next is M1's
 F10 (chord model upgrade: spelling, bass, inversion, features).
+
+**F30 — Kneser-Ney predictor with context backoff + realization.**
+`context/HANDOFF.md` and `git log` are the source of truth for everything
+between this entry and the one above (F10 through M2, PRs #1-#5) — this
+tracker's "## Completed" log fell out of sync with actual progress
+somewhere in that stretch and picked back up here rather than attempting
+a retroactive backfill.
+
+- `backend/app/predict/ngram.py`: `KNPredictor`, interpolated Kneser-Ney
+  with a single discount per order (`D = n1/(n1+2n2)` from count-of-counts,
+  the plan's literal `λ(h) = D·N1+(h•)/c(h)` — not Chen & Goodman's
+  separate D1/D2/D3+ buckets; documented in `_discount`'s docstring as a
+  deliberate reading of the spec, not an oversight), order-1 uses
+  continuation counts, and context-chain mixing
+  (`genre_section -> genre -> section -> global`) with
+  `beta = n_ctx(h)/(n_ctx(h)+K)`. `K = 100` is a placeholder (no dev split
+  exists yet — F31 doesn't exist — so nothing to tune it against; flagged
+  in-code for F31 to replace). Implemented as a top-down loop tracking a
+  running `path_weight` so each (context, order) term's contribution is
+  correctly weighted the first time it's recorded, rather than a
+  bottom-up merge needing a second rescaling pass.
+- `backend/app/predict/realize.py`: `realize(core_token, key)`, the
+  inverse of `app.theory.roman.romanize_chord`'s `.core` string (mode
+  prefix + numeral + quality suffix + optional one `/applied_to`) — not
+  the richer `.figure` string, since `romanize_chord` never puts
+  inversions or 9/11/13 extensions in `.core` in the first place, only in
+  `.figure`. Spelling letters come from the numeral's own diatonic
+  scale-degree position (`app.theory.spelling.diatonic_letters_and_pitch_classes`),
+  not a generic minimum-accidental heuristic, so `bVI` in Eb major spells
+  `Cb` (matching the plan's own example), not the simpler `B`. A
+  genuinely unrepresentable spelling (2+ accidentals on one letter, e.g.
+  `bII` in Db major needing `Ebb` — `CanonicalChord` only parses a single
+  sharp/flat) falls back to the simpler letter as the primary chord and
+  carries the theoretical name in `display_enharmonic` instead of the
+  usual way around, rather than crashing. Minor mode's `vii` with no
+  accidental is genuinely ambiguous in `roman.py`'s own encoding (both
+  the natural-minor b7 and the raised leading tone reduce to the same
+  core token) — `realize()` documents this and defaults to the
+  natural-minor b7.
+- `backend/app/predict/store.py` was not needed: `KNPredictor`'s
+  `NgramReader` protocol resolves context strings to ids via
+  `context_by_key` (moved from `GraphStore` up to the shared
+  `_ActiveStore` base in `backend/app/db/stores/graph.py`, since
+  `NgramStore` needed it too — a real, justified de-duplication, not a
+  speculative one), then works in context-id space like
+  `GraphService`/`GraphStore` already do. `NgramStore` gained
+  `histories()` (one query for every (context_id, order, history) a
+  request's whole backoff chain needs, via an OR'd batch of equality
+  clauses) and `count_of_counts()` (one pooled aggregate per
+  (context_id, order) over `jsonb_each_text(next)`, cached in
+  `KNPredictor` keyed by corpus version since discounts don't change
+  per-request the way histories do).
+- `InMemoryNgramStore.from_rows`/`from_parquet`: builds directly from the
+  `ngrams` pipeline stage's artifact rows (JSON-string or already-decoded
+  `next`/`cont`, matching parquet vs. Postgres jsonb respectively) for
+  tests and for F31's future evaluation harness.
+- Tests: `tests/unit/test_predict_ngram.py` (hand-worked distributions
+  matching the `pipeline/stages/ngrams.py` fixture corpus by hand
+  arithmetic, context-backoff mixing, breakdown/support/backoff_path
+  structure, a Hypothesis property test over 1,000 random (history,
+  genre) combinations asserting the full distribution always sums to 1,
+  and building the store from a real `run_ngrams` artifact);
+  `tests/unit/test_predict_realize.py` (both plan examples exactly;
+  25 tokens x 12 keys per mode, ~600 cases, each checked by
+  re-`romanize_chord`-ing the realized chord and recovering the same
+  root pitch class, plus the exact diatonic letter for non-applied,
+  non-fallback tokens; the double-accidental fallback; the minor `vii`
+  default); `tests/integration/test_predict_ngram_pg.py` (`pg`-marked:
+  batched SQL correctness against a migrated-but-otherwise-empty
+  Postgres, which is what CI's ephemeral `backend-pg` job actually has;
+  plus `I V vi`/`ii V vi` top-5 divergence and warm p95 latency checks
+  that skip when no corpus version is active rather than asserting
+  against empty tables).
+- **Live verification**: before opening the PR, queried the real active
+  `cv-2026-09-a` corpus directly through the Supabase MCP connector
+  (project `avnxcyulznofylsnydfg`, confirmed `hcg.v() = 'cv-2026-09-a'`,
+  149,499 `ngram_histories` rows) — fetched the real order-1/2/3 rows and
+  count-of-counts for `M:I M:V` and `M:ii M:V` under the global context,
+  fed them through `_context_distribution` directly, and got genuinely
+  different top-5s: `I V -> [I, IV, vi, ii, II]` vs.
+  `ii V -> [I, IV, ii, vi, iii]`. This is the same claim
+  `test_history_and_ii_v_produce_different_top_5_on_the_real_loaded_corpus`
+  makes, confirmed against production ahead of CI (whose ephemeral
+  Postgres has no active version to check it against).
+- `pytest` (`726 passed, 13 skipped` — the 13 are all `pg`-marked, no
+  `TEST_DATABASE_URL` locally), `ruff check .`, `ruff format --check .`,
+  and `python scripts/export_openapi.py` (no drift — F30 added no API
+  routes) all green locally. No frontend files touched.
 
 ## In Progress
 

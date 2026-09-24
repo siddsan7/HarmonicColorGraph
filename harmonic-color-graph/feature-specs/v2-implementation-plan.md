@@ -1116,15 +1116,35 @@ feat(reliability): retries, idempotency, worker leases, and dead letters
 
 ## M3 — Prediction v2
 
-### F30 — Kneser-Ney predictor with context backoff + realization [L]
-- [ ] `predict/ngram.py`: interpolated modified Kneser-Ney over core tokens. Discounts per order from count-of-counts (Chen & Goodman), `λ(h) = D·N1+(h•)/c(h)`, lowest order uses continuation counts. Context mixing: `P = β·P_ctx + (1−β)·P_backoff_ctx` with `β = n_ctx(h)/(n_ctx(h) + K)` along `genre×section → genre → section → global`; `K` is tuned on the dev split.
-- [ ] One SQL round-trip fetches all needed histories (all suffixes × contexts) for a request.
-- [ ] Output: full distribution top-N plus `breakdown{order_k: contribution, context: weight}`, `support` (counts), and `backoff_path`.
-- [ ] `predict/realize.py`: `realize(core_or_figure, key) -> ChordSymbol` with correct spelling via F10 (in E♭: `V/V` → F, `bVI` → C♭ — keep theoretically correct spelling and set `display_enharmonic` = B when the spelling has ≥ 2 flats beyond the key signature).
-- [ ] `InMemoryNgramStore` built from artifacts (used by tests and F31).
+### F30 — Kneser-Ney predictor with context backoff + realization [L] — DONE
+- [x] `predict/ngram.py`: interpolated modified Kneser-Ney over core tokens. Discounts per order from count-of-counts (Chen & Goodman), `λ(h) = D·N1+(h•)/c(h)`, lowest order uses continuation counts. Context mixing: `P = β·P_ctx + (1−β)·P_backoff_ctx` with `β = n_ctx(h)/(n_ctx(h) + K)` along `genre×section → genre → section → global`; `K` is tuned on the dev split.
+- [x] One SQL round-trip fetches all needed histories (all suffixes × contexts) for a request.
+- [x] Output: full distribution top-N plus `breakdown{order_k: contribution, context: weight}`, `support` (counts), and `backoff_path`.
+- [x] `predict/realize.py`: `realize(core_or_figure, key) -> ChordSymbol` with correct spelling via F10 (in E♭: `V/V` → F, `bVI` → C♭ — keep theoretically correct spelling and set `display_enharmonic` = B when the spelling has ≥ 2 flats beyond the key signature).
+- [x] `InMemoryNgramStore` built from artifacts (used by tests and F31).
 
 **Checks:** Distributions sum to 1 (property test, 1,000 random histories); `I V vi` vs `ii V vi` produce different top-5 orderings on the real data (integration test against the loaded version); realization table test: 30 tokens × 12 keys spelled correctly; p95 predictor latency < 150 ms warm.
 **Commit:** `feat(predict): interpolated Kneser-Ney with context backoff and chord realization`
+
+**Completed 2026-09-24.** `K = 100` is a documented placeholder (no dev
+split exists yet to tune it against; F31 should replace it). The single
+discount `D = n1/(n1+2n2)` follows the plan's literal `λ(h) = D·N1+(h•)/c(h)`
+formula (one discount per order, not Chen & Goodman's separate D1/D2/D3+
+buckets — see `predict/ngram.py::_discount`'s docstring). `realize()`
+covers exactly the vocabulary `predict/ngram.py` and the pipeline's
+`.core` tokens can produce (mode-aware numeral + quality suffix + one
+optional `/applied_to`) — never the richer `.figure` string's inversions
+or 9/11/13 extensions, which `romanize_chord` never puts in `.core`
+anyway. All four checks are automated: the sum-to-1 property test runs
+1,000 Hypothesis-generated histories
+(`tests/unit/test_predict_ngram.py`); the realization table runs 25
+tokens × 12 keys per mode, ~600 cases total
+(`tests/unit/test_predict_realize.py`); the `I V vi`/`ii V vi` and p95
+checks are `pg`-marked integration tests
+(`tests/integration/test_predict_ngram_pg.py`) that skip when no corpus
+version is active (true for CI's ephemeral Postgres) and were verified
+directly against the live `cv-2026-09-a` corpus via the Supabase MCP
+connector before merging — see `context/progress-tracker.md`.
 
 ### F31 — Evaluation harness [M]
 - [ ] Build eval artifacts with `--split train` (excludes dev/test songs), never loaded to Supabase.

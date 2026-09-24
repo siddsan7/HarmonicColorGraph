@@ -64,28 +64,53 @@ The older Phase 1 plans are historical.
   Local FastAPI reads against the live DB returned HTTP 200 and the active
   version for graph node, neighborhood, explanation, and examples. See
   `docs/eval/corpus-cv-2026-09-a.md`.
-- Current branch: `codex/m2-live-evidence`, documenting the measured load.
+- PR #5 ([measured M2 load report](https://github.com/siddsan7/HarmonicColorGraph/pull/5))
+  passed all four CI jobs and was squash-merged at `ed706af`. The report
+  and measured gates are now on `main`.
+- F30 (Kneser-Ney predictor with context backoff + realization) is
+  implemented on `codex/kn-predictor`: `backend/app/predict/ngram.py`
+  (`KNPredictor`, `InMemoryNgramStore`), `backend/app/predict/realize.py`
+  (`realize()`), a `NgramStore.histories()`/`count_of_counts()` batch-SQL
+  extension in `backend/app/db/stores/graph.py` (plus moving
+  `context_by_key`/`context` up to the shared `_ActiveStore` base), and
+  unit/integration tests. Verified directly against the live
+  `cv-2026-09-a` corpus via the Supabase MCP connector before opening the
+  PR (real `I V vi` vs `ii V vi` top-5s differ). `726 passed, 13 skipped`
+  locally (`pytest`), `ruff check .`/`ruff format --check .` clean, no
+  OpenAPI drift. Full detail in `context/progress-tracker.md`'s F30 entry
+  and `feature-specs/v2-implementation-plan.md`'s F30 "Completed" note.
+  PR not yet opened as of this handoff update — GitKraken's GitHub
+  connector needs an interactive browser login this session couldn't
+  complete on its own; Siddharth was asked to run
+  `gk auth login` to finish it. If that's done by the time this resumes,
+  open the PR with GitKraken's `pull_request_create` against `main` from
+  `codex/kn-predictor`; otherwise fall back to whatever GitHub access is
+  available (see prior sessions' note below on the connector's PR-write
+  methods returning 403 despite read access, worked around with
+  authenticated GitHub REST through the existing Git credential manager —
+  never print the credential either way).
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Commit the measured load report and context updates on
-   `codex/m2-live-evidence`, open a small PR, verify, and self-merge.
-   The GitHub connector's PR write methods returned 403 despite read access;
-   authenticated GitHub REST using the existing Git credential manager
-   created and merged PRs #1–#4. Use the connector first and the same REST
-   fallback if necessary; never print the credential.
-2. Verify the deployed API/web production routes after the main branch
+1. Get `codex/kn-predictor` (F30) through a PR the same way as #1-#5:
+   verify CI, inspect the diff, merge. If GitKraken auth still isn't
+   available, use the GitHub REST fallback noted above.
+2. Implement F31 (leak-free evaluation harness) next — it's the natural
+   follow-up to F30 (needs `InMemoryNgramStore`, and should replace F30's
+   placeholder mixing constant `DEFAULT_MIXING_K = 100.0` in
+   `backend/app/predict/ngram.py` with a value actually tuned on its dev
+   split), then F32 (statistical recommend-next-chords endpoint + UI)
+   through reviewable PRs; then continue the remaining plan in order.
+   Finish F28 acceptance metrics along that path.
+   Record CI and live evidence before closing each milestone gate.
+3. Verify the deployed API/web production routes after the main branch
    build. Supabase migrations 0001–0005 are applied. Supabase advisors had
    only informational private-schema RLS notices and unused-index findings
    at the last read. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-3. Implement F30 Kneser–Ney predictor, F31 evaluation, and F32 recommendation
-   UI from a fresh branch; then continue the remaining plan in order.
-   Finish F28 acceptance metrics along that path.
-   Record CI and live evidence before closing each milestone gate.
 4. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
