@@ -8,6 +8,7 @@ import shutil
 from pathlib import Path
 
 import pytest
+from psycopg.types.json import Jsonb
 
 pl = pytest.importorskip("polars")
 pytest.importorskip("pyarrow")
@@ -191,6 +192,17 @@ def test_manifest_count_mismatch_blocks_load_before_db(artifact_dir: Path):
     manifest_path.write_text(json.dumps(payload), encoding="utf-8")
     with pytest.raises(ValueError, match="patterns.parquet has 1 rows"):
         _validate_artifacts(artifact_dir, Manifest.read(manifest_path))
+
+
+def test_compact_edge_loader_prunes_unsupported_contexts_but_keeps_global(monkeypatch):
+    raw = [
+        ("cv-test", "a", "b", "TRANSITIONS_TO", 0, 1, 0.5, 0.0, Jsonb({"support": 1})),
+        ("cv-test", "a", "b", "TRANSITIONS_TO", 1, 4, 0.5, 0.0, Jsonb({"support": 4})),
+        ("cv-test", "a", "b", "TRANSITIONS_TO", 1, 5, 0.5, 0.0, Jsonb({"support": 5})),
+    ]
+    monkeypatch.setattr("pipeline.load._edge_rows", lambda *args: iter(raw))
+    retained = list(_compact_edge_rows(Path("."), "cv-test", 1, {}, {}, {"a": 1, "b": 2}))
+    assert [(row[4], row[5]) for row in retained] == [(0, 1), (1, 5)]
 
 
 def test_streamed_hash_detects_artifact_change(artifact_dir: Path, monkeypatch):
