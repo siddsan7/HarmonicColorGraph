@@ -59,6 +59,31 @@ def iter_chordonomicon_rows(
         yield row
 
 
+def iter_chordonomicon_songs(
+    path: str | Path,
+    limit: int | None = None,
+) -> Iterator[list[ChordonomiconSourceRow]]:
+    """Group `iter_chordonomicon_rows`'s per-section rows by song, in source
+    order. `limit` caps the number of distinct songs yielded (unlike
+    `iter_chordonomicon_rows`, whose `limit` counts per-section rows).
+    """
+    current_id: str | None = None
+    current_rows: list[ChordonomiconSourceRow] = []
+    songs_yielded = 0
+    for row in iter_chordonomicon_rows(path):
+        if row.source_song_id != current_id:
+            if current_rows:
+                songs_yielded += 1
+                yield current_rows
+                if limit is not None and songs_yielded >= limit:
+                    return
+            current_id = row.source_song_id
+            current_rows = []
+        current_rows.append(row)
+    if current_rows:
+        yield current_rows
+
+
 def load_chordonomicon_sample(
     path: str | Path,
     limit: int | None = None,

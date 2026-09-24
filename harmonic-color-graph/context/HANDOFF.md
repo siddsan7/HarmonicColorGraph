@@ -82,8 +82,19 @@ you're reading this. As of this handoff:
   against those provisional fixtures, not musician-validated accuracy.
   The two human-review checkboxes remain open in the plan. Continue
   independent work without waiting for the review.
-- **Next:** M2 corpus pipeline work. See `context/progress-tracker.md` for
-  the detailed M1 metrics.
+- **M2 is underway: F20 (pipeline skeleton) is done and merged.**
+  `hcg-build run` (`backend/pipeline/cli.py`) orchestrates a 10-stage
+  build (`ingest → analyze → aggregate → ngrams → patterns → examples →
+  color → embeddings → snapshot → export`) with `--from-stage/--to-stage`;
+  only `ingest` and `analyze` are implemented so far, the rest are typed
+  stubs naming the feature that will fill them in. A `--limit 5000` run
+  against the real corpus measured a 24.9% within-song dedupe rate
+  (matches the ~24% target) and was byte-identical across two runs.
+  `data/samples/mini_corpus.csv` (deterministic, no real dataset content)
+  is now committed and feeds tests/CI. **Next:** F21, the full-corpus
+  analysis run (needs `hcg-build run --to-stage analyze` on Siddharth's
+  machine, then a quality report). See `context/progress-tracker.md`'s
+  F20 Completed entry for full metrics and design notes.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the

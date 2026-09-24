@@ -14,6 +14,9 @@ dependencies = [
     "uvicorn[standard]>=0.38.0",
 ]
 
+[project.scripts]
+hcg-build = "pipeline.cli:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=9.0.0",

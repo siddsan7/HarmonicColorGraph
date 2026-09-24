@@ -313,11 +313,11 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 ## M2 — Corpus pipeline & harmonic graph
 
 ### F20 — Pipeline skeleton, manifest, dedupe [M]
-- [ ] `pipeline/cli.py` (Typer or argparse): `hcg-build run --source data/raw/chordonomicon_v2.csv --version cv-YYYY-MM-x --workers N [--limit K] [--split all|train]`, with stages `ingest → analyze → aggregate → ngrams → patterns → examples → color → embeddings → snapshot → export` and `--from-stage/--to-stage`.
-- [ ] `ingest`: stream the CSV (Polars batched or `csv` + multiprocessing), split sections, dedupe identical sections **within a song** (keep `repeat_count`), assign `split = train|dev|test` by `hash(source_id) % 20` (0 = test, 1 = dev).
-- [ ] `analyze`: multiprocessing pool running F11/F12/F13 per song → `sections.parquet` (song_id, section, ordinal, local_key, key_conf, ambiguous, tokens(core), figures, chords, labels, genre, decade, spotify_id, split, repeat_count).
-- [ ] `manifest.json`: source path, SHA-256, row counts, license `CC BY-NC 4.0`, citation, git SHA, params, per-stage timings, output file hashes.
-- [ ] `pipeline/synth.py`: deterministic generator for `data/samples/mini_corpus.csv` (500 songs built from progression templates in random keys, genres, and sections, in the Chordonomicon CSV format). It contains no dataset content, so it is safe to commit, and it feeds CI, preview environments, and F24.
+- [x] `pipeline/cli.py` (Typer or argparse): `hcg-build run --source data/raw/chordonomicon_v2.csv --version cv-YYYY-MM-x --workers N [--limit K] [--split all|train]`, with stages `ingest → analyze → aggregate → ngrams → patterns → examples → color → embeddings → snapshot → export` and `--from-stage/--to-stage`.
+- [x] `ingest`: stream the CSV (Polars batched or `csv` + multiprocessing), split sections, dedupe identical sections **within a song** (keep `repeat_count`), assign `split = train|dev|test` by `hash(source_id) % 20` (0 = test, 1 = dev).
+- [x] `analyze`: multiprocessing pool running F11/F12/F13 per song → `sections.parquet` (song_id, section, ordinal, local_key, key_conf, ambiguous, tokens(core), figures, chords, labels, genre, decade, spotify_id, split, repeat_count).
+- [x] `manifest.json`: source path, SHA-256, row counts, license `CC BY-NC 4.0`, citation, git SHA, params, per-stage timings, output file hashes.
+- [x] `pipeline/synth.py`: deterministic generator for `data/samples/mini_corpus.csv` (500 songs built from progression templates in random keys, genres, and sections, in the Chordonomicon CSV format). It contains no dataset content, so it is safe to commit, and it feeds CI, preview environments, and F24.
 
 **Checks:** `--limit 5000` run completes; running twice yields identical output hashes (determinism); parse/label/key metrics printed; the dedupe rate on the sample is ~24% (matching the corpus profile); memory stays < 4 GB.
 **Commit:** `feat(pipeline): versioned offline build with manifest, dedupe, and splits`

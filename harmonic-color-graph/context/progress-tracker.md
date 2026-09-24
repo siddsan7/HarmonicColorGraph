@@ -28,9 +28,17 @@ detail it points to.
   here measure agreement with those fixtures; they do not establish
   musician-validated accuracy. Both human-review checkboxes remain open
   in the plan, and independent implementation can continue.
+- F20 (pipeline skeleton, manifest, dedupe) is done: merged to `main`
+  (**M2 underway**). `hcg-build run` (`pipeline/cli.py`) orchestrates
+  `ingest → analyze → aggregate → ngrams → patterns → examples → color →
+  embeddings → snapshot → export` with `--from-stage/--to-stage`; only
+  `ingest` and `analyze` are implemented, the rest are typed stubs that
+  raise a clear `StageNotImplementedError` naming the feature that will
+  fill them in (F22, F41, F50, F63). See the F20 Completed entry below
+  for full gate results and metrics.
 - Blocked: none.
-- Current focus: M2 corpus pipeline work; the M1 gold fixture review
-  remains outstanding.
+- Current focus: M2 corpus pipeline work (F21 full-corpus run is next);
+  the M1 gold fixture review remains outstanding.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -62,6 +70,91 @@ detail it points to.
   not add new work there.
 
 ## Completed
+
+- **2026-09-23 — F20 pipeline skeleton, manifest, dedupe (M2 start).**
+  Branch `feat/F20-pipeline-skeleton`. Built `hcg-build` (`pipeline/cli.py`,
+  also runnable as `python -m pipeline.cli run`), a 10-stage orchestrator
+  (`ingest → analyze → aggregate → ngrams → patterns → examples → color →
+  embeddings → snapshot → export`) with `--from-stage/--to-stage`, `--limit`,
+  `--workers`, and `--split all|train`. Only `ingest` (`pipeline/stages/
+  ingest.py`) and `analyze` (`pipeline/stages/analyze.py`) are implemented
+  this feature; the other eight are typed stubs (`pipeline/stages/
+  _unimplemented.py`'s `StageNotImplementedError`) that name the feature
+  scheduled to fill them in (F22 for aggregate/ngrams/patterns/examples,
+  F41 for color, F50 for embeddings, F63 for snapshot; export is unscheduled,
+  see plan Stretch §S1).
+  - `ingest` streams the CSV via a new `iter_chordonomicon_songs` helper
+    added to `app/ingestion/chordonomicon.py` (groups the existing
+    per-section row iterator by song, with `limit` capping song count, not
+    row count), dedupes sections **by chord content alone** (not by
+    (name, chords)) within a song keeping a `repeat_count`, and assigns
+    `train|dev|test` by `sha256(song_id) % 20` (0=test, 1=dev). Measuring
+    the dedupe rate against the real corpus showed content-only dedup
+    lands at 24.9% on a 5,000-song sample, matching
+    `docs/roadmap-v2.md` §2.3's measured 23.9%; scoping dedup to
+    (section name, chords) undercounted at 19.9%, since e.g. a `verse`
+    and `chorus` sharing the same four chords is still repeated material
+    for leak-free evaluation even though the section names differ.
+  - `analyze` runs `estimate_song_keys` (F11), `romanize_chord` (F12), and
+    `analyze_relationships` (F13) per song (not via the `analyze_v2` API
+    wrapper, which collapses section boundaries) over a
+    `ProcessPoolExecutor` when `--workers > 1`, writing one row per
+    section to `sections.parquet` with per-section `key_conf` (from
+    `estimate_song_keys`'s per-section `KeyEstimateResult`, not the
+    song-level confidence) and relationship-fact labels assigned to the
+    section containing each fact's `from_index`.
+  - `manifest.json` (`pipeline/manifest.py`) records source path/SHA-256,
+    row counts, `license: "CC BY-NC 4.0"`, `citation` (from ADR-008), git
+    SHA, params, per-stage timings, and output hashes. The determinism
+    check ("running twice yields identical output hashes") uses a content
+    hash over NDJSON, not the parquet file's own bytes or CSV — CSV
+    errors on the `tokens`/`figures`/`chords`/`labels` list columns
+    (`polars.exceptions.ComputeError: CSV format does not support nested
+    data`), and raw parquet bytes aren't guaranteed stable across writes
+    independent of row/column content.
+  - `pipeline/synth.py` deterministically generates
+    `data/samples/mini_corpus.csv` (500 songs, seeded `random.Random`,
+    real Chordonomicon CSV columns, diatonic chord templates spelled via
+    `app.theory.spelling.diatonic_letters_and_pitch_classes`, realistic
+    missing-genre/decade/Spotify-ID rates) — contains no dataset content,
+    committed, feeds CI/preview/F24. Every generated chord token parses
+    with zero `skipped_tokens` (verified via `iter_chordonomicon_rows`,
+    which is what the real ingest path uses — calling
+    `normalize_progression` directly on the raw multi-section string
+    would incorrectly count the `<section>` markers themselves as
+    unparseable, since marker-stripping happens in the CSV row iterator,
+    not the chord normalizer).
+  - Gate: `ruff check`/`format --check` clean; 18 new unit tests
+    (`tests/unit/test_pipeline_{ingest,analyze,synth,cli_run}.py`) plus
+    the full existing suite pass (`pytest -q`: 4 pre-existing `pg`-marked
+    skips, no regressions); `npm run lint`/`typecheck`/`test`/`build`
+    unaffected (backend-only feature) and pass; `python -c "import
+    app.main"` succeeds. New pipeline test modules guard their `polars`
+    import with `pytest.importorskip` so the `backend-pg` CI job (which
+    installs `.[dev]` only, no `[pipeline]` extras) skips them cleanly at
+    collection instead of failing; `pipeline/cli.py` itself defers all
+    `polars`-touching imports into `_run_build()` so merely importing the
+    module (as `tests/unit/test_keys_v2.py` already imports
+    `pipeline.stages.calibrate_keys`) never requires `polars`.
+  - Acceptance check, run locally against the real
+    `data/raw/chordonomicon_v2.csv` (not committed, gitignored):
+    `hcg-build run --source data/raw/chordonomicon_v2.csv --version
+    cv-2026-09-smoke --limit 5000 --to-stage analyze --workers 4`
+    completed in ~20s; 5,000 songs, 24,803 sections after a **24.9%**
+    content dedupe (target ~24%); 322,620 tokens, 342,765 relationship
+    labels, 0 songs skipped for unparseable chords, 19.7% ambiguous-key
+    songs; output artifacts totalled ~2 MB (memory well under the 4 GB
+    budget — not separately profiled given the workload size). Running
+    the same command twice produced byte-identical manifest
+    `output_hashes` for both `ingest.parquet` and `sections.parquet`.
+    `--to-stage analyze` was passed explicitly because `aggregate` onward
+    are still stubs; a bare `hcg-build run` (default `--to-stage export`)
+    will raise `StageNotImplementedError` at `aggregate` until F22 lands
+    — expected until then, not a bug.
+  - Added `[project.scripts] hcg-build = "pipeline.cli:main"` to
+    `backend/pyproject.toml` so the CLI is invocable as `hcg-build ...`
+    (matching the plan's literal usage examples), not just
+    `python -m pipeline.cli ...`.
 
 - **2026-09-23 — M1 production ship and CI benchmark repair.** Pushed
   `codex/m1-harmonic-analysis-v2` as `d953284`; its three CI jobs passed.

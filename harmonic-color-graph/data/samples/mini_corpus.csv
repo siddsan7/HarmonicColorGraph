@@ -1,0 +1,501 @@
+id,chords,release_date,genres,decade,rock_genre,artist_id,main_genre,spotify_song_id,spotify_artist_id
+1,<intro_1> Bm Em F#m Bm <bridge_1> Bm Em A D <bridge_2> Bm Em A D <outro_1> Bm Em F#m Bm,,'pop',1980.0,,artist_1,pop,synth000001,synthartist000001
+2,<intro_1> Cm Ab Eb Bb <verse_1> Cm7 Fm7 Bb7 Ebmaj7 <verse_2> Cm Bb Ab G <bridge_1> Cm Ab Eb Bb <chorus_1> Cm Fm Gm Cm <outro_1> Cm7 Fm7 Bb7 Ebmaj7,,,,,artist_2,,synth000002,synthartist000002
+3,<intro_1> Ab Eb Fm Cm Db Ab Db Eb <chorus_1> Ab Eb Fm Db <bridge_1> Fm Db Ab Eb <verse_1> Bbm Eb Ab <bridge_2> Bbm Eb Ab <outro_1> Bbm7 Eb7 Abmaj7,,,,,artist_3,,synth000003,synthartist000003
+4,<intro_1> Fm Bbm Cm Fm <chorus_1> Fm7 Bbm7 Eb7 Abmaj7 <bridge_1> Fm Bbm Eb Ab <outro_1> Fm Bbm Cm Fm,,'rock',,,artist_4,rock,,
+5,<intro_1> Gm Eb Bb F <bridge_1> Bb Eb F Eb <verse_1> Bb F Gm Eb <bridge_2> Cm7 F7 Bbmaj7 <outro_1> Bb F Gm Eb,,,2000.0,,artist_5,,,
+6,<intro_1> Ab Fm Db Eb <verse_1> Fm Db Ab Eb <verse_2> Fm Db Ab Eb <verse_3> Fm Db Ab Eb <verse_4> Fm Db Ab Eb <outro_1> Ab Eb Fm Db,,'country',1990.0,,artist_6,country,,
+7,<intro_1> Bbm Gb Db Ab <verse_1> Bbm Ebm Ab Db <bridge_1> Bbm Ab Gb F <verse_2> Bbm Ebm Fm Bbm <outro_1> Bbm Ebm Fm Bbm,,,,,artist_7,,synth000007,synthartist000007
+8,<intro_1> Fm Db Ab Eb <bridge_1> Ab Fm Db Eb <outro_1> Abmaj7 Dbmaj7 Eb7 Abmaj7,,'rock',2000.0,,artist_8,rock,synth000008,synthartist000008
+9,<intro_1> Em C G D <chorus_1> Em7 Am7 D7 Gmaj7 <bridge_1> Em7 Am7 D7 Gmaj7 <outro_1> Em Am Bm Em,,'country',1970.0,,artist_9,country,,
+10,<intro_1> Gm C F <verse_1> F C Dm Bb <chorus_1> Dm Bb F C <outro_1> F Bb C Bb,,,2000.0,,artist_10,,,
+11,<intro_1> B G#m E F# <chorus_1> B F# G#m E <outro_1> Bmaj7 Emaj7 F#7 Bmaj7,,,2020.0,,artist_11,,,
+12,<intro_1> Am G F E <verse_1> Am F C G <chorus_1> Am G F E <outro_1> Am7 Dm7 G7 Cmaj7,,'folk',,,artist_12,folk,synth000012,synthartist000012
+13,<intro_1> D A Bm F#m G D G A <bridge_1> D G A G <bridge_2> Em7 A7 Dmaj7 <chorus_1> Bm G D A <outro_1> Em7 A7 Dmaj7,,'hip hop',2000.0,,artist_13,hip hop,synth000013,synthartist000013
+14,<intro_1> Dm C Bb A <solo_1> Dm Bb F C <bridge_1> Dm Bb F C <verse_1> Dm Bb F C <outro_1> Dm Gm C F,,,2020.0,,artist_14,,synth000014,synthartist000014
+15,<intro_1> C#m A E B <verse_1> E A B A <bridge_1> F#m B E <solo_1> F#m7 B7 Emaj7 <bridge_2> Emaj7 Amaj7 B7 Emaj7 <outro_1> E B C#m G#m A E A B,,'metal',2000.0,,artist_15,metal,synth000015,synthartist000015
+16,<intro_1> Dm Gm Am Dm <verse_1> Dm C Bb A <chorus_1> Dm Bb F C <chorus_2> Dm Bb F C <solo_1> Dm Bb F C <outro_1> Dm Gm Am Dm,,,,,artist_16,,synth000016,synthartist000016
+17,<intro_1> A E F#m C#m D A D E <bridge_1> A F#m D E <verse_1> A E F#m C#m D A D E <chorus_1> A D E D <outro_1> F#m D A E,,'hip hop',2020.0,,artist_17,hip hop,synth000017,synthartist000017
+18,<intro_1> Fm Bb Eb <bridge_1> Eb Bb Cm Gm Ab Eb Ab Bb <outro_1> Eb Cm Ab Bb,,'metal',,,artist_18,metal,,
+19,<intro_1> Fm7 Bbm7 Eb7 Abmaj7 <verse_1> Fm Bbm Eb Ab <outro_1> Fm Db Ab Eb,,'metal',,,artist_19,metal,synth000019,synthartist000019
+20,<intro_1> Em Am D G <verse_1> Em7 Am7 D7 Gmaj7 <chorus_1> Em D C B <outro_1> Em Am Bm Em,,'rock',,,artist_20,rock,synth000020,synthartist000020
+21,<intro_1> F#maj7 Bmaj7 C#7 F#maj7 <chorus_1> F# B C# B <solo_1> G#m7 C#7 F#maj7 <verse_1> F# B C# B <outro_1> F# C# D#m A#m B F# B C#,,'metal',,,artist_21,metal,,
+22,<intro_1> Ebm Abm Bbm Ebm <chorus_1> Ebm Abm Db Gb <verse_1> Ebm Cb Gb Db <outro_1> Ebm7 Abm7 Db7 Gbmaj7,,,2000.0,,artist_22,,synth000022,synthartist000022
+23,<intro_1> C F G F <bridge_1> C F G F <solo_1> C Am F G <solo_2> Cmaj7 Fmaj7 G7 Cmaj7 <bridge_2> Cmaj7 Fmaj7 G7 Cmaj7 <outro_1> C G Am F,,,2010.0,,artist_23,,,
+24,<intro_1> Em Am D G <chorus_1> Em Am D G <solo_1> Em D C B <bridge_1> Em D C B <chorus_2> Em Am D G <outro_1> Em7 Am7 D7 Gmaj7,,'indie',,,artist_24,indie,,
+25,<intro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <verse_1> Bb F Gm Dm Eb Bb Eb F <verse_2> Bb F Gm Dm Eb Bb Eb F <bridge_1> Bb Eb F Eb <bridge_2> Bb Eb F Eb <outro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7,,'hip hop',,,artist_25,hip hop,synth000025,synthartist000025
+26,<intro_1> Bbm Ebm Fm Bbm <bridge_1> Bbm7 Ebm7 Ab7 Dbmaj7 <outro_1> Bbm Ebm Ab Db,,'country',1980.0,,artist_26,country,synth000026,synthartist000026
+27,<intro_1> F#m7 Bm7 E7 Amaj7 <solo_1> F#m D A E <outro_1> F#m D A E,,,1970.0,,artist_27,,,
+28,<intro_1> Abm Gb Fb Eb <verse_1> Abm Fb Cb Gb <chorus_1> Abm7 Dbm7 Gb7 Cbmaj7 <bridge_1> Abm Dbm Ebm Abm <bridge_2> Abm Dbm Ebm Abm <outro_1> Abm Dbm Ebm Abm,,'country',2020.0,,artist_28,country,synth000028,synthartist000028
+29,<intro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <verse_1> Cm7 F7 Bbmaj7 <verse_2> Bb Eb F Eb <verse_3> Bb Eb F Eb <outro_1> Gm Eb Bb F,,'indie',2020.0,,artist_29,indie,synth000029,synthartist000029
+30,<intro_1> Bm Em A D <chorus_1> Bm Em A D <chorus_2> Bm Em A D <chorus_3> Bm G D A <outro_1> Bm G D A,,,1970.0,,artist_30,,,
+31,<intro_1> Bm G D A <bridge_1> Bm A G F# <chorus_1> Bm Em A D <bridge_2> Bm Em A D <verse_1> Bm Em F#m Bm <outro_1> Bm A G F#,,'indie',,,artist_31,indie,,
+32,<intro_1> Am G F E <verse_1> Am Dm G C <bridge_1> Am Dm Em Am <bridge_2> Am Dm G C <bridge_3> Am Dm Em Am <outro_1> Am7 Dm7 G7 Cmaj7,,,2020.0,,artist_32,,synth000032,synthartist000032
+33,<intro_1> F#m Bm E A <verse_1> F#m Bm C#m F#m <outro_1> F#m Bm E A,,'pop',,,artist_33,pop,synth000033,synthartist000033
+34,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <verse_1> Ebm Abm Bbm Ebm <bridge_1> Ebm Abm Bbm Ebm <outro_1> Ebm7 Abm7 Db7 Gbmaj7,,,1990.0,,artist_34,,synth000034,synthartist000034
+35,<intro_1> Cm Fm Bb Eb <chorus_1> Cm Fm Gm Cm <chorus_2> Cm7 Fm7 Bb7 Ebmaj7 <verse_1> Cm Fm Bb Eb <bridge_1> Cm7 Fm7 Bb7 Ebmaj7 <outro_1> Cm Bb Ab G,,'hip hop',2010.0,,artist_35,hip hop,synth000035,synthartist000035
+36,<intro_1> Gm Cm F Bb <chorus_1> Gm Cm Dm Gm <solo_1> Gm F Eb D <chorus_2> Gm F Eb D <chorus_3> Gm7 Cm7 F7 Bbmaj7 <outro_1> Gm Cm F Bb,,'hip hop',,,artist_36,hip hop,synth000036,synthartist000036
+37,<intro_1> Bm G D A <bridge_1> Dmaj7 Gmaj7 A7 Dmaj7 <verse_1> Bm G D A <verse_2> Bm G D A <verse_3> D Bm G A <outro_1> Bm G D A,,,2000.0,,artist_37,,synth000037,synthartist000037
+38,<intro_1> Dm C Bb A <verse_1> Dm Gm Am Dm <bridge_1> Dm Gm Am Dm <outro_1> Dm Bb F C,,'folk',1970.0,,artist_38,folk,synth000038,synthartist000038
+39,<intro_1> Gm Cm F Bb <bridge_1> Gm Eb Bb F <verse_1> Gm Eb Bb F <verse_2> Gm Eb Bb F <solo_1> Gm Cm F Bb <outro_1> Gm7 Cm7 F7 Bbmaj7,,'electronic',2010.0,,artist_39,electronic,synth000039,synthartist000039
+40,<intro_1> B F# G#m E <bridge_1> Bmaj7 Emaj7 F#7 Bmaj7 <chorus_1> B E F# E <verse_1> C#m7 F#7 Bmaj7 <outro_1> C#m7 F#7 Bmaj7,,,1990.0,,artist_40,,,
+41,<intro_1> Fm Db Ab Eb <verse_1> Ab Eb Fm Cm Db Ab Db Eb <outro_1> Bbm7 Eb7 Abmaj7,,,,,artist_41,,,
+42,<intro_1> Cmaj7 Fmaj7 G7 Cmaj7 <verse_1> C Am F G <verse_2> C Am F G <chorus_1> C F G F <bridge_1> C G Am F <outro_1> Cmaj7 Fmaj7 G7 Cmaj7,,,1990.0,,artist_42,,,
+43,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <verse_1> Abm Dbm Gb Cb <solo_1> Abm Gb Fb Eb <outro_1> Abm Dbm Ebm Abm,,'electronic',2000.0,,artist_43,electronic,,
+44,<intro_1> C F G F <bridge_1> Am F C G <solo_1> C F G F <outro_1> Am F C G,,,,,artist_44,,synth000044,synthartist000044
+45,<intro_1> Dm7 Gm7 C7 Fmaj7 <chorus_1> Dm Bb F C <chorus_2> Dm7 Gm7 C7 Fmaj7 <outro_1> Dm C Bb A,,,1970.0,,artist_45,,synth000045,synthartist000045
+46,<intro_1> F#m Bm E A <verse_1> F#m Bm E A <bridge_1> F#m Bm E A <chorus_1> F#m Bm E A <verse_2> F#m Bm E A <outro_1> F#m E D C#,,'r&b',1980.0,,artist_46,r&b,,
+47,<intro_1> Fm Bbm Eb Ab <solo_1> Fm7 Bbm7 Eb7 Abmaj7 <solo_2> Fm7 Bbm7 Eb7 Abmaj7 <verse_1> Fm Bbm Eb Ab <outro_1> Fm Bbm Cm Fm,,,1980.0,,artist_47,,synth000047,synthartist000047
+48,<intro_1> Dm G C <chorus_1> Dm G C <bridge_1> Cmaj7 Fmaj7 G7 Cmaj7 <solo_1> Am F C G <outro_1> C G Am Em F C F G,,'r&b',1990.0,,artist_48,r&b,,
+49,<intro_1> Bbm Gb Db Ab <bridge_1> Bbm Ab Gb F <verse_1> Bbm Ebm Fm Bbm <outro_1> Bbm Ebm Fm Bbm,,'metal',,,artist_49,metal,,
+50,<intro_1> Bb Eb F Eb <verse_1> Cm F Bb <verse_2> Cm F Bb <solo_1> Bb Eb F Eb <outro_1> Bb F Gm Eb,,,,,artist_50,,synth000050,synthartist000050
+51,<intro_1> B G#m E F# <bridge_1> B F# G#m D#m E B E F# <outro_1> B G#m E F#,,'electronic',1980.0,,artist_51,electronic,synth000051,synthartist000051
+52,<intro_1> Am G F E <chorus_1> Am7 Dm7 G7 Cmaj7 <chorus_2> Am7 Dm7 G7 Cmaj7 <bridge_1> Am G F E <outro_1> Am Dm Em Am,,'pop',1980.0,,artist_52,pop,synth000052,synthartist000052
+53,<intro_1> Abm Gb Fb Eb <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <solo_1> Abm Fb Cb Gb <outro_1> Abm Dbm Ebm Abm,,,2010.0,,artist_53,,synth000053,synthartist000053
+54,<intro_1> C#m7 F#7 Bmaj7 <verse_1> B F# G#m D#m E B E F# <verse_2> B F# G#m D#m E B E F# <verse_3> B F# G#m D#m E B E F# <outro_1> B G#m E F#,,'folk',2010.0,,artist_54,folk,,
+55,<intro_1> D Bm G A <verse_1> Bm G D A <solo_1> Em7 A7 Dmaj7 <outro_1> D A Bm F#m G D G A,,'folk',,,artist_55,folk,synth000055,synthartist000055
+56,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <verse_1> Ebm Cb Gb Db <bridge_1> Ebm Cb Gb Db <outro_1> Ebm7 Abm7 Db7 Gbmaj7,,,1990.0,,artist_56,,,
+57,<intro_1> A D E D <chorus_1> F#m D A E <outro_1> Bm7 E7 Amaj7,,,1980.0,,artist_57,,synth000057,synthartist000057
+58,<intro_1> Ebm Abm Bbm Ebm <solo_1> Ebm Db Cb Bb <outro_1> Ebm Abm Bbm Ebm,,,2010.0,,artist_58,,synth000058,synthartist000058
+59,<intro_1> F C Dm Am Bb F Bb C <solo_1> F Dm Bb C <outro_1> Dm Bb F C,,,2020.0,,artist_59,,synth000059,synthartist000059
+60,<intro_1> Ebmaj7 Abmaj7 Bb7 Ebmaj7 <chorus_1> Eb Bb Cm Ab <verse_1> Fm7 Bb7 Ebmaj7 <verse_2> Fm7 Bb7 Ebmaj7 <solo_1> Eb Cm Ab Bb <outro_1> Cm Ab Eb Bb,,,1970.0,,artist_60,,,
+61,<intro_1> Abm Gb Fb Eb <solo_1> Abm Fb Cb Gb <chorus_1> Abm Fb Cb Gb <verse_1> Abm Gb Fb Eb <verse_2> Abm Gb Fb Eb <outro_1> Abm Fb Cb Gb,,,1990.0,,artist_61,,,
+62,<intro_1> Gm7 C7 Fmaj7 <bridge_1> F C Dm Am Bb F Bb C <bridge_2> F Dm Bb C <verse_1> F Bb C Bb <outro_1> Fmaj7 Bbmaj7 C7 Fmaj7,,'indie',,,artist_62,indie,,
+63,<intro_1> Bm G D A <solo_1> Em A D <chorus_1> Em A D <outro_1> D A Bm G,,'r&b',,,artist_63,r&b,synth000063,synthartist000063
+64,<intro_1> D Bm G A <bridge_1> D G A G <solo_1> D A Bm F#m G D G A <chorus_1> Em7 A7 Dmaj7 <outro_1> D A Bm G,,,2000.0,,artist_64,,,
+65,<intro_1> Cm Fm Gm Cm <chorus_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm Bb Ab G <solo_1> Cm Fm Gm Cm <outro_1> Cm Fm Gm Cm,,'indie',,,artist_65,indie,synth000065,synthartist000065
+66,<intro_1> Am F C G <bridge_1> Am Dm G C <bridge_2> Am7 Dm7 G7 Cmaj7 <solo_1> Am Dm Em Am <outro_1> Am Dm G C,,'metal',1970.0,,artist_66,metal,synth000066,synthartist000066
+67,<intro_1> Am Dm Em Am <bridge_1> Am F C G <bridge_2> Am G F E <verse_1> Am7 Dm7 G7 Cmaj7 <bridge_3> Am G F E <outro_1> Am Dm Em Am,,'folk',,,artist_67,folk,synth000067,synthartist000067
+68,<intro_1> Bb Eb F Eb <solo_1> Bb Eb F Eb <outro_1> Bb F Gm Dm Eb Bb Eb F,,'electronic',2000.0,,artist_68,electronic,synth000068,synthartist000068
+69,<intro_1> Bbm7 Ebm7 Ab7 Dbmaj7 <chorus_1> Bbm Ebm Fm Bbm <bridge_1> Bbm Ebm Fm Bbm <verse_1> Bbm Gb Db Ab <verse_2> Bbm Gb Db Ab <outro_1> Bbm Ebm Ab Db,,,1990.0,,artist_69,,synth000069,synthartist000069
+70,<intro_1> F#m D A E <solo_1> Bm E A <verse_1> Bm E A <verse_2> Bm E A <solo_2> Amaj7 Dmaj7 E7 Amaj7 <outro_1> A E F#m D,,'hip hop',2020.0,,artist_70,hip hop,,
+71,<intro_1> Gm F Eb D <solo_1> Gm Eb Bb F <solo_2> Gm F Eb D <verse_1> Gm Eb Bb F <verse_2> Gm Eb Bb F <outro_1> Gm F Eb D,,'electronic',2000.0,,artist_71,electronic,,
+72,<intro_1> C Am F G <solo_1> Am F C G <bridge_1> Dm G C <chorus_1> C G Am Em F C F G <chorus_2> C G Am Em F C F G <outro_1> Cmaj7 Fmaj7 G7 Cmaj7,,'electronic',,,artist_72,electronic,,
+73,<intro_1> B F# G#m D#m E B E F# <chorus_1> G#m E B F# <solo_1> B F# G#m E <outro_1> B F# G#m E,,,2000.0,,artist_73,,synth000073,synthartist000073
+74,<intro_1> G#m C# F# <verse_1> F# D#m B C# <bridge_1> D#m B F# C# <outro_1> D#m B F# C#,,,2000.0,,artist_74,,synth000074,synthartist000074
+75,<intro_1> Em D C B <solo_1> Em Am Bm Em <outro_1> Em Am Bm Em,,'indie',2000.0,,artist_75,indie,,
+76,<intro_1> Abm Dbm Ebm Abm <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm7 Dbm7 Gb7 Cbmaj7,,,2000.0,,artist_76,,synth000076,synthartist000076
+77,<intro_1> Bbm Ebm Ab Db <solo_1> Bbm Gb Db Ab <outro_1> Bbm Ebm Ab Db,,'jazz',1980.0,,artist_77,jazz,,
+78,<intro_1> E B C#m A <bridge_1> E B C#m A <outro_1> E A B A,,'pop',,,artist_78,pop,synth000078,synthartist000078
+79,<intro_1> Bbm Ebm Fm Bbm <chorus_1> Bbm7 Ebm7 Ab7 Dbmaj7 <bridge_1> Bbm Ebm Ab Db <outro_1> Bbm Ebm Ab Db,,,2020.0,,artist_79,,synth000079,synthartist000079
+80,<intro_1> Fm Db Ab Eb <chorus_1> Fm Db Ab Eb <chorus_2> Fm Db Ab Eb <outro_1> Fm Bbm Cm Fm,,,2020.0,,artist_80,,,
+81,<intro_1> Dm7 Gm7 C7 Fmaj7 <verse_1> Dm Bb F C <bridge_1> Dm Bb F C <bridge_2> Dm C Bb A <chorus_1> Dm C Bb A <outro_1> Dm C Bb A,,,2000.0,,artist_81,,synth000081,synthartist000081
+82,<intro_1> Abm Fb Cb Gb <chorus_1> Abm Dbm Ebm Abm <outro_1> Abm Fb Cb Gb,,,1990.0,,artist_82,,synth000082,synthartist000082
+83,<intro_1> C G Am F <verse_1> C Am F G <chorus_1> C Am F G <bridge_1> Am F C G <solo_1> C F G F <outro_1> Dm G C,,,,,artist_83,,synth000083,synthartist000083
+84,<intro_1> A E F#m D <bridge_1> A E F#m C#m D A D E <outro_1> Amaj7 Dmaj7 E7 Amaj7,,,,,artist_84,,synth000084,synthartist000084
+85,<intro_1> Am Dm G C <verse_1> Am F C G <solo_1> Am7 Dm7 G7 Cmaj7 <bridge_1> Am7 Dm7 G7 Cmaj7 <verse_2> Am F C G <outro_1> Am Dm G C,,,1970.0,,artist_85,,synth000085,synthartist000085
+86,<intro_1> Bbm Ab Gb F <chorus_1> Bbm Ab Gb F <bridge_1> Bbm Ab Gb F <bridge_2> Bbm Ab Gb F <outro_1> Bbm7 Ebm7 Ab7 Dbmaj7,,,1970.0,,artist_86,,,
+87,<intro_1> Em7 Am7 D7 Gmaj7 <bridge_1> Em Am Bm Em <bridge_2> Em D C B <verse_1> Em Am D G <outro_1> Em Am Bm Em,,,1990.0,,artist_87,,,
+88,<intro_1> B G#m E F# <chorus_1> Bmaj7 Emaj7 F#7 Bmaj7 <chorus_2> Bmaj7 Emaj7 F#7 Bmaj7 <outro_1> B F# G#m E,,,2000.0,,artist_88,,,
+89,<intro_1> Gm Eb Bb F <solo_1> Gm Eb Bb F <solo_2> Gm7 Cm7 F7 Bbmaj7 <chorus_1> Gm Cm F Bb <outro_1> Gm Cm Dm Gm,,'country',1980.0,,artist_89,country,synth000089,synthartist000089
+90,<intro_1> A F#m D E <bridge_1> F#m D A E <bridge_2> A F#m D E <outro_1> A D E D,,,1980.0,,artist_90,,synth000090,synthartist000090
+91,<intro_1> Dm Bb F C <bridge_1> Dm Bb F C <chorus_1> Dm7 Gm7 C7 Fmaj7 <chorus_2> Dm Gm C F <verse_1> Dm Gm Am Dm <outro_1> Dm7 Gm7 C7 Fmaj7,,'jazz',,,artist_91,jazz,synth000091,synthartist000091
+92,<intro_1> Em C G D <verse_1> Em Am Bm Em <outro_1> Em Am D G,,,1980.0,,artist_92,,synth000092,synthartist000092
+93,<intro_1> Bm7 Em7 A7 Dmaj7 <solo_1> Bm Em F#m Bm <bridge_1> Bm A G F# <outro_1> Bm Em F#m Bm,,,1980.0,,artist_93,,,
+94,<intro_1> Ebm Abm Db Gb <bridge_1> Ebm7 Abm7 Db7 Gbmaj7 <chorus_1> Ebm7 Abm7 Db7 Gbmaj7 <chorus_2> Ebm Abm Bbm Ebm <outro_1> Ebm7 Abm7 Db7 Gbmaj7,,'jazz',1970.0,,artist_94,jazz,synth000094,synthartist000094
+95,<intro_1> F C Dm Am Bb F Bb C <solo_1> F C Dm Bb <outro_1> F Bb C Bb,,'country',,,artist_95,country,synth000095,synthartist000095
+96,<intro_1> Em Am Bm Em <chorus_1> Em7 Am7 D7 Gmaj7 <chorus_2> Em7 Am7 D7 Gmaj7 <outro_1> Em C G D,,,,,artist_96,,,
+97,<intro_1> Em Am D G <bridge_1> Em7 Am7 D7 Gmaj7 <verse_1> Em7 Am7 D7 Gmaj7 <solo_1> Em D C B <verse_2> Em7 Am7 D7 Gmaj7 <outro_1> Em Am D G,,'metal',,,artist_97,metal,,
+98,<intro_1> C G Am Em F C F G <verse_1> Dm G C <bridge_1> Am F C G <solo_1> Am F C G <outro_1> C G Am Em F C F G,,'pop',1990.0,,artist_98,pop,synth000098,synthartist000098
+99,<intro_1> Gm C F <bridge_1> F Bb C Bb <chorus_1> Dm Bb F C <chorus_2> Dm Bb F C <chorus_3> Dm Bb F C <outro_1> F Dm Bb C,,'pop',1980.0,,artist_99,pop,,
+100,<intro_1> G D Em C <chorus_1> G C D C <bridge_1> G D Em Bm C G C D <outro_1> Em C G D,,,1990.0,,artist_100,,synth000100,synthartist000100
+101,<intro_1> Cm Ab Eb Bb <bridge_1> Eb Bb Cm Gm Ab Eb Ab Bb <verse_1> Eb Cm Ab Bb <outro_1> Cm Ab Eb Bb,,'indie',2000.0,,artist_101,indie,synth000101,synthartist000101
+102,<intro_1> F#m7 Bm7 E7 Amaj7 <verse_1> F#m Bm C#m F#m <bridge_1> F#m E D C# <solo_1> F#m D A E <solo_2> F#m Bm E A <outro_1> F#m Bm C#m F#m,,,,,artist_102,,synth000102,synthartist000102
+103,<intro_1> F#m D A E <chorus_1> F#m D A E <outro_1> F#m7 Bm7 E7 Amaj7,,'electronic',1990.0,,artist_103,electronic,synth000103,synthartist000103
+104,<intro_1> F# C# D#m B <bridge_1> F# C# D#m B <chorus_1> G#m7 C#7 F#maj7 <solo_1> G#m7 C#7 F#maj7 <bridge_2> G#m7 C#7 F#maj7 <outro_1> F# D#m B C#,,'country',1980.0,,artist_104,country,synth000104,synthartist000104
+105,<intro_1> Cm Bb Ab G <chorus_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm Fm Bb Eb <solo_1> Cm Fm Bb Eb <solo_2> Cm Fm Gm Cm <outro_1> Cm Bb Ab G,,'indie',,,artist_105,indie,synth000105,synthartist000105
+106,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <solo_1> Abm Gb Fb Eb <solo_2> Abm Dbm Ebm Abm <outro_1> Abm Dbm Gb Cb,,'country',1990.0,,artist_106,country,,
+107,<intro_1> Am G F E <bridge_1> Am7 Dm7 G7 Cmaj7 <outro_1> Am7 Dm7 G7 Cmaj7,,,1990.0,,artist_107,,synth000107,synthartist000107
+108,<intro_1> F C Dm Am Bb F Bb C <bridge_1> F Dm Bb C <outro_1> Gm7 C7 Fmaj7,,,2000.0,,artist_108,,,
+109,<intro_1> C#m7 F#7 Bmaj7 <bridge_1> B F# G#m E <outro_1> B G#m E F#,,'jazz',1990.0,,artist_109,jazz,synth000109,synthartist000109
+110,<intro_1> Cm Ab Eb Bb <verse_1> Cm Ab Eb Bb <verse_2> Cm Ab Eb Bb <outro_1> Eb Bb Cm Ab,,,2010.0,,artist_110,,synth000110,synthartist000110
+111,<intro_1> B G#m E F# <verse_1> Bmaj7 Emaj7 F#7 Bmaj7 <solo_1> B F# G#m D#m E B E F# <solo_2> C#m7 F#7 Bmaj7 <outro_1> Bmaj7 Emaj7 F#7 Bmaj7,,,,,artist_111,,synth000111,synthartist000111
+112,<intro_1> Dm Gm Am Dm <solo_1> Dm C Bb A <verse_1> Dm Bb F C <chorus_1> Dm C Bb A <bridge_1> Dm7 Gm7 C7 Fmaj7 <outro_1> Dm Gm C F,,,,,artist_112,,synth000112,synthartist000112
+113,<intro_1> Cm F Bb <chorus_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <bridge_1> Cm F Bb <verse_1> Gm Eb Bb F <outro_1> Cm F Bb,,,2010.0,,artist_113,,synth000113,synthartist000113
+114,<intro_1> Amaj7 Dmaj7 E7 Amaj7 <verse_1> Bm7 E7 Amaj7 <bridge_1> F#m D A E <solo_1> Amaj7 Dmaj7 E7 Amaj7 <outro_1> F#m D A E,,'r&b',1990.0,,artist_114,r&b,synth000114,synthartist000114
+115,<intro_1> F#m Bm E A <verse_1> F#m E D C# <bridge_1> F#m Bm E A <solo_1> F#m Bm E A <verse_2> F#m E D C# <outro_1> F#m Bm E A,,,2000.0,,artist_115,,synth000115,synthartist000115
+116,<intro_1> Dm C Bb A <bridge_1> Dm Gm C F <outro_1> Dm Bb F C,,,2020.0,,artist_116,,,
+117,<intro_1> Dm Bb F C <solo_1> F Dm Bb C <bridge_1> Gm7 C7 Fmaj7 <chorus_1> Fmaj7 Bbmaj7 C7 Fmaj7 <outro_1> F Bb C Bb,,,1980.0,,artist_117,,synth000117,synthartist000117
+118,<intro_1> A E F#m D <verse_1> Amaj7 Dmaj7 E7 Amaj7 <chorus_1> A D E D <solo_1> Bm7 E7 Amaj7 <outro_1> A E F#m D,,'jazz',2020.0,,artist_118,jazz,synth000118,synthartist000118
+119,<intro_1> Fm7 Bb7 Ebmaj7 <chorus_1> Eb Cm Ab Bb <bridge_1> Cm Ab Eb Bb <outro_1> Eb Bb Cm Ab,,'r&b',1990.0,,artist_119,r&b,synth000119,synthartist000119
+120,<intro_1> G D Em Bm C G C D <chorus_1> G D Em C <chorus_2> G D Em Bm C G C D <chorus_3> G D Em Bm C G C D <verse_1> G D Em Bm C G C D <outro_1> G Em C D,,'pop',1980.0,,artist_120,pop,synth000120,synthartist000120
+121,<intro_1> Fmaj7 Bbmaj7 C7 Fmaj7 <solo_1> F C Dm Am Bb F Bb C <outro_1> F Bb C Bb,,'hip hop',1970.0,,artist_121,hip hop,synth000121,synthartist000121
+122,<intro_1> Abm Gb Fb Eb <chorus_1> Abm Dbm Ebm Abm <verse_1> Abm Dbm Ebm Abm <bridge_1> Abm7 Dbm7 Gb7 Cbmaj7 <bridge_2> Abm Dbm Gb Cb <outro_1> Abm7 Dbm7 Gb7 Cbmaj7,,'r&b',2000.0,,artist_122,r&b,synth000122,synthartist000122
+123,<intro_1> Bbm Ab Gb F <chorus_1> Bbm Ebm Ab Db <bridge_1> Bbm Gb Db Ab <verse_1> Bbm Ebm Ab Db <bridge_2> Bbm Gb Db Ab <outro_1> Bbm Ebm Ab Db,,,2000.0,,artist_123,,synth000123,synthartist000123
+124,<intro_1> Fm Bb Eb <solo_1> Eb Bb Cm Ab <chorus_1> Eb Cm Ab Bb <outro_1> Eb Bb Cm Gm Ab Eb Ab Bb,,,,,artist_124,,,
+125,<intro_1> Gm Cm Dm Gm <chorus_1> Gm Eb Bb F <outro_1> Gm Cm Dm Gm,,,2020.0,,artist_125,,synth000125,synthartist000125
+126,<intro_1> Bm7 Em7 A7 Dmaj7 <verse_1> Bm A G F# <verse_2> Bm A G F# <solo_1> Bm G D A <verse_3> Bm A G F# <outro_1> Bm A G F#,,'metal',1970.0,,artist_126,metal,,
+127,<intro_1> G D Em Bm C G C D <solo_1> G D Em Bm C G C D <verse_1> Em C G D <solo_2> G Em C D <chorus_1> Gmaj7 Cmaj7 D7 Gmaj7 <outro_1> G D Em Bm C G C D,,,1980.0,,artist_127,,synth000127,synthartist000127
+128,<intro_1> G C D C <chorus_1> Em C G D <outro_1> Em C G D,,'indie',,,artist_128,indie,,
+129,<intro_1> Dm C Bb A <bridge_1> Dm Gm Am Dm <verse_1> Dm7 Gm7 C7 Fmaj7 <bridge_2> Dm Bb F C <outro_1> Dm Gm Am Dm,,'r&b',,,artist_129,r&b,,
+130,<intro_1> Bm Em A D <verse_1> Bm Em F#m Bm <solo_1> Bm7 Em7 A7 Dmaj7 <outro_1> Bm Em A D,,,2020.0,,artist_130,,synth000130,synthartist000130
+131,<intro_1> Fm7 Bbm7 Eb7 Abmaj7 <solo_1> Fm Bbm Eb Ab <chorus_1> Fm Bbm Eb Ab <bridge_1> Fm Bbm Eb Ab <outro_1> Fm Eb Db C,,,2020.0,,artist_131,,,
+132,<intro_1> D Bm G A <verse_1> Dmaj7 Gmaj7 A7 Dmaj7 <outro_1> Bm G D A,,'rock',,,artist_132,rock,synth000132,synthartist000132
+133,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <verse_1> Abm Dbm Gb Cb <bridge_1> Abm Dbm Ebm Abm <chorus_1> Abm7 Dbm7 Gb7 Cbmaj7 <bridge_2> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm Fb Cb Gb,,'folk',,,artist_133,folk,synth000133,synthartist000133
+134,<intro_1> Gm F Eb D <verse_1> Gm7 Cm7 F7 Bbmaj7 <bridge_1> Gm Eb Bb F <solo_1> Gm Cm Dm Gm <outro_1> Gm Cm Dm Gm,,'r&b',2020.0,,artist_134,r&b,synth000134,synthartist000134
+135,<intro_1> Gm Eb Bb F <solo_1> Gm Eb Bb F <outro_1> Gm7 Cm7 F7 Bbmaj7,,'indie',,,artist_135,indie,synth000135,synthartist000135
+136,<intro_1> Cm Bb Ab G <bridge_1> Cm Bb Ab G <solo_1> Cm Fm Gm Cm <verse_1> Cm Fm Gm Cm <outro_1> Cm Bb Ab G,,'country',2000.0,,artist_136,country,synth000136,synthartist000136
+137,<intro_1> G#m7 C#7 F#maj7 <chorus_1> G#m7 C#7 F#maj7 <chorus_2> G#m C# F# <solo_1> F#maj7 Bmaj7 C#7 F#maj7 <outro_1> F#maj7 Bmaj7 C#7 F#maj7,,'hip hop',,,artist_137,hip hop,synth000137,synthartist000137
+138,<intro_1> F#m Bm E A <verse_1> F#m Bm C#m F#m <outro_1> F#m Bm C#m F#m,,'folk',1970.0,,artist_138,folk,synth000138,synthartist000138
+139,<intro_1> G D Em C <bridge_1> Am D G <solo_1> Am7 D7 Gmaj7 <solo_2> G Em C D <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,'jazz',,,artist_139,jazz,synth000139,synthartist000139
+140,<intro_1> Em C G D <verse_1> Em C G D <verse_2> Em D C B <verse_3> Em D C B <outro_1> Em7 Am7 D7 Gmaj7,,,,,artist_140,,synth000140,synthartist000140
+141,<intro_1> Em C G D <verse_1> G Em C D <outro_1> G Em C D,,,,,artist_141,,synth000141,synthartist000141
+142,<intro_1> Dm7 Gm7 C7 Fmaj7 <bridge_1> Dm Gm C F <outro_1> Dm7 Gm7 C7 Fmaj7,,'jazz',2000.0,,artist_142,jazz,synth000142,synthartist000142
+143,<intro_1> Gmaj7 Cmaj7 D7 Gmaj7 <solo_1> Em C G D <bridge_1> Gmaj7 Cmaj7 D7 Gmaj7 <solo_2> Em C G D <verse_1> Em C G D <outro_1> G Em C D,,,2010.0,,artist_143,,synth000143,synthartist000143
+144,<intro_1> Ebm Abm Bbm Ebm <chorus_1> Ebm Abm Bbm Ebm <bridge_1> Ebm Db Cb Bb <solo_1> Ebm Cb Gb Db <outro_1> Ebm Db Cb Bb,,,2020.0,,artist_144,,,
+145,<intro_1> Bbm7 Ebm7 Ab7 Dbmaj7 <bridge_1> Bbm Ebm Fm Bbm <verse_1> Bbm Ebm Fm Bbm <solo_1> Bbm Ab Gb F <outro_1> Bbm7 Ebm7 Ab7 Dbmaj7,,,2020.0,,artist_145,,,
+146,<intro_1> F#m D A E <verse_1> F#m Bm C#m F#m <outro_1> F#m7 Bm7 E7 Amaj7,,,2000.0,,artist_146,,,
+147,<intro_1> Em Am Bm Em <verse_1> Em Am D G <solo_1> Em C G D <outro_1> Em Am D G,,'folk',1980.0,,artist_147,folk,synth000147,synthartist000147
+148,<intro_1> Em C G D <bridge_1> Em C G D <verse_1> Am D G <solo_1> Gmaj7 Cmaj7 D7 Gmaj7 <bridge_2> Em C G D <outro_1> Am D G,,,2000.0,,artist_148,,synth000148,synthartist000148
+149,<intro_1> Em C G D <verse_1> Em C G D <chorus_1> Em Am D G <chorus_2> Em Am D G <bridge_1> Em Am Bm Em <outro_1> Em Am D G,,'hip hop',,,artist_149,hip hop,,
+150,<intro_1> Ebm Cb Gb Db <solo_1> Ebm Abm Db Gb <verse_1> Ebm Cb Gb Db <bridge_1> Ebm Abm Bbm Ebm <outro_1> Ebm Abm Bbm Ebm,,'folk',2020.0,,artist_150,folk,,
+151,<intro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <verse_1> Bb Gm Eb F <chorus_1> Bb Gm Eb F <chorus_2> Bb Gm Eb F <chorus_3> Bb Gm Eb F <outro_1> Bb Gm Eb F,,,2000.0,,artist_151,,,
+152,<intro_1> Cm Fm Bb Eb <solo_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_2> Cm Fm Bb Eb <outro_1> Cm Fm Bb Eb,,'indie',,,artist_152,indie,synth000152,synthartist000152
+153,<intro_1> Cm Ab Eb Bb <verse_1> Cm Fm Gm Cm <solo_1> Cm Fm Gm Cm <outro_1> Cm Bb Ab G,,'rock',,,artist_153,rock,synth000153,synthartist000153
+154,<intro_1> Em Am D G <solo_1> Em C G D <outro_1> Em Am D G,,'country',,,artist_154,country,synth000154,synthartist000154
+155,<intro_1> Em D C B <solo_1> Em C G D <solo_2> Em Am Bm Em <verse_1> Em Am D G <solo_3> Em C G D <outro_1> Em Am D G,,'rock',2000.0,,artist_155,rock,synth000155,synthartist000155
+156,<intro_1> Dm Gm C F <bridge_1> Dm Bb F C <bridge_2> Dm Gm C F <bridge_3> Dm Gm Am Dm <solo_1> Dm C Bb A <outro_1> Dm Bb F C,,'pop',,,artist_156,pop,synth000156,synthartist000156
+157,<intro_1> Am7 Dm7 G7 Cmaj7 <solo_1> Am Dm G C <outro_1> Am F C G,,'r&b',1980.0,,artist_157,r&b,,
+158,<intro_1> Cm Ab Eb Bb <solo_1> Cm Bb Ab G <bridge_1> Cm Ab Eb Bb <bridge_2> Cm7 Fm7 Bb7 Ebmaj7 <outro_1> Cm7 Fm7 Bb7 Ebmaj7,,,1970.0,,artist_158,,synth000158,synthartist000158
+159,<intro_1> Fm7 Bbm7 Eb7 Abmaj7 <verse_1> Fm Db Ab Eb <solo_1> Fm7 Bbm7 Eb7 Abmaj7 <chorus_1> Fm Bbm Eb Ab <bridge_1> Fm Db Ab Eb <outro_1> Fm7 Bbm7 Eb7 Abmaj7,,'hip hop',2020.0,,artist_159,hip hop,,
+160,<intro_1> Dm Bb F C <verse_1> Dm C Bb A <verse_2> Dm7 Gm7 C7 Fmaj7 <outro_1> Dm C Bb A,,,2020.0,,artist_160,,synth000160,synthartist000160
+161,<intro_1> D G A G <verse_1> Dmaj7 Gmaj7 A7 Dmaj7 <bridge_1> Bm G D A <solo_1> Dmaj7 Gmaj7 A7 Dmaj7 <outro_1> Em7 A7 Dmaj7,,'jazz',2000.0,,artist_161,jazz,,
+162,<intro_1> Gm Eb Bb F <bridge_1> Gm Eb Bb F <outro_1> Gm F Eb D,,,1970.0,,artist_162,,synth000162,synthartist000162
+163,<intro_1> Bm Em A D <verse_1> Bm Em A D <bridge_1> Bm G D A <bridge_2> Bm A G F# <solo_1> Bm A G F# <outro_1> Bm7 Em7 A7 Dmaj7,,,2000.0,,artist_163,,synth000163,synthartist000163
+164,<intro_1> F# D#m B C# <solo_1> D#m B F# C# <bridge_1> F#maj7 Bmaj7 C#7 F#maj7 <verse_1> F#maj7 Bmaj7 C#7 F#maj7 <outro_1> F# C# D#m B,,'jazz',1970.0,,artist_164,jazz,synth000164,synthartist000164
+165,<intro_1> F#m Bm C#m F#m <solo_1> F#m E D C# <chorus_1> F#m Bm C#m F#m <outro_1> F#m D A E,,,1980.0,,artist_165,,,
+166,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <bridge_1> Ebm Abm Bbm Ebm <bridge_2> Ebm Db Cb Bb <outro_1> Ebm Cb Gb Db,,'r&b',,,artist_166,r&b,synth000166,synthartist000166
+167,<intro_1> Bbm Eb Ab <solo_1> Ab Fm Db Eb <outro_1> Bbm7 Eb7 Abmaj7,,,2020.0,,artist_167,,,
+168,<intro_1> Bm7 E7 Amaj7 <solo_1> A D E D <outro_1> A E F#m D,,'jazz',2000.0,,artist_168,jazz,,
+169,<intro_1> Bb Gm Eb F <bridge_1> Bb F Gm Dm Eb Bb Eb F <chorus_1> Bb Gm Eb F <bridge_2> Bbmaj7 Ebmaj7 F7 Bbmaj7 <verse_1> Cm F Bb <outro_1> Bb Gm Eb F,,'metal',2020.0,,artist_169,metal,synth000169,synthartist000169
+170,<intro_1> F#m D A E <solo_1> F#m D A E <solo_2> F#m Bm E A <verse_1> F#m D A E <outro_1> F#m Bm C#m F#m,,'folk',2000.0,,artist_170,folk,synth000170,synthartist000170
+171,<intro_1> F#m E D C# <solo_1> F#m Bm C#m F#m <bridge_1> F#m E D C# <verse_1> F#m Bm C#m F#m <outro_1> F#m E D C#,,,,,artist_171,,synth000171,synthartist000171
+172,<intro_1> Dm Bb F C <solo_1> Dm C Bb A <outro_1> Dm C Bb A,,,,,artist_172,,,
+173,<intro_1> Gm7 C7 Fmaj7 <bridge_1> Gm C F <chorus_1> Dm Bb F C <outro_1> Fmaj7 Bbmaj7 C7 Fmaj7,,,,,artist_173,,synth000173,synthartist000173
+174,<intro_1> Abm Dbm Ebm Abm <bridge_1> Abm Fb Cb Gb <solo_1> Abm Fb Cb Gb <bridge_2> Abm Dbm Ebm Abm <solo_2> Abm Dbm Ebm Abm <outro_1> Abm Dbm Ebm Abm,,,1970.0,,artist_174,,synth000174,synthartist000174
+175,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <solo_1> Ebm Abm Bbm Ebm <verse_1> Ebm Abm Bbm Ebm <solo_2> Ebm Db Cb Bb <outro_1> Ebm7 Abm7 Db7 Gbmaj7,,'jazz',,,artist_175,jazz,synth000175,synthartist000175
+176,<intro_1> D A Bm G <bridge_1> Dmaj7 Gmaj7 A7 Dmaj7 <chorus_1> Dmaj7 Gmaj7 A7 Dmaj7 <bridge_2> Bm G D A <outro_1> Em A D,,'electronic',1970.0,,artist_176,electronic,synth000176,synthartist000176
+177,<intro_1> Bbm Gb Db Ab <chorus_1> Bbm Gb Db Ab <verse_1> Bbm Ab Gb F <verse_2> Bbm Ab Gb F <verse_3> Bbm7 Ebm7 Ab7 Dbmaj7 <outro_1> Bbm7 Ebm7 Ab7 Dbmaj7,,'r&b',2000.0,,artist_177,r&b,,
+178,<intro_1> Bb F Gm Dm Eb Bb Eb F <verse_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <bridge_1> Bb F Gm Dm Eb Bb Eb F <outro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7,,,2020.0,,artist_178,,synth000178,synthartist000178
+179,<intro_1> Am F C G <solo_1> Am Dm G C <solo_2> Am Dm G C <chorus_1> Am Dm Em Am <outro_1> Am F C G,,'r&b',2020.0,,artist_179,r&b,synth000179,synthartist000179
+180,<intro_1> E B C#m A <chorus_1> Emaj7 Amaj7 B7 Emaj7 <bridge_1> E B C#m A <verse_1> E B C#m G#m A E A B <bridge_2> F#m7 B7 Emaj7 <outro_1> Emaj7 Amaj7 B7 Emaj7,,'rock',2000.0,,artist_180,rock,synth000180,synthartist000180
+181,<intro_1> Cm Fm Bb Eb <solo_1> Cm Fm Gm Cm <chorus_1> Cm Fm Gm Cm <outro_1> Cm Bb Ab G,,'hip hop',1990.0,,artist_181,hip hop,synth000181,synthartist000181
+182,<intro_1> Fm Bbm Eb Ab <solo_1> Fm Db Ab Eb <outro_1> Fm7 Bbm7 Eb7 Abmaj7,,'electronic',,,artist_182,electronic,,
+183,<intro_1> Cm Ab Eb Bb <bridge_1> Eb Ab Bb Ab <outro_1> Eb Bb Cm Ab,,'folk',2010.0,,artist_183,folk,synth000183,synthartist000183
+184,<intro_1> Abm Dbm Gb Cb <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm Fb Cb Gb,,'electronic',2010.0,,artist_184,electronic,synth000184,synthartist000184
+185,<intro_1> Dm Bb F C <chorus_1> Dm C Bb A <chorus_2> Dm Bb F C <outro_1> Dm C Bb A,,'rock',,,artist_185,rock,,
+186,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <verse_1> Abm Fb Cb Gb <solo_1> Abm Dbm Gb Cb <verse_2> Abm Gb Fb Eb <verse_3> Abm Dbm Ebm Abm <outro_1> Abm Dbm Gb Cb,,'pop',1980.0,,artist_186,pop,synth000186,synthartist000186
+187,<intro_1> E B C#m G#m A E A B <solo_1> E B C#m G#m A E A B <chorus_1> C#m A E B <outro_1> E A B A,,,,,artist_187,,synth000187,synthartist000187
+188,<intro_1> Amaj7 Dmaj7 E7 Amaj7 <solo_1> Amaj7 Dmaj7 E7 Amaj7 <solo_2> F#m D A E <verse_1> F#m D A E <outro_1> Amaj7 Dmaj7 E7 Amaj7,,'indie',,,artist_188,indie,synth000188,synthartist000188
+189,<intro_1> Cmaj7 Fmaj7 G7 Cmaj7 <bridge_1> C Am F G <solo_1> Cmaj7 Fmaj7 G7 Cmaj7 <chorus_1> C Am F G <outro_1> Cmaj7 Fmaj7 G7 Cmaj7,,,,,artist_189,,synth000189,synthartist000189
+190,<intro_1> Cmaj7 Fmaj7 G7 Cmaj7 <solo_1> Am F C G <verse_1> Am F C G <chorus_1> Dm G C <outro_1> C F G F,,'r&b',1980.0,,artist_190,r&b,synth000190,synthartist000190
+191,<intro_1> Am G F E <bridge_1> Am F C G <outro_1> Am Dm Em Am,,,,,artist_191,,synth000191,synthartist000191
+192,<intro_1> Am7 Dm7 G7 Cmaj7 <bridge_1> Am F C G <outro_1> Am7 Dm7 G7 Cmaj7,,'jazz',2020.0,,artist_192,jazz,,
+193,<intro_1> Cm Bb Ab G <bridge_1> Cm Ab Eb Bb <chorus_1> Cm Fm Bb Eb <verse_1> Cm Bb Ab G <outro_1> Cm Bb Ab G,,'folk',1980.0,,artist_193,folk,synth000193,synthartist000193
+194,<intro_1> G#m E B F# <solo_1> B G#m E F# <outro_1> B G#m E F#,,'jazz',1990.0,,artist_194,jazz,,
+195,<intro_1> Dm7 G7 Cmaj7 <bridge_1> Am F C G <solo_1> C F G F <verse_1> C F G F <outro_1> C G Am F,,'electronic',,,artist_195,electronic,synth000195,synthartist000195
+196,<intro_1> D G A G <chorus_1> Dmaj7 Gmaj7 A7 Dmaj7 <solo_1> Dmaj7 Gmaj7 A7 Dmaj7 <chorus_2> D Bm G A <chorus_3> D Bm G A <outro_1> D A Bm F#m G D G A,,'indie',2000.0,,artist_196,indie,synth000196,synthartist000196
+197,<intro_1> Abm Dbm Ebm Abm <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <verse_2> Abm7 Dbm7 Gb7 Cbmaj7 <verse_3> Abm7 Dbm7 Gb7 Cbmaj7 <verse_4> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm Gb Fb Eb,,'jazz',2020.0,,artist_197,jazz,synth000197,synthartist000197
+198,<intro_1> Cm7 F7 Bbmaj7 <solo_1> Cm7 F7 Bbmaj7 <bridge_1> Bb Gm Eb F <bridge_2> Cm7 F7 Bbmaj7 <outro_1> Cm7 F7 Bbmaj7,,,,,artist_198,,synth000198,synthartist000198
+199,<intro_1> Dm Bb F C <bridge_1> Dm Gm Am Dm <solo_1> Dm Gm Am Dm <outro_1> Dm7 Gm7 C7 Fmaj7,,,,,artist_199,,,
+200,<intro_1> Bb Eb F Eb <chorus_1> Bb Gm Eb F <outro_1> Cm F Bb,,'folk',1980.0,,artist_200,folk,,
+201,<intro_1> Gm Eb Bb F <chorus_1> Bb Eb F Eb <solo_1> Cm7 F7 Bbmaj7 <solo_2> Gm Eb Bb F <outro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7,,'country',2010.0,,artist_201,country,,
+202,<intro_1> Gm7 Cm7 F7 Bbmaj7 <verse_1> Gm Cm F Bb <bridge_1> Gm F Eb D <verse_2> Gm F Eb D <outro_1> Gm Cm Dm Gm,,'pop',1980.0,,artist_202,pop,synth000202,synthartist000202
+203,<intro_1> Dm Bb F C <solo_1> Dm C Bb A <outro_1> Dm Gm C F,,'electronic',1980.0,,artist_203,electronic,synth000203,synthartist000203
+204,<intro_1> Ab Eb Fm Db <bridge_1> Ab Eb Fm Db <bridge_2> Abmaj7 Dbmaj7 Eb7 Abmaj7 <solo_1> Ab Fm Db Eb <verse_1> Ab Eb Fm Db <outro_1> Ab Eb Fm Db,,,,,artist_204,,synth000204,synthartist000204
+205,<intro_1> Cm Bb Ab G <verse_1> Cm Bb Ab G <bridge_1> Cm Bb Ab G <chorus_1> Cm Ab Eb Bb <outro_1> Cm Bb Ab G,,,,,artist_205,,synth000205,synthartist000205
+206,<intro_1> Em A D <chorus_1> Em A D <bridge_1> Bm G D A <verse_1> D A Bm G <chorus_2> Em A D <outro_1> D A Bm G,,'pop',1970.0,,artist_206,pop,synth000206,synthartist000206
+207,<intro_1> Dm7 Gm7 C7 Fmaj7 <solo_1> Dm7 Gm7 C7 Fmaj7 <bridge_1> Dm Bb F C <outro_1> Dm Gm C F,,,2020.0,,artist_207,,synth000207,synthartist000207
+208,<intro_1> F#m Bm E A <solo_1> F#m7 Bm7 E7 Amaj7 <solo_2> F#m Bm C#m F#m <chorus_1> F#m D A E <outro_1> F#m D A E,,'jazz',2020.0,,artist_208,jazz,synth000208,synthartist000208
+209,<intro_1> Ebm Cb Gb Db <verse_1> Ebm Cb Gb Db <outro_1> Ebm Abm Db Gb,,'country',2010.0,,artist_209,country,synth000209,synthartist000209
+210,<intro_1> B G#m E F# <solo_1> C#m F# B <outro_1> Bmaj7 Emaj7 F#7 Bmaj7,,,1980.0,,artist_210,,,
+211,<intro_1> Gm Cm F Bb <bridge_1> Gm F Eb D <outro_1> Gm Eb Bb F,,'electronic',,,artist_211,electronic,synth000211,synthartist000211
+212,<intro_1> Bm Em F#m Bm <bridge_1> Bm Em F#m Bm <bridge_2> Bm7 Em7 A7 Dmaj7 <chorus_1> Bm G D A <outro_1> Bm7 Em7 A7 Dmaj7,,,,,artist_212,,synth000212,synthartist000212
+213,<intro_1> Bb F Gm Eb <bridge_1> Bb Eb F Eb <solo_1> Bb F Gm Dm Eb Bb Eb F <verse_1> Bb F Gm Dm Eb Bb Eb F <bridge_2> Bbmaj7 Ebmaj7 F7 Bbmaj7 <outro_1> Bb F Gm Dm Eb Bb Eb F,,'metal',,,artist_213,metal,,
+214,<intro_1> Em C G D <verse_1> G D Em Bm C G C D <outro_1> Am D G,,,,,artist_214,,,
+215,<intro_1> E B C#m A <chorus_1> Emaj7 Amaj7 B7 Emaj7 <verse_1> F#m7 B7 Emaj7 <chorus_2> E B C#m A <outro_1> C#m A E B,,,,,artist_215,,synth000215,synthartist000215
+216,<intro_1> Em Am Bm Em <verse_1> Em Am D G <outro_1> Em Am Bm Em,,'indie',1980.0,,artist_216,indie,,
+217,<intro_1> F# C# D#m A#m B F# B C# <bridge_1> F# D#m B C# <verse_1> F# D#m B C# <chorus_1> G#m C# F# <bridge_2> F# B C# B <outro_1> F# B C# B,,,,,artist_217,,synth000217,synthartist000217
+218,<intro_1> Eb Ab Bb Ab <bridge_1> Cm Ab Eb Bb <outro_1> Eb Cm Ab Bb,,'folk',,,artist_218,folk,synth000218,synthartist000218
+219,<intro_1> E B C#m A <chorus_1> E C#m A B <solo_1> E B C#m G#m A E A B <chorus_2> E B C#m A <outro_1> E B C#m G#m A E A B,,,2020.0,,artist_219,,synth000219,synthartist000219
+220,<intro_1> G D Em C <solo_1> Am D G <bridge_1> G D Em Bm C G C D <bridge_2> G Em C D <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,'country',1970.0,,artist_220,country,synth000220,synthartist000220
+221,<intro_1> Am G F E <bridge_1> Am F C G <verse_1> Am G F E <bridge_2> Am G F E <solo_1> Am Dm G C <outro_1> Am7 Dm7 G7 Cmaj7,,'electronic',1990.0,,artist_221,electronic,synth000221,synthartist000221
+222,<intro_1> Bbm Eb Ab <solo_1> Fm Db Ab Eb <outro_1> Ab Db Eb Db,,,2020.0,,artist_222,,synth000222,synthartist000222
+223,<intro_1> G D Em C <chorus_1> G Em C D <bridge_1> G C D C <outro_1> G D Em C,,,1990.0,,artist_223,,,
+224,<intro_1> Em Am Bm Em <verse_1> Em D C B <bridge_1> Em Am Bm Em <outro_1> Em Am Bm Em,,'country',2000.0,,artist_224,country,,
+225,<intro_1> Bm7 Em7 A7 Dmaj7 <bridge_1> Bm Em F#m Bm <solo_1> Bm G D A <outro_1> Bm A G F#,,,,,artist_225,,synth000225,synthartist000225
+226,<intro_1> Em D C B <chorus_1> Em D C B <verse_1> Em D C B <chorus_2> Em D C B <chorus_3> Em D C B <outro_1> Em C G D,,,1980.0,,artist_226,,synth000226,synthartist000226
+227,<intro_1> Bm Em F#m Bm <chorus_1> Bm Em F#m Bm <bridge_1> Bm7 Em7 A7 Dmaj7 <chorus_2> Bm Em F#m Bm <chorus_3> Bm7 Em7 A7 Dmaj7 <outro_1> Bm A G F#,,'hip hop',,,artist_227,hip hop,,
+228,<intro_1> F#m Bm C#m F#m <bridge_1> F#m E D C# <verse_1> F#m Bm C#m F#m <chorus_1> F#m Bm C#m F#m <chorus_2> F#m Bm C#m F#m <outro_1> F#m D A E,,'indie',1970.0,,artist_228,indie,,
+229,<intro_1> Am G F E <chorus_1> Am Dm Em Am <solo_1> Am7 Dm7 G7 Cmaj7 <outro_1> Am Dm G C,,'electronic',2010.0,,artist_229,electronic,,
+230,<intro_1> Em A D <chorus_1> Dmaj7 Gmaj7 A7 Dmaj7 <outro_1> D G A G,,'folk',,,artist_230,folk,,
+231,<intro_1> E B C#m A <chorus_1> C#m A E B <outro_1> E B C#m G#m A E A B,,'country',1970.0,,artist_231,country,,
+232,<intro_1> C#m7 F#7 Bmaj7 <bridge_1> B F# G#m D#m E B E F# <verse_1> C#m7 F#7 Bmaj7 <verse_2> Bmaj7 Emaj7 F#7 Bmaj7 <verse_3> Bmaj7 Emaj7 F#7 Bmaj7 <outro_1> B F# G#m D#m E B E F#,,,1980.0,,artist_232,,,
+233,<intro_1> Bb F Gm Dm Eb Bb Eb F <chorus_1> Bb F Gm Dm Eb Bb Eb F <solo_1> Bb F Gm Eb <solo_2> Gm Eb Bb F <solo_3> Bb Gm Eb F <outro_1> Bbmaj7 Ebmaj7 F7 Bbmaj7,,,,,artist_233,,synth000233,synthartist000233
+234,<intro_1> G C D C <chorus_1> Em C G D <verse_1> G C D C <bridge_1> Gmaj7 Cmaj7 D7 Gmaj7 <outro_1> Am D G,,,2020.0,,artist_234,,,
+235,<intro_1> Cm Fm Bb Eb <chorus_1> Cm Fm Bb Eb <chorus_2> Cm Fm Bb Eb <chorus_3> Cm Fm Bb Eb <chorus_4> Cm Fm Bb Eb <outro_1> Cm Ab Eb Bb,,'country',,,artist_235,country,synth000235,synthartist000235
+236,<intro_1> G#m E B F# <chorus_1> G#m E B F# <verse_1> B F# G#m E <verse_2> B F# G#m E <solo_1> B G#m E F# <outro_1> B F# G#m E,,'pop',,,artist_236,pop,synth000236,synthartist000236
+237,<intro_1> C#m A E B <bridge_1> C#m A E B <outro_1> F#m7 B7 Emaj7,,,,,artist_237,,synth000237,synthartist000237
+238,<intro_1> Bm Em F#m Bm <solo_1> Bm G D A <solo_2> Bm Em F#m Bm <solo_3> Bm Em F#m Bm <bridge_1> Bm Em A D <outro_1> Bm A G F#,,,2010.0,,artist_238,,synth000238,synthartist000238
+239,<intro_1> Em C G D <bridge_1> G Em C D <verse_1> Am7 D7 Gmaj7 <solo_1> G Em C D <outro_1> G Em C D,,'metal',1990.0,,artist_239,metal,synth000239,synthartist000239
+240,<intro_1> Fmaj7 Bbmaj7 C7 Fmaj7 <solo_1> F C Dm Am Bb F Bb C <outro_1> F C Dm Bb,,'indie',2010.0,,artist_240,indie,synth000240,synthartist000240
+241,<intro_1> Bm G D A <verse_1> Bm7 Em7 A7 Dmaj7 <verse_2> Bm Em F#m Bm <verse_3> Bm Em F#m Bm <outro_1> Bm A G F#,,,,,artist_241,,,
+242,<intro_1> Gm7 C7 Fmaj7 <bridge_1> F C Dm Am Bb F Bb C <verse_1> Dm Bb F C <outro_1> Gm C F,,'folk',2000.0,,artist_242,folk,synth000242,synthartist000242
+243,<intro_1> Bm G D A <bridge_1> Bm Em A D <solo_1> Bm A G F# <outro_1> Bm7 Em7 A7 Dmaj7,,,,,artist_243,,synth000243,synthartist000243
+244,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <chorus_1> Abm Fb Cb Gb <bridge_1> Abm7 Dbm7 Gb7 Cbmaj7 <bridge_2> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm Fb Cb Gb,,,2020.0,,artist_244,,synth000244,synthartist000244
+245,<intro_1> Em Am Bm Em <verse_1> Em Am D G <chorus_1> Em D C B <outro_1> Em C G D,,,1980.0,,artist_245,,synth000245,synthartist000245
+246,<intro_1> Em7 A7 Dmaj7 <verse_1> D A Bm F#m G D G A <bridge_1> Dmaj7 Gmaj7 A7 Dmaj7 <bridge_2> Em A D <chorus_1> D Bm G A <outro_1> Em A D,,'pop',2010.0,,artist_246,pop,synth000246,synthartist000246
+247,<intro_1> B G#m E F# <chorus_1> G#m E B F# <bridge_1> C#m7 F#7 Bmaj7 <outro_1> C#m7 F#7 Bmaj7,,,2000.0,,artist_247,,synth000247,synthartist000247
+248,<intro_1> Am Dm G C <verse_1> Am7 Dm7 G7 Cmaj7 <verse_2> Am7 Dm7 G7 Cmaj7 <verse_3> Am F C G <chorus_1> Am G F E <outro_1> Am7 Dm7 G7 Cmaj7,,'r&b',,,artist_248,r&b,synth000248,synthartist000248
+249,<intro_1> F C Dm Am Bb F Bb C <solo_1> F Dm Bb C <outro_1> F C Dm Am Bb F Bb C,,,1980.0,,artist_249,,,
+250,<intro_1> D A Bm G <verse_1> D A Bm G <verse_2> D A Bm G <chorus_1> Bm G D A <chorus_2> Bm G D A <outro_1> Em7 A7 Dmaj7,,'jazz',,,artist_250,jazz,synth000250,synthartist000250
+251,<intro_1> B F# G#m D#m E B E F# <verse_1> C#m F# B <solo_1> B F# G#m D#m E B E F# <chorus_1> B G#m E F# <solo_2> B F# G#m D#m E B E F# <outro_1> G#m E B F#,,,1980.0,,artist_251,,synth000251,synthartist000251
+252,<intro_1> Am F C G <solo_1> Am F C G <verse_1> Am7 Dm7 G7 Cmaj7 <outro_1> Am7 Dm7 G7 Cmaj7,,'r&b',2020.0,,artist_252,r&b,,
+253,<intro_1> F#m7 Bm7 E7 Amaj7 <verse_1> F#m Bm C#m F#m <outro_1> F#m Bm E A,,'r&b',2020.0,,artist_253,r&b,synth000253,synthartist000253
+254,<intro_1> B G#m E F# <verse_1> B G#m E F# <solo_1> Bmaj7 Emaj7 F#7 Bmaj7 <bridge_1> C#m F# B <bridge_2> B F# G#m D#m E B E F# <outro_1> Bmaj7 Emaj7 F#7 Bmaj7,,,1980.0,,artist_254,,synth000254,synthartist000254
+255,<intro_1> Am Dm G C <solo_1> Am F C G <verse_1> Am Dm G C <outro_1> Am G F E,,'folk',1970.0,,artist_255,folk,synth000255,synthartist000255
+256,<intro_1> Am F C G <bridge_1> Dm G C <verse_1> C Am F G <outro_1> Am F C G,,'folk',1980.0,,artist_256,folk,synth000256,synthartist000256
+257,<intro_1> Ab Eb Fm Cm Db Ab Db Eb <verse_1> Bbm7 Eb7 Abmaj7 <outro_1> Bbm7 Eb7 Abmaj7,,'folk',1970.0,,artist_257,folk,,
+258,<intro_1> Cm Bb Ab G <chorus_1> Cm Fm Gm Cm <bridge_1> Cm Bb Ab G <outro_1> Cm Fm Bb Eb,,'metal',2010.0,,artist_258,metal,synth000258,synthartist000258
+259,<intro_1> E A B A <bridge_1> E C#m A B <bridge_2> E C#m A B <outro_1> E A B A,,'rock',1980.0,,artist_259,rock,synth000259,synthartist000259
+260,<intro_1> G C D C <verse_1> Gmaj7 Cmaj7 D7 Gmaj7 <bridge_1> Am7 D7 Gmaj7 <bridge_2> G C D C <outro_1> Em C G D,,,2020.0,,artist_260,,synth000260,synthartist000260
+261,<intro_1> F#m E D C# <chorus_1> F#m7 Bm7 E7 Amaj7 <outro_1> F#m Bm E A,,'rock',1990.0,,artist_261,rock,,
+262,<intro_1> Bb Eb F Eb <verse_1> Bb Gm Eb F <bridge_1> Bb Eb F Eb <solo_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <outro_1> Bb Eb F Eb,,,1990.0,,artist_262,,synth000262,synthartist000262
+263,<intro_1> C#m F# B <solo_1> C#m7 F#7 Bmaj7 <bridge_1> G#m E B F# <outro_1> C#m F# B,,'r&b',2010.0,,artist_263,r&b,,
+264,<intro_1> F# D#m B C# <bridge_1> F#maj7 Bmaj7 C#7 F#maj7 <solo_1> G#m C# F# <chorus_1> F# B C# B <outro_1> F# B C# B,,'electronic',1980.0,,artist_264,electronic,synth000264,synthartist000264
+265,<intro_1> Am Dm Em Am <chorus_1> Am7 Dm7 G7 Cmaj7 <chorus_2> Am7 Dm7 G7 Cmaj7 <solo_1> Am G F E <outro_1> Am Dm Em Am,,'pop',2010.0,,artist_265,pop,,
+266,<intro_1> Bbm Ebm Fm Bbm <solo_1> Bbm Ebm Fm Bbm <outro_1> Bbm Ebm Ab Db,,'folk',1980.0,,artist_266,folk,synth000266,synthartist000266
+267,<intro_1> Gm7 Cm7 F7 Bbmaj7 <solo_1> Gm F Eb D <chorus_1> Gm7 Cm7 F7 Bbmaj7 <bridge_1> Gm Eb Bb F <bridge_2> Gm F Eb D <outro_1> Gm Cm Dm Gm,,,1990.0,,artist_267,,synth000267,synthartist000267
+268,<intro_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm Bb Ab G <bridge_2> Cm Bb Ab G <outro_1> Cm7 Fm7 Bb7 Ebmaj7,,'rock',,,artist_268,rock,synth000268,synthartist000268
+269,<intro_1> Am Dm G C <chorus_1> Am F C G <bridge_1> Am F C G <outro_1> Am Dm G C,,,2000.0,,artist_269,,,
+270,<intro_1> Fm7 Bbm7 Eb7 Abmaj7 <bridge_1> Fm Db Ab Eb <solo_1> Fm Bbm Cm Fm <verse_1> Fm Eb Db C <chorus_1> Fm7 Bbm7 Eb7 Abmaj7 <outro_1> Fm Db Ab Eb,,,,,artist_270,,synth000270,synthartist000270
+271,<intro_1> G#m C# F# <verse_1> F# B C# B <solo_1> F# B C# B <chorus_1> D#m B F# C# <solo_2> F# C# D#m B <outro_1> F# B C# B,,'r&b',,,artist_271,r&b,synth000271,synthartist000271
+272,<intro_1> Bb F Gm Dm Eb Bb Eb F <bridge_1> Bb Eb F Eb <solo_1> Cm F Bb <chorus_1> Bb Eb F Eb <chorus_2> Bb Eb F Eb <outro_1> Gm Eb Bb F,,'folk',2010.0,,artist_272,folk,synth000272,synthartist000272
+273,<intro_1> B F# G#m D#m E B E F# <bridge_1> C#m7 F#7 Bmaj7 <chorus_1> G#m E B F# <outro_1> C#m F# B,,,1980.0,,artist_273,,synth000273,synthartist000273
+274,<intro_1> C#m A E B <verse_1> E A B A <bridge_1> E A B A <bridge_2> Emaj7 Amaj7 B7 Emaj7 <outro_1> E B C#m G#m A E A B,,,,,artist_274,,synth000274,synthartist000274
+275,<intro_1> Bm A G F# <chorus_1> Bm A G F# <chorus_2> Bm Em A D <verse_1> Bm G D A <outro_1> Bm Em A D,,,,,artist_275,,synth000275,synthartist000275
+276,<intro_1> F# B C# B <solo_1> F# C# D#m A#m B F# B C# <verse_1> D#m B F# C# <bridge_1> F# D#m B C# <outro_1> D#m B F# C#,,'hip hop',2010.0,,artist_276,hip hop,synth000276,synthartist000276
+277,<intro_1> Fm Bb Eb <verse_1> Fm Bb Eb <outro_1> Eb Bb Cm Ab,,,1990.0,,artist_277,,,
+278,<intro_1> F#m Bm E A <verse_1> F#m E D C# <verse_2> F#m Bm C#m F#m <chorus_1> F#m7 Bm7 E7 Amaj7 <verse_3> F#m Bm E A <outro_1> F#m Bm E A,,'indie',,,artist_278,indie,synth000278,synthartist000278
+279,<intro_1> F C Dm Am Bb F Bb C <solo_1> Gm C F <bridge_1> Gm C F <outro_1> F Bb C Bb,,,,,artist_279,,synth000279,synthartist000279
+280,<intro_1> C G Am F <chorus_1> Am F C G <outro_1> C G Am F,,'rock',,,artist_280,rock,synth000280,synthartist000280
+281,<intro_1> Bm A G F# <bridge_1> Bm7 Em7 A7 Dmaj7 <outro_1> Bm Em F#m Bm,,,,,artist_281,,synth000281,synthartist000281
+282,<intro_1> F#m Bm E A <chorus_1> F#m Bm C#m F#m <verse_1> F#m Bm C#m F#m <verse_2> F#m D A E <outro_1> F#m E D C#,,'folk',,,artist_282,folk,synth000282,synthartist000282
+283,<intro_1> Am Dm Em Am <bridge_1> Am Dm Em Am <solo_1> Am7 Dm7 G7 Cmaj7 <outro_1> Am7 Dm7 G7 Cmaj7,,,,,artist_283,,synth000283,synthartist000283
+284,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <solo_1> Ebm Abm Bbm Ebm <verse_1> Ebm Cb Gb Db <outro_1> Ebm Db Cb Bb,,'electronic',2020.0,,artist_284,electronic,synth000284,synthartist000284
+285,<intro_1> Ab Eb Fm Cm Db Ab Db Eb <verse_1> Ab Eb Fm Cm Db Ab Db Eb <solo_1> Ab Eb Fm Cm Db Ab Db Eb <outro_1> Ab Eb Fm Cm Db Ab Db Eb,,,,,artist_285,,synth000285,synthartist000285
+286,<intro_1> C F G F <chorus_1> Am F C G <bridge_1> C Am F G <bridge_2> C G Am Em F C F G <outro_1> C G Am Em F C F G,,'rock',,,artist_286,rock,synth000286,synthartist000286
+287,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <chorus_1> Abm Dbm Gb Cb <chorus_2> Abm Dbm Gb Cb <bridge_1> Abm Gb Fb Eb <outro_1> Abm Dbm Ebm Abm,,'folk',1980.0,,artist_287,folk,synth000287,synthartist000287
+288,<intro_1> Am7 D7 Gmaj7 <solo_1> Em C G D <chorus_1> G Em C D <solo_2> G D Em C <verse_1> G Em C D <outro_1> G D Em Bm C G C D,,,1990.0,,artist_288,,synth000288,synthartist000288
+289,<intro_1> D A Bm G <chorus_1> Em7 A7 Dmaj7 <chorus_2> Em7 A7 Dmaj7 <outro_1> Em A D,,'hip hop',2010.0,,artist_289,hip hop,synth000289,synthartist000289
+290,<intro_1> Ebm Cb Gb Db <chorus_1> Ebm Abm Db Gb <solo_1> Ebm7 Abm7 Db7 Gbmaj7 <outro_1> Ebm Abm Db Gb,,'rock',1970.0,,artist_290,rock,synth000290,synthartist000290
+291,<intro_1> Bbm Ebm Ab Db <verse_1> Bbm Gb Db Ab <outro_1> Bbm Ab Gb F,,'electronic',2000.0,,artist_291,electronic,,
+292,<intro_1> Dm C Bb A <bridge_1> Dm Gm C F <chorus_1> Dm Bb F C <verse_1> Dm Gm Am Dm <chorus_2> Dm C Bb A <outro_1> Dm Bb F C,,'rock',,,artist_292,rock,synth000292,synthartist000292
+293,<intro_1> Abm Gb Fb Eb <chorus_1> Abm Dbm Ebm Abm <outro_1> Abm7 Dbm7 Gb7 Cbmaj7,,,2010.0,,artist_293,,synth000293,synthartist000293
+294,<intro_1> F#m Bm C#m F#m <verse_1> F#m D A E <outro_1> F#m E D C#,,,1990.0,,artist_294,,,
+295,<intro_1> Gm Eb Bb F <bridge_1> Gm Cm F Bb <chorus_1> Gm Cm Dm Gm <chorus_2> Gm Cm Dm Gm <outro_1> Gm Cm F Bb,,,,,artist_295,,,
+296,<intro_1> D Bm G A <bridge_1> Bm G D A <solo_1> D Bm G A <outro_1> Em7 A7 Dmaj7,,,,,artist_296,,synth000296,synthartist000296
+297,<intro_1> Dm C Bb A <bridge_1> Dm Bb F C <outro_1> Dm Gm Am Dm,,'metal',,,artist_297,metal,,
+298,<intro_1> Ebm Abm Db Gb <bridge_1> Ebm7 Abm7 Db7 Gbmaj7 <outro_1> Ebm Abm Db Gb,,'r&b',,,artist_298,r&b,synth000298,synthartist000298
+299,<intro_1> Dm G C <chorus_1> C G Am F <verse_1> C G Am Em F C F G <verse_2> C G Am Em F C F G <outro_1> Cmaj7 Fmaj7 G7 Cmaj7,,'electronic',,,artist_299,electronic,synth000299,synthartist000299
+300,<intro_1> Bb F Gm Eb <verse_1> Bb F Gm Eb <solo_1> Bb F Gm Eb <outro_1> Bb Gm Eb F,,,1990.0,,artist_300,,synth000300,synthartist000300
+301,<intro_1> Ab Eb Fm Cm Db Ab Db Eb <bridge_1> Bbm7 Eb7 Abmaj7 <chorus_1> Ab Fm Db Eb <solo_1> Bbm Eb Ab <outro_1> Fm Db Ab Eb,,'metal',,,artist_301,metal,synth000301,synthartist000301
+302,<intro_1> Cm Ab Eb Bb <solo_1> Cm Ab Eb Bb <chorus_1> Cm Fm Bb Eb <verse_1> Cm Fm Bb Eb <outro_1> Cm Ab Eb Bb,,,,,artist_302,,,
+303,<intro_1> Eb Ab Bb Ab <verse_1> Fm Bb Eb <bridge_1> Eb Bb Cm Gm Ab Eb Ab Bb <bridge_2> Cm Ab Eb Bb <solo_1> Eb Bb Cm Gm Ab Eb Ab Bb <outro_1> Eb Ab Bb Ab,,,1970.0,,artist_303,,,
+304,<intro_1> G D Em C <verse_1> Am D G <verse_2> Am D G <outro_1> G D Em C,,'hip hop',2000.0,,artist_304,hip hop,synth000304,synthartist000304
+305,<intro_1> C F G F <bridge_1> C F G F <outro_1> Dm G C,,,1990.0,,artist_305,,,
+306,<intro_1> F C Dm Bb <chorus_1> Gm C F <bridge_1> Fmaj7 Bbmaj7 C7 Fmaj7 <outro_1> F Bb C Bb,,,1980.0,,artist_306,,synth000306,synthartist000306
+307,<intro_1> Ebm Db Cb Bb <bridge_1> Ebm7 Abm7 Db7 Gbmaj7 <solo_1> Ebm7 Abm7 Db7 Gbmaj7 <solo_2> Ebm Cb Gb Db <verse_1> Ebm Cb Gb Db <outro_1> Ebm Db Cb Bb,,'metal',1970.0,,artist_307,metal,,
+308,<intro_1> Fm7 Bbm7 Eb7 Abmaj7 <bridge_1> Fm Bbm Cm Fm <outro_1> Fm Db Ab Eb,,'indie',,,artist_308,indie,,
+309,<intro_1> G Em C D <chorus_1> G D Em C <outro_1> Am D G,,,2000.0,,artist_309,,synth000309,synthartist000309
+310,<intro_1> F#m Bm C#m F#m <chorus_1> F#m Bm C#m F#m <outro_1> F#m Bm C#m F#m,,,,,artist_310,,,
+311,<intro_1> G D Em Bm C G C D <chorus_1> Em C G D <solo_1> G D Em C <solo_2> Am D G <solo_3> G D Em Bm C G C D <outro_1> G C D C,,,2020.0,,artist_311,,,
+312,<intro_1> Cm Fm Bb Eb <solo_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm7 Fm7 Bb7 Ebmaj7 <chorus_1> Cm Bb Ab G <outro_1> Cm Bb Ab G,,'pop',1970.0,,artist_312,pop,,
+313,<intro_1> Fm Db Ab Eb <bridge_1> Fm7 Bbm7 Eb7 Abmaj7 <outro_1> Fm Bbm Eb Ab,,,,,artist_313,,,
+314,<intro_1> Am G F E <bridge_1> Am7 Dm7 G7 Cmaj7 <outro_1> Am Dm Em Am,,'pop',,,artist_314,pop,synth000314,synthartist000314
+315,<intro_1> Gm7 Cm7 F7 Bbmaj7 <chorus_1> Gm Cm Dm Gm <verse_1> Gm7 Cm7 F7 Bbmaj7 <outro_1> Gm Cm Dm Gm,,'r&b',,,artist_315,r&b,synth000315,synthartist000315
+316,<intro_1> A E F#m C#m D A D E <solo_1> Bm E A <outro_1> A E F#m C#m D A D E,,,,,artist_316,,,
+317,<intro_1> Bb F Gm Dm Eb Bb Eb F <solo_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <bridge_1> Cm F Bb <outro_1> Bb F Gm Eb,,'jazz',,,artist_317,jazz,synth000317,synthartist000317
+318,<intro_1> Eb Bb Cm Gm Ab Eb Ab Bb <verse_1> Cm Ab Eb Bb <solo_1> Eb Bb Cm Gm Ab Eb Ab Bb <verse_2> Cm Ab Eb Bb <outro_1> Fm7 Bb7 Ebmaj7,,,,,artist_318,,synth000318,synthartist000318
+319,<intro_1> Em Am Bm Em <bridge_1> Em Am Bm Em <bridge_2> Em Am D G <verse_1> Em Am D G <verse_2> Em Am D G <outro_1> Em Am D G,,'indie',2000.0,,artist_319,indie,,
+320,<intro_1> Ebm Abm Bbm Ebm <bridge_1> Ebm7 Abm7 Db7 Gbmaj7 <bridge_2> Ebm Abm Bbm Ebm <bridge_3> Ebm7 Abm7 Db7 Gbmaj7 <outro_1> Ebm Abm Bbm Ebm,,'metal',1970.0,,artist_320,metal,,
+321,<intro_1> Dm Gm Am Dm <verse_1> Dm7 Gm7 C7 Fmaj7 <solo_1> Dm Gm C F <bridge_1> Dm Gm C F <bridge_2> Dm Bb F C <outro_1> Dm Bb F C,,,1970.0,,artist_321,,,
+322,<intro_1> Bbm7 Ebm7 Ab7 Dbmaj7 <chorus_1> Bbm Ab Gb F <solo_1> Bbm Ab Gb F <verse_1> Bbm Ab Gb F <outro_1> Bbm Ebm Ab Db,,'folk',,,artist_322,folk,,
+323,<intro_1> Dm7 Gm7 C7 Fmaj7 <solo_1> Dm7 Gm7 C7 Fmaj7 <bridge_1> Dm Gm Am Dm <bridge_2> Dm Bb F C <outro_1> Dm Gm Am Dm,,,,,artist_323,,,
+324,<intro_1> Cm Fm Bb Eb <chorus_1> Cm Ab Eb Bb <outro_1> Cm Fm Gm Cm,,,1970.0,,artist_324,,,
+325,<intro_1> F#m7 Bm7 E7 Amaj7 <chorus_1> F#m E D C# <chorus_2> F#m Bm E A <bridge_1> F#m Bm E A <outro_1> F#m Bm E A,,,1980.0,,artist_325,,,
+326,<intro_1> B F# G#m D#m E B E F# <bridge_1> Bmaj7 Emaj7 F#7 Bmaj7 <outro_1> C#m F# B,,,,,artist_326,,,
+327,<intro_1> Cm Fm Bb Eb <solo_1> Cm7 Fm7 Bb7 Ebmaj7 <chorus_1> Cm Bb Ab G <outro_1> Cm Ab Eb Bb,,,,,artist_327,,synth000327,synthartist000327
+328,<intro_1> Ab Eb Fm Db <bridge_1> Bbm Eb Ab <chorus_1> Abmaj7 Dbmaj7 Eb7 Abmaj7 <verse_1> Bbm Eb Ab <verse_2> Ab Db Eb Db <outro_1> Ab Eb Fm Db,,,2000.0,,artist_328,,,
+329,<intro_1> Dm G C <chorus_1> C Am F G <outro_1> C F G F,,,1990.0,,artist_329,,synth000329,synthartist000329
+330,<intro_1> Dm7 G7 Cmaj7 <solo_1> Dm G C <bridge_1> C G Am F <outro_1> Cmaj7 Fmaj7 G7 Cmaj7,,,,,artist_330,,synth000330,synthartist000330
+331,<intro_1> Dmaj7 Gmaj7 A7 Dmaj7 <bridge_1> Bm G D A <bridge_2> D G A G <solo_1> D Bm G A <outro_1> Em A D,,,1980.0,,artist_331,,synth000331,synthartist000331
+332,<intro_1> Em7 Am7 D7 Gmaj7 <bridge_1> Em D C B <bridge_2> Em7 Am7 D7 Gmaj7 <solo_1> Em Am D G <solo_2> Em7 Am7 D7 Gmaj7 <outro_1> Em Am Bm Em,,,,,artist_332,,synth000332,synthartist000332
+333,<intro_1> F#m B E <bridge_1> E B C#m G#m A E A B <chorus_1> E A B A <chorus_2> E C#m A B <solo_1> E B C#m G#m A E A B <outro_1> E B C#m A,,'folk',1990.0,,artist_333,folk,synth000333,synthartist000333
+334,<intro_1> Ebm Db Cb Bb <solo_1> Ebm Abm Bbm Ebm <outro_1> Ebm7 Abm7 Db7 Gbmaj7,,'pop',,,artist_334,pop,,
+335,<intro_1> G D Em Bm C G C D <solo_1> Em C G D <solo_2> G D Em Bm C G C D <chorus_1> Gmaj7 Cmaj7 D7 Gmaj7 <solo_3> Am7 D7 Gmaj7 <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,'jazz',,,artist_335,jazz,synth000335,synthartist000335
+336,<intro_1> Ab Eb Fm Db <solo_1> Ab Db Eb Db <chorus_1> Bbm7 Eb7 Abmaj7 <solo_2> Ab Db Eb Db <outro_1> Ab Db Eb Db,,'rock',1990.0,,artist_336,rock,,
+337,<intro_1> Fm Db Ab Eb <solo_1> Fm Bbm Eb Ab <chorus_1> Fm7 Bbm7 Eb7 Abmaj7 <bridge_1> Fm Bbm Cm Fm <solo_2> Fm Bbm Cm Fm <outro_1> Fm Bbm Cm Fm,,,1970.0,,artist_337,,synth000337,synthartist000337
+338,<intro_1> A D E D <chorus_1> Amaj7 Dmaj7 E7 Amaj7 <outro_1> F#m D A E,,,1980.0,,artist_338,,synth000338,synthartist000338
+339,<intro_1> D A Bm F#m G D G A <solo_1> Em7 A7 Dmaj7 <verse_1> D A Bm G <solo_2> Em A D <outro_1> D A Bm G,,,1980.0,,artist_339,,synth000339,synthartist000339
+340,<intro_1> Bm G D A <chorus_1> Bm7 Em7 A7 Dmaj7 <solo_1> Bm G D A <outro_1> Bm7 Em7 A7 Dmaj7,,,1990.0,,artist_340,,,
+341,<intro_1> Am7 Dm7 G7 Cmaj7 <verse_1> Am G F E <solo_1> Am G F E <bridge_1> Am F C G <bridge_2> Am7 Dm7 G7 Cmaj7 <outro_1> Am F C G,,,,,artist_341,,,
+342,<intro_1> B F# G#m E <chorus_1> Bmaj7 Emaj7 F#7 Bmaj7 <bridge_1> C#m7 F#7 Bmaj7 <outro_1> B F# G#m E,,'electronic',1990.0,,artist_342,electronic,synth000342,synthartist000342
+343,<intro_1> Abm Fb Cb Gb <chorus_1> Abm Fb Cb Gb <outro_1> Abm Fb Cb Gb,,'country',2020.0,,artist_343,country,,
+344,<intro_1> Bmaj7 Emaj7 F#7 Bmaj7 <bridge_1> B F# G#m E <verse_1> B G#m E F# <bridge_2> B E F# E <verse_2> B G#m E F# <outro_1> C#m7 F#7 Bmaj7,,'pop',,,artist_344,pop,synth000344,synthartist000344
+345,<intro_1> Em D C B <solo_1> Em Am D G <solo_2> Em7 Am7 D7 Gmaj7 <bridge_1> Em7 Am7 D7 Gmaj7 <outro_1> Em7 Am7 D7 Gmaj7,,'electronic',1990.0,,artist_345,electronic,synth000345,synthartist000345
+346,<intro_1> Gm Cm Dm Gm <solo_1> Gm F Eb D <verse_1> Gm Cm Dm Gm <solo_2> Gm Cm F Bb <outro_1> Gm7 Cm7 F7 Bbmaj7,,'country',2010.0,,artist_346,country,,
+347,<intro_1> D A Bm G <bridge_1> Bm G D A <solo_1> D G A G <solo_2> D G A G <verse_1> Em A D <outro_1> D A Bm F#m G D G A,,'hip hop',,,artist_347,hip hop,,
+348,<intro_1> Fmaj7 Bbmaj7 C7 Fmaj7 <solo_1> F C Dm Bb <outro_1> F Bb C Bb,,,,,artist_348,,,
+349,<intro_1> A E F#m D <chorus_1> A E F#m C#m D A D E <verse_1> A D E D <chorus_2> Bm E A <verse_2> Bm7 E7 Amaj7 <outro_1> F#m D A E,,,,,artist_349,,,
+350,<intro_1> Cm Fm Bb Eb <bridge_1> Cm7 Fm7 Bb7 Ebmaj7 <outro_1> Cm Fm Gm Cm,,'electronic',,,artist_350,electronic,synth000350,synthartist000350
+351,<intro_1> Cm Fm Bb Eb <solo_1> Cm Fm Bb Eb <chorus_1> Cm Bb Ab G <chorus_2> Cm Bb Ab G <chorus_3> Cm Fm Gm Cm <outro_1> Cm Bb Ab G,,'hip hop',1970.0,,artist_351,hip hop,synth000351,synthartist000351
+352,<intro_1> F# C# D#m B <solo_1> G#m C# F# <verse_1> F# B C# B <bridge_1> F#maj7 Bmaj7 C#7 F#maj7 <outro_1> G#m7 C#7 F#maj7,,'pop',,,artist_352,pop,synth000352,synthartist000352
+353,<intro_1> Cm7 F7 Bbmaj7 <bridge_1> Bb F Gm Eb <bridge_2> Bb F Gm Eb <verse_1> Bb F Gm Dm Eb Bb Eb F <outro_1> Bb F Gm Dm Eb Bb Eb F,,'folk',1970.0,,artist_353,folk,synth000353,synthartist000353
+354,<intro_1> Ebm Abm Bbm Ebm <chorus_1> Ebm7 Abm7 Db7 Gbmaj7 <verse_1> Ebm Db Cb Bb <outro_1> Ebm Db Cb Bb,,,1980.0,,artist_354,,synth000354,synthartist000354
+355,<intro_1> D Bm G A <solo_1> Em7 A7 Dmaj7 <verse_1> D G A G <verse_2> D G A G <outro_1> D G A G,,,2020.0,,artist_355,,synth000355,synthartist000355
+356,<intro_1> Cm Fm Gm Cm <verse_1> Cm Bb Ab G <verse_2> Cm Bb Ab G <outro_1> Cm Bb Ab G,,,1970.0,,artist_356,,synth000356,synthartist000356
+357,<intro_1> Abm Dbm Ebm Abm <bridge_1> Abm Dbm Gb Cb <bridge_2> Abm Fb Cb Gb <solo_1> Abm Gb Fb Eb <outro_1> Abm Dbm Gb Cb,,'metal',,,artist_357,metal,,
+358,<intro_1> Em Am Bm Em <solo_1> Em C G D <outro_1> Em D C B,,'jazz',2020.0,,artist_358,jazz,synth000358,synthartist000358
+359,<intro_1> Em C G D <chorus_1> Em C G D <outro_1> Em Am D G,,,2010.0,,artist_359,,synth000359,synthartist000359
+360,<intro_1> Bb Eb F Eb <bridge_1> Gm Eb Bb F <verse_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <solo_1> Bb F Gm Eb <solo_2> Bb Gm Eb F <outro_1> Bb Gm Eb F,,,1990.0,,artist_360,,synth000360,synthartist000360
+361,<intro_1> Em Am D G <solo_1> Em Am Bm Em <solo_2> Em7 Am7 D7 Gmaj7 <verse_1> Em C G D <verse_2> Em C G D <outro_1> Em7 Am7 D7 Gmaj7,,,,,artist_361,,synth000361,synthartist000361
+362,<intro_1> Cmaj7 Fmaj7 G7 Cmaj7 <verse_1> C G Am F <outro_1> C Am F G,,'country',1980.0,,artist_362,country,synth000362,synthartist000362
+363,<intro_1> Fm Db Ab Eb <solo_1> Bbm Eb Ab <solo_2> Bbm Eb Ab <outro_1> Fm Db Ab Eb,,'hip hop',1970.0,,artist_363,hip hop,synth000363,synthartist000363
+364,<intro_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm Fm Gm Cm <solo_1> Cm Ab Eb Bb <outro_1> Cm Bb Ab G,,'electronic',1990.0,,artist_364,electronic,,
+365,<intro_1> Gmaj7 Cmaj7 D7 Gmaj7 <chorus_1> Am7 D7 Gmaj7 <solo_1> G Em C D <outro_1> Em C G D,,,2020.0,,artist_365,,,
+366,<intro_1> Fm Bbm Cm Fm <verse_1> Fm Eb Db C <verse_2> Fm Eb Db C <solo_1> Fm7 Bbm7 Eb7 Abmaj7 <bridge_1> Fm7 Bbm7 Eb7 Abmaj7 <outro_1> Fm Bbm Cm Fm,,,2000.0,,artist_366,,synth000366,synthartist000366
+367,<intro_1> Em Am Bm Em <verse_1> Em7 Am7 D7 Gmaj7 <chorus_1> Em Am D G <outro_1> Em D C B,,,,,artist_367,,synth000367,synthartist000367
+368,<intro_1> Bbm Ab Gb F <verse_1> Bbm7 Ebm7 Ab7 Dbmaj7 <chorus_1> Bbm Ab Gb F <verse_2> Bbm7 Ebm7 Ab7 Dbmaj7 <outro_1> Bbm Gb Db Ab,,,1990.0,,artist_368,,synth000368,synthartist000368
+369,<intro_1> F Dm Bb C <bridge_1> Fmaj7 Bbmaj7 C7 Fmaj7 <verse_1> Fmaj7 Bbmaj7 C7 Fmaj7 <outro_1> Dm Bb F C,,'country',1980.0,,artist_369,country,synth000369,synthartist000369
+370,<intro_1> F# C# D#m A#m B F# B C# <solo_1> D#m B F# C# <solo_2> F# B C# B <verse_1> F# B C# B <bridge_1> F# B C# B <outro_1> F# C# D#m A#m B F# B C#,,,2010.0,,artist_370,,,
+371,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <solo_1> Abm7 Dbm7 Gb7 Cbmaj7 <solo_2> Abm Dbm Gb Cb <outro_1> Abm7 Dbm7 Gb7 Cbmaj7,,'rock',2020.0,,artist_371,rock,synth000371,synthartist000371
+372,<intro_1> Fm7 Bb7 Ebmaj7 <bridge_1> Fm7 Bb7 Ebmaj7 <bridge_2> Eb Ab Bb Ab <bridge_3> Eb Ab Bb Ab <verse_1> Fm7 Bb7 Ebmaj7 <outro_1> Eb Ab Bb Ab,,'rock',2010.0,,artist_372,rock,synth000372,synthartist000372
+373,<intro_1> D A Bm F#m G D G A <bridge_1> Dmaj7 Gmaj7 A7 Dmaj7 <verse_1> D G A G <bridge_2> Em7 A7 Dmaj7 <bridge_3> D A Bm F#m G D G A <outro_1> Em A D,,'folk',1980.0,,artist_373,folk,synth000373,synthartist000373
+374,<intro_1> Fm Bbm Cm Fm <chorus_1> Fm Db Ab Eb <verse_1> Fm Bbm Cm Fm <outro_1> Fm Bbm Cm Fm,,,1990.0,,artist_374,,synth000374,synthartist000374
+375,<intro_1> Abm Fb Cb Gb <chorus_1> Abm7 Dbm7 Gb7 Cbmaj7 <chorus_2> Abm7 Dbm7 Gb7 Cbmaj7 <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm Gb Fb Eb,,,1990.0,,artist_375,,synth000375,synthartist000375
+376,<intro_1> G D Em Bm C G C D <bridge_1> Gmaj7 Cmaj7 D7 Gmaj7 <chorus_1> G Em C D <bridge_2> G D Em C <solo_1> G C D C <outro_1> G D Em Bm C G C D,,,2000.0,,artist_376,,synth000376,synthartist000376
+377,<intro_1> E B C#m G#m A E A B <chorus_1> F#m B E <chorus_2> Emaj7 Amaj7 B7 Emaj7 <chorus_3> Emaj7 Amaj7 B7 Emaj7 <outro_1> E B C#m A,,,,,artist_377,,synth000377,synthartist000377
+378,<intro_1> Fm7 Bbm7 Eb7 Abmaj7 <bridge_1> Fm7 Bbm7 Eb7 Abmaj7 <solo_1> Fm Db Ab Eb <outro_1> Fm Bbm Eb Ab,,'country',1980.0,,artist_378,country,synth000378,synthartist000378
+379,<intro_1> Em C G D <bridge_1> G Em C D <verse_1> Am7 D7 Gmaj7 <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,'electronic',,,artist_379,electronic,synth000379,synthartist000379
+380,<intro_1> Bb F Gm Dm Eb Bb Eb F <chorus_1> Bb Gm Eb F <bridge_1> Bb Gm Eb F <verse_1> Bb Gm Eb F <verse_2> Bb Gm Eb F <outro_1> Cm F Bb,,,1970.0,,artist_380,,,
+381,<intro_1> F# B C# B <verse_1> F# C# D#m A#m B F# B C# <outro_1> F#maj7 Bmaj7 C#7 F#maj7,,,,,artist_381,,synth000381,synthartist000381
+382,<intro_1> Ab Eb Fm Cm Db Ab Db Eb <bridge_1> Abmaj7 Dbmaj7 Eb7 Abmaj7 <bridge_2> Abmaj7 Dbmaj7 Eb7 Abmaj7 <bridge_3> Ab Fm Db Eb <chorus_1> Abmaj7 Dbmaj7 Eb7 Abmaj7 <outro_1> Abmaj7 Dbmaj7 Eb7 Abmaj7,,,1970.0,,artist_382,,synth000382,synthartist000382
+383,<intro_1> Gm Cm Dm Gm <chorus_1> Gm Cm F Bb <chorus_2> Gm F Eb D <chorus_3> Gm Cm Dm Gm <bridge_1> Gm Cm F Bb <outro_1> Gm Cm Dm Gm,,'metal',2010.0,,artist_383,metal,synth000383,synthartist000383
+384,<intro_1> F#m7 Bm7 E7 Amaj7 <solo_1> F#m D A E <bridge_1> F#m Bm C#m F#m <outro_1> F#m E D C#,,'r&b',2000.0,,artist_384,r&b,synth000384,synthartist000384
+385,<intro_1> Em Am D G <bridge_1> Em Am Bm Em <solo_1> Em Am Bm Em <verse_1> Em Am Bm Em <solo_2> Em D C B <outro_1> Em Am Bm Em,,'indie',,,artist_385,indie,synth000385,synthartist000385
+386,<intro_1> Am F C G <chorus_1> C Am F G <outro_1> C G Am F,,'indie',,,artist_386,indie,,
+387,<intro_1> Fm Bb Eb <verse_1> Eb Cm Ab Bb <chorus_1> Eb Cm Ab Bb <outro_1> Ebmaj7 Abmaj7 Bb7 Ebmaj7,,,1970.0,,artist_387,,,
+388,<intro_1> Gm Cm Dm Gm <chorus_1> Gm7 Cm7 F7 Bbmaj7 <outro_1> Gm7 Cm7 F7 Bbmaj7,,'indie',1970.0,,artist_388,indie,synth000388,synthartist000388
+389,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <verse_1> Ebm Cb Gb Db <verse_2> Ebm Cb Gb Db <chorus_1> Ebm Db Cb Bb <outro_1> Ebm Abm Db Gb,,'pop',1980.0,,artist_389,pop,synth000389,synthartist000389
+390,<intro_1> F#maj7 Bmaj7 C#7 F#maj7 <chorus_1> G#m C# F# <chorus_2> G#m C# F# <solo_1> F# D#m B C# <outro_1> F# C# D#m A#m B F# B C#,,'country',2000.0,,artist_390,country,synth000390,synthartist000390
+391,<intro_1> Dm Bb F C <verse_1> Dm7 Gm7 C7 Fmaj7 <solo_1> Dm Bb F C <verse_2> Dm Bb F C <bridge_1> Dm C Bb A <outro_1> Dm Gm Am Dm,,'hip hop',2000.0,,artist_391,hip hop,synth000391,synthartist000391
+392,<intro_1> D G A G <bridge_1> D G A G <verse_1> D A Bm F#m G D G A <outro_1> D A Bm G,,,,,artist_392,,synth000392,synthartist000392
+393,<intro_1> Dm Gm Am Dm <bridge_1> Dm Gm C F <verse_1> Dm C Bb A <verse_2> Dm7 Gm7 C7 Fmaj7 <outro_1> Dm7 Gm7 C7 Fmaj7,,,,,artist_393,,,
+394,<intro_1> D Bm G A <chorus_1> D Bm G A <solo_1> Em A D <chorus_2> Em A D <bridge_1> D Bm G A <outro_1> D G A G,,,,,artist_394,,,
+395,<intro_1> A D E D <verse_1> F#m D A E <chorus_1> A E F#m C#m D A D E <chorus_2> Bm7 E7 Amaj7 <bridge_1> Bm E A <outro_1> A E F#m C#m D A D E,,,2000.0,,artist_395,,synth000395,synthartist000395
+396,<intro_1> Cm Fm Bb Eb <bridge_1> Cm Bb Ab G <outro_1> Cm Fm Bb Eb,,'folk',,,artist_396,folk,synth000396,synthartist000396
+397,<intro_1> D A Bm G <bridge_1> D G A G <chorus_1> D G A G <chorus_2> D A Bm F#m G D G A <outro_1> D G A G,,,1990.0,,artist_397,,synth000397,synthartist000397
+398,<intro_1> Cm Fm Bb Eb <chorus_1> Cm7 Fm7 Bb7 Ebmaj7 <bridge_1> Cm Fm Gm Cm <chorus_2> Cm Fm Bb Eb <outro_1> Cm Fm Gm Cm,,,1990.0,,artist_398,,,
+399,<intro_1> Ebm Cb Gb Db <bridge_1> Ebm Cb Gb Db <bridge_2> Ebm Cb Gb Db <outro_1> Ebm Cb Gb Db,,'pop',,,artist_399,pop,,
+400,<intro_1> Ebm Abm Bbm Ebm <verse_1> Ebm Abm Db Gb <verse_2> Ebm Db Cb Bb <solo_1> Ebm Cb Gb Db <outro_1> Ebm Db Cb Bb,,,,,artist_400,,,
+401,<intro_1> Dmaj7 Gmaj7 A7 Dmaj7 <bridge_1> Bm G D A <verse_1> D A Bm F#m G D G A <verse_2> D A Bm F#m G D G A <chorus_1> Em A D <outro_1> D Bm G A,,,,,artist_401,,synth000401,synthartist000401
+402,<intro_1> Dm7 Gm7 C7 Fmaj7 <bridge_1> Dm Bb F C <outro_1> Dm7 Gm7 C7 Fmaj7,,'hip hop',1980.0,,artist_402,hip hop,synth000402,synthartist000402
+403,<intro_1> Bb Gm Eb F <chorus_1> Cm F Bb <verse_1> Gm Eb Bb F <verse_2> Bbmaj7 Ebmaj7 F7 Bbmaj7 <solo_1> Gm Eb Bb F <outro_1> Cm F Bb,,,1980.0,,artist_403,,synth000403,synthartist000403
+404,<intro_1> D A Bm G <verse_1> D A Bm G <outro_1> Dmaj7 Gmaj7 A7 Dmaj7,,,2020.0,,artist_404,,synth000404,synthartist000404
+405,<intro_1> Dm7 Gm7 C7 Fmaj7 <solo_1> Dm Gm C F <chorus_1> Dm7 Gm7 C7 Fmaj7 <verse_1> Dm Gm Am Dm <bridge_1> Dm Gm C F <outro_1> Dm Gm C F,,'r&b',1990.0,,artist_405,r&b,,
+406,<intro_1> Bm7 Em7 A7 Dmaj7 <verse_1> Bm A G F# <bridge_1> Bm Em F#m Bm <solo_1> Bm Em F#m Bm <outro_1> Bm A G F#,,,1980.0,,artist_406,,synth000406,synthartist000406
+407,<intro_1> Bm Em A D <bridge_1> Bm Em A D <outro_1> Bm G D A,,,1990.0,,artist_407,,,
+408,<intro_1> Dm Gm Am Dm <chorus_1> Dm Bb F C <chorus_2> Dm Bb F C <solo_1> Dm C Bb A <outro_1> Dm Gm C F,,'r&b',,,artist_408,r&b,synth000408,synthartist000408
+409,<intro_1> Ebm7 Abm7 Db7 Gbmaj7 <solo_1> Ebm7 Abm7 Db7 Gbmaj7 <bridge_1> Ebm Cb Gb Db <outro_1> Ebm Abm Bbm Ebm,,'hip hop',,,artist_409,hip hop,synth000409,synthartist000409
+410,<intro_1> E B C#m A <solo_1> F#m7 B7 Emaj7 <outro_1> E C#m A B,,'r&b',1970.0,,artist_410,r&b,synth000410,synthartist000410
+411,<intro_1> Bm A G F# <solo_1> Bm G D A <verse_1> Bm A G F# <chorus_1> Bm Em A D <verse_2> Bm A G F# <outro_1> Bm Em A D,,'metal',,,artist_411,metal,,
+412,<intro_1> Fm Db Ab Eb <solo_1> Fm Bbm Cm Fm <chorus_1> Fm Db Ab Eb <bridge_1> Fm Db Ab Eb <outro_1> Fm Bbm Eb Ab,,'folk',2000.0,,artist_412,folk,synth000412,synthartist000412
+413,<intro_1> Cm Ab Eb Bb <chorus_1> Cm Bb Ab G <bridge_1> Cm Fm Gm Cm <verse_1> Cm7 Fm7 Bb7 Ebmaj7 <outro_1> Cm Fm Gm Cm,,'country',2000.0,,artist_413,country,synth000413,synthartist000413
+414,<intro_1> F#m D A E <chorus_1> F#m Bm C#m F#m <outro_1> F#m Bm C#m F#m,,,2000.0,,artist_414,,synth000414,synthartist000414
+415,<intro_1> B F# G#m E <verse_1> Bmaj7 Emaj7 F#7 Bmaj7 <bridge_1> B F# G#m E <chorus_1> B E F# E <outro_1> B F# G#m E,,,,,artist_415,,synth000415,synthartist000415
+416,<intro_1> Gm F Eb D <verse_1> Gm Eb Bb F <outro_1> Gm Eb Bb F,,'r&b',,,artist_416,r&b,synth000416,synthartist000416
+417,<intro_1> Bm A G F# <bridge_1> Bm Em F#m Bm <solo_1> Bm Em F#m Bm <chorus_1> Bm G D A <outro_1> Bm Em F#m Bm,,,2010.0,,artist_417,,synth000417,synthartist000417
+418,<intro_1> Amaj7 Dmaj7 E7 Amaj7 <chorus_1> A E F#m D <outro_1> Bm7 E7 Amaj7,,,2020.0,,artist_418,,synth000418,synthartist000418
+419,<intro_1> G D Em C <solo_1> Am D G <bridge_1> G D Em Bm C G C D <solo_2> G C D C <chorus_1> G D Em Bm C G C D <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,'r&b',,,artist_419,r&b,synth000419,synthartist000419
+420,<intro_1> Ab Fm Db Eb <bridge_1> Ab Eb Fm Db <verse_1> Ab Db Eb Db <chorus_1> Ab Eb Fm Cm Db Ab Db Eb <outro_1> Bbm7 Eb7 Abmaj7,,'r&b',,,artist_420,r&b,synth000420,synthartist000420
+421,<intro_1> Gmaj7 Cmaj7 D7 Gmaj7 <bridge_1> G D Em Bm C G C D <solo_1> G Em C D <solo_2> Em C G D <outro_1> Am D G,,'indie',,,artist_421,indie,,
+422,<intro_1> Bm7 E7 Amaj7 <solo_1> A F#m D E <verse_1> F#m D A E <bridge_1> F#m D A E <outro_1> Bm E A,,'electronic',1990.0,,artist_422,electronic,synth000422,synthartist000422
+423,<intro_1> Am7 Dm7 G7 Cmaj7 <bridge_1> Am Dm Em Am <chorus_1> Am7 Dm7 G7 Cmaj7 <outro_1> Am F C G,,,,,artist_423,,synth000423,synthartist000423
+424,<intro_1> Ebm Abm Db Gb <solo_1> Ebm Abm Bbm Ebm <verse_1> Ebm Db Cb Bb <outro_1> Ebm Cb Gb Db,,'country',,,artist_424,country,,
+425,<intro_1> Em C G D <bridge_1> Em C G D <outro_1> Em Am Bm Em,,,,,artist_425,,,
+426,<intro_1> Eb Bb Cm Ab <bridge_1> Cm Ab Eb Bb <outro_1> Eb Bb Cm Gm Ab Eb Ab Bb,,'folk',,,artist_426,folk,synth000426,synthartist000426
+427,<intro_1> Abm Dbm Gb Cb <bridge_1> Abm7 Dbm7 Gb7 Cbmaj7 <solo_1> Abm Dbm Ebm Abm <bridge_2> Abm Dbm Gb Cb <outro_1> Abm Dbm Ebm Abm,,,2020.0,,artist_427,,synth000427,synthartist000427
+428,<intro_1> F# D#m B C# <verse_1> F# C# D#m B <bridge_1> F# C# D#m A#m B F# B C# <solo_1> F# C# D#m B <verse_2> F# B C# B <outro_1> F#maj7 Bmaj7 C#7 F#maj7,,,1990.0,,artist_428,,,
+429,<intro_1> C Am F G <verse_1> Dm7 G7 Cmaj7 <verse_2> Dm7 G7 Cmaj7 <chorus_1> Cmaj7 Fmaj7 G7 Cmaj7 <outro_1> Cmaj7 Fmaj7 G7 Cmaj7,,'indie',2020.0,,artist_429,indie,synth000429,synthartist000429
+430,<intro_1> Bm G D A <verse_1> Bm A G F# <solo_1> Bm Em A D <bridge_1> Bm A G F# <solo_2> Bm Em A D <outro_1> Bm Em A D,,'indie',2010.0,,artist_430,indie,,
+431,<intro_1> Abm Gb Fb Eb <bridge_1> Abm7 Dbm7 Gb7 Cbmaj7 <chorus_1> Abm Dbm Ebm Abm <outro_1> Abm Dbm Ebm Abm,,'country',2020.0,,artist_431,country,synth000431,synthartist000431
+432,<intro_1> F#m D A E <bridge_1> A E F#m D <chorus_1> A E F#m D <bridge_2> A E F#m C#m D A D E <outro_1> F#m D A E,,'rock',,,artist_432,rock,synth000432,synthartist000432
+433,<intro_1> F# C# D#m A#m B F# B C# <solo_1> G#m C# F# <solo_2> F# C# D#m B <outro_1> F# B C# B,,'folk',1990.0,,artist_433,folk,synth000433,synthartist000433
+434,<intro_1> Fm Bbm Eb Ab <solo_1> Fm7 Bbm7 Eb7 Abmaj7 <verse_1> Fm Eb Db C <outro_1> Fm7 Bbm7 Eb7 Abmaj7,,'country',1970.0,,artist_434,country,synth000434,synthartist000434
+435,<intro_1> Bbm Ab Gb F <solo_1> Bbm Ab Gb F <solo_2> Bbm Ab Gb F <chorus_1> Bbm Gb Db Ab <outro_1> Bbm Ebm Fm Bbm,,'folk',1980.0,,artist_435,folk,,
+436,<intro_1> Dm Gm C F <solo_1> Dm C Bb A <outro_1> Dm C Bb A,,'country',1990.0,,artist_436,country,,
+437,<intro_1> D A Bm G <solo_1> Em7 A7 Dmaj7 <chorus_1> D A Bm G <chorus_2> D A Bm G <verse_1> D Bm G A <outro_1> Bm G D A,,,2020.0,,artist_437,,,
+438,<intro_1> F# D#m B C# <bridge_1> F# D#m B C# <outro_1> F#maj7 Bmaj7 C#7 F#maj7,,,1970.0,,artist_438,,,
+439,<intro_1> Fm Db Ab Eb <verse_1> Fm Bbm Eb Ab <outro_1> Fm Bbm Eb Ab,,'country',2010.0,,artist_439,country,,
+440,<intro_1> Bbm Ab Gb F <bridge_1> Bbm Ab Gb F <bridge_2> Bbm Gb Db Ab <verse_1> Bbm7 Ebm7 Ab7 Dbmaj7 <solo_1> Bbm Gb Db Ab <outro_1> Bbm Ab Gb F,,'country',,,artist_440,country,synth000440,synthartist000440
+441,<intro_1> Gm C F <solo_1> F C Dm Bb <bridge_1> F C Dm Bb <chorus_1> Gm C F <chorus_2> Gm C F <outro_1> F C Dm Bb,,'jazz',,,artist_441,jazz,synth000441,synthartist000441
+442,<intro_1> Dm Gm Am Dm <chorus_1> Dm C Bb A <chorus_2> Dm C Bb A <bridge_1> Dm C Bb A <chorus_3> Dm Gm Am Dm <outro_1> Dm Gm C F,,'folk',,,artist_442,folk,synth000442,synthartist000442
+443,<intro_1> Am G F E <verse_1> Am Dm G C <bridge_1> Am Dm Em Am <bridge_2> Am G F E <outro_1> Am Dm G C,,,1980.0,,artist_443,,,
+444,<intro_1> Gm C F <verse_1> Gm C F <bridge_1> Gm7 C7 Fmaj7 <verse_2> Gm C F <verse_3> F Bb C Bb <outro_1> F C Dm Am Bb F Bb C,,,,,artist_444,,synth000444,synthartist000444
+445,<intro_1> C G Am F <solo_1> C G Am F <verse_1> C G Am Em F C F G <bridge_1> C G Am F <outro_1> C Am F G,,,,,artist_445,,synth000445,synthartist000445
+446,<intro_1> Fm7 Bb7 Ebmaj7 <bridge_1> Fm7 Bb7 Ebmaj7 <verse_1> Eb Ab Bb Ab <outro_1> Eb Bb Cm Ab,,'r&b',2010.0,,artist_446,r&b,synth000446,synthartist000446
+447,<intro_1> Gmaj7 Cmaj7 D7 Gmaj7 <chorus_1> Am D G <bridge_1> G D Em Bm C G C D <verse_1> G Em C D <verse_2> G Em C D <outro_1> Am D G,,,,,artist_447,,synth000447,synthartist000447
+448,<intro_1> Abm7 Dbm7 Gb7 Cbmaj7 <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <bridge_1> Abm Dbm Gb Cb <verse_2> Abm Dbm Ebm Abm <outro_1> Abm7 Dbm7 Gb7 Cbmaj7,,'rock',,,artist_448,rock,synth000448,synthartist000448
+449,<intro_1> Ebm Abm Db Gb <verse_1> Ebm Abm Bbm Ebm <verse_2> Ebm Abm Bbm Ebm <outro_1> Ebm Abm Db Gb,,'indie',,,artist_449,indie,synth000449,synthartist000449
+450,<intro_1> Bm G D A <chorus_1> Bm G D A <chorus_2> Bm G D A <outro_1> D A Bm G,,,2020.0,,artist_450,,,
+451,<intro_1> F Bb C Bb <solo_1> F Dm Bb C <solo_2> F Dm Bb C <verse_1> Gm7 C7 Fmaj7 <bridge_1> Fmaj7 Bbmaj7 C7 Fmaj7 <outro_1> F C Dm Am Bb F Bb C,,,2010.0,,artist_451,,,
+452,<intro_1> F#m D A E <verse_1> F#m E D C# <outro_1> F#m7 Bm7 E7 Amaj7,,,2000.0,,artist_452,,synth000452,synthartist000452
+453,<intro_1> F C Dm Bb <chorus_1> F C Dm Bb <chorus_2> F C Dm Bb <chorus_3> Gm C F <outro_1> Gm7 C7 Fmaj7,,'indie',1990.0,,artist_453,indie,synth000453,synthartist000453
+454,<intro_1> F# D#m B C# <chorus_1> G#m7 C#7 F#maj7 <outro_1> F# C# D#m B,,,2020.0,,artist_454,,synth000454,synthartist000454
+455,<intro_1> C#m A E B <solo_1> E C#m A B <solo_2> F#m B E <solo_3> E A B A <verse_1> Emaj7 Amaj7 B7 Emaj7 <outro_1> C#m A E B,,'electronic',2010.0,,artist_455,electronic,synth000455,synthartist000455
+456,<intro_1> C#m7 F#7 Bmaj7 <bridge_1> B F# G#m E <outro_1> Bmaj7 Emaj7 F#7 Bmaj7,,'jazz',2010.0,,artist_456,jazz,synth000456,synthartist000456
+457,<intro_1> Dmaj7 Gmaj7 A7 Dmaj7 <bridge_1> D G A G <outro_1> Em7 A7 Dmaj7,,,2010.0,,artist_457,,synth000457,synthartist000457
+458,<intro_1> Am G F E <bridge_1> Am Dm Em Am <verse_1> Am Dm G C <chorus_1> Am Dm Em Am <outro_1> Am Dm G C,,'metal',,,artist_458,metal,synth000458,synthartist000458
+459,<intro_1> G#m C# F# <verse_1> F# D#m B C# <solo_1> F# C# D#m B <verse_2> G#m7 C#7 F#maj7 <outro_1> D#m B F# C#,,,1990.0,,artist_459,,synth000459,synthartist000459
+460,<intro_1> B G#m E F# <chorus_1> B F# G#m E <solo_1> B F# G#m D#m E B E F# <outro_1> Bmaj7 Emaj7 F#7 Bmaj7,,,,,artist_460,,synth000460,synthartist000460
+461,<intro_1> Emaj7 Amaj7 B7 Emaj7 <solo_1> C#m A E B <verse_1> E B C#m G#m A E A B <chorus_1> E C#m A B <solo_2> E A B A <outro_1> E B C#m G#m A E A B,,'indie',,,artist_461,indie,,
+462,<intro_1> E C#m A B <chorus_1> E B C#m G#m A E A B <solo_1> E C#m A B <verse_1> E B C#m A <solo_2> F#m B E <outro_1> Emaj7 Amaj7 B7 Emaj7,,,,,artist_462,,,
+463,<intro_1> Fm Eb Db C <verse_1> Fm Bbm Eb Ab <chorus_1> Fm Bbm Eb Ab <bridge_1> Fm7 Bbm7 Eb7 Abmaj7 <outro_1> Fm Bbm Eb Ab,,'country',2000.0,,artist_463,country,,
+464,<intro_1> F#m D A E <solo_1> A D E D <solo_2> A E F#m D <chorus_1> A F#m D E <outro_1> Amaj7 Dmaj7 E7 Amaj7,,'pop',1990.0,,artist_464,pop,,
+465,<intro_1> Bbm Ab Gb F <bridge_1> Bbm7 Ebm7 Ab7 Dbmaj7 <verse_1> Bbm Ab Gb F <outro_1> Bbm7 Ebm7 Ab7 Dbmaj7,,'rock',2020.0,,artist_465,rock,synth000465,synthartist000465
+466,<intro_1> Abm Fb Cb Gb <chorus_1> Abm Gb Fb Eb <chorus_2> Abm Gb Fb Eb <bridge_1> Abm Fb Cb Gb <verse_1> Abm Dbm Gb Cb <outro_1> Abm7 Dbm7 Gb7 Cbmaj7,,'metal',,,artist_466,metal,synth000466,synthartist000466
+467,<intro_1> Abm Fb Cb Gb <bridge_1> Abm7 Dbm7 Gb7 Cbmaj7 <solo_1> Abm Gb Fb Eb <chorus_1> Abm Fb Cb Gb <outro_1> Abm Gb Fb Eb,,'folk',2020.0,,artist_467,folk,,
+468,<intro_1> Cm Fm Gm Cm <chorus_1> Cm7 Fm7 Bb7 Ebmaj7 <verse_1> Cm Bb Ab G <verse_2> Cm7 Fm7 Bb7 Ebmaj7 <outro_1> Cm Ab Eb Bb,,'r&b',,,artist_468,r&b,synth000468,synthartist000468
+469,<intro_1> F#m Bm C#m F#m <chorus_1> F#m Bm C#m F#m <chorus_2> F#m Bm C#m F#m <chorus_3> F#m Bm C#m F#m <solo_1> F#m D A E <outro_1> F#m Bm E A,,,2020.0,,artist_469,,synth000469,synthartist000469
+470,<intro_1> G C D C <bridge_1> G Em C D <chorus_1> Gmaj7 Cmaj7 D7 Gmaj7 <bridge_2> Am7 D7 Gmaj7 <chorus_2> Gmaj7 Cmaj7 D7 Gmaj7 <outro_1> G D Em Bm C G C D,,,,,artist_470,,synth000470,synthartist000470
+471,<intro_1> F#maj7 Bmaj7 C#7 F#maj7 <bridge_1> F# C# D#m A#m B F# B C# <chorus_1> G#m C# F# <bridge_2> F# D#m B C# <solo_1> D#m B F# C# <outro_1> F#maj7 Bmaj7 C#7 F#maj7,,,,,artist_471,,synth000471,synthartist000471
+472,<intro_1> Cmaj7 Fmaj7 G7 Cmaj7 <bridge_1> C F G F <chorus_1> C G Am Em F C F G <verse_1> Dm G C <solo_1> Cmaj7 Fmaj7 G7 Cmaj7 <outro_1> C G Am Em F C F G,,,2000.0,,artist_472,,synth000472,synthartist000472
+473,<intro_1> Gm F Eb D <bridge_1> Gm Cm Dm Gm <chorus_1> Gm F Eb D <outro_1> Gm Cm F Bb,,'folk',2000.0,,artist_473,folk,synth000473,synthartist000473
+474,<intro_1> Gm Eb Bb F <solo_1> Bbmaj7 Ebmaj7 F7 Bbmaj7 <bridge_1> Bb F Gm Eb <outro_1> Bb F Gm Eb,,'hip hop',2010.0,,artist_474,hip hop,,
+475,<intro_1> Gm Cm F Bb <bridge_1> Gm7 Cm7 F7 Bbmaj7 <solo_1> Gm7 Cm7 F7 Bbmaj7 <verse_1> Gm7 Cm7 F7 Bbmaj7 <outro_1> Gm Eb Bb F,,,,,artist_475,,,
+476,<intro_1> C#m F# B <chorus_1> B E F# E <solo_1> C#m F# B <chorus_2> B E F# E <outro_1> B G#m E F#,,,1970.0,,artist_476,,synth000476,synthartist000476
+477,<intro_1> Bm A G F# <verse_1> Bm Em F#m Bm <outro_1> Bm A G F#,,,1980.0,,artist_477,,synth000477,synthartist000477
+478,<intro_1> D Bm G A <verse_1> Bm G D A <solo_1> D A Bm F#m G D G A <outro_1> Bm G D A,,'pop',,,artist_478,pop,,
+479,<intro_1> G C D C <chorus_1> G Em C D <bridge_1> Em C G D <outro_1> G D Em C,,'country',2020.0,,artist_479,country,synth000479,synthartist000479
+480,<intro_1> Fm Bbm Eb Ab <solo_1> Fm Db Ab Eb <solo_2> Fm Eb Db C <outro_1> Fm Db Ab Eb,,'r&b',1990.0,,artist_480,r&b,synth000480,synthartist000480
+481,<intro_1> G#m E B F# <chorus_1> B F# G#m E <chorus_2> B F# G#m E <bridge_1> Bmaj7 Emaj7 F#7 Bmaj7 <outro_1> C#m F# B,,'jazz',2010.0,,artist_481,jazz,synth000481,synthartist000481
+482,<intro_1> C Am F G <bridge_1> Dm7 G7 Cmaj7 <bridge_2> Dm7 G7 Cmaj7 <outro_1> Dm G C,,'metal',2000.0,,artist_482,metal,,
+483,<intro_1> Bm Em A D <solo_1> Bm Em A D <solo_2> Bm A G F# <outro_1> Bm A G F#,,'r&b',1980.0,,artist_483,r&b,,
+484,<intro_1> Eb Bb Cm Gm Ab Eb Ab Bb <bridge_1> Ebmaj7 Abmaj7 Bb7 Ebmaj7 <solo_1> Cm Ab Eb Bb <chorus_1> Eb Ab Bb Ab <verse_1> Fm7 Bb7 Ebmaj7 <outro_1> Ebmaj7 Abmaj7 Bb7 Ebmaj7,,,2000.0,,artist_484,,,
+485,<intro_1> Em7 Am7 D7 Gmaj7 <bridge_1> Em7 Am7 D7 Gmaj7 <chorus_1> Em Am Bm Em <outro_1> Em Am D G,,,1970.0,,artist_485,,,
+486,<intro_1> Am G F E <bridge_1> Am Dm Em Am <verse_1> Am G F E <solo_1> Am Dm G C <outro_1> Am Dm G C,,,1990.0,,artist_486,,,
+487,<intro_1> Am7 D7 Gmaj7 <bridge_1> G D Em Bm C G C D <solo_1> Em C G D <bridge_2> G D Em C <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,,2010.0,,artist_487,,synth000487,synthartist000487
+488,<intro_1> Cm Ab Eb Bb <solo_1> Cm7 Fm7 Bb7 Ebmaj7 <chorus_1> Cm Fm Gm Cm <verse_1> Cm Ab Eb Bb <outro_1> Cm Fm Bb Eb,,'jazz',1980.0,,artist_488,jazz,synth000488,synthartist000488
+489,<intro_1> Ebm Cb Gb Db <solo_1> Ebm Cb Gb Db <verse_1> Ebm Abm Bbm Ebm <outro_1> Ebm Db Cb Bb,,'r&b',,,artist_489,r&b,synth000489,synthartist000489
+490,<intro_1> C#m F# B <verse_1> B G#m E F# <bridge_1> C#m F# B <chorus_1> G#m E B F# <solo_1> G#m E B F# <outro_1> C#m F# B,,,1970.0,,artist_490,,,
+491,<intro_1> Bm7 Em7 A7 Dmaj7 <bridge_1> Bm Em A D <outro_1> Bm7 Em7 A7 Dmaj7,,,,,artist_491,,,
+492,<intro_1> G D Em Bm C G C D <verse_1> Gmaj7 Cmaj7 D7 Gmaj7 <chorus_1> G C D C <chorus_2> G D Em Bm C G C D <outro_1> Gmaj7 Cmaj7 D7 Gmaj7,,,2020.0,,artist_492,,synth000492,synthartist000492
+493,<intro_1> Em7 Am7 D7 Gmaj7 <chorus_1> Em D C B <verse_1> Em7 Am7 D7 Gmaj7 <chorus_2> Em D C B <bridge_1> Em C G D <outro_1> Em7 Am7 D7 Gmaj7,,'hip hop',1980.0,,artist_493,hip hop,synth000493,synthartist000493
+494,<intro_1> Bbm Ebm Ab Db <bridge_1> Bbm7 Ebm7 Ab7 Dbmaj7 <bridge_2> Bbm7 Ebm7 Ab7 Dbmaj7 <solo_1> Bbm Ebm Fm Bbm <outro_1> Bbm Gb Db Ab,,'r&b',,,artist_494,r&b,,
+495,<intro_1> Abm Gb Fb Eb <verse_1> Abm7 Dbm7 Gb7 Cbmaj7 <outro_1> Abm Dbm Gb Cb,,,,,artist_495,,synth000495,synthartist000495
+496,<intro_1> Dm Gm C F <solo_1> Dm Gm Am Dm <chorus_1> Dm Gm Am Dm <verse_1> Dm C Bb A <outro_1> Dm Bb F C,,'pop',2000.0,,artist_496,pop,,
+497,<intro_1> G Em C D <bridge_1> Am7 D7 Gmaj7 <solo_1> Em C G D <outro_1> Am D G,,'jazz',,,artist_497,jazz,,
+498,<intro_1> F Dm Bb C <verse_1> F C Dm Am Bb F Bb C <solo_1> F C Dm Am Bb F Bb C <verse_2> F C Dm Am Bb F Bb C <outro_1> F C Dm Am Bb F Bb C,,'rock',2020.0,,artist_498,rock,,
+499,<intro_1> Bbm Eb Ab <bridge_1> Ab Db Eb Db <chorus_1> Ab Eb Fm Db <outro_1> Bbm Eb Ab,,,,,artist_499,,synth000499,synthartist000499
+500,<intro_1> Bbm7 Ebm7 Ab7 Dbmaj7 <verse_1> Bbm Ebm Fm Bbm <outro_1> Bbm Ebm Fm Bbm,,'r&b',,,artist_500,r&b,synth000500,synthartist000500
