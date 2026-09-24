@@ -68,7 +68,9 @@ The older Phase 1 plans are historical.
   passed all four CI jobs and was squash-merged at `ed706af`. The report
   and measured gates are now on `main`.
 - F30 (Kneser-Ney predictor with context backoff + realization) is
-  implemented on `codex/kn-predictor`: `backend/app/predict/ngram.py`
+  merged through [PR #6](https://github.com/siddsan7/HarmonicColorGraph/pull/6)
+  at `b1d560b` after all four CI jobs and the preview check passed.
+  It adds `backend/app/predict/ngram.py`
   (`KNPredictor`, `InMemoryNgramStore`), `backend/app/predict/realize.py`
   (`realize()`), a `NgramStore.histories()`/`count_of_counts()` batch-SQL
   extension in `backend/app/db/stores/graph.py` (plus moving
@@ -79,32 +81,28 @@ The older Phase 1 plans are historical.
   locally (`pytest`), `ruff check .`/`ruff format --check .` clean, no
   OpenAPI drift. Full detail in `context/progress-tracker.md`'s F30 entry
   and `feature-specs/v2-implementation-plan.md`'s F30 "Completed" note.
-  PR not yet opened as of this handoff update — GitKraken's GitHub
-  connector needs an interactive browser login this session couldn't
-  complete on its own; Siddharth was asked to run
-  `gk auth login` to finish it. If that's done by the time this resumes,
-  open the PR with GitKraken's `pull_request_create` against `main` from
-  `codex/kn-predictor`; otherwise fall back to whatever GitHub access is
-  available (see prior sessions' note below on the connector's PR-write
-  methods returning 403 despite read access, worked around with
-  authenticated GitHub REST through the existing Git credential manager —
-  never print the credential either way).
+- The GitHub connector's PR-write methods still return 403 despite read
+  access. Authenticated GitHub REST through the existing Git credential
+  manager merged PR #6; never print the credential.
+- F28's remaining metrics are implemented on `codex/f28-cache-metrics`:
+  structured, privacy-safe cache hit/miss/hit-rate, Redis latency,
+  rate-limit hit, and periodic worker queue-depth events. Local backend
+  tests and Ruff checks pass; CI/PR verification remains. F31 and F32
+  are in isolated subagent worktrees and are not yet merged.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Get `codex/kn-predictor` (F30) through a PR the same way as #1-#5:
-   verify CI, inspect the diff, merge. If GitKraken auth still isn't
-   available, use the GitHub REST fallback noted above.
-2. Implement F31 (leak-free evaluation harness) next — it's the natural
+1. Get `codex/f28-cache-metrics` through a PR: verify CI and diff, then
+   merge. Continue the F31 and F32 isolated worktrees and rebase on main.
+2. Complete F31 (leak-free evaluation harness) next — it's the natural
    follow-up to F30 (needs `InMemoryNgramStore`, and should replace F30's
    placeholder mixing constant `DEFAULT_MIXING_K = 100.0` in
    `backend/app/predict/ngram.py` with a value actually tuned on its dev
    split), then F32 (statistical recommend-next-chords endpoint + UI)
    through reviewable PRs; then continue the remaining plan in order.
-   Finish F28 acceptance metrics along that path.
    Record CI and live evidence before closing each milestone gate.
 3. Verify the deployed API/web production routes after the main branch
    build. Supabase migrations 0001–0005 are applied. Supabase advisors had

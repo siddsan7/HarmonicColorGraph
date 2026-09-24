@@ -118,6 +118,7 @@ class JobWorker:
                 now = time.monotonic()
                 if now >= next_reconcile:
                     count = self.reconcile(force=not recovered)
+                    self.queue.emit_depth()
                     if count:
                         logger.info("Reconciled %d queued jobs", count)
                     recovered = True

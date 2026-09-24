@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from redis import Redis
 
+from app.core.metrics import emit_metric
+
 QUEUE_KEY = "hcg:jobs:ready"
 _ENQUEUE_SCRIPT = """
 if redis.call('SET', KEYS[1], '1', 'NX', 'EX', 60) then
@@ -35,6 +37,12 @@ class JobQueue:
     def receive(self, timeout: int = 5) -> str | None:
         result = self.redis.brpop(QUEUE_KEY, timeout=timeout)
         return result[1].decode("ascii") if result is not None else None
+
+    def emit_depth(self) -> int:
+        """Sample Redis's ready-list depth for the worker's periodic metrics."""
+        depth = int(self.redis.llen(QUEUE_KEY))
+        emit_metric("queue_depth", depth, queue="jobs")
+        return depth
 
     def close(self) -> None:
         self.redis.close()

@@ -21,6 +21,7 @@ from redis import Redis
 from redis.exceptions import RedisError
 
 from app.core.config import get_settings
+from app.core.metrics import emit_metric
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -103,27 +104,47 @@ class VersionedCache:
         local = self._local_get(key)
         if local is not None:
             self.metrics.l1_hits += 1
+            emit_metric("cache_hits", 1, level="l1", kind=kind)
+            emit_metric("cache_hit_rate", round(self.metrics.hit_rate, 4), kind=kind)
             return local
         if self.redis is not None:
+            started = time.perf_counter()
             try:
                 raw = self.redis.get(key)
                 if raw is not None:
                     value = json.loads(raw)
                     self._local_put(key, value, ttl_s)
                     self.metrics.l2_hits += 1
+                    emit_metric("cache_hits", 1, level="l2", kind=kind)
+                    emit_metric("cache_hit_rate", round(self.metrics.hit_rate, 4), kind=kind)
                     return value
             except (RedisError, OSError, ValueError, TypeError):
                 self.metrics.redis_errors += 1
                 logger.warning("Redis cache read failed", extra={"error_category": "redis_read"})
+            finally:
+                emit_metric(
+                    "redis_latency_ms",
+                    round((time.perf_counter() - started) * 1000, 3),
+                    operation="cache_get",
+                )
         self.metrics.misses += 1
+        emit_metric("cache_misses", 1, kind=kind)
+        emit_metric("cache_hit_rate", round(self.metrics.hit_rate, 4), kind=kind)
         value = producer()
         self._local_put(key, value, ttl_s)
         if self.redis is not None:
+            started = time.perf_counter()
             try:
                 self.redis.setex(key, ttl_s, json.dumps(value, ensure_ascii=False))
             except (RedisError, OSError, ValueError, TypeError):
                 self.metrics.write_errors += 1
                 logger.warning("Redis cache write failed", extra={"error_category": "redis_write"})
+            finally:
+                emit_metric(
+                    "redis_latency_ms",
+                    round((time.perf_counter() - started) * 1000, 3),
+                    operation="cache_set",
+                )
         return value
 
 
@@ -164,6 +185,7 @@ class RateLimiter:
         subject_hash = hashlib.sha256(subject.encode("utf-8")).hexdigest()[:32]
         window = int(time.time()) // window_s
         key = f"hcg:rate:{scope}:{subject_hash}:{window}"
+        started = time.perf_counter()
         try:
             if self.redis is None:
                 raise ConnectionError("Redis is not configured")
@@ -173,7 +195,15 @@ class RateLimiter:
             self.redis_errors += 1
             logger.warning("Redis rate limit unavailable", extra={"error_category": "redis_rate"})
             return RateLimitDecision(fail_mode == "open", 0, 0, 0, degraded=True)
+        finally:
+            if self.redis is not None:
+                emit_metric(
+                    "redis_latency_ms",
+                    round((time.perf_counter() - started) * 1000, 3),
+                    operation="rate_check",
+                )
         allowed = count <= limit
         if not allowed:
             self.limit_hits += 1
+            emit_metric("rate_limit_hits", 1, scope=scope)
         return RateLimitDecision(allowed, count, max(0, limit - count), ttl if not allowed else 0)

@@ -7,6 +7,12 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-24 latest: F30 PR #6 passed backend unit, Postgres integration,
+  frontend, Compose smoke, and preview checks; squash merge `b1d560b`.
+  F28's remaining metrics are being finalized on `codex/f28-cache-metrics`
+  with local backend tests and Ruff checks passing. F31 evaluation and
+  F32 recommendation API/UI are in separate worktrees. Their PRs remain
+  pending.
 - 2026-09-24 workflow reset: implementation now goes through GitHub PRs.
   Use `codex/` branches, choose reviewable PR boundaries by dependency,
   run the Standard Check Gate and feature acceptance checks, inspect CI
@@ -29,9 +35,8 @@ detail it points to.
   Compose API→Redis→worker evaluation. Live migrations 0004 and 0005 are
   applied. PR #4's support threshold correction passed all four CI jobs,
   squash merge `cd75117`. PR #5 committed the measured corpus report and
-  passed all four CI jobs; squash merge `ed706af`. Current branch:
-  `codex/kn-predictor` (no F30 code yet). An hourly quiet continuation
-  heartbeat is active so work resumes after the usage window resets.
+  passed all four CI jobs; squash merge `ed706af`. The hourly quiet
+  continuation heartbeat remains active.
 - The first full-corpus load rolled back on 2026-09-24 because Supabase's
   default 2-minute statement timeout cancelled the large edge COPY.
   The original text-heavy edge table briefly allocated 542 MB; it had
