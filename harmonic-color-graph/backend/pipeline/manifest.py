@@ -35,6 +35,24 @@ def content_hash(df) -> str:  # noqa: ANN001 - polars.DataFrame, kept untyped to
     return sha256_text(df.write_ndjson())
 
 
+# hcg.edges/hcg.ngram_histories/hcg.patterns' own btree indexes: a rough
+# multiplier for index overhead on top of raw row bytes.
+INDEX_OVERHEAD_FACTOR = 1.4
+
+
+def measured_table_mb(df, text_columns: list[str], fixed_bytes_per_row: int = 0) -> float:  # noqa: ANN001
+    """Budget estimate from *actual* column byte lengths, not a guess --
+    needed for tables with variable-length JSON/text columns (ngrams'
+    `next`/`cont`, patterns' `context_lifts`) where a fixed per-column
+    guess would be wildly off depending on real content.
+    """
+    if df.height == 0:
+        return 0.0
+    text_bytes_per_row = sum(df[column].str.len_bytes().mean() or 0 for column in text_columns)
+    bytes_per_row = text_bytes_per_row + fixed_bytes_per_row
+    return (df.height * bytes_per_row * INDEX_OVERHEAD_FACTOR) / (1024 * 1024)
+
+
 def git_sha(repo_root: Path) -> str | None:
     try:
         result = subprocess.run(
@@ -62,6 +80,7 @@ class Manifest:
     params: dict = field(default_factory=dict)
     stage_timings_s: dict[str, float] = field(default_factory=dict)
     output_hashes: dict[str, str] = field(default_factory=dict)
+    budget_estimate_mb: dict[str, float] = field(default_factory=dict)
 
     def to_dict(self) -> dict:
         return {
@@ -75,6 +94,7 @@ class Manifest:
             "params": self.params,
             "stage_timings_s": self.stage_timings_s,
             "output_hashes": self.output_hashes,
+            "budget_estimate_mb": self.budget_estimate_mb,
         }
 
     def write(self, path: str | Path) -> None:
@@ -97,4 +117,5 @@ class Manifest:
             params=payload.get("params", {}),
             stage_timings_s=payload.get("stage_timings_s", {}),
             output_hashes=payload.get("output_hashes", {}),
+            budget_estimate_mb=payload.get("budget_estimate_mb", {}),
         )

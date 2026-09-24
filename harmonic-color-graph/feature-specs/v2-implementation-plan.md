@@ -323,20 +323,20 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Commit:** `feat(pipeline): versioned offline build with manifest, dedupe, and splits`
 
 ### F21 — Full-corpus analysis run [L, long-running]
-- [ ] Run on Siddharth's machine: `hcg-build run --to-stage analyze --workers <cores-1> --version cv-2026-10-a`.
-- [ ] Quality report `docs/eval/corpus-cv-2026-10-a.md`: token parse rate, key confidence histogram, ambiguity share, modulation share, top 50 core tokens, label coverage, 20 random songs rendered as `chords → figures` for human spot-check.
+- [x] Run on Siddharth's machine: `hcg-build run --to-stage analyze --workers <cores-1> --version cv-2026-10-a` (ran as `cv-2026-09-a`, matching the actual run date).
+- [x] Quality report `docs/eval/corpus-cv-2026-09-a.md`: token parse rate, key confidence histogram, ambiguity share, modulation share, top 50 core tokens, label coverage, 20 random songs rendered as `chords → figures` for human spot-check.
 
-**Checks:** Token parse ≥ 99.95%; confidence histogram not saturated; label coverage ≥ 60%; Siddharth spot-checks the 20 songs (≥ 18 look musically right; otherwise fix F11/F12 and re-run); the manifest is written.
+**Checks:** Token parse ≥ 99.95% (99.9683%, carried over from the F10 vocab report since chord-parsing logic is unchanged); confidence histogram not saturated (spread 13.4%-29.5% across five buckets, vs. the old v1 analyzer's 92.8% stuck at the 0.95 cap); label coverage ≥ 60% (99.1%); Siddharth spot-checks the 20 songs — **not done yet**, matching the M1 gold-set review pattern (see progress-tracker.md).
 **Commit:** `docs(eval): full-corpus analysis report cv-2026-10-a` (artifacts are not committed)
 
 ### F22 — Aggregates: transitions, n-gram histories, patterns, examples [L]
-- [ ] `aggregate`: `TRANSITIONS_TO` counts per context (`global`, `genre:*`, `section:*`, `decade:*`, `genre_section:*` only where the context has ≥ 2,000 transitions); `prob`, `PMI`, `support` (distinct songs). Also `FUNCTIONS_AS` (chord→token per mode) and `ABS_TRANSITIONS_TO` (global, count ≥ 20).
-- [ ] `ngrams`: one row per `(context, order, history)` with `total`, `distinct_next`, `next{token: count}`, plus `cont{token: N1+(•h w)}` for Kneser-Ney lower orders. Orders 1–5 for `global`; ≤ 3 for other contexts. Pruning: order 3 ≥ 3, order 4 ≥ 5, order 5 ≥ 8 (tunable in `pipeline/params.yaml`).
-- [ ] `patterns`: frequent contiguous token sequences of length 3–8 (loops canonicalized by rotation, e.g. `I V vi IV` ≡ `vi IV I V`, with the rotation stored); `support`, `song_count`, context lifts.
-- [ ] `examples`: up to 5 songs per pattern and per top transition (deterministic seed; prefer songs with a Spotify ID) → `pattern_examples`, and `song_refs` only for referenced songs.
-- [ ] Budget estimator: predicted Postgres size per table (rows × measured bytes/row + index factor) printed and written to the manifest.
+- [x] `aggregate`: `TRANSITIONS_TO` counts per context (`global`, `genre:*`, `section:*`, `decade:*`, `genre_section:*` only where the context has ≥ 2,000 transitions); `prob`, `PMI`, `support` (distinct songs). Also `FUNCTIONS_AS` (chord→token per mode) and `ABS_TRANSITIONS_TO` (global, count ≥ 20).
+- [x] `ngrams`: one row per `(context, order, history)` with `total`, `distinct_next`, `next{token: count}`, plus `cont{token: N1+(•h w)}` for Kneser-Ney lower orders. Orders 1–5 for `global`; ≤ 3 for other contexts. Pruning: order 3 ≥ 30, order 4 ≥ 48, order 5 ≥ 75 (tightened from the plan's literal 3/5/8 — see progress-tracker.md for why).
+- [x] `patterns`: frequent contiguous token sequences of length 3–8 (loops canonicalized by rotation, e.g. `I V vi IV` ≡ `vi IV I V`, with the rotation stored); `support`, `song_count`, context lifts.
+- [x] `examples`: up to 5 songs per pattern and per top transition (deterministic seed; prefer songs with a Spotify ID) → `pattern_examples`, and `song_refs` only for referenced songs.
+- [x] Budget estimator: predicted Postgres size per table (rows × measured bytes/row + index factor) printed and written to the manifest.
 
-**Checks:** Property test: per `(context, from)` probabilities sum to 1; sanity list: `V→I`, `IV→I`, `I→V`, `I→IV`, `vi→IV` are in the global top 25; budget estimate ≤ 300 MB total (otherwise tighten the params and re-run the stage); the `I V vi IV` family appears in the top 10 patterns.
+**Checks:** Property test: per `(context, from)` probabilities sum to 1 (unit tested); sanity list: `V→I`, `IV→I`, `I→V`, `I→IV`, `vi→IV` are in the global top 25 (confirmed against the real corpus: all five in the top 7, led by `IV→I` at 2.86M occurrences); budget estimate ≤ 300 MB total (270.75 MB: transitions 142.3, ngrams 73.8, patterns 52.3, functions 1.3, abs_transitions 1.0); the `I V vi IV` family appears in the top 10 patterns (confirmed: `M:I M:V M:vi M:IV`, rank 3 of 10, 1.22M occurrences).
 **Commit:** `feat(pipeline): transitions per context, KN-ready n-gram histories, patterns, examples`
 
 ### F23 — Graph schema migration [M]

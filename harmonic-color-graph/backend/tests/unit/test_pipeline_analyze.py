@@ -106,3 +106,23 @@ def test_single_process_and_pool_agree(tmp_path: Path):
     assert content_hash(pl.read_parquet(output_single)) == content_hash(
         pl.read_parquet(output_pool)
     )
+
+
+def test_batched_writing_matches_single_batch(tmp_path: Path):
+    # flush_every_rows=1 forces a flush after almost every song, exercising
+    # the multi-batch ParquetWriter path; output must match one big flush.
+    rows = [
+        _row(index, str(index), 0, "verse", "C F G C" if index % 2 == 0 else "G C D G")
+        for index in range(10)
+    ]
+    ingest_path = _write_ingest_fixture(tmp_path / "ingest.parquet", rows)
+    output_batched = tmp_path / "batched.parquet"
+    output_unbatched = tmp_path / "unbatched.parquet"
+
+    summary_batched = run_analyze(ingest_path, output_batched, flush_every_rows=1)
+    summary_unbatched = run_analyze(ingest_path, output_unbatched, flush_every_rows=10_000)
+
+    assert summary_batched.sections_written == summary_unbatched.sections_written == 10
+    assert content_hash(pl.read_parquet(output_batched)) == content_hash(
+        pl.read_parquet(output_unbatched)
+    )

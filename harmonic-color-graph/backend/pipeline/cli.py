@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 from pipeline.manifest import Manifest, content_hash, git_sha, sha256_file
+from pipeline.memory_guard import MemoryGuard
 from pipeline.stages.vocab_report import build_vocab_report, render_vocab_report_markdown
 from pipeline.synth import write_mini_corpus
 
@@ -29,6 +30,17 @@ STAGE_ORDER = [
 
 def _artifact_dir(version: str) -> Path:
     return REPO_ROOT / "data" / "artifacts" / version
+
+
+def _recompute_budget_total(manifest: Manifest) -> None:
+    """`budget_estimate_mb` accumulates one entry per table across whatever
+    F22 stages have run so far (aggregate contributes 3, ngrams 1, patterns
+    1); `total` is always every non-total entry summed, recomputed after
+    each stage rather than any one stage overwriting the others' numbers.
+    """
+    manifest.budget_estimate_mb["total"] = sum(
+        value for key, value in manifest.budget_estimate_mb.items() if key != "total"
+    )
 
 
 def _run_build(args: argparse.Namespace) -> None:
@@ -70,9 +82,7 @@ def _run_build(args: argparse.Namespace) -> None:
     manifest.params = {"limit": args.limit, "workers": args.workers, "split": args.split}
     manifest.git_sha = git_sha(REPO_ROOT)
 
-    stages_to_run = STAGE_ORDER[STAGE_ORDER.index(from_stage) : STAGE_ORDER.index(to_stage) + 1]
-    for stage in stages_to_run:
-        started = time.monotonic()
+    def execute_stage(stage: str) -> None:
         if stage == "ingest":
             summary = run_ingest(
                 args.source, ingest_path, limit=args.limit, split_filter=args.split
@@ -104,18 +114,94 @@ def _run_build(args: argparse.Namespace) -> None:
                 f"({summary.songs_skipped_no_chords:,} songs skipped, no parseable chords; "
                 f"{summary.ambiguous_rate:.1%} ambiguous key)"
             )
+        elif stage == "aggregate":
+            summary = run_aggregate(sections_path, artifact_dir)
+            manifest.row_counts["transitions_rows"] = summary.transitions_rows
+            manifest.row_counts["functions_rows"] = summary.functions_rows
+            manifest.row_counts["abs_transitions_rows"] = summary.abs_transitions_rows
+            manifest.row_counts["contexts_kept"] = len(summary.contexts_kept)
+            manifest.row_counts["contexts_dropped_small"] = len(summary.contexts_dropped_small)
+            manifest.budget_estimate_mb.update(
+                {k: v for k, v in summary.budget_estimate_mb.items() if k != "total"}
+            )
+            _recompute_budget_total(manifest)
+            for name in ("transitions.parquet", "functions.parquet", "abs_transitions.parquet"):
+                manifest.output_hashes[name] = content_hash(pl.read_parquet(artifact_dir / name))
+            print(
+                f"aggregate: {summary.transitions_rows:,} transitions across "
+                f"{len(summary.contexts_kept)} contexts, {summary.functions_rows:,} functions, "
+                f"{summary.abs_transitions_rows:,} abs transitions "
+                f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
+            )
+        elif stage == "ngrams":
+            summary = run_ngrams(sections_path, artifact_dir / "ngrams.parquet")
+            manifest.row_counts["ngrams_rows"] = summary.rows_written
+            manifest.row_counts["ngrams_rows_pruned"] = summary.rows_pruned
+            manifest.budget_estimate_mb["ngrams"] = summary.budget_estimate_mb
+            _recompute_budget_total(manifest)
+            manifest.output_hashes["ngrams.parquet"] = content_hash(
+                pl.read_parquet(artifact_dir / "ngrams.parquet")
+            )
+            print(
+                f"ngrams: {summary.rows_written:,} (context, order, history) rows across "
+                f"{len(summary.contexts)} contexts ({summary.rows_pruned:,} pruned) "
+                f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
+            )
+        elif stage == "patterns":
+            summary = run_patterns(sections_path, artifact_dir / "patterns.parquet")
+            manifest.row_counts["patterns_rows"] = summary.rows_written
+            manifest.row_counts["patterns_windows_seen"] = summary.windows_seen
+            manifest.row_counts["patterns_below_min_support"] = summary.patterns_below_min_support
+            manifest.budget_estimate_mb["patterns"] = summary.budget_estimate_mb
+            _recompute_budget_total(manifest)
+            manifest.output_hashes["patterns.parquet"] = content_hash(
+                pl.read_parquet(artifact_dir / "patterns.parquet")
+            )
+            print(
+                f"patterns: {summary.rows_written:,} frequent patterns from "
+                f"{summary.windows_seen:,} windows seen "
+                f"({summary.patterns_below_min_support:,} below the min-support bar) "
+                f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
+            )
+        elif stage == "examples":
+            summary = run_examples(sections_path, artifact_dir)
+            manifest.row_counts["pattern_examples_rows"] = summary.pattern_examples_rows
+            manifest.row_counts["transition_examples_rows"] = summary.transition_examples_rows
+            manifest.row_counts["song_refs_rows"] = summary.song_refs_rows
+            manifest.row_counts["patterns_with_no_example"] = summary.patterns_with_no_example
+            manifest.row_counts["transitions_with_no_example"] = summary.transitions_with_no_example
+            for name in (
+                "pattern_examples.parquet",
+                "transition_examples.parquet",
+                "song_refs.parquet",
+            ):
+                manifest.output_hashes[name] = content_hash(pl.read_parquet(artifact_dir / name))
+            print(
+                f"examples: {summary.pattern_examples_rows:,} pattern examples, "
+                f"{summary.transition_examples_rows:,} transition examples, "
+                f"{summary.song_refs_rows:,} distinct songs referenced"
+            )
         else:
             stage_runner = {
-                "aggregate": run_aggregate,
-                "ngrams": run_ngrams,
-                "patterns": run_patterns,
-                "examples": run_examples,
                 "color": run_color,
                 "embeddings": run_embeddings,
                 "snapshot": run_snapshot,
                 "export": run_export,
             }[stage]
             stage_runner(sections_path, artifact_dir / f"{stage}.parquet")
+
+    stages_to_run = STAGE_ORDER[STAGE_ORDER.index(from_stage) : STAGE_ORDER.index(to_stage) + 1]
+    for stage in stages_to_run:
+        started = time.monotonic()
+        # Every stage runs under a hard memory ceiling (see
+        # pipeline/memory_guard.py): three separate F20/F22 stages have
+        # driven this process to 15+ GB / <1 GB-free on the real corpus
+        # before a human had to notice and kill it by hand. Per-stage fixes
+        # are necessary but not sufficient on their own -- this is the
+        # structural backstop that protects every stage uniformly,
+        # including ones not written yet.
+        with MemoryGuard(label=stage):
+            execute_stage(stage)
         manifest.stage_timings_s[stage] = round(time.monotonic() - started, 3)
 
     manifest.write(manifest_path)
@@ -126,6 +212,31 @@ def _run_synth(args: argparse.Namespace) -> None:
     output_path = args.output or (REPO_ROOT / "data" / "samples" / "mini_corpus.csv")
     written = write_mini_corpus(output_path, song_count=args.songs, seed=args.seed)
     print(f"Wrote {written}")
+
+
+def _run_corpus_report(args: argparse.Namespace) -> None:
+    from pipeline.stages.corpus_report import build_corpus_report, render_corpus_report_markdown
+
+    sections_path = _artifact_dir(args.version) / "sections.parquet"
+    report = build_corpus_report(
+        sections_path,
+        version=args.version,
+        sample_seed=args.sample_seed,
+        sample_size=args.sample_size,
+        top_n=args.top,
+        external_parse_rate=args.external_parse_rate,
+        external_parse_rate_source=args.external_parse_rate_source,
+    )
+    markdown = render_corpus_report_markdown(report)
+    output_path: Path = args.output or (REPO_ROOT / "docs" / "eval" / f"corpus-{args.version}.md")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(markdown, encoding="utf-8")
+
+    print(f"Songs: {report.songs:,}  Sections: {report.sections:,}  Tokens: {report.tokens:,}")
+    print(f"Ambiguous-key songs: {report.ambiguous_song_rate:.1%}")
+    print(f"Songs with a modulation: {report.modulation_song_rate:.1%}")
+    print(f"Label coverage: {report.label_coverage_rate:.1%}")
+    print(f"Wrote {output_path}")
 
 
 def _run_vocab_report(args: argparse.Namespace) -> None:
@@ -169,6 +280,19 @@ def build_parser() -> argparse.ArgumentParser:
     synth.add_argument("--songs", type=int, default=500)
     synth.add_argument("--seed", type=int, default=20260923)
     synth.set_defaults(func=_run_synth)
+
+    corpus_report = subparsers.add_parser(
+        "corpus-report",
+        help="F21: quality report over a completed `analyze` run's sections.parquet.",
+    )
+    corpus_report.add_argument("--version", type=str, required=True)
+    corpus_report.add_argument("--output", type=Path, default=None)
+    corpus_report.add_argument("--top", type=int, default=50)
+    corpus_report.add_argument("--sample-size", type=int, default=20)
+    corpus_report.add_argument("--sample-seed", type=int, default=1)
+    corpus_report.add_argument("--external-parse-rate", type=float, default=None)
+    corpus_report.add_argument("--external-parse-rate-source", type=str, default=None)
+    corpus_report.set_defaults(func=_run_corpus_report)
 
     vocab_report = subparsers.add_parser(
         "vocab-report",

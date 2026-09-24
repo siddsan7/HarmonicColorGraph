@@ -129,39 +129,77 @@ def _analyze_song(song_rows: list[dict]) -> list[dict]:
     return output_rows
 
 
+DEFAULT_FLUSH_EVERY_ROWS = 100_000
+
+
 def run_analyze(
     ingest_path: str | Path,
     output_path: str | Path,
     workers: int = 1,
+    flush_every_rows: int = DEFAULT_FLUSH_EVERY_ROWS,
 ) -> AnalyzeSummary:
+    """Analyze every song and stream-write `sections.parquet` in batches.
+
+    Holding all output rows in memory before a single `write_parquet` call
+    peaks around 15+ GB on the full ~2.25M-section corpus (each row carries
+    several nested token/figure/chord/label lists, and Python dict/list
+    overhead dwarfs the "real" data). Writing in batches via a raw
+    `pyarrow.parquet.ParquetWriter` bounds peak memory to roughly one
+    batch's worth of rows instead of the whole corpus. Songs are processed
+    and flushed in the same (song_index, ordinal) order `ingest` wrote them
+    in, so the output is already sorted without a final re-sort pass.
+    """
+    import pyarrow.parquet as pq
+
     frame = pl.read_parquet(ingest_path).sort(["song_index", "ordinal"])
     songs = [
         list(group) for _, group in groupby(frame.to_dicts(), key=lambda row: row["song_index"])
     ]
+    del frame
 
     summary = AnalyzeSummary()
-    all_rows: list[dict] = []
-
-    if workers > 1:
-        with ProcessPoolExecutor(max_workers=workers) as pool:
-            for result_rows in pool.map(_analyze_song, songs, chunksize=32):
-                _fold_song_result(result_rows, summary, all_rows)
-    else:
-        for song_rows in songs:
-            _fold_song_result(_analyze_song(song_rows), summary, all_rows)
-
-    result_frame = pl.DataFrame(all_rows, schema=SECTIONS_SCHEMA)
-    result_frame = result_frame.sort(["song_index", "ordinal"])
+    pending_rows: list[dict] = []
+    writer: pq.ParquetWriter | None = None
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    result_frame.write_parquet(output_path)
+
+    def flush() -> None:
+        nonlocal writer, pending_rows
+        if not pending_rows:
+            return
+        table = pl.DataFrame(pending_rows, schema=SECTIONS_SCHEMA).to_arrow()
+        if writer is None:
+            writer = pq.ParquetWriter(str(output_path), table.schema)
+        writer.write_table(table)
+        pending_rows = []
+
+    try:
+        if workers > 1:
+            with ProcessPoolExecutor(max_workers=workers) as pool:
+                for result_rows in pool.map(_analyze_song, songs, chunksize=32):
+                    _fold_song_result(result_rows, summary, pending_rows)
+                    if len(pending_rows) >= flush_every_rows:
+                        flush()
+        else:
+            for song_rows in songs:
+                _fold_song_result(_analyze_song(song_rows), summary, pending_rows)
+                if len(pending_rows) >= flush_every_rows:
+                    flush()
+        flush()
+    finally:
+        if writer is not None:
+            writer.close()
+
+    if writer is None:
+        pl.DataFrame([], schema=SECTIONS_SCHEMA).write_parquet(output_path)
+
     return summary
 
 
 def _fold_song_result(
     result_rows: list[dict],
     summary: AnalyzeSummary,
-    all_rows: list[dict],
+    pending_rows: list[dict],
 ) -> None:
     if not result_rows:
         summary.songs_skipped_no_chords += 1
@@ -172,4 +210,4 @@ def _fold_song_result(
     summary.labels_total += sum(len(row["labels"]) for row in result_rows)
     if result_rows[0]["ambiguous"]:
         summary.ambiguous_songs += 1
-    all_rows.extend(result_rows)
+    pending_rows.extend(result_rows)

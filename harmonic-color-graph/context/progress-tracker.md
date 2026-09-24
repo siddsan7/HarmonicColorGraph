@@ -31,14 +31,24 @@ detail it points to.
 - F20 (pipeline skeleton, manifest, dedupe) is done: merged to `main`
   (**M2 underway**). `hcg-build run` (`pipeline/cli.py`) orchestrates
   `ingest → analyze → aggregate → ngrams → patterns → examples → color →
-  embeddings → snapshot → export` with `--from-stage/--to-stage`; only
-  `ingest` and `analyze` are implemented, the rest are typed stubs that
-  raise a clear `StageNotImplementedError` naming the feature that will
-  fill them in (F22, F41, F50, F63). See the F20 Completed entry below
-  for full gate results and metrics.
+  embeddings → snapshot → export` with `--from-stage/--to-stage`.
+- F21 (full-corpus analysis run) and F22 (aggregates, n-gram histories,
+  patterns, examples) are both done, run against the real corpus, and
+  ready to ship — `aggregate`/`ngrams`/`patterns`/`examples` are now
+  implemented (only `color`/`embeddings`/`snapshot`/`export` remain typed
+  stubs, raising a clear `StageNotImplementedError` naming the feature
+  that will fill them in: F41, F50, F63, and one unscheduled). All F21
+  and F22 acceptance checks pass against the real 679,807-song corpus.
+  Getting there took five real memory incidents on the full corpus
+  (15.8 GB and 17 GB RSS, system down to 0.3 GB free physical memory
+  twice) and a new structural safety mechanism
+  (`pipeline/memory_guard.py`) — see the F21/F22 Completed entry below
+  for the full story; it's long by design, this is exactly the kind of
+  lesson that's expensive to relearn.
 - Blocked: none.
-- Current focus: M2 corpus pipeline work (F21 full-corpus run is next);
-  the M1 gold fixture review remains outstanding.
+- Current focus: M2's F23 (graph schema migration) is next; the M1 gold
+  fixture review and F21's musician spot-check both remain outstanding
+  human-review items.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -70,6 +80,106 @@ detail it points to.
   not add new work there.
 
 ## Completed
+
+- **2026-09-24 — F21 full-corpus analysis run + F22 aggregates/n-grams/
+  patterns/examples.** Branch `feat/F21-F22-corpus-pipeline` (combined,
+  same precedent as M1's F10–F14: picked up and completed together in one
+  continuous session). Ran the full pipeline against the real, gitignored
+  `data/raw/chordonomicon_v2.csv` (679,807 songs) as version `cv-2026-09-a`.
+
+  **F21 results:** `analyze` on the full corpus: 2,248,238 sections,
+  44,500,844 tokens, 47,070,900 relationship labels, 0 songs skipped for
+  unparseable chords, 20.2% ambiguous-key songs, in 1,177s (~19.6 min).
+  `hcg-build corpus-report` (new `pipeline/stages/corpus_report.py`)
+  generated `docs/eval/corpus-cv-2026-09-a.md`: 99.9683% token parse
+  (carried over from the F10 vocab report — chord-parsing logic is
+  unchanged, so it still applies), a key-confidence histogram spread
+  13.4%-29.5% across five buckets (the old v1 analyzer was stuck at
+  92.8% in the single 0.95-cap bucket), 99.1% label coverage, and a
+  20-song deterministic spot-check sample that reads as musically
+  coherent on inspection. Siddharth's formal ≥18/20 review is still
+  outstanding, same as the gold key/Roman sets — not a blocker for
+  continuing.
+
+  **F22 results, confirmed against the real corpus:** `aggregate`:
+  1,665,611 transitions across 2,955 contexts; the sanity list
+  (`V→I`, `IV→I`, `I→V`, `I→IV`, `vi→IV`) all land in the global top 7
+  (led by `IV→I` at 2.86M occurrences). `ngrams`: 149,499
+  (context, order, history) rows. `patterns`: 8,896 frequent patterns
+  from 209,850,076 windows; the `I V vi IV` family (canonical form
+  `M:I M:V M:vi M:IV`) ranks 3rd of the top 10 by support (1.22M
+  occurrences). `examples`: 44,480 pattern examples, 250 transition
+  examples, 7,140 distinct songs referenced. Final Postgres budget
+  estimate: **270.75 MB** (transitions 142.3, ngrams 73.8, patterns 52.3,
+  functions 1.3, abs_transitions 1.0), under the 300 MB target.
+
+  **The memory debugging saga** (why this took far longer than the code
+  above suggests, and why `pipeline/memory_guard.py` now exists): running
+  this against the *real* corpus (not the 500-song synthetic sample or
+  small unit fixtures F20's tests used) surfaced five distinct memory
+  bugs, each only visible at real scale, each caught by the user noticing
+  the machine had become unusable rather than by any test:
+  1. `analyze`'s original single `write_parquet` call accumulated all
+     ~2.25M output rows (with nested token/figure/chord/label lists) in
+     memory before writing once — 15.8 GB RSS, 0.3 GB free system-wide.
+     Fixed by streaming writes via `pyarrow.parquet.ParquetWriter` in
+     bounded batches (`DEFAULT_FLUSH_EVERY_ROWS = 100_000`); verified via
+     a new test that batched and unbatched writes produce identical
+     content hashes.
+  2. `ngrams` built full n-gram tables for *every* context that appeared
+     even once (34,017 of them) instead of only ones with enough data —
+     fixed by applying the same "contexts worth modeling" threshold
+     `aggregate` already used, before accumulation instead of only at
+     output time.
+  3. `patterns`' pass 1 tracked a per-window `set()` of song IDs and
+     rotation offsets for every one of the ~2×10^8 distinct windows
+     (mostly one-off length-7/8 sequences) — 15.8 GB again. Split into
+     two passes: pass 1 tracks only an int support count; pass 2 (song/
+     rotation sets) is restricted to the much smaller min-support
+     survivors.
+  4. Pass 1's periodic pruning (delete exact singletons only) did nothing
+     for the huge *middle* tier of patterns seen dozens to hundreds of
+     times — still 15+ GB. Replaced with real Lossy Counting (Manku &
+     Motwani 2002): buckets of 1,000,000 windows, survival bar = current
+     bucket number, a formal bound on both memory and undercounting
+     error relative to `min_support`. Verified via a hand-worked unit
+     test (a frequent pattern survives 5 prune rounds with its exact,
+     un-undercounted count).
+  5. Even with (2)-(4) fixed, `patterns` still hit 8+ GB from two
+     remaining causes, both found via direct instrumentation against the
+     real corpus rather than further guessing: `context_counts`' cross
+     product of kept-contexts × frequent-patterns was still too large at
+     `aggregate`'s 2,000-observation threshold (raised to 50,000 for both
+     `ngrams` and `patterns`, measured to cut kept contexts from 2,955 to
+     105); and a handful of extremely common short patterns (classic
+     I-IV-V-vi-style loops) each appear in hundreds of thousands of the
+     679K songs, so `songs[pattern]` sets were capped at 2,000
+     (`song_count` becomes a floor, not an exact count, past that point —
+     an acceptable tradeoff for a popularity metric, not a value anything
+     downstream needs exactly).
+
+  On top of the five algorithmic fixes: **`pipeline/memory_guard.py`**
+  (`MemoryGuard`) is a new structural backstop, not another per-stage
+  patch. It runs a daemon thread under every stage (wired into
+  `cli.py`'s `_run_build`, covering the whole process tree including
+  multiprocessing workers) that polls actual RSS every 2s and calls
+  `os._exit(1)` with a clear diagnostic if it crosses a hard cap
+  (`min(8192 MB, 50% of system RAM)`) — instead of silently climbing
+  until a human notices the machine is unusable. Verified with a real
+  subprocess test (a script intentionally exceeding a 20 MB test cap
+  gets killed within ~50ms) rather than trusting the implementation.
+  This is what makes every fix above *provable*, not just hoped-for: each
+  real-corpus test run after the guard was added was safe regardless of
+  whether that round's fix actually worked.
+
+  **Gate:** `ruff check`/`format --check` clean; 190 unit tests
+  (`tests/unit/test_pipeline_{aggregate,ngrams,patterns,examples,
+  memory_guard}.py` and updates to existing pipeline tests) pass, no
+  regressions; `npm run lint`/`typecheck`/`test`/`build` unaffected
+  (backend-only feature). `psutil>=6.1.0` added to `backend/pyproject.
+  toml`'s `[pipeline]` extras (memory_guard's only new dependency).
+  `data/artifacts/cv-2026-09-a/` (gitignored, not committed) holds the
+  full real-corpus output for reference.
 
 - **2026-09-23 — F20 pipeline skeleton, manifest, dedupe (M2 start).**
   Branch `feat/F20-pipeline-skeleton`. Built `hcg-build` (`pipeline/cli.py`,

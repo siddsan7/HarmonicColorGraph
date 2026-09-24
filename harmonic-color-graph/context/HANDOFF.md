@@ -82,19 +82,28 @@ you're reading this. As of this handoff:
   against those provisional fixtures, not musician-validated accuracy.
   The two human-review checkboxes remain open in the plan. Continue
   independent work without waiting for the review.
-- **M2 is underway: F20 (pipeline skeleton) is done and merged.**
-  `hcg-build run` (`backend/pipeline/cli.py`) orchestrates a 10-stage
-  build (`ingest → analyze → aggregate → ngrams → patterns → examples →
-  color → embeddings → snapshot → export`) with `--from-stage/--to-stage`;
-  only `ingest` and `analyze` are implemented so far, the rest are typed
-  stubs naming the feature that will fill them in. A `--limit 5000` run
-  against the real corpus measured a 24.9% within-song dedupe rate
-  (matches the ~24% target) and was byte-identical across two runs.
-  `data/samples/mini_corpus.csv` (deterministic, no real dataset content)
-  is now committed and feeds tests/CI. **Next:** F21, the full-corpus
-  analysis run (needs `hcg-build run --to-stage analyze` on Siddharth's
-  machine, then a quality report). See `context/progress-tracker.md`'s
-  F20 Completed entry for full metrics and design notes.
+- **M2 is well underway: F20, F21, and F22 are all done.** `hcg-build run`
+  (`backend/pipeline/cli.py`) orchestrates a 10-stage build (`ingest →
+  analyze → aggregate → ngrams → patterns → examples → color →
+  embeddings → snapshot → export`); everything through `examples` is now
+  implemented (only `color`/`embeddings`/`snapshot`/`export` remain typed
+  stubs for later milestones). It has been run end-to-end against the
+  real 679,807-song corpus (`cv-2026-09-a`) and every F21/F22 acceptance
+  check passes — see `context/progress-tracker.md`'s F21/F22 Completed
+  entry for the full results, and read it before touching the
+  `aggregate`/`ngrams`/`patterns` stages: getting this to run cleanly at
+  real scale took five separate memory incidents (two of them dropped
+  the machine to <1 GB free physical memory) and produced a new
+  structural safety net, `backend/pipeline/memory_guard.py`, that now
+  wraps every stage automatically. If you're adding a new stage or
+  editing an existing one and it touches per-item Python dicts/sets over
+  the full corpus, read that file's docstring first — it is a direct
+  index of the mistakes already made here, and the guard will catch a
+  new one automatically, but understanding *why* the existing stages are
+  shaped the way they are will save you the same hours it cost this
+  session. **Next:** F23, the graph schema migration (Supabase). Siddharth's
+  spot-check of F21's 20-song sample and the M1 gold-set review both
+  remain outstanding human-review items — not blockers for continuing.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the
