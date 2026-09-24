@@ -52,7 +52,7 @@ you're reading this. As of this handoff:
   only), plus a status pill and a non-blocking degraded-mode banner that
   shows instead of crashing when the DB is unreachable — verified live in
   production (see `docs/runbooks/vercel.md`'s "Cron and status" section).
-- **M1 F10–F14 implemented locally on `feat/F10-chord-model-upgrade`:**
+- **M1 F10–F14 merged to `main` and live in production:**
   The inherited F10/F11 dirty worktree was completed rather than reset.
   `theory/spelling.py` and the additive chord schema cover F10; the full
   Chordonomicon vocabulary report reaches **99.9683%** token parse.
@@ -66,20 +66,21 @@ you're reading this. As of this handoff:
   fact-bearing rules and **86.4%** transition coverage on the 20k-song
   sample. `POST /v2/analyze` and the Next.js workbench are wired through
   generated OpenAPI types; the v1 routes remain callable.
-- **Verified locally:** `scripts/check.ps1 all` passes (ruff, pytest,
-  Vitest, frontend lint/typecheck/build, API import). The inherited F03
-  xfails are all removed and passing under v2. Local Playwright passes
-  `D7 G C` and `C Am F G` through the real FastAPI/Next.js proxy; a
-  desktop and mobile screenshot were visually inspected. Branch push,
-  CI, merge, and production smoke are still pending as of this write.
+- **Verified and shipped:** The full local gate and all three branch CI
+  jobs passed. The inherited F03 xfails are removed and passing under v2.
+  Local and production Playwright checks pass `D7 G C` and `C Am F G`
+  through the real FastAPI/Next.js proxy; desktop and mobile screenshots
+  were visually inspected. Squash commit `ed3a584` is on `main`, and both
+  Vercel deployments report success. The first main CI run exposed a
+  coverage-instrumented F12 throughput test at 993 sections/s against its
+  1,000 sections/s gate. Its benchmark was moved to an uninstrumented child
+  interpreter so it measures production throughput without relaxing the gate.
 - **Provisional gold review:** Siddharth explicitly chose to review
   `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. The plan
   leaves those two human-review checkboxes open. Continue independent
   implementation and shipping without waiting for that review.
-- **Next:** push the M1 branch, require green GitHub Actions CI, merge
-  into `main`, verify `/v2/analyze` and the workbench in production, then
-  proceed to M2. See `context/progress-tracker.md` for the detailed M1
-  completion entry and metrics.
+- **Next:** confirm the CI run for the benchmark correction, then proceed
+  to M2. See `context/progress-tracker.md` for the detailed M1 metrics.
 - **Read the full chronological detail in `context/progress-tracker.md`'s
   "Completed" list** — each entry documents what was built, what broke
   and how it was actually fixed (not just what was intended), and the

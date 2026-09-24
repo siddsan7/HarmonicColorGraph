@@ -16,17 +16,17 @@ detail it points to.
   `main` (squash commit `afdd525`) and verified live in production.
   This closes out **M0** — see the exit-gate summary in the F08
   Completed entry below.
-- M1 F10–F14 implementation is complete locally on `feat/F10-chord-model-upgrade`.
-  The inherited F10/F11 dirty worktree was kept together so its already
-  intertwined changes were not discarded. The full local gate and two
-  Playwright workbench checks pass. Branch CI, merge, and production smoke
-  are the remaining ship checks.
+- M1 F10–F14 is merged to `main` (`ed3a584`) and live on both Vercel
+  projects. The full local gate, all three branch CI jobs, and local and
+  production Playwright workbench checks passed. A borderline main-CI
+  throughput failure under coverage tracing was fixed by timing the
+  production analyzer in an uninstrumented child interpreter.
 - Siddharth chose provisional key and Roman gold fixtures and will review
   `data/gold/keys.jsonl` and `data/gold/roman.jsonl` later. Their human
   review checkboxes remain open in the plan; no implementation is waiting
   on that review.
 - Blocked: none.
-- Current focus: ship the M1 branch, verify production, then begin M2.
+- Current focus: confirm CI on the benchmark correction; M2 follows M1.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -46,8 +46,7 @@ detail it points to.
   SQLAlchemy/Alembic schema, and a minimal demo UI are
   implemented and were the basis for the defects and metrics
   recorded in `docs/roadmap-v2.md` §2.
-- M0 is live. M1 harmonic analysis v2 is implemented locally and
-  in its ship gate; M2 corpus pipeline work follows.
+- M0 and M1 harmonic analysis v2 are live; M2 corpus pipeline work follows.
 
 ## Current Goal
 
@@ -59,6 +58,17 @@ detail it points to.
   not add new work there.
 
 ## Completed
+
+- **2026-09-23 — M1 production ship and CI benchmark repair.** Pushed
+  `codex/m1-harmonic-analysis-v2` as `d953284`; its three CI jobs passed.
+  Squash-merged into `main` as `ed3a584`. The live API returns C major and
+  `V7/V, V, I` for `D7 G C`; the production web proxy and Playwright smoke
+  also pass `C Am F G` with its ambiguity badge. Both Vercel deployments
+  succeeded. The first main CI run failed only the F12 throughput gate:
+  coverage tracing measured 993 sections/s, while the branch had passed.
+  The benchmark now runs its 2,000-section timed batch without tracing and
+  still requires at least 1,000 sections/s. This checks actual production
+  throughput without a near-threshold coverage artifact.
 
 - **2026-09-23 — M1 F10–F14 implementation.** Continued the inherited
   uncommitted F10/F11 branch and completed the milestone in order. F10

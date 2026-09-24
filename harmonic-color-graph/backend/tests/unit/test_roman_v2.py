@@ -2,7 +2,8 @@
 
 import json
 import re
-import time
+import subprocess
+import sys
 from collections import defaultdict
 from pathlib import Path
 
@@ -84,8 +85,26 @@ def test_display_figures_use_music_symbols_while_core_stays_ascii():
 
 @pytest.mark.slow
 def test_throughput_at_least_1000_sections_per_second():
-    count = 1_000
-    start = time.perf_counter()
-    for _ in range(count):
-        analyze_v2(["D7", "G", "C", "Am"], "C major")
-    assert count / (time.perf_counter() - start) >= 1_000
+    # The CI unit job collects coverage. Measure uninstrumented production
+    # throughput in a child interpreter so tracer overhead cannot flip the gate.
+    benchmark = """
+from time import perf_counter
+from app.theory.roman import analyze_v2
+
+chords = ["D7", "G", "C", "Am"]
+for _ in range(100):
+    analyze_v2(chords, "C major")
+count = 2_000
+start = perf_counter()
+for _ in range(count):
+    analyze_v2(chords, "C major")
+print(count / (perf_counter() - start))
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", benchmark],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    sections_per_second = float(result.stdout.strip())
+    assert sections_per_second >= 1_000, f"{sections_per_second:.0f} sections/s"
