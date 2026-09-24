@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from collections.abc import Callable
 from uuid import uuid4
@@ -13,6 +14,7 @@ from sqlalchemy.orm import Session
 
 from app.core.config import AppSettings
 from app.jobs.handlers import JobTypeUnavailableError, run_job
+from app.jobs.policy import is_retryable
 from app.jobs.queue import JobQueue
 from app.jobs.repository import JobRepository, parse_job_id
 
@@ -34,7 +36,11 @@ class JobWorker:
 
     def reconcile(self, *, force: bool = False) -> int:
         with self.session_factory() as session:
-            queued_ids = JobRepository(session).queued_ids()
+            repository = JobRepository(session)
+            expired = repository.recover_expired()
+            queued_ids = repository.queued_ids()
+        if expired:
+            logger.warning("Recovered %d expired worker leases", expired)
         for job_id in queued_ids:
             self.queue.enqueue(job_id, force=force)
         return len(queued_ids)
@@ -54,6 +60,20 @@ class JobWorker:
         if job is None:
             return False  # Duplicate wakeup, cancelled, or already claimed.
 
+        heartbeat_stop = threading.Event()
+
+        def renew_until_done() -> None:
+            while not heartbeat_stop.wait(30):
+                try:
+                    with self.session_factory() as session:
+                        if not JobRepository(session).renew_lease(job_id, self.worker_id):
+                            return
+                except Exception:
+                    logger.exception("Lease renewal failed for job %s", job_id)
+
+        heartbeat = threading.Thread(target=renew_until_done, daemon=True)
+        heartbeat.start()
+
         def progress(value: float, stage: str, processed: int | None, total: int | None) -> None:
             with self.session_factory() as session:
                 JobRepository(session).update_progress(
@@ -71,18 +91,23 @@ class JobWorker:
             logger.warning("Job %s failed validation: %s", job_id, type(exc).__name__)
             with self.session_factory() as session:
                 JobRepository(session).fail(job_id, self.worker_id, "invalid_job", str(exc))
-        except Exception:
-            logger.exception("Job %s failed", job_id)
+        except Exception as exc:
+            retryable = is_retryable(exc)
+            logger.exception("Job %s failed (retryable=%s)", job_id, retryable)
             with self.session_factory() as session:
                 JobRepository(session).fail(
                     job_id,
                     self.worker_id,
-                    "job_failed",
+                    "temporary_failure" if retryable else "job_failed",
                     "Job execution failed; inspect worker logs.",
+                    retryable=retryable,
                 )
         else:
             with self.session_factory() as session:
                 JobRepository(session).complete(job_id, self.worker_id, result)
+        finally:
+            heartbeat_stop.set()
+            heartbeat.join(timeout=5)
         return True
 
     def run_forever(self, should_stop: Callable[[], bool]) -> None:

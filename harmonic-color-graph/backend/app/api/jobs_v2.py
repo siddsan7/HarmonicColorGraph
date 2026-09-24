@@ -1,5 +1,6 @@
 """Administrative job API. A missing token disables all routes by design."""
 
+import re
 from secrets import compare_digest
 from typing import Annotated
 
@@ -11,7 +12,7 @@ from sqlalchemy.orm import Session
 from app.core.config import AppSettings, get_settings
 from app.db.session import get_session
 from app.jobs.queue import JobQueue
-from app.jobs.repository import JobRepository, parse_job_id
+from app.jobs.repository import IdempotencyConflictError, JobRepository, parse_job_id
 from app.jobs.schemas import EmbeddingRebuildRequest, JobRequest
 
 router = APIRouter(prefix="/v2/jobs", tags=["jobs-v2"])
@@ -41,6 +42,7 @@ def create_job(
     request: JobRequest,
     session: Annotated[Session, Depends(get_session)],
     settings: Annotated[AppSettings | JSONResponse, Depends(_admin)],
+    idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
 ) -> dict | JSONResponse:
     if isinstance(settings, JSONResponse):
         return settings
@@ -48,7 +50,18 @@ def create_job(
         return _error("job_type_unavailable", "Embedding rebuild becomes available in F50.", 409)
     if not settings.redis_url:
         return _error("queue_unavailable", "The queue is not configured.", 503)
-    job = JobRepository(session).create(request.type, request.payload.model_dump())
+    if idempotency_key is not None and not re.fullmatch(r"[A-Za-z0-9._:-]{1,128}", idempotency_key):
+        return _error(
+            "invalid_idempotency_key", "Idempotency-Key must use 1–128 safe characters.", 422
+        )
+    try:
+        job, created = JobRepository(session).create(
+            request.type, request.payload.model_dump(), idempotency_key
+        )
+    except IdempotencyConflictError:
+        return _error("idempotency_conflict", "This key belongs to a different request.", 409)
+    if not created:
+        return {"data": {"job_id": job["id"], "status": job["status"]}, "meta": {}, "warnings": []}
     queue = JobQueue.from_url(settings.redis_url)
     try:
         queue.enqueue(job["id"])
@@ -101,7 +114,7 @@ def cancel_job(
         return {"data": {"job_id": canonical_id, "status": "cancelled"}, "meta": {}, "warnings": []}
     if repository.get(canonical_id) is None:
         return _error("job_not_found", "Job not found.", 404)
-    return _error("job_not_cancellable", "Only queued jobs can be cancelled.", 409)
+    return _error("job_not_cancellable", "Only queued or retrying jobs can be cancelled.", 409)
 
 
 @router.get("/{job_id}/events", response_model=None)
@@ -120,3 +133,31 @@ def get_job_events(
     if repository.get(canonical_id) is None:
         return _error("job_not_found", "Job not found.", 404)
     return {"data": repository.events(canonical_id), "meta": {}, "warnings": []}
+
+
+@router.post("/{job_id}/retry", response_model=None, status_code=202)
+def retry_job(
+    job_id: str,
+    session: Annotated[Session, Depends(get_session)],
+    settings: Annotated[AppSettings | JSONResponse, Depends(_admin)],
+) -> dict | JSONResponse:
+    if isinstance(settings, JSONResponse):
+        return settings
+    try:
+        canonical_id = parse_job_id(job_id)
+    except ValueError:
+        return _error("invalid_job_id", "Job ID must be a UUID.", 422)
+    repository = JobRepository(session)
+    if not repository.manual_retry(canonical_id):
+        if repository.get(canonical_id) is None:
+            return _error("job_not_found", "Job not found.", 404)
+        return _error("job_not_retryable", "Only failed or dead-letter jobs can be retried.", 409)
+    if settings.redis_url:
+        queue = JobQueue.from_url(settings.redis_url)
+        try:
+            queue.enqueue(canonical_id, force=True)
+        except RedisError:
+            pass  # Reconciliation restores the wakeup from the durable row.
+        finally:
+            queue.close()
+    return {"data": {"job_id": canonical_id, "status": "queued"}, "meta": {}, "warnings": []}

@@ -161,7 +161,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Prepare disposable local configuration
-        run: cp .env.docker.example .env.docker
+        run: |
+          cp .env.docker.example .env.docker
+          sed -i 's/^HCG_JOBS_ADMIN_TOKEN=.*/HCG_JOBS_ADMIN_TOKEN=ci-smoke-token/' .env.docker
 
       - name: Build and start full stack
         timeout-minutes: 15
@@ -182,6 +184,26 @@ jobs:
             sleep 5
           done
           test "$worker_health" = healthy
+
+      - name: Execute a real queued evaluation job
+        timeout-minutes: 3
+        run: |
+          job_id=$(curl --fail --silent --show-error \
+            -H 'X-HCG-Jobs-Token: ci-smoke-token' \
+            -H 'Content-Type: application/json' \
+            -H 'Idempotency-Key: ci-smoke-evaluation' \
+            -d '{"type":"evaluation_run","payload":{"suite":"keys","song_limit":3}}' \
+            http://127.0.0.1:8000/v2/jobs | python3 -c 'import json,sys; print(json.load(sys.stdin)["data"]["job_id"])')
+          for attempt in $(seq 1 60); do
+            status=$(curl --fail --silent --show-error \
+              -H 'X-HCG-Jobs-Token: ci-smoke-token' \
+              "http://127.0.0.1:8000/v2/jobs/$job_id" | \
+              python3 -c 'import json,sys; print(json.load(sys.stdin)["data"]["status"])')
+            if [ "$status" = completed ]; then exit 0; fi
+            if [ "$status" = failed ] || [ "$status" = dead_letter ]; then exit 1; fi
+            sleep 2
+          done
+          exit 1
 
       - name: Show container logs on failure
         if: failure()

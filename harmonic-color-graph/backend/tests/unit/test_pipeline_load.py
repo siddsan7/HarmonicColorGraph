@@ -14,6 +14,7 @@ pytest.importorskip("pyarrow")
 
 from pipeline.load import (  # noqa: E402
     _catalog,
+    _compact_edge_rows,
     _context_parts,
     _edge_rows,
     _fact_rows,
@@ -160,6 +161,20 @@ def test_catalog_maps_artifact_columns_to_prefixed_graph_ids(artifact_dir: Path)
     assert transition[1:5] == ("function:M:V", "function:M:I", "TRANSITIONS_TO", 0)
     assert transition[8].obj["fact_ids"] == ["transition:M:V->M:I:global"]
     assert transition[8].obj["example_refs"][0]["position"] == 1
+    compact = list(
+        _compact_edge_rows(
+            artifact_dir,
+            manifest.version,
+            7,
+            {"global": 0},
+            nodes,
+            {node_id: index for index, node_id in enumerate(sorted(nodes), 1)},
+        )
+    )
+    transition_compact = next(edge for edge in compact if edge[3] == 1)
+    assert transition_compact[:1] == (7,)
+    assert transition_compact[8] == 1  # Numeric support replaces repeated JSON.
+    assert transition_compact[9].obj["fact_ids"] == ["transition:M:V->M:I:global"]
     fact = next(_fact_rows(artifact_dir, manifest.version))
     assert fact[:4] == (
         "transition:M:V->M:I:global",

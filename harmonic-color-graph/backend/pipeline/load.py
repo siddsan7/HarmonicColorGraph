@@ -24,6 +24,14 @@ from pipeline.manifest import Manifest
 BATCH_ROWS = 4096
 MAX_HCG_BYTES = 300 * 1024 * 1024
 MAX_DATABASE_BYTES = 400 * 1024 * 1024
+EDGE_TYPE_CODES = {
+    "TRANSITIONS_TO": 1,
+    "FUNCTIONS_AS": 2,
+    "ABS_TRANSITIONS_TO": 3,
+    "PATTERN_CONTAINS": 4,
+    "HAS_ROOT": 5,
+    "HAS_QUALITY": 6,
+}
 REQUIRED_ARTIFACTS = {
     "sections.parquet": "sections_analyzed",
     "transitions.parquet": "transitions_rows",
@@ -398,6 +406,43 @@ def _edge_rows(artifact_dir: Path, version: str, contexts: dict[str, int], nodes
                 )
 
 
+def _compact_edge_rows(
+    artifact_dir: Path,
+    version: str,
+    version_key: int,
+    contexts: dict[str, int],
+    nodes: dict,
+    node_keys: dict[str, int],
+) -> Iterator[tuple]:
+    for _, src, dst, edge_type, context_id, count, prob, weight, wrapped_props in _edge_rows(
+        artifact_dir, version, contexts, nodes
+    ):
+        props = wrapped_props.obj
+        support = props.get("support") if edge_type == "TRANSITIONS_TO" else None
+        if edge_type == "TRANSITIONS_TO":
+            # The high-cardinality edge rows store numeric values as compact
+            # columns. Only global edges carry a small evidence payload.
+            extra = {
+                key: props[key]
+                for key in ("fact_ids", "example_refs")
+                if context_id == 0 and key in props
+            }
+        else:
+            extra = props
+        yield (
+            version_key,
+            node_keys[src],
+            node_keys[dst],
+            EDGE_TYPE_CODES[edge_type],
+            context_id,
+            count,
+            prob,
+            weight,
+            support,
+            Jsonb(extra) if extra else None,
+        )
+
+
 def _fact_rows(artifact_dir: Path, version: str) -> Iterator[tuple]:
     for row in _artifact_rows(artifact_dir / "transitions.parquet"):
         if row["context"] != "global":
@@ -423,7 +468,6 @@ def _fact_rows(artifact_dir: Path, version: str) -> Iterator[tuple]:
 def _table_counts(conn: Connection, version: str) -> dict[str, int]:
     tables = (
         "nodes",
-        "edges",
         "ngram_histories",
         "patterns",
         "song_refs",
@@ -432,12 +476,18 @@ def _table_counts(conn: Connection, version: str) -> dict[str, int]:
         "relationship_types",
         "facts",
     )
-    return {
+    counts = {
         table: conn.execute(
             f"select count(*) from hcg.{table} where version = %s", (version,)
         ).fetchone()[0]
         for table in tables
     }
+    counts["edges"] = conn.execute(
+        """select count(*) from hcg.edges_compact
+           where version_key = (select version_key from hcg.corpus_versions where version = %s)""",
+        (version,),
+    ).fetchone()[0]
+    return counts
 
 
 def _size_report(conn: Connection) -> tuple[int, int]:
@@ -461,6 +511,9 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
 
     with connect(_psycopg_url(db_url)) as conn:
         with conn.transaction():
+            # Direct Supabase roles default to a two-minute statement timeout;
+            # binary COPY of the complete graph can legitimately take longer.
+            conn.execute("set local statement_timeout = '20min'")
             conn.execute("select pg_advisory_xact_lock(hashtext('hcg.corpus_loader'))")
             current = conn.execute(
                 "select manifest, active from hcg.corpus_versions where version = %s for update",
@@ -483,11 +536,11 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     status = "no-op"
             else:
                 nodes, context_keys = _catalog(artifact_dir)
-                conn.execute(
+                version_key = conn.execute(
                     "insert into hcg.corpus_versions (version, manifest, active) "
-                    "values (%s, %s, false)",
+                    "values (%s, %s, false) returning version_key",
                     (version, Jsonb(payload)),
-                )
+                ).fetchone()[0]
                 contexts = _context_ids(conn, context_keys)
                 _copy_rows(
                     conn,
@@ -499,22 +552,41 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                         for node_id, (kind, label, props) in sorted(nodes.items())
                     ),
                 )
+                node_keys = dict(
+                    conn.execute(
+                        "select id, node_key from hcg.nodes where version = %s", (version,)
+                    ).fetchall()
+                )
                 _copy_rows(
                     conn,
-                    "edges",
+                    "edges_compact",
                     (
-                        "version",
-                        "src",
-                        "dst",
-                        "type",
+                        "version_key",
+                        "src_key",
+                        "dst_key",
+                        "type_code",
                         "context_id",
                         "count",
                         "prob",
                         "weight",
+                        "support",
                         "props",
                     ),
-                    ("text", "text", "text", "text", "int2", "int4", "float4", "float4", "jsonb"),
-                    _edge_rows(artifact_dir, version, contexts, nodes),
+                    (
+                        "int2",
+                        "int4",
+                        "int4",
+                        "int2",
+                        "int2",
+                        "int4",
+                        "float4",
+                        "float4",
+                        "int4",
+                        "jsonb",
+                    ),
+                    _compact_edge_rows(
+                        artifact_dir, version, version_key, contexts, nodes, node_keys
+                    ),
                 )
                 _copy_rows(
                     conn,
@@ -659,8 +731,9 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                         )
                 edge_counts = dict(
                     conn.execute(
-                        "select type, count(*) from hcg.edges where version = %s group by type",
-                        (version,),
+                        "select type_code, count(*) from hcg.edges_compact "
+                        "where version_key = %s group by type_code",
+                        (version_key,),
                     ).fetchall()
                 )
                 for edge_type, artifact in (
@@ -668,13 +741,13 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     ("FUNCTIONS_AS", "functions.parquet"),
                     ("ABS_TRANSITIONS_TO", "abs_transitions.parquet"),
                 ):
-                    if edge_counts.get(edge_type, 0) != artifact_counts[artifact]:
+                    if edge_counts.get(EDGE_TYPE_CODES[edge_type], 0) != artifact_counts[artifact]:
                         raise ValueError(f"{edge_type} count differs from {artifact}")
                 if table_counts["nodes"] != len(nodes):
                     raise ValueError("Loaded node count differs from the artifact-derived catalog")
                 for table in (
                     "nodes",
-                    "edges",
+                    "edges_compact",
                     "ngram_histories",
                     "patterns",
                     "song_refs",
@@ -707,10 +780,17 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
             )
             edge_types = dict(
                 conn.execute(
-                    "select type, count(*) from hcg.edges where version = %s group by type",
+                    "select type_code, count(*) from hcg.edges_compact "
+                    "where version_key = (select version_key from hcg.corpus_versions "
+                    "where version = %s) group by type_code",
                     (version,),
                 ).fetchall()
             )
+            edge_types = {
+                name: edge_types.get(code, 0)
+                for name, code in EDGE_TYPE_CODES.items()
+                if edge_types.get(code, 0)
+            }
             hcg_size, db_size = _size_report(conn)
             return LoadReport(
                 version=version,

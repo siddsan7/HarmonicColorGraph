@@ -3,12 +3,12 @@
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from app.core.cache import VersionedCache, redis_client
+from app.core.cache import RateLimiter, VersionedCache, redis_client
 from app.db.session import get_session
 from app.db.stores.graph import GraphStore
 from app.graph.service import GraphService
@@ -28,6 +28,31 @@ def _graph_cache() -> VersionedCache:
     return VersionedCache(redis_client())
 
 
+@lru_cache
+def _public_limiter() -> RateLimiter:
+    return RateLimiter(redis_client())
+
+
+def _public_guard(request: Request, scope: str, limit: int) -> JSONResponse | None:
+    subject = request.client.host if request.client else "unknown"
+    decision = _public_limiter().check(
+        scope=scope, subject=subject, limit=limit, window_s=60, fail_mode="open"
+    )
+    if decision.allowed:
+        return None
+    return JSONResponse(
+        status_code=429,
+        headers={"Retry-After": str(decision.retry_after_s)},
+        content={
+            "error": {
+                "code": "rate_limited",
+                "message": "Too many graph requests; retry shortly.",
+                "details": {"retry_after_s": decision.retry_after_s},
+            }
+        },
+    )
+
+
 def _error(code: str, message: str, status: int) -> JSONResponse:
     return JSONResponse(
         status_code=status,
@@ -45,6 +70,7 @@ def _response(service: GraphService, data: dict | list) -> dict:
 
 @router.get("/neighborhood", response_model=None)
 def neighborhood(
+    request: Request,
     service: Graph,
     node: str = Query(alias="id", min_length=1),
     context: str = "global",
@@ -53,6 +79,8 @@ def neighborhood(
     limit: int = Query(default=100, ge=1, le=200),
     hops: int = Query(default=1, ge=1, le=2),
 ) -> dict | JSONResponse:
+    if limited := _public_guard(request, "graph_neighborhood", 120):
+        return limited
     types = {item.strip() for item in edge_types.split(",") if item.strip()} if edge_types else None
     try:
         data = _graph_cache().get_or_compute(
@@ -106,7 +134,9 @@ class PathRequest(BaseModel):
 
 
 @router.post("/path", response_model=None)
-def graph_path(request: PathRequest, service: Graph) -> dict | JSONResponse:
+def graph_path(request: PathRequest, service: Graph, http_request: Request) -> dict | JSONResponse:
+    if limited := _public_guard(http_request, "graph_path", 30):
+        return limited
     try:
         paths = _graph_cache().get_or_compute(
             version=service.store.active_version() or "unversioned",
