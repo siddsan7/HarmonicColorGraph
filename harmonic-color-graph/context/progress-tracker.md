@@ -20,9 +20,20 @@ detail it points to.
   F70.5 adds MCP; F75 and F83 are expanded. Milestone exit gates and
   architectural principles have been updated. PR #1 passed unit, frontend,
   Postgres integration, and Compose smoke CI; squash merge `52951fb`.
-- Current working branch: `codex/durable-jobs`, with F27 code and integration
-  test in progress. Docker is unavailable locally; Compose acceptance ran
-  successfully in GitHub CI.
+- F27's durable job ledger, authenticated typed API, Redis worker,
+  progress events, and API→worker Postgres integration check passed CI in
+  PR #2; squash merge `0c2284f`. The live `0002_graph` and `0003_jobs`
+  migrations are applied. Current branch: `codex/job-reliability`, with
+  F29 retries, idempotency, leases, dead letters, and manual retry plus
+  F28 public graph rate limits under local verification.
+- The first full-corpus load rolled back on 2026-09-24 because Supabase's
+  default 2-minute statement timeout cancelled the large edge COPY.
+  The original text-heavy edge table briefly allocated 542 MB; it had
+  zero committed rows and was vacuumed to 14.2 MB database size. No
+  corpus version is active. `0005_compact_edges.sql` and loader changes on
+  the current branch use integer node/version keys and sparse edge JSON;
+  CI and a repeated live load remain required. Docker is unavailable
+  locally; Compose acceptance runs in GitHub CI.
 - Executing `feature-specs/v2-implementation-plan.md` one
   feature at a time, per its own §0 conventions (Standard
   Check Gate after every feature; ask only for indispensable

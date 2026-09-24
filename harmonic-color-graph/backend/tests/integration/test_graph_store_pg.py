@@ -40,6 +40,7 @@ def test_graph_schema_has_rls_and_active_version_view():
             "song_refs",
             "relationship_types",
             "facts",
+            "edges_compact",
         }.issubset(rls)
         assert all(rls[name] for name in rls)
         assert (
@@ -78,10 +79,17 @@ def test_stores_only_read_active_version_after_atomic_flip():
                     )
                 session.execute(
                     text(
-                        """insert into hcg.edges(version, src, dst, type, context_id, count, prob)
-                           values (:version, 'function:M:V', 'function:M:I',
-                                   'TRANSITIONS_TO', 0,
-                                   :count, 0.5)"""
+                        """insert into hcg.edges_compact
+                           (version_key, src_key, dst_key, type_code, context_id,
+                            count, prob, support)
+                           select cv.version_key, src.node_key, dst.node_key, 1, 0,
+                                  :count, 0.5, :count
+                           from hcg.corpus_versions cv
+                           join hcg.nodes src on src.version = cv.version
+                                and src.id = 'function:M:V'
+                           join hcg.nodes dst on dst.version = cv.version
+                                and dst.id = 'function:M:I'
+                           where cv.version = :version"""
                     ),
                     {"version": version, "count": count},
                 )

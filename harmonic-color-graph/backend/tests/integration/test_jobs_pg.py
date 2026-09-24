@@ -9,6 +9,7 @@ from sqlalchemy import text
 
 from app.core.config import AppSettings, get_settings
 from app.db.session import create_session_factory, get_session
+from app.jobs.repository import JobRepository
 from app.jobs.worker_runtime import JobWorker
 from app.main import app
 
@@ -99,6 +100,120 @@ def test_job_survives_api_session_and_worker_completes(monkeypatch):
             ]
     finally:
         app.dependency_overrides.clear()
+        if job_id:
+            with factory() as session:
+                session.execute(
+                    text("delete from hcg.jobs where id = cast(:id as uuid)"), {"id": job_id}
+                )
+                session.commit()
+
+
+def test_idempotency_retries_dead_letter_and_manual_recovery(monkeypatch):
+    factory = create_session_factory(TEST_DATABASE_URL)
+    settings = AppSettings(
+        DATABASE_URL=TEST_DATABASE_URL,
+        REDIS_URL="redis://unused:6379",
+        HCG_JOBS_ADMIN_TOKEN="test-job-token",
+    )
+    queue = MemoryQueue()
+
+    def session_dependency():
+        with factory() as session:
+            yield session
+
+    app.dependency_overrides[get_session] = session_dependency
+    app.dependency_overrides[get_settings] = lambda: settings
+    monkeypatch.setattr("app.api.jobs_v2.JobQueue.from_url", lambda _: queue)
+    outcomes = [
+        TimeoutError("timeout"),
+        TimeoutError("timeout"),
+        TimeoutError("timeout"),
+        {"ok": True},
+    ]
+
+    def flaky_handler(kind, payload, worker_settings, progress):
+        outcome = outcomes.pop(0)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    monkeypatch.setattr("app.jobs.worker_runtime.run_job", flaky_handler)
+    job_id = None
+    key = "integration-retry-key"
+    try:
+        with TestClient(app) as client:
+            headers = {"X-HCG-Jobs-Token": "test-job-token", "Idempotency-Key": key}
+            body = {"type": "evaluation_run", "payload": {"suite": "keys", "song_limit": 3}}
+            first = client.post("/v2/jobs", json=body, headers=headers)
+            assert first.status_code == 202
+            job_id = first.json()["data"]["job_id"]
+            second = client.post("/v2/jobs", json=body, headers=headers)
+            assert second.json()["data"]["job_id"] == job_id
+            assert len(queue.ids) == 1
+            changed = client.post(
+                "/v2/jobs",
+                json={"type": "evaluation_run", "payload": {"suite": "keys", "song_limit": 4}},
+                headers=headers,
+            )
+            assert changed.status_code == 409
+
+            worker = JobWorker(factory, queue, settings, worker_id="retry-worker")
+            for attempt in range(1, 4):
+                if attempt > 1:
+                    with factory() as session:
+                        session.execute(
+                            text(
+                                "update hcg.jobs set available_at = now() - interval '1 second' "
+                                "where id = cast(:id as uuid)"
+                            ),
+                            {"id": job_id},
+                        )
+                        session.commit()
+                    queue.enqueue(job_id, force=True)
+                assert worker.process_one()
+                state = client.get(f"/v2/jobs/{job_id}", headers=headers).json()["data"]
+                assert state["attempt"] == attempt
+                assert state["status"] == ("retrying" if attempt < 3 else "dead_letter")
+            assert client.post(f"/v2/jobs/{job_id}/retry", headers=headers).status_code == 202
+            assert worker.process_one()
+            final = client.get(f"/v2/jobs/{job_id}", headers=headers).json()["data"]
+            assert final["status"] == "completed"
+            assert final["attempt"] == 4
+    finally:
+        app.dependency_overrides.clear()
+        if job_id:
+            with factory() as session:
+                session.execute(
+                    text("delete from hcg.jobs where id = cast(:id as uuid)"), {"id": job_id}
+                )
+                session.commit()
+
+
+def test_expired_worker_lease_is_recovered():
+    factory = create_session_factory(TEST_DATABASE_URL)
+    job_id = None
+    try:
+        with factory() as session:
+            job, _ = JobRepository(session).create(
+                "evaluation_run", {"suite": "keys", "song_limit": 1}
+            )
+            job_id = job["id"]
+        with factory() as session:
+            assert JobRepository(session).claim(job_id, "crashed-worker")
+            session.execute(
+                text(
+                    "update hcg.jobs set lease_expires_at = now() - interval '1 second' "
+                    "where id = cast(:id as uuid)"
+                ),
+                {"id": job_id},
+            )
+            session.commit()
+        with factory() as session:
+            repository = JobRepository(session)
+            assert repository.recover_expired() == 1
+            assert repository.get(job_id)["status"] == "retrying"
+            assert job_id in repository.queued_ids()
+    finally:
         if job_id:
             with factory() as session:
                 session.execute(

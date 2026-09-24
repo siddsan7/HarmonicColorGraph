@@ -49,7 +49,7 @@ class GraphStore(_ActiveStore):
             params["context_id"] = context_id
         return self._all(
             f"""select version, src, dst, type, context_id, count, prob, weight, props
-               from hcg.edges
+               from hcg.edges_read
                where version = hcg.v() and src = :src
                {" ".join(filters)}
                order by type, context_id, dst""",
@@ -69,7 +69,7 @@ class GraphStore(_ActiveStore):
             params["context_id"] = context_id
         return self._all(
             f"""select version, src, dst, type, context_id, count, prob, weight, props
-               from hcg.edges
+               from hcg.edges_read
                where version = hcg.v() and dst = :dst
                {" ".join(filters)}
                order by type, context_id, src""",
@@ -99,12 +99,10 @@ class GraphStore(_ActiveStore):
         return self._all(
             """select e.version, e.src, e.dst, e.type, e.context_id,
                       e.count, e.prob, e.weight, e.props
-               from hcg.edges e
-               join hcg.nodes src on (src.version, src.id) = (e.version, e.src)
-               join hcg.nodes dst on (dst.version, dst.id) = (e.version, e.dst)
+               from hcg.edges_read e
                where e.version = hcg.v() and e.context_id = :context_id
                  and e.type = 'TRANSITIONS_TO'
-                 and src.type = 'function' and dst.type = 'function'
+                 and e.src_type = 'function' and e.dst_type = 'function'
                order by e.src, e.dst""",
             context_id=context_id,
         )
@@ -118,7 +116,7 @@ class GraphStore(_ActiveStore):
             params["context_id"] = context_id
         return self._all(
             f"""select version, src, dst, type, context_id, count, prob, weight, props
-                from hcg.edges
+                from hcg.edges_read
                 where version = hcg.v() and src = :src and dst = :dst
                   {filter_context}
                 order by type, context_id""",

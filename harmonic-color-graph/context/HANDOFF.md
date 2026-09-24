@@ -30,48 +30,42 @@ The older Phase 1 plans are historical.
   Only indispensable user-only input, new cost, or irreversible remote
   deletion needs a pause; keep independent work moving when one path is
   blocked.
-- Current branch: `codex/durable-jobs`. F09's Compose stack and CI smoke job
-  are merged. F23's graph migration
-  and active-version stores are written. F24's streaming, atomic loader
-  is written; its full-corpus artifact integrity pass succeeded locally
-  with 2,248,238 sections and 1,665,611 transition rows. F25 graph
-  endpoints/path service and F26 evidence endpoint/UI are written. The
-  F26 examples stage was rerun to record true chord positions with the
-  same 44,480 pattern and 250 transition example counts. F28's versioned
-  Redis cache is already used by graph endpoints; rate-limit primitives
-  exist but are not yet wired to all future endpoints. F27 job files are
-  **in progress on this branch**, with worker/runtime/API integration and a
-  Postgres integration test being completed for PR #2.
-- The local `scripts/check.ps1 all` gate passed after those changes on
-  2026-09-24: Ruff, frontend lint/types, unit tests, Vitest, Next build,
-  and FastAPI import. Postgres integration tests skipped locally because
-  `TEST_DATABASE_URL` is unset. Docker is not installed on this host, so
-  the new Compose CI smoke job is the runtime gate. Neither production
-  schema migration nor corpus load has run yet.
+- F23's graph migration and active-version stores, F24's loader, F25 graph
+  endpoints, F26 evidence, and F28's cache foundation are merged. The
+  F26 examples stage records true chord positions with 44,480 pattern and
+  250 transition examples. F27 jobs were merged through PR #2
+  ([durable worker](https://github.com/siddsan7/HarmonicColorGraph/pull/2)),
+  squash commit `0c2284f`. All four CI jobs passed. The live `0002_graph`
+  and `0003_jobs` migrations have been applied to Supabase.
+- Current branch: `codex/job-reliability`. F29 retries, idempotency,
+  dead-letter handling, worker leases, and manual retry are implemented
+  locally; F28 public graph rate-limit wiring is also on this branch.
+  The first live `cv-2026-09-a` load rolled back after Supabase's 2-minute
+  statement timeout on 1.66M text-heavy edge rows. No corpus version was
+  activated. `hcg.edges` was verified empty and vacuumed to reclaim the
+  aborted allocation; database size returned to 14.2 MB. The branch adds
+  compact integer-key edge storage (`0005_compact_edges.sql`) and a longer
+  loader transaction timeout. These changes need CI and another live load.
+- `scripts/check.ps1 all` passed on this branch on 2026-09-24. Postgres
+  integration tests skip locally because `TEST_DATABASE_URL` is unset;
+  Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Complete F27 worker, typed job API, migration, event log, and the
-   API → queue → worker integration check on `codex/durable-jobs`. Extend
-   it through F29 reliability semantics where practical, run checks, then
-   open PR #2, attach it to the task, review CI/diff, and squash-merge.
+1. Review and commit the current F29/F28/compact-edge branch, open PR #3,
+   attach it to the task, review CI/diff, and squash-merge after fixes.
    The GitHub connector's PR write methods returned 403 despite read access;
    authenticated GitHub REST using the existing Git credential manager
-   created and merged PR #1. Use the connector first and the same REST
+   created and merged PRs #1–#2. Use the connector first and the same REST
    fallback if necessary; never print the credential.
-2. Apply `0002_graph.sql` to the live Supabase
-   project (`avnxcyulznofylsnydfg`) using its migration tool. It is
-   additive and uses private `hcg` tables. Verify migration history and
-   security/performance advisors. Test `hcg-build load` on a small
-   version first, then load `data/artifacts/cv-2026-09-a` if the 300 MB
-   `hcg` and 400 MB database guards permit it. Confirm atomic activation,
-   active-version graph/evidence APIs, and production health. The loader
-   uses `DATABASE_URL_LOAD` from gitignored `backend/.env`; never print or
-   commit credentials.
-3. Complete F28 distributed rate-limit wiring and F29
-   retry/idempotency/lease/dead-letter semantics, then continue F30
-   onward in plan order. Record CI and live evidence before closing each
-   milestone gate.
+2. After PR #3 passes, apply `0004_job_reliability.sql` and
+   `0005_compact_edges.sql` to Supabase project `avnxcyulznofylsnydfg`.
+   Retry the full corpus load. Confirm the size guard, atomic activation,
+   graph/evidence API reads, migration history, and Supabase advisors.
+   The loader uses the direct database URL from gitignored
+   `backend/.env`; never print or commit credentials.
+3. Finish F28 acceptance metrics and continue F30 onward in plan order.
+   Record CI and live evidence before closing each milestone gate.
 4. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
