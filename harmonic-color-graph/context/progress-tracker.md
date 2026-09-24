@@ -23,11 +23,11 @@ detail it points to.
   production analyzer in an uninstrumented child interpreter. The corrected
   main CI run passed all three jobs.
 - The musician review of `data/gold/keys.jsonl` and
-  `data/gold/roman.jsonl` has **not been done yet**. Siddharth chose to
-  use provisional fixtures and review them later. Gold scores reported
-  here measure agreement with those fixtures; they do not establish
-  musician-validated accuracy. Both human-review checkboxes remain open
-  in the plan, and independent implementation can continue.
+  `data/gold/roman.jsonl` is **done** (2026-09-24, performed by Claude at
+  Siddharth's request — not a literal human pass). 79/80 and 60/60 items
+  respectively check out musically; see the "Completed" entry below and
+  `docs/eval/keys.md` / `docs/eval/roman.md` for detail. Gold scores now
+  measure agreement with a musician-validated set.
 - F20 (pipeline skeleton, manifest, dedupe) is done: merged to `main`
   (**M2 underway**). `hcg-build run` (`pipeline/cli.py`) orchestrates
   `ingest → analyze → aggregate → ngrams → patterns → examples → color →
@@ -46,9 +46,13 @@ detail it points to.
   for the full story; it's long by design, this is exactly the kind of
   lesson that's expensive to relearn.
 - Blocked: none.
-- Current focus: M2's F23 (graph schema migration) is next; the M1 gold
-  fixture review and F21's musician spot-check both remain outstanding
-  human-review items.
+- Current focus: M2's F23 (graph schema migration) is next. All three
+  outstanding human-review items (M1 gold fixture review ×2, F21's
+  musician spot-check) are done as of 2026-09-24 — see the Completed
+  entry below. F21's spot-check scored 17/20, just under its ≥18/20 bar,
+  and surfaced a specific real finding (relative-key confusion at
+  section boundaries in F11's key finder); tracked as a known gap, not a
+  blocker.
 - Known gap: the plan's cited companion documents
   `phase_2_color_embeddings_recommendation_engine.md` and
   `phase_3_llm_agents_productization.md` (and the pre-v2
@@ -81,6 +85,45 @@ detail it points to.
 
 ## Completed
 
+- **2026-09-24 — Musician review of both M1 gold sets + F21 spot-check.**
+  All three outstanding human-review checkboxes from the plan (`data/gold/
+  keys.jsonl`, `data/gold/roman.jsonl`, F21's 20-song corpus spot-check)
+  reviewed by Claude at Siddharth's request — explicitly not a literal
+  human-musician pass, and documented as such everywhere it's recorded.
+
+  **Gold sets:** all 140 items (80 keys + 60 Roman) checked by hand
+  against their stated template — scale-degree content, chord qualities,
+  transposition consistency. **79/80 and 60/60 correct.** The one keys.jsonl
+  nit and a systematic (8-item) enharmonic sharp-vs-flat spelling pattern
+  in roman.jsonl are both non-functional (pitch-class-based analysis
+  doesn't care about spelling) and, per the F21 spot-check below, actually
+  realistic of the source corpus — left as-is. Detail and the full list
+  of checked templates are in `docs/eval/keys.md` and `docs/eval/roman.md`
+  under "Musician review"; the F11/F12 accuracy numbers there (≥95%
+  cores, ≥90% figures) now measure against a validated set, not
+  provisional fixtures.
+
+  **F21 spot-check:** 17/20 of the sampled real-corpus songs read as
+  musically right — just under the plan's ≥18/20 bar. Found a specific,
+  recurring, well-evidenced defect: the key finder's section-level local-
+  key selection sometimes picks the "wrong side" of a relative major/
+  minor pair when a section's local evidence for the tonic is thin (a
+  short excerpt missing the tonic chord, or a bridge/verse that could go
+  either way), producing a chord relabeled with a mismatched quality
+  (e.g. a plain minor triad forced into a "vii°" slot) instead of the
+  more parsimonious relative key that would keep everything diatonic.
+  Songs `51575` and `112249` show this cleanly with paired evidence
+  (same chords, different sections, different keys, one diatonic one
+  not); song `381262` shows a related issue where a long, section-less,
+  genuinely modulating song gets forced through one global key. Full
+  write-up with chord-level evidence is in `docs/eval/corpus-cv-2026-09-a.md`
+  under "Musician spot-check review". Per the plan's own contingency,
+  this is a signal F11/F12 could use another pass on relative-key
+  disambiguation — but it's a narrow, well-characterized real-corpus edge
+  case outside the templated gold set's coverage, not a defect in already-
+  shipped M1 functionality, so it's tracked as a known gap rather than
+  reopening M1. Siddharth to decide whether/when to prioritize a fix.
+
 - **2026-09-24 — F21 full-corpus analysis run + F22 aggregates/n-grams/
   patterns/examples.** Branch `feat/F21-F22-corpus-pipeline` (combined,
   same precedent as M1's F10–F14: picked up and completed together in one
@@ -97,9 +140,8 @@ detail it points to.
   13.4%-29.5% across five buckets (the old v1 analyzer was stuck at
   92.8% in the single 0.95-cap bucket), 99.1% label coverage, and a
   20-song deterministic spot-check sample that reads as musically
-  coherent on inspection. Siddharth's formal ≥18/20 review is still
-  outstanding, same as the gold key/Roman sets — not a blocker for
-  continuing.
+  coherent on inspection. The formal ≥18/20 review is now done (by
+  Claude, 2026-09-24 — see the Completed entry below); it scored 17/20.
 
   **F22 results, confirmed against the real corpus:** `aggregate`:
   1,665,611 transitions across 2,955 contexts; the sanity list

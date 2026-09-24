@@ -338,3 +338,88 @@ Deterministic random sample for a musician spot-check (>= 18/20 should look musi
   - chords: `E7 Am E7 Am E7 Am E7 Am E7 Am E7 Am E7 Am C Am E7 Am C Am C Am E7 Am`
   - figures: `V7 i V7 i V7 i V7 i V7 i V7 i V7 i III i V7 i III i III i V7 i`
 
+## Musician spot-check review (2026-09-24)
+
+Performed by Claude, at Siddharth's request, since the original deferred
+review — no separate human-musician pass has been done. Each of the 20
+songs above was checked chord-by-chord for whether the assigned key and
+figures are musically defensible, not just internally consistent.
+
+**Score: 17/20 read as musically right.** Three songs show a real,
+specific, recurring defect; two more are borderline-but-defensible. This
+is **just under** the plan's own ≥18/20 bar, so per the plan's stated
+contingency this is evidence F11/F12 (the key finder and its section-level
+local-key selection) would benefit from another pass — see the specific
+pattern below. It is not a blocker for M2 work continuing; the gold-set
+metrics in `docs/eval/keys.md` and `docs/eval/roman.md` are unaffected
+(that 140-item review, done separately, passed clean — see those files).
+
+### The recurring defect: relative-key confusion at section boundaries
+
+Three songs pick the "wrong side" of a relative major/minor pair for a
+section, in a way that forces the analyzer to relabel a plain diatonic
+chord as chromatic (mismatching its actual quality) when the alternative,
+more consistent-with-the-rest-of-the-song key would have read it as
+perfectly diatonic:
+
+- **Song `51575`** — the "verse" and second "chorus"/"outro" sections
+  (chords `Am Em F C ... Dm F C G`) are keyed **F major**, giving figures
+  `iii vii I V ... ii IV I V`. But `Em` (E-G-B, a plain minor triad) is
+  not F major's diatonic vii° (which would be E diminished, E-G-Bb) —
+  the analyzer labels it `vii` anyway, a quality mismatch. The song's own
+  first "chorus" section, four lines earlier, has the *same* chords
+  (`C Am Em F`) correctly keyed **C major**, where `Em` is genuinely
+  diatonic iii. Re-keying the "F major" sections to C major would make
+  every chord diatonic with zero relabeling. Same chord, same song, two
+  different keys depending on section — the C-major reading is strictly
+  more parsimonious.
+- **Song `112249`** — the "bridge" (`Eb Dm Gm Bb Eb`) is keyed **Eb
+  major**, giving `I vii iii V I`; again `Dm` (D-F-A) isn't Eb major's
+  diatonic vii° (D diminished, D-F-Ab). Every other section of this song
+  is **G minor**, where `Dm` is simply the natural-minor v (D-F-A is
+  exactly the minor dominant of G natural minor) — a clean, standard
+  label with no quality mismatch. The bridge looks mis-keyed relative to
+  the rest of the song.
+- **Song `381262`** — a 76-chord, section-less country tune analyzed
+  under one global key (C major) even though the harmony clearly
+  tonicizes A, D, and F for extended stretches (long secondary-dominant
+  chains: `V7/ii`, `V7/V`, `V7/iii`, `V7/vi`, `#iv`...). This produces at
+  least one internally inconsistent pair: `E7` is labeled `V7/vi`
+  (implying it resolves to `vi`/Am) but the chord that actually follows
+  is `A` major, labeled `VI`, not `vi` — the applied-dominant label's
+  implied target doesn't match what the next chord is actually called.
+  This looks like a real modulating song being forced through a single
+  global key because the source data has no section markers to hang a
+  local-key change on, rather than a fixable mislabel in isolation.
+
+Two more are defensible, not counted as failures, but show a related
+softer pattern worth knowing about: **`349691`**'s 3-chord intro
+(`D Em C`, no G present) is locally keyed C major, while the identical
+`D Em C G` loop later in the same song (once G appears) is correctly
+keyed G major — a short excerpt lacking the song's actual tonic chord
+snaps to a plausible-but-different local key. **`171951`** shows the
+same shape (`A G Bb C` keyed C major in one verse vs. the more
+parsimonious D-major reading — `V IV bVI bVII` with zero chromatic
+chords — used for the surrounding D-major sections).
+
+**Net read:** the key finder handles single-key, single-section songs
+and mid-song modulation well (see `286866`, `359726`, `112249`'s other
+sections, all correctly time-varying); its weak spot is specifically
+*short excerpts or unsectioned long songs where local evidence for the
+tonic is thin*, where it doesn't consistently prefer the reading that
+keeps chord qualities diatonic.
+
+### Confirms the gold-set enharmonic spelling is realistic, not a bug
+
+Both `data/gold/keys.jsonl` and `data/gold/roman.jsonl` consistently
+spell borrowed/chromatic scale-degree chords with sharps rather than the
+conventionally "correct" flat (e.g. `A#` instead of `Bb` for a bVII in a
+C-rooted key) in several fixtures. This full-corpus sample independently
+confirms that's realistic, not an authoring slip: song `540889` (F major)
+has a literal `A#` chord that the analyzer correctly reads as `IV`
+(really Bb), and song `380073` (F major) has a literal `G#` correctly
+read as `bIII` (really Ab). Real Chordonomicon chord-chart data skews
+sharp regardless of key; the gold fixtures matching that is the analyzer
+being tested against real input, not a data-entry mistake. No changes
+recommended there.
+
