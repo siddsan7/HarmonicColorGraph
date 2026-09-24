@@ -32,6 +32,10 @@ EDGE_TYPE_CODES = {
     "HAS_ROOT": 5,
     "HAS_QUALITY": 6,
 }
+# A contextual transition observed fewer than five times is too noisy for
+# public graph traversal and would exhaust the 300 MB graph budget. Keep every
+# global transition; predictive n-grams and source artifacts remain complete.
+MIN_CONTEXT_EDGE_COUNT = 5
 REQUIRED_ARTIFACTS = {
     "sections.parquet": "sections_analyzed",
     "transitions.parquet": "transitions_rows",
@@ -417,6 +421,8 @@ def _compact_edge_rows(
     for _, src, dst, edge_type, context_id, count, prob, weight, wrapped_props in _edge_rows(
         artifact_dir, version, contexts, nodes
     ):
+        if edge_type == "TRANSITIONS_TO" and context_id != 0 and count < MIN_CONTEXT_EDGE_COUNT:
+            continue
         props = wrapped_props.obj
         support = props.get("support") if edge_type == "TRANSITIONS_TO" else None
         if edge_type == "TRANSITIONS_TO":
@@ -736,12 +742,24 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                         (version_key,),
                     ).fetchall()
                 )
+                retained_transitions = sum(
+                    1
+                    for row in _artifact_rows(
+                        artifact_dir / "transitions.parquet", ["context", "count"]
+                    )
+                    if row["context"] == "global" or row["count"] >= MIN_CONTEXT_EDGE_COUNT
+                )
                 for edge_type, artifact in (
                     ("TRANSITIONS_TO", "transitions.parquet"),
                     ("FUNCTIONS_AS", "functions.parquet"),
                     ("ABS_TRANSITIONS_TO", "abs_transitions.parquet"),
                 ):
-                    if edge_counts.get(EDGE_TYPE_CODES[edge_type], 0) != artifact_counts[artifact]:
+                    expected_count = (
+                        retained_transitions
+                        if edge_type == "TRANSITIONS_TO"
+                        else artifact_counts[artifact]
+                    )
+                    if edge_counts.get(EDGE_TYPE_CODES[edge_type], 0) != expected_count:
                         raise ValueError(f"{edge_type} count differs from {artifact}")
                 if table_counts["nodes"] != len(nodes):
                     raise ValueError("Loaded node count differs from the artifact-derived catalog")

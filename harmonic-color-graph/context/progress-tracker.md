@@ -23,16 +23,23 @@ detail it points to.
 - F27's durable job ledger, authenticated typed API, Redis worker,
   progress events, and API→worker Postgres integration check passed CI in
   PR #2; squash merge `0c2284f`. The live `0002_graph` and `0003_jobs`
-  migrations are applied. Current branch: `codex/job-reliability`, with
-  F29 retries, idempotency, leases, dead letters, and manual retry plus
-  F28 public graph rate limits under local verification.
+  migrations are applied. F29 retries, idempotency, leases, dead letters,
+  and manual retry plus F28 public graph rate limits passed CI in PR #3,
+  squash merge `d84fd22`. All four CI jobs passed, including a real
+  Compose API→Redis→worker evaluation. Live migrations 0004 and 0005 are
+  applied. Current branch: `codex/corpus-storage-budget`.
 - The first full-corpus load rolled back on 2026-09-24 because Supabase's
   default 2-minute statement timeout cancelled the large edge COPY.
   The original text-heavy edge table briefly allocated 542 MB; it had
   zero committed rows and was vacuumed to 14.2 MB database size. No
   corpus version is active. `0005_compact_edges.sql` and loader changes on
-  the current branch use integer node/version keys and sparse edge JSON;
-  CI and a repeated live load remain required. Docker is unavailable
+  PR #3 uses integer node/version keys and sparse edge JSON; CI passed, but
+  the second live load rolled back at the storage gate (`hcg=409.4 MB`,
+  database=420.5 MB). No corpus version was activated. The large empty
+  aborted relations were vacuumed after verifying zero committed rows;
+  database size returned to 12.6 MB. The current branch prunes contextual
+  transitions with count < 5 while retaining all global transitions and
+  complete n-grams. Docker is unavailable
   locally; Compose acceptance runs in GitHub CI.
 - Executing `feature-specs/v2-implementation-plan.md` one
   feature at a time, per its own §0 conventions (Standard

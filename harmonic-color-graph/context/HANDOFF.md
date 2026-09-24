@@ -37,34 +37,41 @@ The older Phase 1 plans are historical.
   ([durable worker](https://github.com/siddsan7/HarmonicColorGraph/pull/2)),
   squash commit `0c2284f`. All four CI jobs passed. The live `0002_graph`
   and `0003_jobs` migrations have been applied to Supabase.
-- Current branch: `codex/job-reliability`. F29 retries, idempotency,
-  dead-letter handling, worker leases, and manual retry are implemented
-  locally; F28 public graph rate-limit wiring is also on this branch.
+- PR #3 ([job reliability and compact edges](https://github.com/siddsan7/HarmonicColorGraph/pull/3))
+  passed all four CI jobs, including a real Compose queue job, and was
+  squash-merged at `d84fd22`. F29 retries, idempotency, dead letters,
+  worker leases, and manual retry are merged. F28 public graph rate limits
+  are wired. Migrations `0004_job_reliability` and `0005_compact_edges`
+  have been applied live. Current branch: `codex/corpus-storage-budget`.
   The first live `cv-2026-09-a` load rolled back after Supabase's 2-minute
   statement timeout on 1.66M text-heavy edge rows. No corpus version was
   activated. `hcg.edges` was verified empty and vacuumed to reclaim the
-  aborted allocation; database size returned to 14.2 MB. The branch adds
-  compact integer-key edge storage (`0005_compact_edges.sql`) and a longer
-  loader transaction timeout. These changes need CI and another live load.
-- `scripts/check.ps1 all` passed on this branch on 2026-09-24. Postgres
+  aborted allocation; database size returned to 14.2 MB. PR #3 adds
+  compact integer-key edge storage and a longer loader timeout. A second
+  live load completed validation but rolled back at the storage gate:
+  `hcg=409.4 MB` (limit 300), database `420.5 MB` (limit 400). No corpus
+  version is active. All large empty aborted relations were verified to
+  have zero committed rows and vacuumed; database size returned to 12.6 MB.
+  The current branch prunes contextual transition edges with count < 5,
+  retaining all global edges and the complete predictive n-gram artifacts.
+- `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Review and commit the current F29/F28/compact-edge branch, open PR #3,
-   attach it to the task, review CI/diff, and squash-merge after fixes.
+1. Verify, commit, and PR the contextual edge pruning on
+   `codex/corpus-storage-budget`; wait for CI and self-merge.
    The GitHub connector's PR write methods returned 403 despite read access;
    authenticated GitHub REST using the existing Git credential manager
-   created and merged PRs #1–#2. Use the connector first and the same REST
+   created and merged PRs #1–#3. Use the connector first and the same REST
    fallback if necessary; never print the credential.
-2. After PR #3 passes, apply `0004_job_reliability.sql` and
-   `0005_compact_edges.sql` to Supabase project `avnxcyulznofylsnydfg`.
-   Retry the full corpus load. Confirm the size guard, atomic activation,
+2. Retry the full corpus load and confirm the size guard, atomic activation,
    graph/evidence API reads, migration history, and Supabase advisors.
    The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-3. Finish F28 acceptance metrics and continue F30 onward in plan order.
+3. Finish F28 acceptance metrics and implement F30 onward in plan order
+   from a fresh branch after M2 is live.
    Record CI and live evidence before closing each milestone gate.
 4. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
