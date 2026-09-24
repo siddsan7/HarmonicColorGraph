@@ -89,9 +89,9 @@ jobs:
           cache: "pip"
           cache-dependency-path: harmonic-color-graph/backend/pyproject.toml
 
-      - name: Install backend (dev extras)
+      - name: Install backend (dev + pipeline extras)
         working-directory: harmonic-color-graph/backend
-        run: pip install -e ".[dev]"
+        run: pip install -e ".[dev,pipeline]"
 
       - name: Install postgresql-client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
