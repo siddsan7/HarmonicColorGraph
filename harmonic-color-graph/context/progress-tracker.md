@@ -7,11 +7,28 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-24 workflow reset: implementation now goes through GitHub PRs.
+  Use `codex/` branches, choose reviewable PR boundaries by dependency,
+  run the Standard Check Gate and feature acceptance checks, inspect CI
+  and the diff, then squash-merge PRs to `main`. The GitHub connector is
+  available; the older no-PR workaround in prior entries is historical.
+  The user explicitly asked the agent to merge passing PRs and continue
+  across feature and milestone boundaries without confirmation pauses.
+- Production-readiness additions are incorporated into the active v2 plan:
+  F09 (Docker/local stack) was skipped chronologically and is being built
+  now, then F23 onward resumes. F27–F29 add jobs, Redis, and reliability;
+  F70.5 adds MCP; F75 and F83 are expanded. Milestone exit gates and
+  architectural principles have been updated. M0's new F09 gate remains
+  open until the local stack can be run and verified.
+- Current working branch: `codex/production-readiness-roadmap`. F09 and
+  F23 implementation is underway; neither is marked complete yet. Docker
+  is unavailable on this host, so Compose runtime acceptance must be
+  verified in an environment with Docker before F09 can be closed.
 - Executing `feature-specs/v2-implementation-plan.md` one
   feature at a time, per its own §0 conventions (Standard
-  Check Gate after every feature; ask only for the §0.2 inputs
-  and before anything that costs money or deletes remote data;
-  stop and summarize at each milestone exit gate).
+  Check Gate after every feature; ask only for indispensable
+  §0.2 inputs and before anything that costs money or deletes
+  remote data; record milestone evidence and continue).
 - F08 (keep-alive cron and graceful degradation) is done: merged to
   `main` (squash commit `afdd525`) and verified live in production.
   This closes out **M0** — see the exit-gate summary in the F08
@@ -46,7 +63,8 @@ detail it points to.
   for the full story; it's long by design, this is exactly the kind of
   lesson that's expensive to relearn.
 - Blocked: none.
-- Current focus: M2's F23 (graph schema migration) is next. All three
+- Current focus: backfill F09, then M2's F23 (graph schema migration).
+  All three
   outstanding human-review items (M1 gold fixture review ×2, F21's
   musician spot-check) are done as of 2026-09-24 — see the Completed
   entry below. F21's spot-check scored 17/20, just under its ≥18/20 bar,

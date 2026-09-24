@@ -62,3 +62,28 @@ def test_health_db_endpoint_reports_503_when_database_unreachable():
     assert response.status_code == 503
     payload = response.json()
     assert payload["error"]["code"] == "db_unavailable"
+
+
+def test_health_redis_reports_ok_when_redis_reachable(monkeypatch):
+    monkeypatch.setattr("app.main.ping_redis", lambda: None)
+
+    response = TestClient(app).get("/health/redis")
+
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "redis": "connected"}
+
+
+def test_health_redis_reports_503_without_exposing_connection_error(monkeypatch):
+    def unavailable() -> None:
+        raise RuntimeError("connection to internal.redis.local refused")
+
+    monkeypatch.setattr("app.main.ping_redis", unavailable)
+
+    response = TestClient(app).get("/health/redis")
+
+    assert response.status_code == 503
+    assert response.json()["error"] == {
+        "code": "redis_unavailable",
+        "message": "Redis is not reachable or configured.",
+        "details": {},
+    }

@@ -44,6 +44,15 @@ harmonic-color-graph/
 
 ## Quick Start
 
+For a local full stack with Postgres, Redis, API, worker bootstrap, and
+frontend, see [the Docker runbook](docs/runbooks/docker.md). Copy
+`.env.docker.example` to `.env.docker`, set the local database password
+in both `POSTGRES_PASSWORD` and `DATABASE_URL`, then run
+`docker compose up --build -d`. Open `http://127.0.0.1:3000` and check
+`http://127.0.0.1:8000/health`. Docker and Compose v2 are required.
+
+To run the services separately without Docker:
+
 Install frontend dependencies:
 
 ```powershell

@@ -1,6 +1,9 @@
 """Offline pipeline CLI. Usage: `python -m pipeline.cli <stage> ...`."""
 
 import argparse
+import json
+import os
+import sys
 import time
 from pathlib import Path
 
@@ -255,6 +258,27 @@ def _run_vocab_report(args: argparse.Namespace) -> None:
     print(f"Wrote {output_path}")
 
 
+def _run_load(args: argparse.Namespace) -> None:
+    from pipeline.load import garbage_collect, load_corpus
+
+    db_url = args.db or os.getenv("DATABASE_URL_LOAD")
+    if not db_url:
+        raise SystemExit("Set --db or DATABASE_URL_LOAD for the loader")
+    if args.gc:
+        if not args.yes:
+            if not sys.stdin.isatty():
+                raise SystemExit("--gc in a noninteractive session requires --yes")
+            if input("Delete all inactive corpus versions? Type 'delete' to confirm: ") != "delete":
+                raise SystemExit("Garbage collection cancelled")
+        versions = garbage_collect(db_url, confirm=True)
+        print(f"Deleted {len(versions)} inactive version(s): {', '.join(versions)}")
+        return
+    if not args.version:
+        raise SystemExit("--version is required unless --gc is used")
+    report = load_corpus(_artifact_dir(args.version), db_url)
+    print(json.dumps(report.__dict__, sort_keys=True, indent=2))
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pipeline", description="Offline data pipeline CLI.")
     subparsers = parser.add_subparsers(dest="stage", required=True)
@@ -303,6 +327,19 @@ def build_parser() -> argparse.ArgumentParser:
     vocab_report.add_argument("--top", type=int, default=200)
     vocab_report.add_argument("--limit", type=int, default=None)
     vocab_report.set_defaults(func=_run_vocab_report)
+
+    load = subparsers.add_parser(
+        "load", help="F24: load a versioned artifact set and atomically activate it."
+    )
+    load.add_argument("--version", type=str, default=None)
+    load.add_argument(
+        "--db", type=str, default=None, help="Loader database URL (or DATABASE_URL_LOAD)."
+    )
+    load.add_argument(
+        "--gc", action="store_true", help="Delete inactive versions after confirmation."
+    )
+    load.add_argument("--yes", action="store_true", help="Confirm --gc for noninteractive use.")
+    load.set_defaults(func=_run_load)
 
     return parser
 

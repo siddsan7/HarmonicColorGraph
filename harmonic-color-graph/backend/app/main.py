@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 
 from app.api import phase1_router
 from app.api.analysis_v2 import router as analysis_v2_router
+from app.api.examples_v2 import router as examples_v2_router
+from app.api.graph_v2 import router as graph_v2_router
 from app.core.config import get_settings
+from app.core.redis import ping_redis
 from app.db.session import get_session
 
 settings = get_settings()
@@ -32,6 +35,8 @@ app.add_middleware(
 app.include_router(phase1_router)
 app.include_router(phase1_router, prefix="/v1")
 app.include_router(analysis_v2_router)
+app.include_router(graph_v2_router)
+app.include_router(examples_v2_router)
 
 
 @app.get("/health", tags=["system"])
@@ -59,3 +64,21 @@ def health_db_check(session: Annotated[Session, Depends(get_session)]) -> dict |
             },
         )
     return {"status": "ok", "database": "connected"}
+
+
+@app.get("/health/redis", tags=["system"], response_model=None)
+def health_redis_check() -> dict | JSONResponse:
+    try:
+        ping_redis()
+    except Exception:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "error": {
+                    "code": "redis_unavailable",
+                    "message": "Redis is not reachable or configured.",
+                    "details": {},
+                }
+            },
+        )
+    return {"status": "ok", "redis": "connected"}

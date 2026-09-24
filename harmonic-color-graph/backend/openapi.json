@@ -457,6 +457,81 @@
         "title": "ContextUsed",
         "type": "object"
       },
+      "ExamplesData": {
+        "properties": {
+          "context": {
+            "title": "Context",
+            "type": "string"
+          },
+          "examples": {
+            "items": {
+              "$ref": "#/components/schemas/SongExample"
+            },
+            "title": "Examples",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "pattern",
+              "transition"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "subject": {
+            "title": "Subject",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "subject",
+          "context",
+          "examples"
+        ],
+        "title": "ExamplesData",
+        "type": "object"
+      },
+      "ExamplesMeta": {
+        "properties": {
+          "corpus_version": {
+            "title": "Corpus Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "corpus_version"
+        ],
+        "title": "ExamplesMeta",
+        "type": "object"
+      },
+      "ExamplesResponse": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ExamplesData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/ExamplesMeta"
+          },
+          "warnings": {
+            "default": [],
+            "items": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "ExamplesResponse",
+        "type": "object"
+      },
       "ExplainTransitionResponse": {
         "additionalProperties": false,
         "properties": {
@@ -637,6 +712,81 @@
           "message"
         ],
         "title": "ParseWarning",
+        "type": "object"
+      },
+      "PathRequest": {
+        "properties": {
+          "constraint": {
+            "default": "none",
+            "enum": [
+              "none",
+              "increasing_chromaticity",
+              "max_chromaticity"
+            ],
+            "title": "Constraint",
+            "type": "string"
+          },
+          "context": {
+            "default": "global",
+            "title": "Context",
+            "type": "string"
+          },
+          "edge_types": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edge Types"
+          },
+          "from": {
+            "minLength": 1,
+            "title": "From",
+            "type": "string"
+          },
+          "k": {
+            "default": 3,
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          },
+          "max_chromaticity": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Chromaticity"
+          },
+          "max_len": {
+            "default": 6,
+            "maximum": 6.0,
+            "minimum": 1.0,
+            "title": "Max Len",
+            "type": "integer"
+          },
+          "to": {
+            "minLength": 1,
+            "title": "To",
+            "type": "string"
+          }
+        },
+        "required": [
+          "from",
+          "to"
+        ],
+        "title": "PathRequest",
         "type": "object"
       },
       "RelationshipFact": {
@@ -866,6 +1016,89 @@
           "chord_index"
         ],
         "title": "RomanToken",
+        "type": "object"
+      },
+      "SongExample": {
+        "properties": {
+          "decade": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decade"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "rank": {
+            "title": "Rank",
+            "type": "integer"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "section_ordinal": {
+            "title": "Section Ordinal",
+            "type": "integer"
+          },
+          "song_id": {
+            "title": "Song Id",
+            "type": "string"
+          },
+          "spotify_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spotify Id"
+          }
+        },
+        "required": [
+          "song_id",
+          "spotify_id",
+          "genre",
+          "decade",
+          "section",
+          "section_ordinal",
+          "position",
+          "rank"
+        ],
+        "title": "SongExample",
         "type": "object"
       },
       "TransitionCandidate": {
@@ -1285,6 +1518,25 @@
           }
         },
         "summary": "Health Db Check",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/health/redis": {
+      "get": {
+        "operationId": "health_redis_check_health_redis_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Redis Check",
         "tags": [
           "system"
         ]
@@ -1772,6 +2024,339 @@
         "summary": "Analyze Endpoint",
         "tags": [
           "analysis-v2"
+        ]
+      }
+    },
+    "/v2/examples": {
+      "get": {
+        "operationId": "examples_v2_examples_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "pattern_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Pattern Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "transition",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Transition"
+            }
+          },
+          {
+            "in": "query",
+            "name": "context",
+            "required": false,
+            "schema": {
+              "default": "global",
+              "minLength": 1,
+              "title": "Context",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 5,
+              "maximum": 5,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExamplesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Examples",
+        "tags": [
+          "examples-v2"
+        ]
+      }
+    },
+    "/v2/graph/explain-edge": {
+      "get": {
+        "operationId": "explain_edge_v2_graph_explain_edge_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "src",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Src",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "dst",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Dst",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "context",
+            "required": false,
+            "schema": {
+              "default": "global",
+              "title": "Context",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Explain Edge",
+        "tags": [
+          "graph-v2"
+        ]
+      }
+    },
+    "/v2/graph/neighborhood": {
+      "get": {
+        "operationId": "neighborhood_v2_graph_neighborhood_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "title": "Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "context",
+            "required": false,
+            "schema": {
+              "default": "global",
+              "title": "Context",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "edge_types",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Edge Types"
+            }
+          },
+          {
+            "in": "query",
+            "name": "min_prob",
+            "required": false,
+            "schema": {
+              "default": 0.0,
+              "maximum": 1,
+              "minimum": 0,
+              "title": "Min Prob",
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "hops",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "maximum": 2,
+              "minimum": 1,
+              "title": "Hops",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Neighborhood",
+        "tags": [
+          "graph-v2"
+        ]
+      }
+    },
+    "/v2/graph/node/{node_id}": {
+      "get": {
+        "operationId": "graph_node_v2_graph_node__node_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "node_id",
+            "required": true,
+            "schema": {
+              "title": "Node Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Graph Node",
+        "tags": [
+          "graph-v2"
+        ]
+      }
+    },
+    "/v2/graph/path": {
+      "post": {
+        "operationId": "graph_path_v2_graph_path_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PathRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Graph Path",
+        "tags": [
+          "graph-v2"
         ]
       }
     }

@@ -52,6 +52,10 @@ project:
 5. Produce a recruiter-ready full-stack AI product that
    demonstrates domain modeling, graph/statistical AI,
    vector search, explainability, and polished UX.
+6. Make the full stack reproducible locally and dependable in
+   production: background jobs, Redis-backed coordination,
+   idempotent retries, typed MCP access, traceable behavior,
+   and tested degradation when dependencies fail.
 
 ## Core User Flow
 
@@ -110,6 +114,11 @@ project:
   surprise.
 - UI for progression building, color comparison, graph
   exploration, and Tone.js playback.
+- A reproducible Compose stack and durable background work for
+  graph and embedding rebuilds, evaluation, and future imports.
+- Redis caching and distributed rate limits with clear fallback
+  behavior; bounded retries, leases, idempotency, and inspectable
+  dead-letter jobs.
 
 ### Phase 3: LLM, Agents, Evaluation, and Productization
 
@@ -125,6 +134,11 @@ project:
 - Evaluation for recommendation quality, RAG faithfulness,
   tool-call correctness, hallucination resistance, and human
   listening feedback.
+- MCP tools over the same deterministic domain services used
+  by the API and agent.
+- OpenTelemetry traces, metrics, and structured logs alongside
+  optional LangSmith agent tracing; performance, chaos, and
+  resilience checks before release.
 
 ## Scope
 
@@ -137,6 +151,11 @@ project:
   measured against them remain provisional until Siddharth reviews them.
   `context/HANDOFF.md` and `context/progress-tracker.md` hold the current
   ship state.
+- Delivery now uses reviewable PRs with CI and preview checks.
+  The implementing agent is authorized to merge passing PRs
+  and continue across features and milestones. Chronologically
+  skipped additions F09, F27–F29, and F70.5 enter the active
+  plan; F75 and F83 expand before their milestone gates.
 - Build the harmonic data/theory backend and document the
   project so future implementation follows the intended
   graph-first architecture.
@@ -185,6 +204,13 @@ project:
 5. Later LLM responses are grounded in retrieved graph,
    vector, theory, and color facts and validate against
    structured schemas.
+6. A new engineer can start a production-like stack locally;
+   asynchronous work survives restarts and duplicate delivery;
+   deterministic capabilities remain available through
+   documented dependency failures.
+7. API, job, data, and AI behavior can be followed through
+   correlated traces and measured against a committed
+   resilience matrix before release.
 
 ## Product Positioning
 

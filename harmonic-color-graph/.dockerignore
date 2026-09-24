@@ -1,0 +1,17 @@
+.env*
+!.env.example
+node_modules/
+.next/
+.git/
+backend/
+context/
+data/
+docs/
+feature-specs/
+notebooks/
+scripts/
+supabase/
+test-results/
+tests/
+playwright-report/
+*.tsbuildinfo

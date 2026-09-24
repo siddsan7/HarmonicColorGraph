@@ -34,7 +34,7 @@
 
 ### 0.3 Branch, commit, and PR conventions
 
-- One branch per feature: `feat/F12-roman-v2`. Open a PR; CI must be green; squash-merge into `main`. Vercel builds a preview per PR and production on `main`.
+- Make every implementation change on a `codex/` feature branch and open a GitHub PR. Choose PR boundaries by reviewability and dependency order; a coherent group of features may share a PR. Keep documentation and tests in the same PR as the behavior they describe. Run the Standard Check Gate and feature acceptance checks, require green PR CI, inspect the diff, then squash-merge into `main` yourself. Vercel builds a preview per PR and production on `main`. Never commit implementation changes directly to `main`.
 - Conventional commits: `feat(analysis): …`, `fix(lookup): …`, `chore(ci): …`, `docs(plan): …`. End commit messages with the attribution lines required by the environment.
 - Never commit: `.env*` (except `.env.example`), `data/raw/*`, `data/artifacts/*`, model binaries larger than 1 MB, API keys.
 
@@ -51,10 +51,10 @@
 | **G7 Ship** | PR merged | CI green on the PR; squash-merge | done |
 
 **Stop conditions:**
-1. A check still fails after three distinct fix attempts → stop, record the failure under "Blocked" in the progress tracker with the evidence, and ask Siddharth.
+1. A check still fails after three distinct fix attempts → record the failure and evidence under "Blocked" in the progress tracker, continue independent work when safe, and report the blocker to Siddharth. Do not merge a failing PR.
 2. Never weaken or delete a test to make it pass. A golden file changes only with a commit message explaining the musical reason.
 3. Never run destructive SQL on Supabase outside the loader's version-scoped operations without explicit approval.
-4. If a phase document and this plan disagree, stop and ask; do not improvise product behavior.
+4. If a phase document and this plan disagree, use the active v2 plan and recorded ADRs as the baseline; document and resolve the conflict before implementing the affected behavior. Continue independent work.
 
 ### 0.5 Size legend
 
@@ -236,7 +236,110 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Checks:** The cron is listed on the project; a manual `curl` with the secret → 200 and without → 401; a local run with `DATABASE_URL` pointed at a dead host shows the banner, not a crash (Playwright).
 **Commit:** `feat(ops): daily keep-alive cron and degraded-mode banner`
 
-**M0 exit gate:** CI green on `main`; both Vercel projects live; `/health/db` 200 in production; tracker updated with deploy URLs and latencies.
+### F09 — Docker / Local Production Stack `[M]`
+
+**Goal:** Make the entire production-like application stack reproducible locally with one command.
+
+**Why this exists:**
+The project already has strong CI and cloud deployment, but local development is still partly dependent on individually installed services and environment-specific setup. A production-oriented system should be reproducible by another engineer without requiring them to manually install Postgres, Redis, workers, or remember startup order.
+
+The purpose of Docker here is not "use Docker because startups use Docker." It is to make the development environment deterministic and to prove that the application's services are properly separated, configured, health-checked, and networked.
+
+A new engineer should eventually be able to run:
+
+```bash
+docker compose up
+```
+
+and receive a working application stack.
+
+#### Architecture
+
+```text
+docker compose
+│
+├── frontend
+│     Next.js
+│
+├── api
+│     FastAPI
+│
+├── worker
+│     background worker runtime
+│
+├── postgres
+│     PostgreSQL + pgvector
+│
+└── redis
+      cache / queue / rate limits / ephemeral state
+```
+
+The worker and Redis services will initially exist even if F27/F28 functionality is introduced later; F09 establishes the local infrastructure and networking.
+
+#### Implementation
+
+- [ ] Add a root `docker-compose.yml` or `compose.yaml`.
+- [ ] Add a production-compatible `backend/Dockerfile`.
+- [ ] Add a frontend Dockerfile only if needed for the local full-stack mode; otherwise allow the frontend to run separately with `npm run dev`.
+- [ ] Add services:
+  - `postgres`
+  - `redis`
+  - `api`
+  - `worker`
+  - optionally `frontend`
+- [ ] Use `pgvector/pgvector:pg17` for local Postgres so local behavior matches CI/Supabase capabilities.
+- [ ] Persist Postgres state through a Docker volume.
+- [ ] Persist Redis only if useful for debugging; production code must not assume Redis persistence.
+- [ ] Add health checks:
+  - Postgres: `pg_isready`
+  - Redis: `redis-cli ping`
+  - FastAPI: `/health`
+- [ ] Ensure `api` starts only after infrastructure dependencies are healthy.
+- [ ] Ensure `worker` uses the same application code and configuration package as the API.
+- [ ] Add `.env.docker.example`.
+- [ ] Do not put secrets directly in Compose.
+- [ ] Add `scripts/dev-up`, `scripts/dev-down`, and optionally `scripts/dev-reset`.
+- [ ] Apply Supabase/Postgres migrations automatically or document the one initialization command.
+- [ ] Ensure local storage uses the same schemas (`hcg`, `extensions`, etc.) as production.
+- [ ] Document host/container networking differences.
+
+#### Design rules
+
+Docker is a packaging/runtime concern, not application architecture.
+
+Business logic must not detect whether it is running in:
+
+```text
+Docker
+Vercel
+local Python
+CI
+```
+
+Configuration should come from environment/settings only.
+
+#### Acceptance checks
+
+- [ ] Fresh clone + `.env.docker` + `docker compose up` reaches `/health`.
+- [ ] API can query Postgres.
+- [ ] API can ping Redis.
+- [ ] Worker starts successfully and can access Postgres + Redis.
+- [ ] Existing backend and frontend test suites still pass outside Docker.
+- [ ] Container restart does not destroy local Postgres data.
+- [ ] Removing the Redis container does not corrupt application data.
+- [ ] README/runbook documents the complete local startup process.
+
+**Commit:**
+
+```text
+feat(dev): reproducible Docker Compose production stack
+```
+
+---
+
+---
+
+**M0 exit gate (including F09):** CI green on `main`; both Vercel projects live; `/health/db` 200 in production; tracker updated with deploy URLs and latencies. A clean Docker Compose startup brings up Postgres, Redis, API, and worker with passing health checks.
 
 ---
 
@@ -346,7 +449,7 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
   - `hcg.nodes(id text, version text, type text, label text, props jsonb, primary key(version, id))`, index `(version, type)`.
   - `hcg.edges(version, src, dst, type, context_id, count int, prob real, weight real, props jsonb)` with PK `(version, type, context_id, src, dst)` and indexes `(version, src, type, context_id)` and `(version, dst, type)`.
   - `hcg.ngram_histories(version, context_id, ord smallint, history text, total int, distinct_next int, next jsonb, cont jsonb, primary key(version, context_id, ord, history))`.
-  - `hcg.patterns`, `hcg.pattern_examples`, `hcg.song_refs`, `hcg.relationship_types`, `hcg.facts(fact_id pk, version, kind, subject, template, params jsonb)`.
+  - `hcg.patterns`, `hcg.pattern_examples`, `hcg.transition_examples`, `hcg.song_refs`, `hcg.relationship_types`, `hcg.facts(version, fact_id, kind, subject, template, params jsonb)` with composite `(version, fact_id)` primary key so stable fact citations coexist during version staging.
   - A view `hcg.active_version` and SQL helper `hcg.v()` returning the active version string.
   - RLS enabled on all tables.
 - [ ] Repository/store classes (`db/stores/graph.py`, etc.) reading only the active version.
@@ -378,7 +481,636 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Checks:** Returned IDs exist in `song_refs`; three sample oEmbeds render titles in Playwright (network allowed in e2e); attribution is visible in the panel.
 **Commit:** `feat(evidence): example songs with Spotify links`
 
-**M2 exit gate:** Production is loaded with `cv-2026-10-a`; size budget met; graph APIs live; the corpus report is committed.
+### F27 — Background Queue & Worker Infrastructure `[L]`
+
+**Goal:** Introduce asynchronous execution for operations that should not live inside an HTTP request lifecycle.
+
+**Why this exists:**
+Several current and future operations are too expensive, long-running, failure-prone, or batch-oriented to execute inside FastAPI request handlers.
+
+Examples include:
+
+```text
+corpus imports
+embedding generation
+graph rebuilds
+evaluation runs
+large recommendation experiments
+future MIDI imports
+future audio analysis
+future model retraining
+```
+
+An API request should generally:
+
+```text
+validate request
+→ enqueue work
+→ return job ID
+```
+
+rather than hold a network connection open for minutes.
+
+This is an important production boundary:
+
+> **HTTP handles interaction. Workers handle durable work.**
+
+#### Core architecture
+
+```text
+Client
+  │
+POST /v2/jobs
+  │
+FastAPI
+  │
+create job record
+  │
+enqueue
+  ▼
+Redis-backed queue
+  │
+Worker
+  │
+domain service / pipeline stage
+  │
+Postgres / pgvector / artifacts
+  │
+update job
+```
+
+#### Job model
+
+Add a persistent job table:
+
+```text
+hcg.jobs
+```
+
+Suggested fields:
+
+```text
+id UUID PK
+type TEXT
+status TEXT
+payload JSONB
+result JSONB
+progress REAL
+attempt INT
+max_attempts INT
+idempotency_key TEXT NULL
+created_at
+queued_at
+started_at
+completed_at
+failed_at
+last_error_code
+last_error_message
+worker_id
+lease_expires_at
+```
+
+Statuses:
+
+```text
+queued
+running
+retrying
+completed
+failed
+dead_letter
+cancelled
+```
+
+#### Queue technology
+
+Prefer a lightweight Redis-backed worker implementation appropriate to the project's scale.
+
+Acceptable options include:
+
+```text
+ARQ
+Dramatiq
+RQ
+custom Redis Streams worker
+```
+
+Do **not** introduce Kafka, RabbitMQ, or distributed orchestration unless a concrete requirement later justifies them.
+
+The implementation should prioritize:
+
+```text
+reliability
+visibility
+retry control
+minimal operational complexity
+```
+
+over framework sophistication.
+
+#### Initial job types
+
+Implement at least:
+
+```text
+graph_rebuild
+embedding_rebuild
+evaluation_run
+```
+
+Pipeline-related operations may remain CLI-first, but their underlying functions should be callable from worker tasks.
+
+#### API
+
+Suggested routes:
+
+```http
+POST /v2/jobs
+GET  /v2/jobs/{job_id}
+POST /v2/jobs/{job_id}/cancel
+GET  /v2/jobs/{job_id}/events
+```
+
+Example request:
+
+```json
+{
+  "type": "embedding_rebuild",
+  "payload": {
+    "corpus_version": "cv-2026-10-a"
+  }
+}
+```
+
+Immediate response:
+
+```json
+{
+  "data": {
+    "job_id": "…",
+    "status": "queued"
+  }
+}
+```
+
+#### Progress
+
+Workers should be able to report:
+
+```text
+0–100%
+current stage
+processed items
+total items
+```
+
+Example:
+
+```json
+{
+  "status": "running",
+  "progress": 0.63,
+  "stage": "embedding_functions",
+  "processed": 932,
+  "total": 1482
+}
+```
+
+#### Worker contract
+
+Each task should call domain/pipeline services rather than duplicating business logic.
+
+Bad:
+
+```text
+worker.py contains embedding algorithm
+```
+
+Good:
+
+```text
+worker task
+   ↓
+pipeline.embeddings.build(...)
+```
+
+#### Acceptance checks
+
+- [ ] API can create a job and immediately return its ID.
+- [ ] Worker consumes and completes the job.
+- [ ] Job status survives API restart.
+- [ ] Worker restart does not silently lose queued jobs.
+- [ ] Progress updates are visible.
+- [ ] Unknown job type is rejected before enqueue.
+- [ ] Payloads use typed Pydantic schemas.
+- [ ] Job handler calls shared services rather than HTTP endpoints.
+- [ ] At least one integration test runs API → queue → worker → completed job.
+
+**Commit:**
+
+```text
+feat(jobs): Redis-backed background queue and worker runtime
+```
+
+---
+
+### F28 — Redis Cache, Rate-Limit & Ephemeral Infrastructure `[M]`
+
+**Goal:** Introduce Redis as the shared low-latency infrastructure layer for ephemeral application state.
+
+**Why this exists:**
+The application currently uses process-local caching and later proposes persistent Postgres-backed rate limits. Both approaches become awkward when multiple API instances exist.
+
+A process-local cache:
+
+```text
+instance A != instance B
+```
+
+and a relational database is unnecessarily expensive for short-lived coordination state.
+
+Redis should handle data that is:
+
+```text
+temporary
+reconstructable
+high-frequency
+shared across instances
+```
+
+while Postgres remains the durable source of truth.
+
+#### Responsibility split
+
+```text
+Postgres
+--------
+harmonic data
+graph
+facts
+users
+jobs
+AI logs
+feedback
+persistent results
+
+Redis
+-----
+cache
+rate-limit counters
+queue internals
+temporary job progress
+locks
+ephemeral agent/session state
+```
+
+#### Cache hierarchy
+
+For graph-heavy endpoints:
+
+```text
+L1: process-local cache
+L2: Redis
+L3: Postgres
+```
+
+Example:
+
+```text
+GET graph neighborhood
+
+memory cache?
+   yes → return
+
+Redis cache?
+   yes → populate memory → return
+
+Postgres query
+   ↓
+store Redis
+   ↓
+store memory
+   ↓
+return
+```
+
+#### Cache candidates
+
+Cache:
+
+```text
+graph neighborhoods
+graph paths where constraints are identical
+color profiles
+popular recommendations
+embedding-neighbor lookups
+corpus-version metadata
+```
+
+Do not cache user-specific mutable data without carefully designed keys.
+
+#### Cache keys
+
+All graph/model caches must include versioning.
+
+Example:
+
+```text
+hcg:{corpus_version}:graph:neighbors:{context}:{node}:{hops}
+```
+
+This makes activation of a new corpus version naturally invalidate previous results.
+
+#### TTL strategy
+
+Use different TTLs by volatility:
+
+```text
+graph data           hours
+recommendations      minutes
+health metadata      seconds/minutes
+AI state             minutes
+```
+
+Do not use infinite TTLs unless versioning guarantees safe invalidation.
+
+#### Rate limiting
+
+Move ephemeral rate counters out of Postgres.
+
+Suggested scopes:
+
+```text
+anonymous IP
+authenticated user
+AI endpoint
+expensive generation endpoint
+global AI budget guard
+```
+
+Possible algorithm:
+
+```text
+fixed window for simple public limits
+token bucket/sliding window for AI
+```
+
+#### Graceful failure
+
+Redis must never become a single point of failure for deterministic core functionality.
+
+If Redis fails:
+
+```text
+cache → bypass
+queue operations → unavailable with explicit error
+rate limiter → defined fail-open/fail-closed policy
+deterministic analysis → still operates
+```
+
+Document the policy per feature.
+
+#### Metrics
+
+Track:
+
+```text
+cache_hits
+cache_misses
+cache_hit_rate
+Redis latency
+rate-limit hits
+queue depth
+```
+
+#### Acceptance checks
+
+- [ ] Graph API returns identical payload on cache hit/miss.
+- [ ] Corpus version is part of cache keys.
+- [ ] New corpus activation cannot serve stale graph values.
+- [ ] Multiple API processes observe the same rate limit.
+- [ ] TTL expiration behaves correctly.
+- [ ] Redis outage does not break DB-free harmonic analysis.
+- [ ] Cache-hit and miss metrics are emitted.
+
+**Commit:**
+
+```text
+feat(cache): Redis caching, rate limiting, and ephemeral state
+```
+
+---
+
+### F29 — Retry, Idempotency & Dead-Letter Semantics `[M]`
+
+**Goal:** Make asynchronous and external operations safe under retries, crashes, duplicate requests, and transient failures.
+
+**Why this exists:**
+Production systems do not execute every operation exactly once.
+
+They experience:
+
+```text
+client retries
+worker crashes
+network timeouts
+429 responses
+503 responses
+duplicate queue delivery
+process restarts
+```
+
+The system should therefore be designed around:
+
+> **at-least-once execution + idempotent operations**
+
+rather than assuming exactly-once delivery.
+
+#### Idempotency
+
+Mutating/job-producing operations should accept:
+
+```http
+Idempotency-Key
+```
+
+Example:
+
+```http
+POST /v2/jobs/embedding-rebuild
+Idempotency-Key: embeddings-cv-2026-10-a-v1
+```
+
+Repeated calls with the same key and same payload should return the same logical operation.
+
+Suggested table:
+
+```text
+hcg.idempotency_keys
+```
+
+Fields:
+
+```text
+key
+operation
+request_hash
+job_id/result_ref
+status
+created_at
+expires_at
+```
+
+If:
+
+```text
+same key
+different payload
+```
+
+return an explicit conflict.
+
+#### Retry policy
+
+Create centralized retry policy rather than arbitrary retries scattered through the codebase.
+
+Retryable:
+
+```text
+network timeout
+429
+502
+503
+504
+temporary Redis outage
+temporary provider outage
+```
+
+Generally non-retryable:
+
+```text
+400
+401
+403
+404
+422
+invalid chord
+invalid configuration
+schema validation failure
+```
+
+Backoff:
+
+```text
+attempt 1
+↓
+delay + jitter
+attempt 2
+↓
+larger delay + jitter
+attempt 3
+```
+
+Use capped exponential backoff.
+
+Avoid synchronized retry storms by adding jitter.
+
+#### Worker leases
+
+A running job should receive a lease:
+
+```text
+lease_expires_at
+```
+
+Worker periodically renews it.
+
+If the worker crashes:
+
+```text
+lease expires
+→ job becomes available for retry
+```
+
+This prevents permanently stuck `"running"` jobs.
+
+#### Dead-letter state
+
+After `max_attempts`:
+
+```text
+status = dead_letter
+```
+
+Preserve:
+
+```text
+payload
+all attempts
+last error
+timestamps
+trace IDs
+```
+
+Do not repeatedly retry indefinitely.
+
+Provide an administrative/manual retry path.
+
+#### Side-effect safety
+
+Any worker operation that writes state must be safe to execute twice.
+
+For example:
+
+```text
+embedding rebuild
+```
+
+should target a versioned output:
+
+```text
+(model_version, corpus_version, subject_id)
+```
+
+with deterministic/upsert semantics.
+
+#### Acceptance checks
+
+Simulate:
+
+```text
+duplicate HTTP request
+duplicate queue delivery
+worker crash halfway through
+429 from LLM
+503 from database dependency
+timeout
+permanent validation error
+```
+
+Expected:
+
+- [ ] Duplicate job request executes once logically.
+- [ ] Same idempotency key + changed body returns conflict.
+- [ ] Retryable errors retry with bounded exponential backoff.
+- [ ] Permanent errors fail immediately.
+- [ ] Worker crash causes the job to resume/retry after lease expiry.
+- [ ] A job exceeding max attempts reaches `dead_letter`.
+- [ ] Dead-letter job can be manually retried.
+- [ ] No completed artifact is duplicated.
+- [ ] Retry count/error category is observable.
+
+**Commit:**
+
+```text
+feat(reliability): retries, idempotency, worker leases, and dead letters
+```
+
+---
+
+---
+
+**M2 exit gate (including F27–F29):** Production corpus loaded; size budget met; graph APIs live; the corpus report is committed. Background jobs and Redis caching work; at least one asynchronous job succeeds; retry, idempotency, and dead-letter integration checks pass.
 
 ---
 
@@ -574,6 +1306,140 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Checks:** 100% of tools have schema tests; outputs validate; no tool accepts free-form SQL or arbitrary identifiers without validation.
 **Commit:** `feat(ai): typed internal tool layer`
 
+### F70.5 — MCP Server `[M]`
+
+**Goal:** Expose the Harmonic Color Graph's deterministic intelligence as Model Context Protocol tools so external AI clients and agents can use the system directly.
+
+**Why this exists:**
+F70 already creates exactly the correct abstraction for MCP: typed internal tools wrapping domain services instead of HTTP endpoints.
+
+MCP should therefore become an **additional interface onto the same capabilities**, not a separate implementation.
+
+#### Architecture
+
+```text
+                     FastAPI
+                        ↑
+                        │
+MCP Server ←──── Domain Services ────→ LangGraph
+```
+
+Not:
+
+```text
+MCP
+ ↓
+HTTP request
+ ↓
+FastAPI
+```
+
+MCP and FastAPI should share application services directly.
+
+#### Initial MCP tools
+
+Expose:
+
+```text
+analyze_progression
+recommend_next
+find_substitutes
+generate_progression
+explain_transition
+similar_progressions
+graph_path
+get_examples
+color_profile
+```
+
+The MCP schemas should derive from or remain compatible with the F70 Pydantic tool schemas.
+
+#### Example
+
+```text
+tool:
+recommend_next
+
+input:
+{
+  progression: ["Cmaj7", "Am7", "Dm7"],
+  intent: {
+    surprise: 0.4,
+    smooth: 0.8
+  }
+}
+
+output:
+{
+  candidates: [...]
+}
+```
+
+#### MCP resources
+
+Optionally expose read-only resources:
+
+```text
+harmonic://function/{token}
+
+harmonic://relationship/{fact_id}
+
+harmonic://pattern/{pattern_id}
+
+harmonic://corpus/{version}
+```
+
+Tools perform computation.
+
+Resources expose addressable knowledge.
+
+#### Security
+
+MCP must not expose:
+
+```text
+raw SQL
+arbitrary file paths
+admin operations
+database credentials
+unvalidated identifiers
+```
+
+Inputs pass through the same validation layer as FastAPI.
+
+#### Testing
+
+The MCP server should be testable in-process.
+
+Tests should confirm:
+
+```text
+schema discovery
+tool invocation
+validation errors
+identical domain output to direct service call
+```
+
+#### Acceptance checks
+
+- [ ] MCP client can list tools.
+- [ ] At least 5 major harmonic tools execute successfully.
+- [ ] MCP results validate against the same models as F70.
+- [ ] MCP tool outputs match direct service outputs.
+- [ ] Invalid harmonic input produces typed errors, not crashes.
+- [ ] No MCP tool reaches the database through raw SQL supplied by the client.
+- [ ] README includes an MCP usage example.
+
+**Commit:**
+
+```text
+feat(mcp): expose harmonic intelligence through MCP
+```
+
+---
+
+---
+
 ### F71 — LangGraph workflow [L]
 - [ ] Runtime deps: `langgraph`, `langchain-anthropic`, `langchain-core`. Env: `ANTHROPIC_API_KEY`, `HCG_LLM_MODEL` (default `claude-sonnet-5`), `HCG_LLM_FAST_MODEL` (default `claude-haiku-4-5-20251001`, intent parsing).
 - [ ] State (Phase 3 §6.3) in `ai/state.py`: `raw_user_query, parsed_intent, input_chords, analysis, route, retrieved_candidates, scored_candidates, validated_candidates, fact_pool, response, errors[]`.
@@ -605,11 +1471,203 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Checks:** e2e (mocked SSE) for each route type; manual run of the Phase 3 §16 demo script in production; the accessibility scan passes.
 **Commit:** `feat(ui): grounded assistant interface`
 
-### F75 — Observability [S]
-- [ ] Optional LangSmith tracing (enabled when `LANGSMITH_API_KEY` is set); structured JSON logs with `query_id` correlation; `/admin` (token-protected with `HCG_ADMIN_TOKEN`) showing volume, error categories (Phase 3 §12.3), latency percentiles, tool usage, and cost from `ai_query_logs`.
+### F75 — OpenTelemetry + LangSmith Observability `[M]`
 
-**Checks:** The admin page loads with the token and returns 401 without it; a trace is visible in LangSmith when enabled; error categories are populated by the adversarial run.
-**Commit:** `feat(ops): AI observability and admin metrics`
+**Goal:** Provide end-to-end visibility into both traditional system behavior and AI/agent behavior.
+
+**Why this exists:**
+LangSmith alone observes the AI workflow well, but does not provide complete application observability.
+
+The project needs two complementary layers:
+
+```text
+OpenTelemetry
+→ infrastructure/application traces, metrics, logs
+
+LangSmith
+→ LLM + LangGraph + tool-level debugging
+```
+
+This separation is important.
+
+#### OpenTelemetry tracing
+
+Create a correlation/trace ID when requests enter FastAPI.
+
+Trace:
+
+```text
+HTTP request
+│
+├── analysis
+├── Postgres
+├── Redis
+├── graph traversal
+├── pgvector
+├── candidate generation
+├── reranking
+├── LangGraph
+│    ├── model call
+│    ├── tool
+│    └── validation
+└── response
+```
+
+Example:
+
+```text
+POST /v2/ai/query               2184 ms
+
+├─ parse_request                   2 ms
+├─ intent_model                  177 ms
+├─ analyze                        18 ms
+├─ redis                           1 ms
+├─ graph_retrieval                42 ms
+├─ vector_search                  15 ms
+├─ score_candidates               13 ms
+├─ explain_llm                  1850 ms
+└─ validation                      7 ms
+```
+
+Now a slow request can actually be diagnosed.
+
+#### Metrics
+
+At minimum:
+
+##### API
+
+```text
+request_count
+error_count
+latency p50/p95/p99
+status-code distribution
+```
+
+##### Database
+
+```text
+query latency
+query errors
+slow query count
+```
+
+##### Redis
+
+```text
+hit rate
+miss rate
+latency
+errors
+```
+
+##### Jobs
+
+```text
+queue_depth
+job_duration
+retry_count
+dead_letter_count
+worker_utilization
+```
+
+##### Recommender
+
+```text
+candidate_count
+retrieval latency
+reranking latency
+```
+
+##### AI
+
+```text
+LLM latency
+tokens_in
+tokens_out
+cost
+tool_calls
+validation_failures
+repair_attempts
+fallback_count
+```
+
+#### Structured logging
+
+Every log event should include appropriate context:
+
+```text
+trace_id
+request_id
+query_id
+job_id
+corpus_version
+model_version
+route
+error_category
+```
+
+Never log:
+
+```text
+API keys
+DB credentials
+full auth tokens
+```
+
+#### LangSmith
+
+Continue using LangSmith specifically for:
+
+```text
+LangGraph node execution
+tool calls
+prompt/model inspection
+routing
+agent failures
+evaluation traces
+```
+
+If unavailable or no API key is configured, the application must function normally.
+
+#### Admin metrics page
+
+Expand the existing `/admin` concept to include:
+
+```text
+traffic
+latency
+errors
+cache hit rate
+queue depth
+dead letters
+AI cost
+model usage
+tool usage
+fallback rate
+```
+
+#### Acceptance checks
+
+- [ ] One API call can be followed end-to-end using a trace ID.
+- [ ] Postgres and Redis work appear as trace spans.
+- [ ] LangGraph nodes appear in tracing.
+- [ ] LLM latency/token usage is visible.
+- [ ] Worker jobs propagate or create trace context.
+- [ ] P50/P95/P99 are available.
+- [ ] Redis hit rate is available.
+- [ ] Queue depth/retry/dead-letter metrics are available.
+- [ ] LangSmith tracing works when configured.
+- [ ] Application works when LangSmith is disabled.
+- [ ] Logs contain no secrets.
+
+**Commit:**
+
+```text
+feat(observability): OpenTelemetry system tracing and LangSmith AI tracing
+```
+
+---
 
 ### F76 — AI evaluation suite [M]
 - [ ] `tests/eval/ai_benchmark.jsonl` (≥ 40 items, Phase 3 §11.1 format: input, intent, acceptable outputs or constraints, required theory tags).
@@ -619,7 +1677,7 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Checks:** Thresholds: schema-valid 100%, must-not 100%, routing ≥ 90%, intent match ≥ 75%, fact coverage ≥ 95% of claims; report committed.
 **Commit:** `feat(eval): AI benchmark and evaluation workflow`
 
-**M7 exit gate (Phase 3 definition of done):** Natural-language queries route through the workflow, are grounded in graph/vector data, validated, playable, logged, and evaluated.
+**M7 exit gate (Phase 3 definition of done):** Natural-language queries route through the workflow, are grounded in graph/vector data, validated, playable, logged, and evaluated. The deterministic tools are accessible through MCP. OpenTelemetry traces connect API, data, tools, and model activity; LangSmith traces agent execution when configured.
 
 ---
 
@@ -647,13 +1705,229 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 **Checks:** Full study flow e2e; CSV export; the analysis script runs on seeded responses. (Running the study with real raters is a human step; results are published when available.)
 **Commit:** `feat(eval): listening study kit`
 
-### F83 — Performance & resilience pass [M]
-- [ ] Cache headers on idempotent GETs (graph, examples, color compare; `s-maxage` + stale-while-revalidate keyed by corpus version); Next.js fetch caching where it applies; request timeouts; warm-path profiling.
-- [ ] Measure and record p50/p95 for every `/v2` endpoint (warm and cold) in `docs/eval/performance.md`.
-- [ ] Chaos checks: DB unavailable → degraded mode everywhere (workbench analysis still works because analysis is DB-free; recommendations show a cached-data notice).
+### F83 — Performance, Chaos & Resilience Engineering `[L]`
 
-**Checks:** All p95 targets from earlier features still hold in production; degraded-mode e2e passes.
-**Commit:** `perf: caching, latency report, and resilience checks`
+**Goal:** Demonstrate that the application fails predictably and degrades gracefully when dependencies become slow, unavailable, duplicated, or inconsistent.
+
+**Why this exists:**
+Happy-path testing proves that the product works.
+
+Production testing must also answer:
+
+> **What happens when something breaks?**
+
+This feature should intentionally break dependencies and document expected application behavior.
+
+#### Failure scenario 1 — Database unavailable
+
+Simulate:
+
+```text
+Postgres connection refused
+```
+
+Expected:
+
+```text
+DB-free chord analysis still works
+graph/recommendation endpoints return typed degradation errors
+frontend does not crash
+cached graph may be used where safe
+health endpoint reports dependency failure
+```
+
+#### Failure scenario 2 — Redis unavailable
+
+Expected:
+
+```text
+cache bypasses to Postgres
+read-only core features continue
+rate-limit behavior follows documented fallback policy
+queue-dependent operations return service-unavailable rather than disappearing
+```
+
+#### Failure scenario 3 — LLM provider unavailable
+
+Simulate:
+
+```text
+timeout
+429
+503
+```
+
+Expected:
+
+```text
+deterministic harmonic recommendations continue
+tool layer remains available
+template explanation replaces AI prose where supported
+agent endpoint emits graceful error/fallback
+```
+
+This builds on F71's deterministic fallback.
+
+#### Failure scenario 4 — Worker crash
+
+Kill worker while job is running.
+
+Expected:
+
+```text
+lease expires
+job becomes retryable
+new worker claims job
+idempotent task restarts safely
+```
+
+#### Failure scenario 5 — Duplicate delivery
+
+Enqueue the same logical job twice.
+
+Expected:
+
+```text
+idempotency guarantees one logical result
+```
+
+#### Failure scenario 6 — pgvector / embedding subsystem unavailable
+
+Expected:
+
+```text
+recommender falls back to:
+n-gram
+graph
+theory
+voice leading
+color
+```
+
+Similarity quality may decrease, but recommendation should not completely disappear if the missing embedding signal is nonessential.
+
+#### Failure scenario 7 — Slow dependency
+
+Introduce artificial delay in:
+
+```text
+DB
+Redis
+LLM
+```
+
+Verify:
+
+```text
+timeouts
+cancellation
+fallback
+```
+
+No request should wait indefinitely.
+
+#### Failure scenario 8 — Corrupt/invalid queue payload
+
+Expected:
+
+```text
+schema validation fails
+job is marked permanent failure
+no repeated retries
+```
+
+#### Failure scenario 9 — Cache corruption/stale version
+
+Inject an old corpus-version cache entry.
+
+Expected:
+
+```text
+version-key isolation prevents stale response
+```
+
+#### Failure scenario 10 — Partial corpus activation failure
+
+If activation fails midway:
+
+```text
+previous active corpus remains active
+```
+
+This validates F24's atomic activation guarantees.
+
+#### Performance pass
+
+Continue the existing performance measurements.
+
+Record:
+
+```text
+cold latency
+warm latency
+p50
+p95
+p99
+```
+
+for all important `/v2` endpoints.
+
+Include:
+
+```text
+/analyze
+/recommend-next-chords
+/find-substitutes
+/generate-progression
+/graph/neighborhood
+/graph/path
+/color/profile
+/similar-progressions
+/ai/query
+/jobs
+```
+
+Measure cache-on/cache-off where relevant.
+
+#### Resilience matrix
+
+Create:
+
+```text
+docs/eval/resilience.md
+```
+
+Example:
+
+| Failure | Expected behavior | Actual | Pass |
+|---|---|---|---|
+| Postgres down | Analysis works, graph unavailable | … | ✅ |
+| Redis down | Cache bypass | … | ✅ |
+| LLM 503 | deterministic fallback | … | ✅ |
+| Worker crash | retry after lease | … | ✅ |
+| duplicate request | one logical job | … | ✅ |
+| vector failure | statistical fallback | … | ✅ |
+
+#### Acceptance checks
+
+- [ ] All ten failure scenarios have automated or reproducible tests.
+- [ ] No failure leaves persistent data partially written.
+- [ ] No worker job remains permanently `"running"` after worker death.
+- [ ] LLM failure does not disable deterministic recommendation.
+- [ ] Redis failure does not disable deterministic analysis.
+- [ ] Duplicate job delivery causes no duplicate artifact.
+- [ ] Timeouts exist for every external dependency.
+- [ ] Every failure generates an observable error category.
+- [ ] Existing performance targets remain satisfied.
+- [ ] `docs/eval/resilience.md` is committed.
+
+**Commit:**
+
+```text
+feat(resilience): chaos testing, graceful degradation, and performance validation
+```
+
+---
 
 ### F84 — Documentation & recruiter package [M]
 - [ ] README rewrite: pitch, architecture diagram, feature tour with GIFs (Playwright-recorded), evaluation highlights, how to run, dataset attribution and license, limitations (emotion claims are probabilistic, corpus biases, NC license).
@@ -663,6 +1937,8 @@ Every recommendation item carries `token`, `figure`, `chord` (spelled absolute),
 
 **Checks:** Link checker passes; the bootstrap job is green; Siddharth reads the README and approves.
 **Commit:** `docs: README, about page, runbooks, and bootstrap check`
+
+**M8 exit gate:** Before release, commit the performance report and resilience matrix, pass the chaos scenarios, confirm no known stuck-job or duplicate-side-effect paths, and verify production observability.
 
 ### F85 — Release v1.0.0 [S]
 - [ ] Full regression: `scripts/check all`, all eval reports regenerated on the active corpus version, Playwright suite against production, Supabase advisors (security + performance) clean, `db_size` within budget, Vercel runtime logs clean for 24 h.
@@ -735,9 +2011,9 @@ feature-specs/v2-implementation-plan.md. Execute the plan starting at the first
 unchecked feature. Work one feature at a time on its own branch. After each
 feature run the Standard Check Gate (§0.4) and the feature's acceptance checks,
 update context/progress-tracker.md with the results, tick the checkboxes, open a
-PR, and wait for CI to be green before merging. Stop at each milestone exit gate
-and summarize the evidence for me before continuing. Ask me only for the inputs
-listed in §0.2, and before any action that costs money or deletes remote data.
+PR, and wait for CI to be green before merging. Record evidence at each milestone exit gate and continue to the next
+feature without waiting for a milestone confirmation. Ask only for indispensable inputs in §0.2 and before an action that
+costs money or deletes remote data. Continue independent work while waiting.
 ```
 
 ## Appendix B — Storage budget worksheet (update after F22/F24)
@@ -754,3 +2030,156 @@ listed in §0.2, and before any action that costs money or deletes remote data.
 | **Total `hcg` (target ≤ 300 MB)** | **~285 MB** | |
 
 Overflow playbook (ADR-007): raise the n-gram pruning thresholds → drop the `decade` × order-3 contexts → move `ngram_histories` to a zstd-compressed artifact in Supabase Storage loaded per warm instance → Supabase Pro (needs approval).
+
+
+## Appendix C — Production architecture principles
+
+The implementation agents should follow these rules throughout the project.
+
+## 1. Interfaces orchestrate; domain services own business logic
+
+> **FastAPI, workers, LangGraph, and MCP are interfaces/orchestrators around shared domain services. Business logic should not be duplicated inside any of them.**
+
+Bad:
+
+```text
+FastAPI recommendation algorithm
++
+worker recommendation algorithm
++
+MCP recommendation algorithm
+```
+
+Good:
+
+```text
+recommendation service
+        ↑
+ ┌──────┼───────┐
+FastAPI Worker  MCP
+```
+
+---
+
+## 2. Durable truth and ephemeral state must remain separate
+
+> **Postgres owns durable truth. Redis owns ephemeral coordination. Workers own durable asynchronous execution.**
+
+Use Postgres for:
+
+```text
+harmonic data
+graph
+facts
+users
+jobs
+evaluations
+AI logs
+feedback
+persistent results
+```
+
+Use Redis for:
+
+```text
+cache
+rate limits
+queue internals
+temporary state
+locks
+ephemeral progress
+```
+
+---
+
+## 3. LLMs are not the source of harmonic truth
+
+> **LLMs explain and orchestrate; deterministic systems remain responsible for harmonic facts and scoring.**
+
+The LLM may:
+
+```text
+interpret user intent
+choose tools
+summarize evidence
+generate natural-language explanations
+```
+
+The LLM should not independently invent:
+
+```text
+transition probabilities
+Roman analysis
+voice-leading scores
+graph relationships
+color values
+evidence
+```
+
+Those come from deterministic services and retrieved facts.
+
+---
+
+## 4. Design for at-least-once execution
+
+Assume:
+
+```text
+HTTP requests can be repeated
+queue jobs can be delivered more than once
+workers can crash
+external services can time out
+```
+
+Therefore:
+
+```text
+mutations must be idempotent
+retries must be bounded
+side effects must be versioned/upsert-safe
+failed work must become inspectable
+```
+
+---
+
+## 5. Graceful degradation is preferable to total failure
+
+Where possible:
+
+```text
+LLM unavailable
+→ deterministic recommendation still works
+
+Redis unavailable
+→ uncached read path still works
+
+embedding subsystem unavailable
+→ graph/statistical ranking still works
+
+Postgres unavailable
+→ DB-free theory analysis still works
+```
+
+The system should make dependency boundaries visible rather than collapsing the entire application when one subsystem fails.
+
+---
+
+## 6. Observability is part of correctness
+
+A production feature is not complete if failures cannot be diagnosed.
+
+Every major path should expose enough telemetry to answer:
+
+```text
+What failed?
+Where did it fail?
+How long did it take?
+Was it retried?
+Which corpus/model version was used?
+How much did the AI call cost?
+Did the system fall back?
+```
+
+This is why OpenTelemetry, structured logs, trace IDs, job IDs, and LangSmith are part of the architecture rather than optional debugging extras.
+
+---

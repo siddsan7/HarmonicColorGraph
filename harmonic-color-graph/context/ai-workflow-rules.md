@@ -40,12 +40,46 @@ This three-phase framing still holds at the concept level, but
 the active, numbered execution plan is
 `feature-specs/v2-implementation-plan.md`'s milestones M0–M8
 (see `docs/roadmap-v2.md` §7 for how they map to these phases).
-Work through that plan's features (F00, F01, …) in order; this
-file's scoping rules below apply to each one.
+Work through that plan's features (F00, F01, …) in order,
+including F09, F27–F29, and F70.5. First reconcile any
+chronologically skipped work, then resume the current feature
+and continue through release. This file's scoping rules below
+apply to each one.
+
+## Pull Request Delivery
+
+- All implementation changes go through a branch and a pull
+  request. Use the `codex/` branch prefix by default. Do not
+  make direct implementation commits on `main`.
+- Choose PR size by a coherent, reviewable outcome and its
+  dependencies. A feature may need multiple PRs; tightly
+  coupled small features may share one PR. Keep migrations,
+  application changes, tests, and documentation together when
+  they form one deployable slice.
+- Before opening a PR, verify the relevant acceptance checks,
+  update the active plan and project context, and inspect the
+  diff for secrets, generated artifacts, and unintended changes.
+- Open the PR with its scope, verification evidence, migration
+  or deployment impact, and known risks. Wait for required CI
+  and preview checks, fix failures, then merge the PR. The user
+  has authorized the implementing agent to merge PRs.
+- After merge, verify the resulting `main` state and production
+  behavior where applicable. Record the PR and outcome in
+  `context/progress-tracker.md` and `context/HANDOFF.md`.
+- Continue through features and milestones without seeking
+  routine permission. Pause only for an indispensable user-only
+  input or decision such as an unavailable secret, a new cost,
+  or irreversible deletion. Document the blocker and continue
+  independent work where possible.
+- Before a session or usage limit, update the active plan,
+  progress tracker, context files, and handoff with the exact
+  shipped state, branch/PR state, verification, risks, and next
+  actionable step.
 
 ## Scoping Rules
 
-- Work on one feature unit at a time.
+- Complete feature units in dependency order; split or group
+  their PRs according to a coherent deployable outcome.
 - Prefer small, verifiable increments over large speculative
   changes.
 - Start ingestion and analysis work with small fixtures before
@@ -67,8 +101,8 @@ Split an implementation step if it combines:
 - Behavior not clearly defined in the context files or a
   feature spec.
 
-If a change cannot be verified end to end quickly, the scope
-is too broad; split it.
+If a change cannot be verified within a reviewable PR, split
+it along a service or acceptance boundary.
 
 ## Handling Missing Requirements
 
@@ -130,3 +164,25 @@ implementation change.
 5. `npm run build` passes for frontend changes.
 6. Backend tests pass for backend/theory/API changes once the
    backend exists.
+7. The PR checks and preview pass, the PR is merged, and the
+   resulting `main` state is verified before dependent work
+   proceeds.
+
+## Production Boundaries
+
+- FastAPI, workers, LangGraph, and MCP orchestrate shared
+  domain services; none owns a separate copy of harmonic
+  business logic.
+- Postgres owns durable data and job state. Redis holds
+  reconstructable cache, queue coordination, rate counters,
+  and other short-lived state.
+- Assume repeated requests, duplicate delivery, worker
+  crashes, and provider timeouts. Mutations need idempotency,
+  bounded retries, recoverable leases, and inspectable failures.
+- Every dependency has a timeout and an explicit degradation
+  policy. Deterministic harmonic analysis must remain available
+  when unrelated dependencies fail.
+- A feature is not complete until trace IDs, structured error
+  categories, metrics, and safe logs make its failures
+  diagnosable. OpenTelemetry covers application behavior;
+  optional LangSmith covers agent behavior.

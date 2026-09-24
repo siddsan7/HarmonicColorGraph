@@ -4,6 +4,7 @@ import { type FormEvent, useMemo, useState } from "react"
 import { Activity, ArrowRight, LoaderCircle, RefreshCcw } from "lucide-react"
 
 import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
+import { EvidencePanel } from "@/components/evidence-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -42,6 +43,9 @@ export function WorkbenchV2() {
   const [error, setError] = useState<string | null>(null)
   const health = useSystemHealth()
   const rawTokens = useMemo(() => inputTokens(input), [input])
+  const evidenceTransitions = analysis ? [...new Set(analysis.tokens.slice(0, -1).map(
+    (token, index) => `${token.core}->${analysis.tokens[index + 1].core}`
+  ))] : []
 
   async function analyze(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -162,6 +166,7 @@ export function WorkbenchV2() {
             </div>
 
             <aside className="space-y-5">
+              <EvidencePanel key={evidenceTransitions.join("|")} transitions={evidenceTransitions} />
               <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Key distribution</h2>
                 <div className="mt-4 space-y-3">
