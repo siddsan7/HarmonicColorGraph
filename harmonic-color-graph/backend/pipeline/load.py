@@ -31,6 +31,7 @@ EDGE_TYPE_CODES = {
     "PATTERN_CONTAINS": 4,
     "HAS_ROOT": 5,
     "HAS_QUALITY": 6,
+    "VOICE_LEADS_TO": 7,
 }
 # A contextual transition observed fewer than five times is too noisy for
 # public graph traversal and would exhaust the 300 MB graph budget. Keep every
@@ -41,6 +42,7 @@ REQUIRED_ARTIFACTS = {
     "transitions.parquet": "transitions_rows",
     "functions.parquet": "functions_rows",
     "abs_transitions.parquet": "abs_transitions_rows",
+    "voice_leads.parquet": "voice_leads_rows",
     "ngrams.parquet": "ngrams_rows",
     "patterns.parquet": "patterns_rows",
     "pattern_examples.parquet": "pattern_examples_rows",
@@ -52,6 +54,16 @@ ARTIFACT_COLUMNS = {
     "transitions.parquet": {"context", "from_token", "to_token", "count", "prob", "pmi", "support"},
     "functions.parquet": {"chord", "mode", "token", "count"},
     "abs_transitions.parquet": {"from_chord", "to_chord", "count"},
+    "voice_leads.parquet": {
+        "from_chord",
+        "to_chord",
+        "total_motion",
+        "max_voice_motion",
+        "common_tones",
+        "bass_motion",
+        "parallel_perfects",
+        "parsimonious",
+    },
     "ngrams.parquet": {"context", "order", "history", "total", "distinct_next", "next", "cont"},
     "patterns.parquet": {
         "pattern",
@@ -371,6 +383,26 @@ def _edge_rows(artifact_dir: Path, version: str, contexts: dict[str, int], nodes
             None,
             None,
             Jsonb({}),
+        )
+    for row in _artifact_rows(artifact_dir / "voice_leads.parquet"):
+        yield (
+            version,
+            _node_id("chord", row["from_chord"]),
+            _node_id("chord", row["to_chord"]),
+            "VOICE_LEADS_TO",
+            0,
+            None,
+            None,
+            row["total_motion"],
+            Jsonb(
+                {
+                    "max_voice_motion": row["max_voice_motion"],
+                    "common_tones": row["common_tones"],
+                    "bass_motion": row["bass_motion"],
+                    "parallel_perfects": row["parallel_perfects"],
+                    "parsimonious": row["parsimonious"],
+                }
+            ),
         )
     for row in _artifact_rows(artifact_dir / "patterns.parquet", ["pattern"]):
         positions: dict[str, list[int]] = defaultdict(list)
