@@ -30,13 +30,13 @@ class FakeStore:
         ]
 
     def pattern_metadata(self, ids):
-        return {item: {"subject_id": item, "support": 100,
-                       "context_lifts": {"genre:pop": 1.4}} for item in ids}
+        return {
+            item: {"subject_id": item, "support": 100, "context_lifts": {"genre:pop": 1.4}}
+            for item in ids
+        }
 
     def popular_patterns(self):
-        return list(self.pattern_metadata([
-            "M:vi M:IV M:I M:V", "M:I M:V M:IV M:vi"
-        ]).values())
+        return list(self.pattern_metadata(["M:vi M:IV M:I M:V", "M:I M:V M:IV M:vi"]).values())
 
     def pattern_colors(self, ids, axis):
         return {item: 0.7 for item in ids}
@@ -70,15 +70,17 @@ def test_progression_rotations_are_flagged():
     assert response.query == "M:I M:V M:vi M:IV"
     assert response.results[0].rotation_of == response.query
     assert response.results[1].rotation_of is None
-    assert _rotation_of(["M:I", "M:V", "M:vi", "M:IV"],
-                        ["M:vi", "M:IV", "M:I", "M:V"])
+    assert _rotation_of(["M:I", "M:V", "M:vi", "M:IV"], ["M:vi", "M:IV", "M:I", "M:V"])
 
 
 def test_surface_mode_uses_token_overlap_and_color_filter():
-    request = SimilarProgressionRequest.model_validate({
-        "progression": "I V vi IV", "mode": "surface",
-        "filters": {"genre": "pop", "color": {"axis": "brightness", "min": 0.6}},
-    })
+    request = SimilarProgressionRequest.model_validate(
+        {
+            "progression": "I V vi IV",
+            "mode": "surface",
+            "filters": {"genre": "pop", "color": {"axis": "brightness", "min": 0.6}},
+        }
+    )
     response = SimilarityService(FakeStore()).progressions(request)
     assert response.model == "token_overlap"
     assert len(response.results) == 2

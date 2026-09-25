@@ -22,8 +22,10 @@ BARE_ROMAN = re.compile(r"^[b#]?[ivIV]+(?:[+oh]?7?|maj7)?(?:/[b#]?[ivIV]+)?$")
 
 
 def _rotation_of(a: list[str], b: list[str]) -> bool:
-    return len(a) == len(b) and a != b and any(
-        a[offset:] + a[:offset] == b for offset in range(1, len(a))
+    return (
+        len(a) == len(b)
+        and a != b
+        and any(a[offset:] + a[:offset] == b for offset in range(1, len(a)))
     )
 
 
@@ -82,8 +84,10 @@ class SimilarityService:
         return SimilarResponse(
             query=request.token,
             model=model,
-            results=[SimilarItem(subject_id=row["subject_id"], similarity=row["similarity"])
-                     for row in rows],
+            results=[
+                SimilarItem(subject_id=row["subject_id"], similarity=row["similarity"])
+                for row in rows
+            ],
             corpus_version=version,
         )
 
@@ -127,12 +131,15 @@ class SimilarityService:
         if request.mode == "structural":
             vector = self.store.vector("pattern", query, model="chord2vec")
             if vector is None:
-                vectors = [self.store.vector("function", token, model="chord2vec")
-                           for token in tokens]
+                vectors = [
+                    self.store.vector("function", token, model="chord2vec") for token in tokens
+                ]
                 if any(item is None for item in vectors):
                     raise ValueError("One or more tokens have no function embedding")
-                vector = [sum(item[i] for item in vectors) / len(vectors)  # type: ignore[index]
-                          for i in range(64)]
+                vector = [
+                    sum(item[i] for item in vectors) / len(vectors)  # type: ignore[index]
+                    for i in range(64)
+                ]
             candidates = self.store.neighbors_by_vector(
                 "pattern", vector, model="chord2vec", limit=160, exclude=query
             )
@@ -168,8 +175,14 @@ class SimilarityService:
                     support=info["support"],
                 )
             )
-        results.sort(key=lambda item: (-item.similarity, item.rotation_of is not None,
-                                       -(item.support or 0), item.subject_id))
+        results.sort(
+            key=lambda item: (
+                -item.similarity,
+                item.rotation_of is not None,
+                -(item.support or 0),
+                item.subject_id,
+            )
+        )
         return SimilarResponse(
             query=query,
             model="chord2vec" if request.mode == "structural" else "token_overlap",

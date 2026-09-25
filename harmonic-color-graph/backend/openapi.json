@@ -497,6 +497,45 @@
         "title": "ColorCompareResponse",
         "type": "object"
       },
+      "ColorFilter": {
+        "additionalProperties": false,
+        "properties": {
+          "axis": {
+            "enum": [
+              "tension",
+              "stability",
+              "chromaticity",
+              "brightness",
+              "surprise",
+              "smoothness",
+              "complexity",
+              "resolution",
+              "finality"
+            ],
+            "title": "Axis",
+            "type": "string"
+          },
+          "max": {
+            "default": 1,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "default": 0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Min",
+            "type": "number"
+          }
+        },
+        "required": [
+          "axis"
+        ],
+        "title": "ColorFilter",
+        "type": "object"
+      },
       "ColorProfileRequest": {
         "additionalProperties": false,
         "properties": {
@@ -1704,6 +1743,256 @@
           "backoff"
         ],
         "title": "ScoreBreakdown",
+        "type": "object"
+      },
+      "SimilarChordRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Chord",
+            "type": "string"
+          },
+          "k": {
+            "default": 10,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chord"
+        ],
+        "title": "SimilarChordRequest",
+        "type": "object"
+      },
+      "SimilarFunctionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "k": {
+            "default": 10,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "enum": [
+                  "chord2vec",
+                  "fastrp"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "token": {
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "title": "SimilarFunctionRequest",
+        "type": "object"
+      },
+      "SimilarItem": {
+        "additionalProperties": false,
+        "properties": {
+          "rotation_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rotation Of"
+          },
+          "shared_tokens": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Shared Tokens",
+            "type": "array"
+          },
+          "similarity": {
+            "maximum": 1.0,
+            "minimum": -1.0,
+            "title": "Similarity",
+            "type": "number"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "support": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Support"
+          }
+        },
+        "required": [
+          "subject_id",
+          "similarity"
+        ],
+        "title": "SimilarItem",
+        "type": "object"
+      },
+      "SimilarProgressionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "filters": {
+            "$ref": "#/components/schemas/SimilarityFilters"
+          },
+          "k": {
+            "default": 10,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "mode": {
+            "default": "structural",
+            "enum": [
+              "structural",
+              "surface"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Progression"
+          },
+          "tokens": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 8,
+                "minItems": 3,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tokens"
+          }
+        },
+        "title": "SimilarProgressionRequest",
+        "type": "object"
+      },
+      "SimilarResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "corpus_version": {
+            "title": "Corpus Version",
+            "type": "string"
+          },
+          "model": {
+            "title": "Model",
+            "type": "string"
+          },
+          "query": {
+            "title": "Query",
+            "type": "string"
+          },
+          "results": {
+            "items": {
+              "$ref": "#/components/schemas/SimilarItem"
+            },
+            "title": "Results",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "query",
+          "model",
+          "results",
+          "corpus_version"
+        ],
+        "title": "SimilarResponse",
+        "type": "object"
+      },
+      "SimilarityFilters": {
+        "additionalProperties": false,
+        "properties": {
+          "color": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ColorFilter"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          }
+        },
+        "title": "SimilarityFilters",
         "type": "object"
       },
       "SongExample": {
@@ -3606,6 +3895,129 @@
         "summary": "Recommend Next Chords",
         "tags": [
           "recommend-v2"
+        ]
+      }
+    },
+    "/v2/similar-chords": {
+      "post": {
+        "operationId": "similar_chords_v2_similar_chords_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimilarChordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Similar Chords",
+        "tags": [
+          "similarity-v2"
+        ]
+      }
+    },
+    "/v2/similar-functions": {
+      "post": {
+        "operationId": "similar_functions_v2_similar_functions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimilarFunctionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Similar Functions",
+        "tags": [
+          "similarity-v2"
+        ]
+      }
+    },
+    "/v2/similar-progressions": {
+      "post": {
+        "operationId": "similar_progressions_v2_similar_progressions_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimilarProgressionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Similar Progressions",
+        "tags": [
+          "similarity-v2"
         ]
       }
     }

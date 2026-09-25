@@ -50,8 +50,13 @@ def _run(request: Request, service: Service, payload, method) -> SimilarResponse
         return JSONResponse(
             status_code=429,
             headers={"Retry-After": str(decision.retry_after_s)},
-            content={"error": {"code": "rate_limited", "message": "Too many similarity requests.",
-                               "details": {"retry_after_s": decision.retry_after_s}}},
+            content={
+                "error": {
+                    "code": "rate_limited",
+                    "message": "Too many similarity requests.",
+                    "details": {"retry_after_s": decision.retry_after_s},
+                }
+            },
         )
     try:
         return method(payload)

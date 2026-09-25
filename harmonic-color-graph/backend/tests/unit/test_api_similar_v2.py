@@ -12,17 +12,25 @@ class FakeService:
     def functions(self, payload):
         if payload.token == "M:unknown":
             raise ValueError("No embedding exists for this function token")
-        return SimilarResponse(query=payload.token, model=payload.model or "chord2vec",
-                               results=[SimilarItem(subject_id="M:V", similarity=0.8)],
-                               corpus_version="cv-test")
+        return SimilarResponse(
+            query=payload.token,
+            model=payload.model or "chord2vec",
+            results=[SimilarItem(subject_id="M:V", similarity=0.8)],
+            corpus_version="cv-test",
+        )
 
     def chords(self, payload):
-        return SimilarResponse(query=payload.chord, model="pitch_jaccard+function_usage",
-                               results=[], corpus_version="cv-test")
+        return SimilarResponse(
+            query=payload.chord,
+            model="pitch_jaccard+function_usage",
+            results=[],
+            corpus_version="cv-test",
+        )
 
     def progressions(self, payload):
-        return SimilarResponse(query="M:I M:V M:vi M:IV", model="chord2vec",
-                               results=[], corpus_version="cv-test")
+        return SimilarResponse(
+            query="M:I M:V M:vi M:IV", model="chord2vec", results=[], corpus_version="cv-test"
+        )
 
 
 @pytest.fixture
@@ -35,13 +43,17 @@ def client():
 
 
 def test_all_similarity_routes(client):
-    assert client.post("/v2/similar-functions", json={"token": "M:V"}).json()["results"][0][
-        "subject_id"
-    ] == "M:V"
+    assert (
+        client.post("/v2/similar-functions", json={"token": "M:V"}).json()["results"][0][
+            "subject_id"
+        ]
+        == "M:V"
+    )
     assert client.post("/v2/similar-chords", json={"chord": "C"}).status_code == 200
-    assert client.post("/v2/similar-progressions", json={
-        "tokens": ["I", "V", "vi", "IV"]
-    }).status_code == 200
+    assert (
+        client.post("/v2/similar-progressions", json={"tokens": ["I", "V", "vi", "IV"]}).status_code
+        == 200
+    )
 
 
 def test_similarity_errors_use_envelope(client):

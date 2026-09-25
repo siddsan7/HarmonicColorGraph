@@ -20,8 +20,15 @@ class SimilarChordRequest(StrictModel):
 
 class ColorFilter(StrictModel):
     axis: Literal[
-        "tension", "stability", "chromaticity", "brightness", "surprise",
-        "smoothness", "complexity", "resolution", "finality",
+        "tension",
+        "stability",
+        "chromaticity",
+        "brightness",
+        "surprise",
+        "smoothness",
+        "complexity",
+        "resolution",
+        "finality",
     ]
     min: float = Field(default=0, ge=0, le=1)
     max: float = Field(default=1, ge=0, le=1)
