@@ -8,8 +8,8 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M3 are merged to `main`; F40 and F41 (M4's first feature) are done
-too.** F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41 are done
+**M0–M3 are merged to `main`; F40, F41, and now F42 (M4) are done.**
+F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42 are done
 (checkboxes in `feature-specs/v2-implementation-plan.md` match). The M3
 exit gate ("prediction report shows a clear win over v1; recommendations
 are context-sensitive in production") is satisfied. F40's PR
@@ -23,9 +23,12 @@ private-schema RLS notices, no new issues. F41 added
 `backend/app/color/{features,norms}.py`, replaced the `color` pipeline
 stub in place, and wrote (but has **not yet applied live**) migration
 `0008_color_norms.sql` — see the F41 bullet below and
-`context/progress-tracker.md`'s matching entry for full detail. The next
-unstarted work is **F42** (perceptual axes with confidence & source) — see
-"Immediate next steps".
+`context/progress-tracker.md`'s matching entry for full detail. **F42 is
+implemented but not yet on a PR/merged** — new `backend/app/color/
+perceptual.py`, `perceptual_params.json`, and `rules/color_rules.json`
+(pure application code, no pipeline/DB changes); see this file's F42
+bullet below. The next unstarted work is **F43** (color profile storage,
+progression arcs, API) — see "Immediate next steps".
 
 The rest of this section is the detailed PR-by-PR history, oldest first;
 skip to "Immediate next steps" if you just need to know what to do next.
@@ -229,20 +232,57 @@ skip to "Immediate next steps" if you just need to know what to do next.
   `ruff format --check` clean. Full detail in
   `context/progress-tracker.md`'s F41 entry and
   `feature-specs/v2-implementation-plan.md`'s F41 "Completed" note.
+- **F42 (perceptual axes with confidence & source) is done.** New
+  `backend/app/color/perceptual.py`: `compute_perceptual_color` is the one
+  entry point (mirrors F41's `compute_chord_color`), taking a whole
+  progression's `chords`/`tokens` from `analyze_v2`. It runs F41's
+  `compute_chord_color` at every position, aggregates the raw axes plus a
+  few token-metadata flags (`is_borrowed`, `is_chromatic`, extensions, and
+  cadence-fact ids read from F13's `analyze_relationships`) into one
+  feature vector, and combines that into each of 6 perceptual axes
+  (`nostalgia`, `dreaminess`, `melancholy`, `warmth`, `openness`,
+  `cinematic`) via a documented logistic
+  (`backend/app/color/perceptual_params.json`: bias + per-feature weight +
+  one-line rationale). `backend/app/color/rules/color_rules.json` has 21
+  curated progression entries (the plan's 5 literal examples plus 16 more
+  spanning major and minor mode); on a pattern match the rule's target
+  value blends in at the rule's own confidence (`source="rule"`),
+  otherwise the axis stays `source="derived"`. All three required rule
+  orderings were confirmed against a real numeric prototype run through
+  the actual analyzer before the weights were locked in — the derived
+  logistic alone already produces all three, so the rules add real
+  explanation color without being load-bearing for the ordering checks. A
+  real, tested `lint_explanation` function flags absolute-claim words and
+  requires a hedge marker; every curated and generated explanation in the
+  test suite passes it, and `compute_perceptual_color` itself asserts this
+  for every rule explanation it uses. One documented deviation from the
+  plan's literal examples: dropped `M:IVmaj7→M:iv6` because
+  `RomanToken.core` is inversion-free by design (confirmed by direct
+  experiment against the real analyzer, not assumed) — substituted 16
+  other real, reachability-tested patterns instead. 18 new tests in
+  `tests/unit/test_color_perceptual.py`; full `pytest -q` (821 passed, 13
+  skipped) and `ruff check`/`ruff format --check` on the changed files are
+  clean; `python -c "import app.main"` still succeeds. Pure, DB-free
+  application code — no pipeline or migration changes, same split as F41.
+  **Not yet on a PR or merged to `main`** — see "Immediate next steps".
 
 ## Immediate next steps
 
-1. Continue the plan at **F42** (perceptual axes with confidence &
-   source), then F43 onward in order. **Not blocked by item 2 below** —
-   same reasoning F41 already confirmed: no application code anywhere
-   references `VOICE_LEADS_TO` or reads `hcg.color_norms` yet, and F41's
-   `smoothness`/`resolution`/`finality` compute live per-progression
-   through pure functions, not graph/table lookups. F42's perceptual
-   axes are logistic combinations of F41's measurable ones (also pure),
-   so the same applies.
+1. Open a PR for F42 (working-tree changes only as of this entry — no
+   `codex/`-style branch created yet). Run the Standard Check Gate,
+   inspect CI, and squash-merge once green, then continue the plan at
+   **F43** (color profile storage, progression arcs, API), then F44.
+   **F43 is not blocked by item 2 below** — same reasoning F41/F42 already
+   confirmed: no application code anywhere references `VOICE_LEADS_TO` or
+   reads `hcg.color_norms` yet, and F41/F42's axes all compute live
+   per-progression through pure functions, not graph/table lookups. F43
+   is the feature that actually needs `hcg.color_norms` (and its own
+   profile-storage migration) to materialize corpus-wide profiles, so
+   plan for that dependency directly in F43, not as a separate pre-step.
 2. Apply migration `0008_color_norms.sql` live (MCP `apply_migration`,
    then `get_advisors`) whenever convenient — cheap and low-risk (an
-   empty table until the next full load), unlike item 3.
+   empty table until the next full load), unlike item 3. F43 will need
+   this applied before its own profile-storage migration can build on it.
 3. A full pipeline re-run and reload is needed to get F40's voice-leading
    edges AND F41's color norms into the live `cv-2026-09-a` version (the
    `voice_leading` and `color` stages have only run against local

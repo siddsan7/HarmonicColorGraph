@@ -1,0 +1,170 @@
+[
+  {
+    "pattern": ["M:iv", "M:I"],
+    "axes": { "nostalgia": 0.85, "warmth": 0.6, "melancholy": 0.55 },
+    "tags": ["modal_mixture", "minor_plagal", "borrowed"],
+    "explanation": "Borrowed iv sliding into the major tonic commonly reads as bittersweet and nostalgic.",
+    "source": "rule",
+    "confidence": 0.85
+  },
+  {
+    "pattern": ["M:bVI", "M:bVII", "M:I"],
+    "axes": { "cinematic": 0.9, "openness": 0.55, "nostalgia": 0.6 },
+    "tags": ["aeolian", "modal_mixture", "epic"],
+    "explanation": "The Aeolian bVI-bVII-I climb commonly reads as an epic, widescreen cadential color.",
+    "source": "rule",
+    "confidence": 0.85
+  },
+  {
+    "pattern": ["M:V", "M:vi"],
+    "axes": { "openness": 0.75, "melancholy": 0.45 },
+    "tags": ["deceptive"],
+    "explanation": "Deceptive motion to vi tends to feel like the phrase holds back from a full resolution.",
+    "source": "rule",
+    "confidence": 0.85
+  },
+  {
+    "pattern": ["M:V", "M:I"],
+    "axes": { "warmth": 0.65, "cinematic": 0.35 },
+    "tags": ["authentic"],
+    "explanation": "An authentic cadence commonly reads as a warm, settled arrival.",
+    "source": "rule",
+    "confidence": 0.8
+  },
+  {
+    "pattern": ["M:I", "M:iii"],
+    "axes": { "dreaminess": 0.55, "warmth": 0.55 },
+    "tags": ["common_tone", "mediant"],
+    "explanation": "Moving between close common-tone mediants tends to feel soft and drifting rather than driven.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["M:Imaj7", "M:iii7"],
+    "axes": { "dreaminess": 0.8, "warmth": 0.5 },
+    "tags": ["extended", "common_tone"],
+    "explanation": "Chaining major/minor seventh chords through a common-tone mediant commonly reads as a hazy, impressionistic color.",
+    "source": "rule",
+    "confidence": 0.8
+  },
+  {
+    "pattern": ["M:vi", "M:IV"],
+    "axes": { "melancholy": 0.45, "nostalgia": 0.4, "warmth": 0.4 },
+    "tags": ["pop_loop"],
+    "explanation": "Starting from the relative minor before the subdominant commonly feels like a wistfully sentimental pop opening.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["m:V7", "m:i"],
+    "axes": { "melancholy": 0.7, "warmth": 0.3 },
+    "tags": ["authentic", "minor"],
+    "explanation": "A minor-key authentic cadence commonly reads as somber rather than warm.",
+    "source": "rule",
+    "confidence": 0.85
+  },
+  {
+    "pattern": ["M:bVII", "M:IV", "M:I"],
+    "axes": { "cinematic": 0.7, "nostalgia": 0.5 },
+    "tags": ["double_plagal", "modal_mixture"],
+    "explanation": "The double-plagal bVII-IV-I descent commonly reads as a rock and cinematic color gesture.",
+    "source": "rule",
+    "confidence": 0.8
+  },
+  {
+    "pattern": ["M:ii", "M:V", "M:I"],
+    "axes": { "warmth": 0.6, "openness": 0.3 },
+    "tags": ["ii_v_i", "functional"],
+    "explanation": "The functional ii-V-I turnaround tends to feel purposeful and warmly resolved.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["M:bVI", "M:V"],
+    "axes": { "cinematic": 0.65, "openness": 0.5 },
+    "tags": ["modal_mixture", "half_cadence"],
+    "explanation": "A borrowed bVI sliding down into V commonly feels dramatic and unresolved, like a held breath.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["M:V7/V", "M:V"],
+    "axes": { "openness": 0.6, "cinematic": 0.4 },
+    "tags": ["secondary_dominant"],
+    "explanation": "Chaining a secondary dominant into V tends to extend the sense of anticipation before any arrival.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["m:i", "m:bII"],
+    "axes": { "cinematic": 0.75, "melancholy": 0.5 },
+    "tags": ["neapolitan", "minor"],
+    "explanation": "A Neapolitan approach in a minor key commonly reads as dark and dramatic.",
+    "source": "rule",
+    "confidence": 0.8
+  },
+  {
+    "pattern": ["m:bII", "m:III"],
+    "axes": { "cinematic": 0.55, "dreaminess": 0.4 },
+    "tags": ["neapolitan", "minor"],
+    "explanation": "Resolving a Neapolitan chord up to the relative major tends to feel like a brief, unexpected lift.",
+    "source": "rule",
+    "confidence": 0.7
+  },
+  {
+    "pattern": ["m:iv", "m:i"],
+    "axes": { "melancholy": 0.6, "warmth": 0.3 },
+    "tags": ["plagal", "minor"],
+    "explanation": "A minor plagal cadence commonly feels quietly resigned rather than triumphant.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["m:V7", "m:VI"],
+    "axes": { "melancholy": 0.55, "openness": 0.6 },
+    "tags": ["deceptive", "minor"],
+    "explanation": "Deceptive motion to the relative major in a minor key tends to feel like a fragile, momentary lift.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["M:I", "M:bVI"],
+    "axes": { "cinematic": 0.7, "melancholy": 0.35 },
+    "tags": ["chromatic_mediant"],
+    "explanation": "A chromatic mediant drop from I to bVI commonly reads as a sudden, cinematic shift in light.",
+    "source": "rule",
+    "confidence": 0.75
+  },
+  {
+    "pattern": ["M:I", "M:III"],
+    "axes": { "cinematic": 0.6, "warmth": 0.4 },
+    "tags": ["chromatic_mediant"],
+    "explanation": "A chromatic mediant lift from I to III tends to feel like a bright, unexpected widening.",
+    "source": "rule",
+    "confidence": 0.7
+  },
+  {
+    "pattern": ["M:ii7", "M:V7", "M:Imaj7"],
+    "axes": { "warmth": 0.7, "dreaminess": 0.4 },
+    "tags": ["ii_v_i", "extended", "jazz"],
+    "explanation": "A jazzy extended ii7-V7-Imaj7 turnaround commonly feels warm and comfortably resolved.",
+    "source": "rule",
+    "confidence": 0.8
+  },
+  {
+    "pattern": ["m:V", "m:i"],
+    "axes": { "melancholy": 0.65 },
+    "tags": ["authentic", "minor"],
+    "explanation": "A plain minor authentic cadence tends to read as somber and final.",
+    "source": "rule",
+    "confidence": 0.8
+  },
+  {
+    "pattern": ["M:iv", "M:bVII7", "M:I"],
+    "axes": { "nostalgia": 0.6, "cinematic": 0.55 },
+    "tags": ["backdoor", "modal_mixture"],
+    "explanation": "The backdoor iv-bVII7-I motion commonly feels like a gentle, nostalgic detour home.",
+    "source": "rule",
+    "confidence": 0.8
+  }
+]

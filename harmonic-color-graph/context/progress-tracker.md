@@ -7,6 +7,35 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-25 F42 (perceptual axes with confidence & source) is done, not
+  yet merged. New `backend/app/color/perceptual.py`
+  (`compute_perceptual_color`, one entry point mirroring F41's
+  `compute_chord_color`), `backend/app/color/perceptual_params.json`
+  (documented logistic weights, one rationale per weight), and
+  `backend/app/color/rules/color_rules.json` (21 curated progression
+  entries, the plan's 5 literal examples plus 16 more spanning major and
+  minor mode). All three required rule orderings
+  (`nostalgia(iv→I) > nostalgia(IV→I)`,
+  `cinematic(bVI→bVII→I) > cinematic(IV→V→I)`,
+  `dreaminess(Imaj7→iii7→vi7) > dreaminess(I→V→vi)`) were verified against
+  a real numeric prototype run through the actual analyzer before the
+  weights were locked in -- the derived logistic alone (before any rule
+  blending) already produces all three, so the curated rules add real
+  explanation color without being load-bearing for the ordering checks.
+  A real, tested `lint_explanation` function (not just a description)
+  flags absolute-claim words and requires a hedge marker; every curated
+  and generated explanation in the test suite passes it. One documented
+  deviation from the plan's literal examples: dropped
+  `M:IVmaj7→M:iv6` because `RomanToken.core` is inversion-free by design
+  (confirmed by direct experiment) so `iv6` isn't a distinct core token in
+  this codebase; substituted with 16 other real, reachability-tested
+  patterns instead. 18 new tests in `tests/unit/test_color_perceptual.py`;
+  full `pytest -q` (821 passed, 13 skipped -- the pre-existing `pg`-marked
+  tests) and `ruff check`/`ruff format --check` on the changed files are
+  clean; `python -c "import app.main"` still succeeds. No pipeline or
+  database changes (pure, DB-free application code, same split as F41).
+  Full detail in `feature-specs/v2-implementation-plan.md`'s F42
+  "Completed" note.
 - 2026-09-24, after F32 merged: found three more local-only git
   worktrees left over from today's Claude/Codex parallel session, none
   pushed to GitHub, discovered while cleaning up the (by then merged)
