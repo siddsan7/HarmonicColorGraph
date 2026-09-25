@@ -1421,6 +1421,30 @@ documentation-only, no functional gap).
   compare link
   (`https://github.com/siddsan7/HarmonicColorGraph/pull/new/claude/laughing-chaplygin-a67ae8`);
   opening the PR needs the user or a working `gh`/`gk` auth next session.
+- `npm audit` security pass on the frontend (16 findings: 2
+  low, 5 moderate, 8 high, 1 critical). `npm audit fix`
+  (no `--force`) cleared 11 of them — the entire `shadcn`
+  MCP-tooling cluster (`qs`, `hono`, `express`, `ip-address`,
+  `js-yaml`, `fast-uri`, `body-parser`, etc., pulled in via
+  `@modelcontextprotocol/sdk`), `package-lock.json` only.
+  Reviewed the real Next.js 16.3.0–16.3.6 release notes
+  (registry-verified, not from training data) and confirmed
+  none of 16.3.0's behavior changes (cache components on by
+  default, Edge Runtime deprecated, PPR codepath removal)
+  touch this app — empty `next.config.ts`, no middleware, no
+  Server Actions, no edge runtime, no `next/image`/`next/og`.
+  Bumped `next` 16.2.7 → 16.3.6 and `eslint-config-next` to
+  match, closing the critical `next` RCE bundle and the high
+  `sharp`/`postcss` findings. One moderate, dev-only finding
+  left open on purpose (`@vitest/mocker`; fixing it means
+  `vitest@5.x`, which needs Node ≥22 and breaks this repo's
+  Node 20 `.nvmrc` — a scoped `vitest` 3→4 migration is the
+  right fix, deferred to before F85). See `docs/adr/ADR-009.md`.
+  Gate: `scripts/check.ps1 all` green both before (`next@16.2.7`
+  baseline) and after (`next@16.3.6`); `npm audit` now reports
+  only the 2 deferred `@vitest/mocker` moderates; `git status`
+  clean except the intended `package.json`/`package-lock.json`
+  and `docs/adr/ADR-009.md` changes.
 
 ## In Progress
 
