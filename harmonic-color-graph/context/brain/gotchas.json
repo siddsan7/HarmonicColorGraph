@@ -132,9 +132,9 @@
     {
       "id": "pipeline-stub-stages",
       "area": "pipeline",
-      "trap": "Running `pipeline.cli run` through the last stage fails. embeddings (F50), snapshot (F63), and export are still stubs that raise StageNotImplementedError; color (F41) is implemented as of this entry.",
-      "rule": "Use `--to-stage color` until F50 lands. Replace a stub in place when implementing it; do not add a parallel stage.",
-      "see": "context/HANDOFF.md (F41 bullet)"
+      "trap": "Running `pipeline.cli run` through the last stage fails. snapshot (F63) and export are still stubs that raise StageNotImplementedError; color (F41/F43) and embeddings (F50) are implemented as of this entry.",
+      "rule": "Use `--to-stage embeddings` until F63 lands. Replace a stub in place when implementing it; do not add a parallel stage.",
+      "see": "context/HANDOFF.md (F50 bullet)"
     },
     {
       "id": "api-error-envelope",
