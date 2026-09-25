@@ -167,6 +167,12 @@ class _Computed:
 class KNPredictor:
     store: NgramReader
     mixing_k: float = DEFAULT_MIXING_K
+    # F31's baseline ablations ("KN orders 2-5, with and without context
+    # backoff") need a lower max order than the pipeline actually built --
+    # e.g. evaluating "order 3" means never using order 4/5 evidence even
+    # though it exists in the store. None (the default) uses each
+    # context's own real max order, exactly as production does.
+    max_order_cap: int | None = None
     # Corpus-wide, changes only when the active version changes -- unlike
     # the per-request history fetch, safe (and worth it) to cache like
     # `graph/service.py`'s `_ADJACENCY_CACHE`.
@@ -277,8 +283,11 @@ class KNPredictor:
                 # all (e.g. no genre given) -- drop it from the chain, same
                 # net effect as giving it zero support (beta = 0 below).
                 continue
+            max_order = _max_order(key)
+            if self.max_order_cap is not None:
+                max_order = min(max_order, self.max_order_cap)
             resolved.append(
-                _ChainResolution(key=key, context_id=int(row["id"]), max_order=_max_order(key))
+                _ChainResolution(key=key, context_id=int(row["id"]), max_order=max_order)
             )
         return resolved
 

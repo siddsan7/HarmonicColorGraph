@@ -1171,6 +1171,119 @@ a retroactive backfill.
   and `python scripts/export_openapi.py` (no drift — F30 added no API
   routes) all green locally. No frontend files touched.
 
+**F31 — Evaluation harness.** The user is now running two agents in
+parallel on this repo (Claude here, Codex on its own branches) — see
+`context/HANDOFF.md`'s "Current state" for the coordination split (Claude
+owns F31, Codex owned F32 until it ran out of usage; Claude picks up F32
+next). PR #7 and #8 (Codex, F28 cache-metrics follow-up) merged
+independently while this was in progress; also fixed, on its own small PR
+(#9), F23-F27/F29's checkboxes in the plan file, which had been left
+unticked even though that work was already merged (verified against the
+actual repo and the live Supabase project before ticking anything off —
+documentation-only, no functional gap).
+
+- Built the train-only artifact with the pipeline's *already-existing*
+  `--split train` support (`pipeline/cli.py`/`pipeline/stages/ingest.py`
+  had this from F20 on, unused until now):
+  `py -3.12 -m pipeline.cli run --source ../data/raw/chordonomicon_v2.csv
+  --version eval-train-a --split train --workers 12 --from-stage ingest
+  --to-stage ngrams`. Took much longer than expected (ingest ~19 min,
+  analyze ~4 min with 12 workers, but `ngrams` alone took ~2h6m against
+  ~206s for the same stage on the full corpus in the F30 session) —
+  almost certainly CPU/memory contention from running pytest/ruff
+  concurrently in the foreground the whole time, not a pipeline bug;
+  `ngrams` is single-threaded and memory-heavy regardless of `--workers`
+  (which only parallelizes `analyze`). Output: 612,021 songs, 137,493
+  ngram rows, `data/artifacts/eval-train-a/` (gitignored, local only,
+  never loaded to Supabase, per the plan).
+- `tests/eval/metrics.py`: `evaluate_position` (rank/MRR/NDCG@5/surprisal/
+  calibration-relevant fields from one distribution + the actual next
+  token) and `aggregate`/`slice_metrics` over a sample. `perplexity` floors
+  zero-probability misses at `2**-30` (documented) rather than producing
+  `inf` from one miss. `ece` bins by the model's own top-1 confidence into
+  deciles (Guo et al. 2017's standard ECE).
+- `tests/eval/sampling.py`: `sample_test_positions` samples position
+  *indices* first (`(row_index, token_index)` pairs) and only slices out
+  history tuples for the sampled ones — avoids materializing an
+  O(total tokens^2) list of every possible history prefix up front.
+  Position 0 (empty history) is excluded from the position space
+  entirely, so v1's bigram baseline and every KN variant are scored on
+  exactly the same, fair position set.
+- `tests/eval/baselines.py`: `GlobalUnigramBaseline` (ignores everything,
+  the floor), `V1HardBackoffBaseline` (hard context backoff + raw MLE, no
+  smoothing — re-implemented against v2's own order-2 counts rather than
+  calling `app/services/transition_lookup.py` directly, since v1 operates
+  on a differently-encoded Roman-numeral vocabulary and its own Postgres
+  tables, which would make "same underlying data" comparisons impossible),
+  and `KNOrderBaseline` (F30's real `KNPredictor`, ablated via the new
+  `max_order_cap` field and an on/off context-mixing flag). All ten
+  baselines (`global_unigram`, `v1_hard_backoff_bigram`,
+  `kn_order{2,3,4,5}_{no_context,context}`) share one `NgramReader`
+  instance built once from the train artifact, so every comparison is on
+  identical counts.
+- `tests/eval/prediction.py`: `run_evaluation` orchestrates
+  `assert_no_leakage` (hard gate, raises before computing anything if any
+  sampled-split song appears in the train artifact) -> sample positions
+  from the eval version's real `test` (or `dev`) split -> score every
+  baseline -> aggregate overall and by genre/section/mode/context-depth
+  (each slice keeps the 10 most frequent values, folding the rest into an
+  "other" row so the report stays readable at real-corpus scale) -> the
+  headline v2-vs-v1 MRR check. `render_markdown` + the `hcg-eval`
+  console script (registered in `pyproject.toml`, required adding
+  `tests.eval*` to `[tool.setuptools.packages.find]`'s include list;
+  verified with a real `pip install -e .` that both the plain
+  `python -m tests.eval.prediction` and the installed `hcg-eval` command
+  work) write `docs/eval/prediction-v2.{md,json}`.
+- **Real run** (`hcg-eval prediction --train-version eval-train-a
+  --eval-version cv-2026-09-a --eval-split test --sample-size 50000`):
+  leak check passed (612,021 train songs, 34,016 test songs, 0 overlap).
+  Headline check **passed**: v2 (order 5 + context) MRR `0.6071` vs. v1
+  MRR `0.5407` (delta `0.0664` >= required `0.05`). Full table and slices
+  in `docs/eval/prediction-v2.md`.
+- **Finding worth carrying forward**: at the current placeholder
+  `DEFAULT_MIXING_K = 100.0` (`app/predict/ngram.py`, documented there as
+  untuned since F30), context mixing *increases* MRR at orders 2-3 but
+  *decreases* it at orders 4-5 (order5_context `0.6071` vs.
+  order5_no_context `0.6802`, a `0.0731` regression) — not a bug: only
+  `global` reaches order 5 (`MAX_ORDER_OTHER = 3` caps every other
+  context), so mixing in a genre/section context whenever it earns a high
+  `beta` pulls probability mass toward a structurally lower-order model,
+  even though global's own order-5 evidence alone would have been more
+  informative. Every per-genre/section slice is still better than v1, so
+  this doesn't threaten the headline check — it's evidence that `K` needs
+  real tuning (the plan already says "K is tuned on the dev split"; this
+  quantifies why that matters, ahead of whoever does that tuning next).
+- Unit tests: `tests/unit/test_eval_metrics.py` (10, hand-verified rank/
+  MRR/NDCG/ECE cases), `test_eval_sampling.py` (8, determinism + position-0
+  exclusion + depth buckets), `test_eval_baselines.py` (7, hard-backoff
+  chain behavior + ablation wiring), `test_eval_prediction.py` (4,
+  end-to-end through the *real* `ingest`/`analyze`/`ngrams` pipeline
+  stages on a tiny synthetic corpus — including a leak-detection case that
+  asserts it actually raises). `757 passed, 13 skipped` total locally
+  (`pytest`), `ruff check .`/`ruff format --check .` clean, no OpenAPI
+  drift (F31 added no API routes).
+- Renamed a first draft's `TestPosition` dataclass to `SampledPosition`
+  after `pytest` warned it couldn't collect it as a test class (any
+  module-level name starting with `Test` in a file pytest imports is a
+  collection candidate, even when it's a dataclass imported from another
+  module, not defined locally) — avoid `Test*`-prefixed names anywhere
+  under `tests/`, not just in files matching `test_*.py`.
+- **Coordination**: with Codex out of usage, its `codex/f32-recommend`
+  branch (feature-complete: typed endpoint, service, schemas, Workbench
+  UI, contract + Playwright tests) is Claude's to finish next. Its
+  checkpoint commit records one important discovery: a live read against
+  the real corpus hit the 5-second serverless statement timeout in F30's
+  `NgramStore.count_of_counts` (the `jsonb_each_text` aggregation this
+  session wrote is fine for tests but too slow cold, at full scale,
+  against Supabase's timeout). Codex's fix is a clean, already-written
+  migration (`supabase/migrations/0006_ngram_discount_stats.sql`)
+  precomputing `(version, context_id, ord) -> (n1, n2)` into a real table,
+  with `NgramStore.count_of_counts`'s SQL swapped to read it — same public
+  method signature, so `KNPredictor` needed no changes at all (the
+  store-owns-SQL/predictor-owns-math split from F30 paid off here). That
+  migration is **not yet applied live**; applying it, verifying F32 end to
+  end against the real corpus, and merging is the next task.
+
 ## In Progress
 
 - F10 (chord model upgrade) is implemented locally but not yet committed,

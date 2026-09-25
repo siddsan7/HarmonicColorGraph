@@ -1163,13 +1163,34 @@ version is active (true for CI's ephemeral Postgres) and were verified
 directly against the live `cv-2026-09-a` corpus via the Supabase MCP
 connector before merging — see `context/progress-tracker.md`.
 
-### F31 — Evaluation harness [M]
-- [ ] Build eval artifacts with `--split train` (excludes dev/test songs), never loaded to Supabase.
-- [ ] `tests/eval/prediction.py` (CLI `hcg-eval prediction --version …`): 50k sampled test positions (deterministic), metrics top-1/3/5, MRR, NDCG@5, perplexity, coverage, ECE; slices by genre, section, mode, context depth. Baselines: global unigram, **v1** (F04-fixed final-chord bigram), KN orders 2–5, with and without context backoff.
-- [ ] Output `docs/eval/prediction-v2.md` (table + short interpretation) and `docs/eval/prediction-v2.json`.
+### F31 — Evaluation harness [M] — DONE
+- [x] Build eval artifacts with `--split train` (excludes dev/test songs), never loaded to Supabase.
+- [x] `tests/eval/prediction.py` (CLI `hcg-eval prediction --version …`): 50k sampled test positions (deterministic), metrics top-1/3/5, MRR, NDCG@5, perplexity, coverage, ECE; slices by genre, section, mode, context depth. Baselines: global unigram, **v1** (F04-fixed final-chord bigram), KN orders 2–5, with and without context backoff.
+- [x] Output `docs/eval/prediction-v2.md` (table + short interpretation) and `docs/eval/prediction-v2.json`.
 
 **Checks:** v2 (order 5 + context) MRR ≥ v1 MRR + 0.05 absolute (if not, investigate before proceeding; do not tune on test); dev-split tuning only (assert test IDs never appear in the train artifacts); report committed.
 **Commit:** `feat(eval): leak-free prediction evaluation with baselines`
+
+**Completed 2026-09-24.** Real run: train artifact `eval-train-a`
+(`pipeline.cli run --split train --workers 12`, 612,021 songs, local only,
+gitignored), evaluated against 50,000 positions sampled (seed `20260924`)
+from `cv-2026-09-a`'s real `test` split (34,016 songs, zero overlap with
+the train artifact's songs — the leak check in
+`tests/eval/prediction.py::assert_no_leakage` passed and is asserted
+before any metric is computed, not just reported after the fact). Headline
+check **passed**: v2 (order 5 + context) MRR `0.6071` vs. v1 MRR `0.5407`
+(delta `0.0664` ≥ the required `0.05`). `tests/eval/{metrics,sampling,
+baselines,prediction}.py`, CLI registered as `hcg-eval` (`pyproject.toml`),
+`InMemoryNgramStore.from_parquet`/`from_rows` (added to F30's
+`app/predict/ngram.py` for this), and a `KNPredictor.max_order_cap` field
+(F30, for the order-2..5 ablations) — see `context/progress-tracker.md`'s
+F31 entry for the full breakdown and an important finding: at the current
+untuned `DEFAULT_MIXING_K = 100.0` placeholder, context mixing measurably
+*underperforms* the context-free model at orders 4-5 (real effect, not a
+bug — see `docs/eval/prediction-v2.md`'s Interpretation section). Tuning
+`K` on the dev split is the natural next step, tracked as a follow-up, not
+part of this feature's own deliverable. `757 passed, 13 skipped` locally,
+`ruff check .`/`ruff format --check .` clean, no OpenAPI drift.
 
 ### F32 — `/v2/recommend-next-chords` (statistical mode) + UI [M]
 - [ ] Request per roadmap: `{progression (chords or tokens), key?, genre?, section?, limit≤20, include_explanations}`. Response items per §2 envelope; the `score_breakdown` has `ngram`, `context`, `backoff`.
