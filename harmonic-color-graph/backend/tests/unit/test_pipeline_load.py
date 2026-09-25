@@ -161,6 +161,18 @@ def artifact_dir(tmp_path: Path) -> Path:
                 "axes": ['{"raw": {}}', '{"raw": {}}', '{"raw": {}}'],
             }
         ),
+        "embeddings.parquet": pl.DataFrame(
+            {
+                "subject_type": ["function", "function", "pattern"],
+                "subject_id": ["M:V", "M:I", "M:I M:V M:I"],
+                "model": ["chord2vec", "chord2vec", "chord2vec"],
+                "vec": [
+                    [1.0] + [0.0] * 63,
+                    [0.0, 1.0] + [0.0] * 62,
+                    [0.6, 0.8] + [0.0] * 62,
+                ],
+            }
+        ),
     }
     manifest = Manifest(version=path.name, source_path="fixture", source_sha256="fixture")
     manifest.row_counts = {
@@ -176,7 +188,9 @@ def artifact_dir(tmp_path: Path) -> Path:
         "song_refs_rows": 1,
         "color_norms_rows": 1,
         "color_profiles_rows": 3,
+        "embeddings_rows": 3,
     }
+    manifest.params["embedding_default_model"] = "chord2vec"
     for filename, frame in frames.items():
         frame.write_parquet(path / filename)
         manifest.output_hashes[filename] = content_hash(frame)
@@ -188,6 +202,7 @@ def test_catalog_maps_artifact_columns_to_prefixed_graph_ids(artifact_dir: Path)
     manifest = Manifest.read(artifact_dir / "manifest.json")
     counts = _validate_artifacts(artifact_dir, manifest)
     assert counts["functions.parquet"] == 2
+    assert counts["embeddings.parquet"] == 3
     nodes, contexts = _catalog(artifact_dir)
     assert {
         "function:M:V",
@@ -314,6 +329,8 @@ def test_loader_activates_once_and_preserves_previous_on_failed_stage(
         assert first.active_version == version
         assert first.edge_types["TRANSITIONS_TO"] == 1
         assert first.edge_types["VOICE_LEADS_TO"] == 1
+        assert first.edge_types["SIMILAR_TO"] == 2
+        assert first.table_rows["embeddings"] == 3
         assert first.table_rows["patterns"] == 1
         second = load_corpus(artifact_dir, db_url)
         assert second.status == "no-op"

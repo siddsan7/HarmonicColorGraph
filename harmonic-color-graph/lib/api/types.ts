@@ -429,6 +429,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/similar-chords": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Similar Chords */
+        post: operations["similar_chords_v2_similar_chords_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/similar-functions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Similar Functions */
+        post: operations["similar_functions_v2_similar_functions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/similar-progressions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Similar Progressions */
+        post: operations["similar_progressions_v2_similar_progressions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -572,6 +623,24 @@ export interface components {
             raw_deltas: {
                 [key: string]: number;
             };
+        };
+        /** ColorFilter */
+        ColorFilter: {
+            /**
+             * Axis
+             * @enum {string}
+             */
+            axis: "tension" | "stability" | "chromaticity" | "brightness" | "surprise" | "smoothness" | "complexity" | "resolution" | "finality";
+            /**
+             * Max
+             * @default 1
+             */
+            max: number;
+            /**
+             * Min
+             * @default 0
+             */
+            min: number;
         };
         /** ColorProfileRequest */
         ColorProfileRequest: {
@@ -1012,6 +1081,81 @@ export interface components {
             context: number;
             /** Ngram */
             ngram: number;
+        };
+        /** SimilarChordRequest */
+        SimilarChordRequest: {
+            /** Chord */
+            chord: string;
+            /**
+             * K
+             * @default 10
+             */
+            k: number;
+        };
+        /** SimilarFunctionRequest */
+        SimilarFunctionRequest: {
+            /**
+             * K
+             * @default 10
+             */
+            k: number;
+            /** Model */
+            model?: ("chord2vec" | "fastrp") | null;
+            /** Token */
+            token: string;
+        };
+        /** SimilarItem */
+        SimilarItem: {
+            /** Rotation Of */
+            rotation_of?: string | null;
+            /** Shared Tokens */
+            shared_tokens?: string[];
+            /** Similarity */
+            similarity: number;
+            /** Subject Id */
+            subject_id: string;
+            /** Support */
+            support?: number | null;
+        };
+        /** SimilarProgressionRequest */
+        SimilarProgressionRequest: {
+            filters?: components["schemas"]["SimilarityFilters"];
+            /**
+             * K
+             * @default 10
+             */
+            k: number;
+            /** Key */
+            key?: string | null;
+            /**
+             * Mode
+             * @default structural
+             * @enum {string}
+             */
+            mode: "structural" | "surface";
+            /** Progression */
+            progression?: string | string[] | null;
+            /** Tokens */
+            tokens?: string[] | null;
+        };
+        /** SimilarResponse */
+        SimilarResponse: {
+            /** Corpus Version */
+            corpus_version: string;
+            /** Model */
+            model: string;
+            /** Query */
+            query: string;
+            /** Results */
+            results: components["schemas"]["SimilarItem"][];
+            /** Warnings */
+            warnings?: string[];
+        };
+        /** SimilarityFilters */
+        SimilarityFilters: {
+            color?: components["schemas"]["ColorFilter"] | null;
+            /** Genre */
+            genre?: string | null;
         };
         /** SongExample */
         SongExample: {
@@ -1942,6 +2086,105 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecommendResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    similar_chords_v2_similar_chords_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimilarChordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    similar_functions_v2_similar_functions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimilarFunctionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    similar_progressions_v2_similar_progressions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimilarProgressionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SimilarResponse"];
                 };
             };
             /** @description Validation Error */
