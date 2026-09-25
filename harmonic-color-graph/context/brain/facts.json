@@ -2,8 +2,8 @@
   "_meta": {
     "purpose": "Code-verified identifiers, limits, and change-together sets that no context doc enumerates. Every value cites the file that owns it. The code wins if they disagree; update this file in that case.",
     "not_here_on_purpose": "Stack, ADRs, corpus row counts, eval scores, milestones, and feature status live in context/architecture.md, docs/adr/, docs/eval/, context/HANDOFF.md, and feature-specs/v2-implementation-plan.md. Structure (modules, routes, flows) lives in docs/codemap.html.",
-    "verified_at_commit": "994b648",
-    "verified_on": "2026-09-24"
+    "verified_at_commit": "ecfe566",
+    "verified_on": "2026-09-25"
   },
 
   "identifiers": {
@@ -46,6 +46,12 @@
       "max_order": {"global": 5, "other_contexts": 3},
       "prune_min_total_by_order": {"3": 30, "4": 48, "5": 75, "1-2": "never pruned"},
       "owner": "backend/pipeline/stages/ngrams.py (imported by backend/app/predict/ngram.py)"
+    },
+    "color_axis": {
+      "names": ["chromaticity", "brightness", "tension", "stability", "surprise", "smoothness", "complexity", "resolution", "finality"],
+      "subject_types": ["chord (no previous chord/position)", "transition (has one)"],
+      "note": "Must match in two places: backend/app/color/features.py AXES and backend/pipeline/load.py COLOR_AXES (a pre-existing F10-era constant, not itself derived from AXES).",
+      "owner": "backend/app/color/features.py, backend/pipeline/load.py"
     }
   },
 
@@ -164,6 +170,10 @@
       "what": "Genre/section options offered in the UI",
       "files": ["components/workbench-v2.tsx <select> options", "contexts actually retained in the active corpus (hcg.contexts)"],
       "note": "The UI lists classical/electronic/country/r&b without checking that the corpus kept them. Unretained ones silently back off to broader contexts, with a warning."
+    },
+    {
+      "what": "Color norms artifact shape",
+      "files": ["backend/pipeline/stages/color.py (writer, color.parquet)", "backend/pipeline/load.py (REQUIRED_ARTIFACTS/ARTIFACT_COLUMNS + color_norms copy)", "supabase/migrations/0008_color_norms.sql (hcg.color_norms)", "backend/app/color/norms.py (reader: AxisNorm.from_row/index_norms)"]
     }
   ]
 }

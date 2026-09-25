@@ -1486,6 +1486,72 @@ documentation-only, no functional gap).
   it's reasonable to bundle with F43/F44 rather than do standalone.
   `HANDOFF.md`'s "Immediate next steps" reordered to put F41 first with
   this reasoning inline.
+- **F41 (measurable color features + norms) is done.** New
+  `backend/app/color/` package: `features.py`'s `compute_chord_color(chord,
+  token, key, *, previous_chord=, previous_token=, predictor=, history=,
+  genre=, section=)` is the one entry point, mirroring
+  `romanize_chord`'s `chord, key, *, previous_chord=/next_chord=` shape —
+  given a position's `CanonicalChord` (real pitches, needed for voice
+  leading) and `RomanToken` (function/degree/inversion), plus the previous
+  position's pair when there is one, it returns all 9 raw axes at once.
+  `chromaticity`, `brightness`, `tension`, `stability`, and `complexity` are
+  pure and DB-free (reusing `spelling.py`'s `compute_interval_vector`/`lof`/
+  `spell_in_key`/`diatonic_letters_and_pitch_classes`, and F13's
+  `analyze_relationships` for cadence detection rather than a duplicated
+  rule table). `surprise` and `resolution`'s forward-looking P(T-class)
+  term take an injected `SurprisePredictor` protocol structurally matching
+  `KNPredictor` — `color/features.py` never imports `app.predict.ngram`,
+  the same protocol-based split that module's own `NgramReader` already
+  uses. Without a predictor, `surprise` is `None` and `resolution` falls
+  back to cadence strength alone; both are exercised in tests with a
+  hand-built `InMemoryNgramStore`. `color/norms.py` adds `AxisNorm` +
+  `normalize()` (percentile floor/ceiling clip to [0, 1], degenerate
+  zero-span guarded to 0.5) + `index_norms()`.
+  `pipeline/stages/color.py` (replacing the F41 stub in place, per the
+  `pipeline-stub-stages` gotcha) computes corpus percentiles from a
+  bounded, seeded sample of `sections.parquet` (default 20,000 rows —
+  same "a large unbiased sample beats a full re-derivation" reasoning as
+  `corpus_report.py`; re-running Roman/key analysis over the full
+  multi-million-row corpus just for percentile breakpoints would be slow
+  and wasteful). When `ngrams.parquet` exists (that stage already runs
+  earlier in `STAGE_ORDER`), it builds a real, fully offline `KNPredictor`
+  via `InMemoryNgramStore.from_parquet` — no database involved — so
+  `surprise`/`resolution` get genuine corpus-derived percentiles too, not
+  just theory-only ones. `sections.parquet`'s `chords` column stores
+  `root:quality[/bass]` labels (e.g. `"C:maj"`), not `normalize_chord`-ready
+  symbols, so the stage strips the colon the same way
+  `pipeline/stages/voice_leading.py`'s `_to_symbol` already does (a real
+  bug caught by writing the pipeline-stage test with realistic fixture
+  data instead of the plain-letter chords `analyze_v2` itself accepts
+  directly). `pipeline/cli.py`'s `color` branch now wires manifest row
+  counts/budget/hashes like `voice_leading` does (previously it fell
+  through the stub-only generic 2-arg handler). `pipeline/load.py` gained
+  `color.parquet` to `REQUIRED_ARTIFACTS`/`ARTIFACT_COLUMNS`, a
+  `color_norms` copy in the same atomic load transaction as every other
+  new-version table, and `color_norms` in `_table_counts`/the post-load
+  `analyze` loop. Migration `supabase/migrations/0008_color_norms.sql`
+  creates `hcg.color_norms(version, axis, subject_type, count, p05, p25,
+  p50, p75, p95, mean, std)` with RLS enabled — **not yet applied live**;
+  the loader now requires `color.parquet` for every future load, so this
+  only matters once a full pipeline reload happens (deferred for the same
+  reason as F40's `VOICE_LEADS_TO` edges — see the bullet above).
+  Discovered while implementing: the real end-to-end
+  `ingest → analyze → ... → color` pipeline run (already exercised by
+  `test_pipeline_cli_run.py`'s 30-song synthetic-corpus fixture) now
+  succeeds through `color` instead of raising `StageNotImplementedError`,
+  so `test_unimplemented_downstream_stage_raises_clear_error` was updated
+  to point at the next real stub (`embeddings`/F50) — correctly following
+  the stub-replacement gotcha, not a weakened check. 22 new unit tests
+  (`test_color_features.py` — the Phase 2 §12.1 sanity suite plus per-axis
+  coverage; `test_color_norms.py`; `test_pipeline_color.py` — percentile
+  ordering, sample-cap enforcement, empty/keyless-section skipping, the
+  offline-predictor path); `test_pipeline_load.py`'s shared fixture gained
+  a `color.parquet` frame and `color_norms_rows` manifest key. Full
+  `pytest -q`: 803 passed, 13 skipped (the `pg`-marked tests — CI's
+  Postgres job applies `supabase/migrations/*.sql` by glob, so 0008 is
+  picked up automatically there with no separate wiring). `ruff check .`
+  and `ruff format --check .` clean; `python -c "import app.main"` still
+  succeeds (the `pipeline-import-weight` gotcha check).
 
 ## In Progress
 

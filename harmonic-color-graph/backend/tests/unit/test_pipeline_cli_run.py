@@ -73,9 +73,9 @@ def test_run_twice_yields_identical_manifest_hashes(tmp_path, mini_corpus, monke
 
 def test_unimplemented_downstream_stage_raises_clear_error(tmp_path, mini_corpus, monkeypatch):
     monkeypatch.setattr(cli, "REPO_ROOT", tmp_path)
-    args = _make_args(tmp_path, mini_corpus, "cv-test-a", to_stage="color")
+    args = _make_args(tmp_path, mini_corpus, "cv-test-a", to_stage="embeddings")
 
-    with pytest.raises(StageNotImplementedError, match="F41"):
+    with pytest.raises(StageNotImplementedError, match="F50"):
         cli._run_build(args)
 
 

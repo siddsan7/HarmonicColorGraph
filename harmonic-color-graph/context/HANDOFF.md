@@ -8,19 +8,24 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M3 are all merged to `main`, and F40 is done too.** F00–F09, F10–F14,
-F20–F29, F30, F31, F32, F40 are done (checkboxes in
-`feature-specs/v2-implementation-plan.md` match). The M3 exit gate
-("prediction report shows a clear win over v1; recommendations are
-context-sensitive in production") is satisfied. F40's PR
+**M0–M3 are merged to `main`; F40 and F41 (M4's first feature) are done
+too.** F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41 are done
+(checkboxes in `feature-specs/v2-implementation-plan.md` match). The M3
+exit gate ("prediction report shows a clear win over v1; recommendations
+are context-sensitive in production") is satisfied. F40's PR
 ([#13](https://github.com/siddsan7/HarmonicColorGraph/pull/13)) and an
 unrelated recovered Next.js security-fix PR
 ([#14](https://github.com/siddsan7/HarmonicColorGraph/pull/14)) both
 merged after all CI jobs passed. F40's migration
 (`supabase/migrations/0007_voice_leading_edges.sql`) is now **applied
 live**; advisors showed only the same pre-existing informational
-private-schema RLS notices, no new issues. The next unstarted work is
-**F41** (measurable color features + norms) — see "Immediate next steps".
+private-schema RLS notices, no new issues. F41 added
+`backend/app/color/{features,norms}.py`, replaced the `color` pipeline
+stub in place, and wrote (but has **not yet applied live**) migration
+`0008_color_norms.sql` — see the F41 bullet below and
+`context/progress-tracker.md`'s matching entry for full detail. The next
+unstarted work is **F42** (perceptual axes with confidence & source) — see
+"Immediate next steps".
 
 The rest of this section is the detailed PR-by-PR history, oldest first;
 skip to "Immediate next steps" if you just need to know what to do next.
@@ -203,51 +208,75 @@ skip to "Immediate next steps" if you just need to know what to do next.
   `VOICE_LEADS_TO` case to `hcg.edges_read`); advisors showed only the
   same pre-existing informational private-schema RLS notices, no new
   issues.
+- **F41 (measurable color features + norms) is done.** New
+  `backend/app/color/features.py` and `norms.py`; `features.py`'s
+  `compute_chord_color()` is the one entry point (mirrors
+  `romanize_chord`'s `chord, key, *, previous_chord=`/`next_chord=`
+  shape) and returns all 9 raw axes for one progression position, pure
+  and DB-free except `surprise`/`resolution`'s forward-looking term,
+  which take an injected `SurprisePredictor` protocol so this module
+  never imports `app.predict.ngram` (mirrors that module's own
+  `NgramReader` protocol split). `pipeline/stages/color.py` replaced the
+  F41 stub in place: it computes corpus percentiles from a bounded,
+  seeded `sections.parquet` sample (default 20,000 rows — re-deriving
+  Roman/key analysis over the full corpus just for percentiles would be
+  slow and unnecessary), and builds a real, fully offline `KNPredictor`
+  from `ngrams.parquet` when present (no database). `pipeline/load.py`
+  and `pipeline/cli.py` gained matching wiring for the new
+  `color.parquet` artifact and `hcg.color_norms` table. Migration
+  `0008_color_norms.sql` is written but **not yet applied live**.
+  22 new tests; full `pytest -q` (803 passed, 13 skipped), `ruff check`/
+  `ruff format --check` clean. Full detail in
+  `context/progress-tracker.md`'s F41 entry and
+  `feature-specs/v2-implementation-plan.md`'s F41 "Completed" note.
 
 ## Immediate next steps
 
-1. Continue the plan at **F41** (measurable color features + norms),
-   then F42 onward in order. **Not blocked by item 2 below** — checked
-   before starting F41: no application code anywhere references
-   `VOICE_LEADS_TO` yet (only the pipeline, migration, and docs do), and
-   F41's `smoothness` feature (`1 − norm(voice-leading total motion from
-   the previous chord)`) is defined to compute live from the two actual
-   progression chords via `app/theory/voice_leading.py`'s
-   `transition_metrics()` — the same tested pure function — not a lookup
-   against the materialized graph edges. Same applies to F42–F44; none of
-   them consume the graph edges either.
-2. A full pipeline re-run and reload is needed to get F40's voice-leading
-   edges into the live `cv-2026-09-a` version (the `voice_leading` stage
-   only ran against local fixtures and the `eval-train-a` chord
-   vocabulary so far, never the full corpus) — but only actually matters
-   once something wants to show precomputed voice-leading evidence in a
-   graph UI or API (there is no such consumer yet; see item 1). Treat the
-   reload as its own deliberate, higher-risk step when that need arises —
-   the real corpus load has already failed twice on storage
-   budget/timeout before succeeding (see this file's M2 load history and
-   `docs/eval/corpus-cv-2026-09-a.md`) — not something to fold into a
-   routine PR. Reasonable to bundle with F43/F44 (color profile storage
-   and UI) if/when a graph-evidence consumer is added, rather than doing
-   it standalone.
-3. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
+1. Continue the plan at **F42** (perceptual axes with confidence &
+   source), then F43 onward in order. **Not blocked by item 2 below** —
+   same reasoning F41 already confirmed: no application code anywhere
+   references `VOICE_LEADS_TO` or reads `hcg.color_norms` yet, and F41's
+   `smoothness`/`resolution`/`finality` compute live per-progression
+   through pure functions, not graph/table lookups. F42's perceptual
+   axes are logistic combinations of F41's measurable ones (also pure),
+   so the same applies.
+2. Apply migration `0008_color_norms.sql` live (MCP `apply_migration`,
+   then `get_advisors`) whenever convenient — cheap and low-risk (an
+   empty table until the next full load), unlike item 3.
+3. A full pipeline re-run and reload is needed to get F40's voice-leading
+   edges AND F41's color norms into the live `cv-2026-09-a` version (the
+   `voice_leading` and `color` stages have only run against local
+   fixtures and the `eval-train-a` chord vocabulary so far, never the
+   full corpus) — but only actually matters once something wants to show
+   precomputed voice-leading evidence or corpus-normalized color values
+   in a graph UI or API (there is no such consumer yet; see item 1).
+   Treat the reload as its own deliberate, higher-risk step when that
+   need arises — the real corpus load has already failed twice on
+   storage budget/timeout before succeeding (see this file's M2 load
+   history and `docs/eval/corpus-cv-2026-09-a.md`) — not something to
+   fold into a routine PR. Reasonable to bundle with F43/F44 (color
+   profile storage and UI) if/when a graph-evidence consumer is added,
+   rather than doing it standalone.
+4. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
    (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
    it matters (context mixing currently *hurts* MRR at orders 4-5; see
    the F31 bullet above and `docs/eval/prediction-v2.md`'s Interpretation
    section). Not blocking, but a cheap, well-motivated win whenever
    picked up.
-4. Verify the deployed API/web production routes reflect the F32 merge
+5. Verify the deployed API/web production routes reflect the F32 merge
    (`/v2/recommend-next-chords` in particular — verified so far only via
    a local server pointed at the live database, never through an actual
-   Vercel deployment). Supabase migrations 0001–0007 are applied;
-   advisors had only informational private-schema RLS notices and
-   unused-index findings at the last read. Also worth a glance: `hcg`
-   schema's `pg_total_relation_size` read ~357 MiB at the last check
-   (over the 300 MiB budget) despite identical row counts and zero dead
-   tuples versus the original load report — likely a measurement-method
+   Vercel deployment). Supabase migrations 0001–0007 are applied (0008
+   is written, not yet applied — see item 2); advisors had only
+   informational private-schema RLS notices and unused-index findings at
+   the last read. Also worth a glance: `hcg` schema's
+   `pg_total_relation_size` read ~357 MiB at the last check (over the
+   300 MiB budget) despite identical row counts and zero dead tuples
+   versus the original load report — likely a measurement-method
    artifact, not real growth, but a fresh `ANALYZE` would confirm.
-5. The loader uses the direct database URL from gitignored
+6. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-6. Update this file and `context/progress-tracker.md` after each merge,
+7. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 

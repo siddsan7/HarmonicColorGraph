@@ -208,11 +208,11 @@
       <h1>How the system is actually built</h1>
       <p class="lede">A map of the code as it exists, not as planned: what runs where, which module may call which, the path every request takes, and what each file is for. For intent and target architecture, read <code>context/architecture.md</code> and <code>docs/roadmap-v2.md</code>. For values and limits, read <code>context/brain/facts.json</code>.</p>
       <div class="scope">
-        <span>commit <b>994b648</b></span>
-        <span>mapped <b>2026-09-24</b></span>
-        <span>shipped <b>M0–M3 + F40</b></span>
+        <span>commit <b>ecfe566</b></span>
+        <span>mapped <b>2026-09-25</b></span>
+        <span>shipped <b>M0–M3 + F40 + F41</b></span>
         <span>active corpus <b>cv-2026-09-a</b></span>
-        <span>migrations live <b>0001–0007</b></span>
+        <span>migrations live <b>0001–0007</b> (0008 written, not applied)</span>
       </div>
     </header>
 
@@ -490,7 +490,7 @@
     <!-- 5. pipeline -->
     <section class="part" id="pipeline" aria-labelledby="pipeline-h">
       <h2 id="pipeline-h">Corpus pipeline</h2>
-      <p class="sub">The <code>STAGE_ORDER</code> in <code>backend/pipeline/cli.py</code>. Each stage reads earlier artifacts from <code>data/artifacts/&lt;version&gt;/</code>. The loader requires every artifact through <code>examples</code>, including <code>voice_leads.parquet</code>.</p>
+      <p class="sub">The <code>STAGE_ORDER</code> in <code>backend/pipeline/cli.py</code>. Each stage reads earlier artifacts from <code>data/artifacts/&lt;version&gt;/</code>. The loader requires every artifact through <code>color</code>, including <code>voice_leads.parquet</code> and <code>color.parquet</code>.</p>
       <div class="tbl pipe">
         <table>
           <thead><tr><th>Stage</th><th>Feature</th><th>Reads</th><th>Writes</th><th>Loaded into</th><th>Status</th></tr></thead>
@@ -502,7 +502,7 @@
             <tr><td class="p">ngrams</td><td>F22</td><td>sections</td><td class="p">ngrams.parquet</td><td><code>ngram_histories</code>, <code>ngram_discount_stats</code></td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">patterns</td><td>F22</td><td>sections</td><td class="p">patterns.parquet</td><td><code>patterns</code>, <code>edges_compact</code> type 4</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">examples</td><td>F22/F26</td><td>patterns · transitions · sections</td><td class="p">pattern_examples · transition_examples · song_refs</td><td>same-named tables</td><td><span class="pill done">done</span></td></tr>
-            <tr><td class="p">color</td><td>F41</td><td>sections</td><td class="p">color.parquet</td><td>planned <code>color_profiles</code></td><td><span class="pill stub">stub</span></td></tr>
+            <tr><td class="p">color</td><td>F41</td><td>sections · ngrams (optional, offline predictor)</td><td class="p">color.parquet</td><td><code>color_norms</code> (migration 0008, not applied live yet)</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">embeddings</td><td>F50</td><td>sections</td><td class="p">embeddings.parquet</td><td>planned <code>embeddings</code> (pgvector)</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">snapshot</td><td>F63</td><td>—</td><td class="p">public/snapshot/graph-core.json</td><td>static degraded-mode file</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">export</td><td>stretch S1</td><td>—</td><td>Cypher/Neo4j export</td><td>—</td><td><span class="pill stub">stub</span></td></tr>
@@ -521,7 +521,7 @@
     <!-- 6. schema -->
     <section class="part" id="schema" aria-labelledby="schema-h">
       <h2 id="schema-h">Database (<code>hcg</code> schema)</h2>
-      <p class="sub">Source of truth: <code>supabase/migrations/*.sql</code>, all applied live. Corpus tables carry a <code>version</code> column (edges carry <code>version_key</code>), and reads resolve the active one through <code>hcg.v()</code>.</p>
+      <p class="sub">Source of truth: <code>supabase/migrations/*.sql</code>. 0001–0007 are applied live; 0008 is written but not yet applied (see the schema note below). Corpus tables carry a <code>version</code> column (edges carry <code>version_key</code>), and reads resolve the active one through <code>hcg.v()</code>.</p>
       <div class="schema">
         <div class="sgroup"><h3>Versioning <span>0002 · 0005</span></h3><ul>
           <li><code>corpus_versions</code> version, manifest, active (≤1 true), <code>version_key</code> identity<span class="mig">0005</span></li>
@@ -545,6 +545,9 @@
           <li><code>song_refs</code> song_id, spotify_id, genre, decade</li>
           <li><code>facts</code> (fact_id, version), kind, subject, template, params</li>
           <li><code>relationship_types</code> catalog</li>
+        </ul></div>
+        <div class="sgroup"><h3>Color <span>0008 (written, not applied)</span></h3><ul>
+          <li><code>color_norms</code> (version, axis, subject_type) → count, p05/p25/p50/p75/p95, mean, std. Loader-populated from <code>color.parquet</code>; no rows exist against any live version yet<span class="mig">0008</span></li>
         </ul></div>
         <div class="sgroup"><h3>Jobs <span>0003 · 0004</span></h3><ul>
           <li><code>jobs</code> type, payload, status, progress/stage, attempt/max_attempts (3), worker_id, lease_expires_at, available_at, request_hash</li>
@@ -610,10 +613,9 @@
         <table>
           <thead><tr><th>Seam</th><th>Where</th><th>Next owner</th></tr></thead>
           <tbody>
-            <tr><td>Nine color axes named in the loader</td><td class="p">pipeline/load.py COLOR_AXES</td><td>F41–F43</td></tr>
-            <tr><td><code>color</code> stage raises StageNotImplementedError</td><td class="p">pipeline/stages/color.py</td><td>F41</td></tr>
+            <tr><td>Nine color axes: <code>app/color/features.py AXES</code> and the older loader-side <code>pipeline/load.py COLOR_AXES</code> (kept in sync by convention, not by import — see <code>context/brain/facts.json</code>'s <code>color_axis</code> entry)</td><td class="p">app/color/features.py, pipeline/load.py</td><td>F42–F43 (perceptual axes, profile storage/API)</td></tr>
             <tr><td><code>Recommendation.color</code> defaults to <code>{}</code></td><td class="p">app/schemas/recommend_v2.py</td><td>F43/F44</td></tr>
-            <tr><td><code>transition_metrics()</code> for live smoothness</td><td class="p">app/theory/voice_leading.py</td><td>F41</td></tr>
+            <tr><td><code>hcg.color_norms</code> table exists (migration 0008) but has no live rows yet (not applied; no full reload has run <code>color</code> against the real corpus)</td><td class="p">supabase/migrations/0008_color_norms.sql</td><td>F43 (bundle with the reload)</td></tr>
             <tr><td><code>embedding_rebuild</code> job returns 409</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>F50</td></tr>
             <tr><td><code>embeddings</code> / <code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F50 / F63 / S1</td></tr>
             <tr><td><code>DEFAULT_MIXING_K = 100.0</code> placeholder</td><td class="p">app/predict/ngram.py</td><td>tuning follow-up (docs/eval/prediction-v2.md)</td></tr>
@@ -674,6 +676,8 @@
             <tr><td class="p">backend/app/theory/progression_normalizer.py</td><td>Split and normalize a progression string</td></tr>
             <tr><td class="p">backend/app/theory/roman_analysis.py</td><td>v1 Roman analysis (golden-tested baseline)</td></tr>
             <tr><td class="p">backend/app/theory/relationships.py</td><td>v1 transition labels and explanations</td></tr>
+            <tr><td class="p">backend/app/color/features.py</td><td>F41 compute_chord_color: 9 raw axes per position; SurprisePredictor protocol (no app.predict import)</td></tr>
+            <tr><td class="p">backend/app/color/norms.py</td><td>F41 AxisNorm, normalize() (percentile clip to [0, 1]), index_norms()</td></tr>
             <tr class="grp"><td colspan="2">backend/app · data &amp; contracts</td></tr>
             <tr><td class="p">backend/app/db/session.py</td><td>Engine factory (NullPool, no prepares, search_path, 5 s timeout), lazy get_session</td></tr>
             <tr><td class="p">backend/app/db/stores/graph.py</td><td>GraphStore, NgramStore, PatternStore, FactStore: all v2 SQL, version-scoped</td></tr>
@@ -697,8 +701,8 @@
             <tr><td class="p">backend/pipeline/synth.py</td><td>Deterministic synthetic mini corpus (safe to commit)</td></tr>
             <tr><td class="p">backend/pipeline/oracle_music21.py</td><td>Dev-only music21 comparisons for the gold sets</td></tr>
             <tr><td class="p">backend/pipeline/stages/_context.py</td><td>context_keys(genre, section, decade) and the aggregate threshold</td></tr>
-            <tr><td class="p">backend/pipeline/stages/{ingest,analyze,aggregate,voice_leading,ngrams,patterns,examples}.py</td><td>Implemented stages (see Corpus pipeline)</td></tr>
-            <tr><td class="p">backend/pipeline/stages/{color,embeddings,snapshot,export}.py</td><td>Stubs raising StageNotImplementedError</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{ingest,analyze,aggregate,voice_leading,ngrams,patterns,examples,color}.py</td><td>Implemented stages (see Corpus pipeline)</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{embeddings,snapshot,export}.py</td><td>Stubs raising StageNotImplementedError</td></tr>
             <tr><td class="p">backend/pipeline/stages/calibrate_keys.py</td><td>F11 grid search on the gold dev half → keys_params.json + docs/eval/keys.md</td></tr>
             <tr><td class="p">backend/pipeline/stages/{corpus_report,vocab_report,evaluate_keys_corpus,evaluate_labels_corpus}.py</td><td>Quality and coverage reports; the evaluate_* modules double as job handlers</td></tr>
             <tr class="grp"><td colspan="2">backend · tests &amp; contracts</td></tr>
