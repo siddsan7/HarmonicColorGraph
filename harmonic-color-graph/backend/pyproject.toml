@@ -17,6 +17,7 @@ dependencies = [
 
 [project.scripts]
 hcg-build = "pipeline.cli:main"
+hcg-eval = "tests.eval.prediction:main"
 
 [project.optional-dependencies]
 dev = [
@@ -69,4 +70,4 @@ known-first-party = ["app"]
 extend-immutable-calls = ["fastapi.Depends", "fastapi.Query", "fastapi.Path"]
 
 [tool.setuptools.packages.find]
-include = ["app*", "pipeline*"]
+include = ["app*", "pipeline*", "tests.eval*"]

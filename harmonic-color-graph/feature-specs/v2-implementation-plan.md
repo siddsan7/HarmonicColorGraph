@@ -442,8 +442,8 @@ feat(dev): reproducible Docker Compose production stack
 **Checks:** Property test: per `(context, from)` probabilities sum to 1 (unit tested); sanity list: `V→I`, `IV→I`, `I→V`, `I→IV`, `vi→IV` are in the global top 25 (confirmed against the real corpus: all five in the top 7, led by `IV→I` at 2.86M occurrences); budget estimate ≤ 300 MB total (270.75 MB: transitions 142.3, ngrams 73.8, patterns 52.3, functions 1.3, abs_transitions 1.0); the `I V vi IV` family appears in the top 10 patterns (confirmed: `M:I M:V M:vi M:IV`, rank 3 of 10, 1.22M occurrences).
 **Commit:** `feat(pipeline): transitions per context, KN-ready n-gram histories, patterns, examples`
 
-### F23 — Graph schema migration [M]
-- [ ] `supabase/migrations/0002_graph.sql`:
+### F23 — Graph schema migration [M] — DONE
+- [x] `supabase/migrations/0002_graph.sql`:
   - `hcg.corpus_versions(version pk, manifest jsonb, active bool, loaded_at)` with a partial unique index on `active`.
   - `hcg.contexts(id smallint pk, type, value, label)`.
   - `hcg.nodes(id text, version text, type text, label text, props jsonb, primary key(version, id))`, index `(version, type)`.
@@ -452,36 +452,36 @@ feat(dev): reproducible Docker Compose production stack
   - `hcg.patterns`, `hcg.pattern_examples`, `hcg.transition_examples`, `hcg.song_refs`, `hcg.relationship_types`, `hcg.facts(version, fact_id, kind, subject, template, params jsonb)` with composite `(version, fact_id)` primary key so stable fact citations coexist during version staging.
   - A view `hcg.active_version` and SQL helper `hcg.v()` returning the active version string.
   - RLS enabled on all tables.
-- [ ] Repository/store classes (`db/stores/graph.py`, etc.) reading only the active version.
+- [x] Repository/store classes (`db/stores/graph.py`, etc.) reading only the active version.
 
 **Checks:** `list_tables(hcg, verbose)` matches the spec; `get_advisors(security)` and `get_advisors(performance)` clean (no missing-index warnings on FK-like columns); `backend-pg` CI tests load a fixture version and query it.
 **Commit:** `feat(db): property-graph, n-gram, pattern, and fact tables`
 
-### F24 — Versioned loader with atomic activation [M]
-- [ ] `pipeline/load.py`: `hcg-build load --version cv-… --db $DATABASE_URL_LOAD`. psycopg `COPY … FROM STDIN` (binary) per table in batches; insert nodes (PitchClass, Interval, ChordQuality, Chord, Key, Function, Genre, Section, Era, Pattern, RelationshipType, ColorAxis), edges, n-grams, patterns, examples, facts; `ANALYZE`; then in one transaction set the new version `active=true` and the old one `false`. `--gc` deletes inactive versions (asks for confirmation when not interactive-safe).
-- [ ] Idempotency: re-running the same version is a no-op (checks the manifest hash).
-- [ ] Post-load report: counts per node/edge type versus the artifact; `db_size.sql` output.
-- [ ] Load the synthetic mini corpus (`data/samples/mini_corpus.csv`, 500 template-generated songs, committed; no dataset content) for CI and preview environments.
+### F24 — Versioned loader with atomic activation [M] — DONE
+- [x] `pipeline/load.py`: `hcg-build load --version cv-… --db $DATABASE_URL_LOAD`. psycopg `COPY … FROM STDIN` (binary) per table in batches; insert nodes (PitchClass, Interval, ChordQuality, Chord, Key, Function, Genre, Section, Era, Pattern, RelationshipType, ColorAxis), edges, n-grams, patterns, examples, facts; `ANALYZE`; then in one transaction set the new version `active=true` and the old one `false`. `--gc` deletes inactive versions (asks for confirmation when not interactive-safe).
+- [x] Idempotency: re-running the same version is a no-op (checks the manifest hash).
+- [x] Post-load report: counts per node/edge type versus the artifact; `db_size.sql` output.
+- [x] Load the synthetic mini corpus (`data/samples/mini_corpus.csv`, 500 template-generated songs, committed; no dataset content) for CI and preview environments.
 
 **Checks:** Counts match the artifacts exactly; a second run is a no-op; `hcg` schema ≤ 300 MB and database < 400 MB; `/health` shows the new `corpus_version`; a 2-hop neighborhood query p95 < 150 ms (`explain analyze` recorded).
 **Commit:** `feat(pipeline): versioned COPY loader with atomic activation and size report`
 
-### F25 — Graph query service & APIs [M]
-- [ ] `graph/cache.py`: per-(version, context) in-memory adjacency for `Function` nodes + `TRANSITIONS_TO` + theory edges (lazy load, LRU of 8 contexts, ~few MB each).
-- [ ] `GET /v2/graph/node/{id}`; `GET /v2/graph/neighborhood?id&edge_types&context&min_prob&limit&hops≤2` → Cytoscape-ready `{nodes[], edges[]}` with styling hints (`weight`, `tension_delta` once M4 lands); `GET /v2/graph/explain-edge?src&dst&context` → all typed edges between two nodes plus stats, facts, and examples.
-- [ ] `POST /v2/graph/path {from, to, context, k≤5, max_len≤6, edge_types, constraint: none|increasing_chromaticity|max_chromaticity(x)}`: best-first search over the cached graph, cost = −log prob + type penalties, constrained label-setting for monotone chromaticity; returns `k` diverse paths with per-edge facts.
+### F25 — Graph query service & APIs [M] — DONE
+- [x] `graph/cache.py`: per-(version, context) in-memory adjacency for `Function` nodes + `TRANSITIONS_TO` + theory edges (lazy load, LRU of 8 contexts, ~few MB each).
+- [x] `GET /v2/graph/node/{id}`; `GET /v2/graph/neighborhood?id&edge_types&context&min_prob&limit&hops≤2` → Cytoscape-ready `{nodes[], edges[]}` with styling hints (`weight`, `tension_delta` once M4 lands); `GET /v2/graph/explain-edge?src&dst&context` → all typed edges between two nodes plus stats, facts, and examples.
+- [x] `POST /v2/graph/path {from, to, context, k≤5, max_len≤6, edge_types, constraint: none|increasing_chromaticity|max_chromaticity(x)}`: best-first search over the cached graph, cost = −log prob + type penalties, constrained label-setting for monotone chromaticity; returns `k` diverse paths with per-edge facts.
 
 **Checks:** Unit tests on a fixture graph (known shortest paths); API: `path(M:I → M:bVI, increasing_chromaticity)` returns ≥ 1 path whose chromaticity is non-decreasing; neighborhood of `M:V7` contains `M:I` with the largest weight in `global`; p95 latencies: neighborhood < 250 ms, path < 600 ms warm.
 **Commit:** `feat(graph): neighborhood, edge explanation, and constrained path APIs`
 
-### F26 — Evidence & examples [S]
-- [ ] `GET /v2/examples?pattern_id|transition=&context&limit≤5` → song refs (`spotify_id`, genre, decade, section, position).
-- [ ] UI `EvidencePanel`: fetches Spotify oEmbed (`https://open.spotify.com/oembed?url=…`) client-side for titles (cached in memory; falls back to "Spotify track" when oEmbed fails); links open Spotify; never shows songs without a DB reference.
+### F26 — Evidence & examples [S] — DONE
+- [x] `GET /v2/examples?pattern_id|transition=&context&limit≤5` → song refs (`spotify_id`, genre, decade, section, position).
+- [x] UI `EvidencePanel`: fetches Spotify oEmbed (`https://open.spotify.com/oembed?url=…`) client-side for titles (cached in memory; falls back to "Spotify track" when oEmbed fails); links open Spotify; never shows songs without a DB reference.
 
 **Checks:** Returned IDs exist in `song_refs`; three sample oEmbeds render titles in Playwright (network allowed in e2e); attribution is visible in the panel.
 **Commit:** `feat(evidence): example songs with Spotify links`
 
-### F27 — Background Queue & Worker Infrastructure `[L]`
+### F27 — Background Queue & Worker Infrastructure `[L]` — DONE
 
 **Goal:** Introduce asynchronous execution for operations that should not live inside an HTTP request lifecycle.
 
@@ -696,15 +696,15 @@ pipeline.embeddings.build(...)
 
 #### Acceptance checks
 
-- [ ] API can create a job and immediately return its ID.
-- [ ] Worker consumes and completes the job.
-- [ ] Job status survives API restart.
-- [ ] Worker restart does not silently lose queued jobs.
-- [ ] Progress updates are visible.
-- [ ] Unknown job type is rejected before enqueue.
-- [ ] Payloads use typed Pydantic schemas.
-- [ ] Job handler calls shared services rather than HTTP endpoints.
-- [ ] At least one integration test runs API → queue → worker → completed job.
+- [x] API can create a job and immediately return its ID.
+- [x] Worker consumes and completes the job.
+- [x] Job status survives API restart.
+- [x] Worker restart does not silently lose queued jobs.
+- [x] Progress updates are visible.
+- [x] Unknown job type is rejected before enqueue.
+- [x] Payloads use typed Pydantic schemas.
+- [x] Job handler calls shared services rather than HTTP endpoints.
+- [x] At least one integration test runs API → queue → worker → completed job.
 
 **Commit:**
 
@@ -908,7 +908,7 @@ feat(cache): Redis caching, rate limiting, and ephemeral state
 
 ---
 
-### F29 — Retry, Idempotency & Dead-Letter Semantics `[M]`
+### F29 — Retry, Idempotency & Dead-Letter Semantics `[M]` — DONE
 
 **Goal:** Make asynchronous and external operations safe under retries, crashes, duplicate requests, and transient failures.
 
@@ -1097,15 +1097,15 @@ permanent validation error
 
 Expected:
 
-- [ ] Duplicate job request executes once logically.
-- [ ] Same idempotency key + changed body returns conflict.
-- [ ] Retryable errors retry with bounded exponential backoff.
-- [ ] Permanent errors fail immediately.
-- [ ] Worker crash causes the job to resume/retry after lease expiry.
-- [ ] A job exceeding max attempts reaches `dead_letter`.
-- [ ] Dead-letter job can be manually retried.
-- [ ] No completed artifact is duplicated.
-- [ ] Retry count/error category is observable.
+- [x] Duplicate job request executes once logically.
+- [x] Same idempotency key + changed body returns conflict.
+- [x] Retryable errors retry with bounded exponential backoff.
+- [x] Permanent errors fail immediately.
+- [x] Worker crash causes the job to resume/retry after lease expiry.
+- [x] A job exceeding max attempts reaches `dead_letter`.
+- [x] Dead-letter job can be manually retried.
+- [x] No completed artifact is duplicated.
+- [x] Retry count/error category is observable.
 
 **Commit:**
 
@@ -1118,6 +1118,16 @@ feat(reliability): retries, idempotency, worker leases, and dead letters
 ---
 
 **M2 exit gate (including F27–F29):** Production corpus loaded; size budget met; graph APIs live; the corpus report is committed. Background jobs and Redis caching work; at least one asynchronous job succeeds; retry, idempotency, and dead-letter integration checks pass.
+
+**Bookkeeping note (2026-09-24):** F23–F27 and F29's checkboxes above were
+left unchecked even after the work shipped and merged (PRs #1–#3 —
+`context/HANDOFF.md`); only F28 had been marked done. Verified against
+the actual repo before checking them off here: the migration, stores,
+loader, graph/examples APIs, `EvidencePanel` UI, and jobs/reliability
+infrastructure all exist, are wired into `app/main.py`, and the live
+Supabase project has real data produced by this code (active version
+`cv-2026-09-a`, confirmed via the Supabase MCP connector). No functional
+gap — this was a documentation-only fix.
 
 ---
 
@@ -1153,13 +1163,34 @@ version is active (true for CI's ephemeral Postgres) and were verified
 directly against the live `cv-2026-09-a` corpus via the Supabase MCP
 connector before merging — see `context/progress-tracker.md`.
 
-### F31 — Evaluation harness [M]
-- [ ] Build eval artifacts with `--split train` (excludes dev/test songs), never loaded to Supabase.
-- [ ] `tests/eval/prediction.py` (CLI `hcg-eval prediction --version …`): 50k sampled test positions (deterministic), metrics top-1/3/5, MRR, NDCG@5, perplexity, coverage, ECE; slices by genre, section, mode, context depth. Baselines: global unigram, **v1** (F04-fixed final-chord bigram), KN orders 2–5, with and without context backoff.
-- [ ] Output `docs/eval/prediction-v2.md` (table + short interpretation) and `docs/eval/prediction-v2.json`.
+### F31 — Evaluation harness [M] — DONE
+- [x] Build eval artifacts with `--split train` (excludes dev/test songs), never loaded to Supabase.
+- [x] `tests/eval/prediction.py` (CLI `hcg-eval prediction --version …`): 50k sampled test positions (deterministic), metrics top-1/3/5, MRR, NDCG@5, perplexity, coverage, ECE; slices by genre, section, mode, context depth. Baselines: global unigram, **v1** (F04-fixed final-chord bigram), KN orders 2–5, with and without context backoff.
+- [x] Output `docs/eval/prediction-v2.md` (table + short interpretation) and `docs/eval/prediction-v2.json`.
 
 **Checks:** v2 (order 5 + context) MRR ≥ v1 MRR + 0.05 absolute (if not, investigate before proceeding; do not tune on test); dev-split tuning only (assert test IDs never appear in the train artifacts); report committed.
 **Commit:** `feat(eval): leak-free prediction evaluation with baselines`
+
+**Completed 2026-09-24.** Real run: train artifact `eval-train-a`
+(`pipeline.cli run --split train --workers 12`, 612,021 songs, local only,
+gitignored), evaluated against 50,000 positions sampled (seed `20260924`)
+from `cv-2026-09-a`'s real `test` split (34,016 songs, zero overlap with
+the train artifact's songs — the leak check in
+`tests/eval/prediction.py::assert_no_leakage` passed and is asserted
+before any metric is computed, not just reported after the fact). Headline
+check **passed**: v2 (order 5 + context) MRR `0.6071` vs. v1 MRR `0.5407`
+(delta `0.0664` ≥ the required `0.05`). `tests/eval/{metrics,sampling,
+baselines,prediction}.py`, CLI registered as `hcg-eval` (`pyproject.toml`),
+`InMemoryNgramStore.from_parquet`/`from_rows` (added to F30's
+`app/predict/ngram.py` for this), and a `KNPredictor.max_order_cap` field
+(F30, for the order-2..5 ablations) — see `context/progress-tracker.md`'s
+F31 entry for the full breakdown and an important finding: at the current
+untuned `DEFAULT_MIXING_K = 100.0` placeholder, context mixing measurably
+*underperforms* the context-free model at orders 4-5 (real effect, not a
+bug — see `docs/eval/prediction-v2.md`'s Interpretation section). Tuning
+`K` on the dev split is the natural next step, tracked as a follow-up, not
+part of this feature's own deliverable. `757 passed, 13 skipped` locally,
+`ruff check .`/`ruff format --check .` clean, no OpenAPI drift.
 
 ### F32 — `/v2/recommend-next-chords` (statistical mode) + UI [M]
 - [ ] Request per roadmap: `{progression (chords or tokens), key?, genre?, section?, limit≤20, include_explanations}`. Response items per §2 envelope; the `score_breakdown` has `ngram`, `context`, `backoff`.
