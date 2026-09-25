@@ -1,19 +1,20 @@
 "use client"
 
-import { type FormEvent, useMemo, useState } from "react"
+import { type FormEvent, useMemo, useRef, useState } from "react"
 import { Activity, ArrowRight, LoaderCircle, RefreshCcw } from "lucide-react"
 
 import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
 import { EvidencePanel } from "@/components/evidence-panel"
+import { RecommendationsPanel } from "@/components/recommendations-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   analyzeProgressionV2,
-  fetchNextChords,
+  recommendNextChords,
   type AnalysisV2,
-  type NextChordsResponse,
+  type RecommendResponse,
 } from "@/lib/api/client"
 import { useSystemHealth } from "@/lib/hooks/use-system-health"
 
@@ -38,7 +39,12 @@ export function WorkbenchV2() {
   const [input, setInput] = useState(samples[0].chords)
   const [key, setKey] = useState(samples[0].key)
   const [analysis, setAnalysis] = useState<AnalysisV2 | null>(null)
-  const [next, setNext] = useState<NextChordsResponse | null>(null)
+  const [next, setNext] = useState<RecommendResponse | null>(null)
+  const [recommendationBusy, setRecommendationBusy] = useState(false)
+  const [recommendationError, setRecommendationError] = useState<string | null>(null)
+  const [genre, setGenre] = useState("")
+  const [section, setSection] = useState("")
+  const recommendationController = useRef<AbortController | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const health = useSystemHealth()
@@ -47,9 +53,30 @@ export function WorkbenchV2() {
     (token, index) => `${token.core}->${analysis.tokens[index + 1].core}`
   ))] : []
 
-  async function analyze(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (rawTokens.length === 0) {
+  function loadRecommendations(result: AnalysisV2, requestedGenre: string, requestedSection: string) {
+    recommendationController.current?.abort()
+    const controller = new AbortController()
+    recommendationController.current = controller
+    setRecommendationBusy(true)
+    setRecommendationError(null)
+    setNext(null)
+    recommendNextChords({
+      progression: result.tokens.map((token) => token.core),
+      key: result.song_key,
+      ...(requestedGenre ? { genre: requestedGenre } : {}),
+      ...(requestedSection ? { section: requestedSection } : {}),
+      limit: 10,
+      signal: controller.signal,
+    }).then(setNext).catch((caught) => {
+      if (controller.signal.aborted) return
+      setRecommendationError(caught instanceof Error ? caught.message : "Recommendations failed.")
+    }).finally(() => {
+      if (!controller.signal.aborted) setRecommendationBusy(false)
+    })
+  }
+
+  async function runAnalysis(chords: string[], requestedKey: string) {
+    if (chords.length === 0) {
       setError("Enter at least one chord.")
       return
     }
@@ -57,18 +84,27 @@ export function WorkbenchV2() {
     setError(null)
     setNext(null)
     try {
-      const result = await analyzeProgressionV2({ chords: rawTokens, key: key.trim() || null, section_markers: false })
+      const result = await analyzeProgressionV2({ chords, key: requestedKey.trim() || null, section_markers: false })
       setAnalysis(result)
-      const roman = result.tokens.map((token) => token.figure)
-      if (roman.length) {
-        fetchNextChords(roman).then(setNext).catch(() => setNext(null))
-      }
+      loadRecommendations(result, genre, section)
     } catch (caught) {
       setAnalysis(null)
       setError(caught instanceof Error ? caught.message : "Analysis failed.")
     } finally {
       setBusy(false)
     }
+  }
+
+  async function analyze(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    await runAnalysis(rawTokens, key)
+  }
+
+  function appendChord(chord: string) {
+    const chords = [...rawTokens, chord]
+    setInput(chords.join(" - "))
+    setAnalysis(null)
+    void runAnalysis(chords, key || analysis?.song_key || "")
   }
 
   return (
@@ -88,16 +124,28 @@ export function WorkbenchV2() {
         <form onSubmit={analyze} className="grid gap-4 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end">
           <div className="space-y-2">
             <Label htmlFor="progression-v2">Chord progression</Label>
-            <Input id="progression-v2" value={input} onChange={(event) => setInput(event.target.value)} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
+            <Input id="progression-v2" value={input} onChange={(event) => { recommendationController.current?.abort(); setInput(event.target.value); setAnalysis(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="key-v2">Key (optional)</Label>
-            <Input id="key-v2" value={key} onChange={(event) => setKey(event.target.value)} className="font-mono" placeholder="Auto detect" autoComplete="off" />
+            <Input id="key-v2" value={key} onChange={(event) => { recommendationController.current?.abort(); setKey(event.target.value); setAnalysis(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
           </div>
           <Button type="submit" disabled={busy} className="min-w-32">
             {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Activity aria-hidden="true" />}
             Analyze
           </Button>
+          <div className="space-y-2">
+            <Label htmlFor="genre-v2">Genre</Label>
+            <select id="genre-v2" value={genre} onChange={(event) => { setGenre(event.target.value); if (analysis) loadRecommendations(analysis, event.target.value, section) }} className="h-9 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 text-sm">
+              <option value="">Unknown</option><option value="pop">Pop</option><option value="rock">Rock</option><option value="jazz">Jazz</option><option value="classical">Classical</option><option value="electronic">Electronic</option><option value="country">Country</option><option value="r&b">R&amp;B</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="section-v2">Section</Label>
+            <select id="section-v2" value={section} onChange={(event) => { setSection(event.target.value); if (analysis) loadRecommendations(analysis, genre, event.target.value) }} className="h-9 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 text-sm">
+              <option value="">Unknown</option><option value="verse">Verse</option><option value="chorus">Chorus</option><option value="bridge">Bridge</option><option value="intro">Intro</option><option value="outro">Outro</option>
+            </select>
+          </div>
           <div className="flex flex-wrap gap-2 lg:col-span-3">
             {samples.map((sample) => (
               <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { setInput(sample.chords); setKey(sample.key); setAnalysis(null); setNext(null); setError(null) }}>
@@ -178,10 +226,7 @@ export function WorkbenchV2() {
                 {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.modulations?.length} local modulation{analysis.modulations?.length === 1 ? "" : "s"} detected.</p>}
               </section>
 
-              <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
-                <h2 className="text-base font-semibold">Possible next chords</h2>
-                <div className="mt-4 space-y-2">{next?.candidates.length ? next.candidates.slice(0, 5).map((candidate, index) => <div key={`${candidate.chord}-${index}`} className="flex justify-between rounded-md bg-[var(--bg-subtle)] p-3 font-mono text-sm"><span>{candidate.chord}</span><span>{Math.round(candidate.probability * 100)}%</span></div>) : <p className="text-sm text-[var(--text-muted)]">No corpus candidates available for this context.</p>}</div>
-              </section>
+              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} />
 
               {(analysis.warnings?.length ?? 0) > 0 && <section className="rounded-lg border border-[var(--state-warning)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Parse warnings</h2>

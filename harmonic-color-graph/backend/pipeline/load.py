@@ -475,6 +475,7 @@ def _table_counts(conn: Connection, version: str) -> dict[str, int]:
     tables = (
         "nodes",
         "ngram_histories",
+        "ngram_discount_stats",
         "patterns",
         "song_refs",
         "pattern_examples",
@@ -494,6 +495,26 @@ def _table_counts(conn: Connection, version: str) -> dict[str, int]:
         (version,),
     ).fetchone()[0]
     return counts
+
+
+def _populate_ngram_discount_stats(conn: Connection, version: str) -> None:
+    """Materialize KN discounts inside the loader's atomic transaction.
+
+    This scan is allowed the loader's long timeout; the API performs only
+    bounded primary-key reads from the result. Rows are version-scoped and
+    cascade away when an old corpus version is explicitly pruned.
+    """
+    conn.execute(
+        """insert into hcg.ngram_discount_stats (version, context_id, ord, n1, n2)
+           select h.version, h.context_id, h.ord,
+                  count(*) filter (where kv.value::integer = 1),
+                  count(*) filter (where kv.value::integer = 2)
+           from hcg.ngram_histories h
+           cross join lateral jsonb_each_text(h.next) kv
+           where h.version = %s and h.ord > 1
+           group by h.version, h.context_id, h.ord""",
+        (version,),
+    )
 
 
 def _size_report(conn: Connection) -> tuple[int, int]:
@@ -622,6 +643,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                         for r in _artifact_rows(artifact_dir / "ngrams.parquet")
                     ),
                 )
+                _populate_ngram_discount_stats(conn, version)
                 _copy_rows(
                     conn,
                     "patterns",
@@ -767,6 +789,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "nodes",
                     "edges_compact",
                     "ngram_histories",
+                    "ngram_discount_stats",
                     "patterns",
                     "song_refs",
                     "pattern_examples",

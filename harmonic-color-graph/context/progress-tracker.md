@@ -7,6 +7,63 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-24 F31 merged (PR #11, squash `602d96c`): real 50k-position
+  held-out evaluation, v2 (order 5 + context) MRR `0.6071` vs. v1 MRR
+  `0.5407` (delta `0.0664` >= required `0.05`), passed. Full detail in
+  this file's "## Completed" section and `docs/eval/prediction-v2.md`.
+  Codex ran out of usage before F32 could be merged; Claude picked it up.
+  Applied migration `0006_ngram_discount_stats.sql` to the live Supabase
+  project (`avnxcyulznofylsnydfg`) via the MCP connector: backfilled 212
+  rows across 105 contexts and 4 orders for the active `cv-2026-09-a`
+  version. Advisors showed no new issues beyond the same pre-existing
+  informational RLS/index notices. Verified the endpoint end to end
+  against the live database (a local `uvicorn` pointed at the same
+  `backend/.env` used for prior live checks, not a Vercel deployment):
+  `POST /v2/recommend-next-chords` with `progression=["C","G","Am"]`,
+  `key="C major"`, `genre="pop"`, `section="chorus"` returned `F` (IV) as
+  the #1 recommendation at 48.5% probability, backoff chain
+  `genre_section:pop:chorus -> genre:pop -> section:chorus -> global`,
+  with real Spotify-linked example songs — the exact scenario in the
+  plan's F32 checklist. Re-ran with `genre="rock"` to confirm context
+  sensitivity: same top pick for this fixture, but different probability
+  (`0.4587` vs `0.4849`), different resolved backoff chain
+  (`genre:rock -> global`, no section given), and different evidence —
+  real context-dependence, just not a reordering for this particular
+  progression. Cold request latency ~880ms, warm ~840ms (dominated by
+  `NullPool`'s per-request connection setup to Supabase, a pre-existing
+  architectural choice for serverless compatibility, not a F32
+  regression). Merged `codex/f32-recommend` into `main`
+  ([PR #10](https://github.com/siddsan7/HarmonicColorGraph/pull/10),
+  after resolving a `context/HANDOFF.md` conflict from both branches
+  updating it in parallel — the code itself merged cleanly). Noted for
+  later, not blocking: `hcg` schema's `pg_total_relation_size` now reads
+  ~357 MiB against the 300 MiB budget, but row counts match the original
+  load exactly and there are zero dead tuples, so this reads as a
+  measurement-method difference versus whatever produced the earlier
+  266.8 MiB figure, not real growth.
+- 2026-09-24 F32 implementation is committed on isolated
+  `codex/f32-recommend`, based on `main` after PR #8. Claude owns F31 and
+  its train-only evaluation build on the root checkout; Codex owns F32.
+  An independent Codex F40 worktree is in progress but must wait for the
+  M3 gate before merge. The stopped duplicate Codex F31 branch is not
+  active. F32 adds a typed `/v2/recommend-next-chords` service/API,
+  chord/token input with explicit key rules, verified versioned fact IDs,
+  one batched evidence-song read, a 60/minute Redis rate policy, and a
+  Workbench recommendation panel with context selectors, probability,
+  evidence, explanation, and click-to-append. OpenAPI and generated client
+  types were refreshed. A direct live read discovered F30's dynamic
+  count-of-counts query exceeded the five-second database statement
+  timeout on the active corpus. Migration 0006 and the loader now
+  materialize per-version/context/order discount counts; request reads
+  use the summary primary key. Migration 0006 is not applied to production
+  yet, so F32 has no live end-to-end result or deployment claim.
+  Verification: backend `pytest -q` and Ruff passed locally (Postgres
+  tests skip without `TEST_DATABASE_URL`); frontend lint, typecheck,
+  Vitest, webpack production build, and a mocked Playwright flow passed.
+  GitHub CI, preview, live migration, and production smoke remain.
+  Production `/health/db`, graph node, and web home returned 200 after
+  PR #7, but Vercel reauthentication prevented exact deployed-SHA
+  confirmation.
 - 2026-09-24 latest: F30 PR #6 passed backend unit, Postgres integration,
   frontend, Compose smoke, and preview checks; squash merge `b1d560b`.
   F28's remaining metrics passed the same checks in PR #7; squash merge

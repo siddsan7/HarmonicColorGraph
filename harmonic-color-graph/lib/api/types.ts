@@ -378,6 +378,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/recommend-next-chords": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Recommend Next Chords */
+        post: operations["recommend_next_chords_v2_recommend_next_chords_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -492,20 +509,6 @@ export interface components {
             /** Warnings */
             warnings?: components["schemas"]["ParseWarning"][];
         };
-        /** ContextUsed */
-        ContextUsed: {
-            /** Backoff */
-            backoff?: string[];
-            /** Genre */
-            genre?: string | null;
-            /**
-             * Mode
-             * @default major
-             */
-            mode: string;
-            /** Section */
-            section?: string | null;
-        };
         /** EmbeddingRebuildPayload */
         EmbeddingRebuildPayload: {
             /** Corpus Version */
@@ -541,6 +544,28 @@ export interface components {
              * @enum {string}
              */
             type: "evaluation_run";
+        };
+        /** Evidence */
+        Evidence: {
+            /** Contexts */
+            contexts: string[];
+            /** Count */
+            count: number;
+            /** Example Refs */
+            example_refs: components["schemas"]["ExampleRef"][];
+        };
+        /** ExampleRef */
+        ExampleRef: {
+            /** Genre */
+            genre?: string | null;
+            /** Position */
+            position?: number | null;
+            /** Section */
+            section?: string | null;
+            /** Song Id */
+            song_id: string;
+            /** Spotify Id */
+            spotify_id?: string | null;
         };
         /** ExamplesData */
         ExamplesData: {
@@ -629,7 +654,7 @@ export interface components {
         NextChordsResponse: {
             /** Candidates */
             candidates: components["schemas"]["TransitionCandidate"][];
-            context_used?: components["schemas"]["ContextUsed"];
+            context_used?: components["schemas"]["app__schemas__harmony__ContextUsed"];
             /**
              * Data Source
              * @default unknown
@@ -688,6 +713,85 @@ export interface components {
             max_len: number;
             /** To */
             to: string;
+        };
+        /** RecommendData */
+        RecommendData: {
+            /** Input Tokens */
+            input_tokens: string[];
+            /** Key */
+            key: string;
+            /** Recommendations */
+            recommendations: components["schemas"]["Recommendation"][];
+        };
+        /** RecommendMeta */
+        RecommendMeta: {
+            context_used: components["schemas"]["app__schemas__recommend_v2__ContextUsed"];
+            /** Corpus Version */
+            corpus_version: string;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Model Versions */
+            model_versions: {
+                [key: string]: string;
+            };
+        };
+        /** RecommendRequest */
+        RecommendRequest: {
+            /** Genre */
+            genre?: string | null;
+            /**
+             * Include Explanations
+             * @default true
+             */
+            include_explanations: boolean;
+            /** Key */
+            key?: string | null;
+            /**
+             * Limit
+             * @default 10
+             */
+            limit: number;
+            /** Progression */
+            progression: string | string[];
+            /** Section */
+            section?: string | null;
+        };
+        /** RecommendResponse */
+        RecommendResponse: {
+            data: components["schemas"]["RecommendData"];
+            meta: components["schemas"]["RecommendMeta"];
+            /** Warnings */
+            warnings?: components["schemas"]["RecommendWarning"][];
+        };
+        /** RecommendWarning */
+        RecommendWarning: {
+            /** Code */
+            code: string;
+            /** Message */
+            message: string;
+        };
+        /** Recommendation */
+        Recommendation: {
+            /** Chord */
+            chord: string;
+            /** Color */
+            color?: {
+                [key: string]: number;
+            };
+            evidence: components["schemas"]["Evidence"];
+            /** Explanation */
+            explanation?: string | null;
+            /** Fact Ids */
+            fact_ids: string[];
+            /** Figure */
+            figure: string;
+            /** Labels */
+            labels: string[];
+            /** Score */
+            score: number;
+            score_breakdown: components["schemas"]["ScoreBreakdown"];
+            /** Token */
+            token: string;
         };
         /** RelationshipFact */
         RelationshipFact: {
@@ -780,6 +884,15 @@ export interface components {
              */
             unresolved: boolean;
         };
+        /** ScoreBreakdown */
+        ScoreBreakdown: {
+            /** Backoff */
+            backoff: number;
+            /** Context */
+            context: number;
+            /** Ngram */
+            ngram: number;
+        };
         /** SongExample */
         SongExample: {
             /** Decade */
@@ -854,7 +967,7 @@ export interface components {
         };
         /** TransitionStatsResponse */
         TransitionStatsResponse: {
-            context_used?: components["schemas"]["ContextUsed"];
+            context_used?: components["schemas"]["app__schemas__harmony__ContextUsed"];
             /**
              * Data Source
              * @default unknown
@@ -891,6 +1004,29 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /** ContextUsed */
+        app__schemas__harmony__ContextUsed: {
+            /** Backoff */
+            backoff?: string[];
+            /** Genre */
+            genre?: string | null;
+            /**
+             * Mode
+             * @default major
+             */
+            mode: string;
+            /** Section */
+            section?: string | null;
+        };
+        /** ContextUsed */
+        app__schemas__recommend_v2__ContextUsed: {
+            /** Backoff */
+            backoff: string[];
+            /** Genre */
+            genre?: string | null;
+            /** Section */
+            section?: string | null;
         };
     };
     responses: never;
@@ -1586,6 +1722,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    recommend_next_chords_v2_recommend_next_chords_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RecommendRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecommendResponse"];
                 };
             };
             /** @description Validation Error */

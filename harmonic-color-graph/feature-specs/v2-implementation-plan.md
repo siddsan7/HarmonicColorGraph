@@ -1192,14 +1192,27 @@ bug — see `docs/eval/prediction-v2.md`'s Interpretation section). Tuning
 part of this feature's own deliverable. `757 passed, 13 skipped` locally,
 `ruff check .`/`ruff format --check .` clean, no OpenAPI drift.
 
-### F32 — `/v2/recommend-next-chords` (statistical mode) + UI [M]
-- [ ] Request per roadmap: `{progression (chords or tokens), key?, genre?, section?, limit≤20, include_explanations}`. Response items per §2 envelope; the `score_breakdown` has `ngram`, `context`, `backoff`.
-- [ ] Workbench: recommendation list (absolute chord + figure + probability bar + evidence count + labels), genre/section selectors (with "unknown" honestly shown), "why?" expander with facts, click-to-append.
+### F32 — `/v2/recommend-next-chords` (statistical mode) + UI [M] — DONE
+- [x] Request per roadmap: `{progression (chords or tokens), key?, genre?, section?, limit≤20, include_explanations}`. Response items per §2 envelope; the `score_breakdown` has `ngram`, `context`, `backoff`.
+- [x] Workbench: recommendation list (absolute chord + figure + probability bar + evidence count + labels), genre/section selectors (with "unknown" honestly shown), "why?" expander with facts, click-to-append.
 
 **Checks:** Contract test; Playwright: `C G Am` in pop/chorus → `F` (IV) in the top 3 with evidence; changing the genre changes the ordering for at least one fixture; preview and production READY.
 **Commit:** `feat(api,ui): context-aware next-chord recommendations`
 
 **M3 exit gate:** The prediction report shows a clear win over v1; recommendations are context-sensitive in production.
+
+**Completed 2026-09-24** (implemented by Codex on `codex/f32-recommend`,
+merged by Claude after Codex ran out of usage — see `context/HANDOFF.md`
+and this file's progress-tracker entry for the full handoff). Contract
+test and the Playwright fixture (synthetic pop-vs-rock data engineered so
+the ordering actually flips) both pass, satisfying the checks literally.
+Also verified live against the real corpus (not just the fixture):
+`C G Am` in pop/chorus returns `F` (IV) as the #1 recommendation at 48.5%
+with real evidence, exactly the checklist scenario. **"Preview and
+production READY" is not yet confirmed** — verification so far is a local
+server pointed at the live Supabase database, not an actual Vercel
+deployment; that's the next step (`context/HANDOFF.md`'s "Immediate next
+steps").
 
 ---
 

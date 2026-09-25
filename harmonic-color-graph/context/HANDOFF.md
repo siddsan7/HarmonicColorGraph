@@ -91,65 +91,86 @@ The older Phase 1 plans are historical.
   rate-limit hit, and periodic worker queue-depth events. Production
   verification after merge: `/health/db` returned 200 and connected,
   `/v2/graph/node/M%3AI` returned 200 with active `cv-2026-09-a`, and
-  the web app returned 200.
-- The user is running two agents in parallel on this repo: Claude (this
-  session) and Codex, on separate `codex/` branches, coordinating through
-  this file and rebases. Claude took F31, Codex took F32 (both depend
-  only on F30, not on each other, so they're safe to parallelize).
-  **Codex ran out of usage before merging and is out of the picture.**
-  Its F32 work is checkpointed and feature-complete on branch
-  `codex/f32-recommend` (not yet merged) — see the F32 bullet below.
-  Claude now owns finishing and merging it, on top of F31.
-- F31 (leak-free evaluation harness) is **complete**: `backend/tests/eval/
-  {metrics,sampling,baselines,prediction}.py`, `hcg-eval` CLI (registered
-  in `pyproject.toml`). Built a train-only artifact (`eval-train-a`,
-  612,021 songs, local/gitignored, never loaded to Supabase) with the
-  pipeline's existing `--split train` support, evaluated 50,000 sampled
-  positions against `cv-2026-09-a`'s real `test` split (34,016 songs,
-  zero overlap — the leak check is a hard gate, asserted before any
-  metric is computed). Headline check **passed**: v2 (order 5 + context)
-  MRR `0.6071` vs. v1 MRR `0.5407` (delta `0.0664` >= required `0.05`).
-  Full report at `docs/eval/prediction-v2.md`, including a flagged
-  finding: the placeholder `DEFAULT_MIXING_K = 100.0` makes context
-  mixing measurably underperform the context-free model at orders 4-5
-  (real effect, not a bug; tuning `K` on a dev split is the natural next
-  step, tracked as a follow-up, not required for this feature). `757
-  passed, 13 skipped` locally, lint/format clean, no OpenAPI drift. PR
-  not yet opened as of this update. Full detail in
-  `context/progress-tracker.md`'s F31 entry and
+  the web app returned 200. The Vercel connector currently requires
+  reauthentication, so the exact deployed SHA was not confirmed by that
+  tool.
+- The user ran two agents in parallel on this repo: Claude (this session)
+  and Codex, on separate `codex/` branches, coordinating through this
+  file and rebases. Claude took F31, Codex took F32 (both depend only on
+  F30, not on each other, so they were safe to parallelize). **Codex ran
+  out of usage before merging F32 and is out of the picture**; Claude
+  finished and merged it (see below). An independent Codex F40 worktree
+  was also left behind, never merged — it must wait for the M3 exit gate
+  before whoever picks it up merges it.
+- F31 (leak-free evaluation harness) is **merged**
+  ([PR #11](https://github.com/siddsan7/HarmonicColorGraph/pull/11)):
+  `backend/tests/eval/{metrics,sampling,baselines,prediction}.py`,
+  `hcg-eval` CLI (registered in `pyproject.toml`). Built a train-only
+  artifact (`eval-train-a`, 612,021 songs, local/gitignored, never loaded
+  to Supabase) with the pipeline's existing `--split train` support,
+  evaluated 50,000 sampled positions against `cv-2026-09-a`'s real `test`
+  split (34,016 songs, zero overlap — the leak check is a hard gate,
+  asserted before any metric is computed). Headline check **passed**: v2
+  (order 5 + context) MRR `0.6071` vs. v1 MRR `0.5407` (delta `0.0664` >=
+  required `0.05`). Full report at `docs/eval/prediction-v2.md`,
+  including a flagged finding: the placeholder `DEFAULT_MIXING_K = 100.0`
+  makes context mixing measurably underperform the context-free model at
+  orders 4-5 (real effect, not a bug; tuning `K` on a dev split is the
+  natural next step, tracked as a follow-up, not required for this
+  feature). Full detail in `context/progress-tracker.md`'s F31 entry and
   `feature-specs/v2-implementation-plan.md`'s F31 "Completed" note.
-- F32 (`/v2/recommend-next-chords` + UI) is feature-complete on Codex's
-  unmerged `codex/f32-recommend` (typed endpoint, service, schemas,
-  Workbench UI, corpus-backed examples, bounded rate policy, contract +
-  Playwright tests). Its checkpoint records one important discovery: a
-  live read against the real corpus hit Supabase's 5-second serverless
-  statement timeout in F30's `NgramStore.count_of_counts` (fine in tests,
-  too slow cold at full scale). The fix is already written: migration
+- F32 (`/v2/recommend-next-chords` + UI), left feature-complete but
+  unmerged by Codex on `codex/f32-recommend`
+  ([PR #10](https://github.com/siddsan7/HarmonicColorGraph/pull/10)), is
+  now **merged**: typed endpoint, service, schemas, Workbench UI,
+  corpus-backed examples, bounded rate policy, contract + Playwright
+  tests. Codex's checkpoint recorded one important discovery: a live read
+  against the real corpus hit Supabase's 5-second serverless statement
+  timeout in F30's `NgramStore.count_of_counts` (fine in tests, too slow
+  cold at full scale). The fix, already written by Codex: migration
   `supabase/migrations/0006_ngram_discount_stats.sql` precomputes
   `(version, context_id, ord) -> (n1, n2)` into a real table, and
   `count_of_counts`'s SQL was swapped to read it — same public method
   signature, so `KNPredictor` needed no changes (F30's store-owns-SQL /
-  predictor-owns-math split paid off here). **Migration 0006 is not
-  applied live yet; F32 is not deployed or production-verified.**
+  predictor-owns-math split paid off here). Claude applied migration 0006
+  to the live Supabase project (backfilled 212 rows across 105 contexts
+  and 4 orders for the active `cv-2026-09-a` version; advisors showed only
+  the same pre-existing informational RLS/index notices, no new issues)
+  and verified the endpoint locally against the live database before
+  merging: `POST /v2/recommend-next-chords` with `["C","G","Am"]` in
+  `C major`, genre `pop`, section `chorus` returned `F` (IV) as the top
+  recommendation at 48.5% probability with real evidence
+  (`genre_section:pop:chorus -> genre:pop -> section:chorus -> global`
+  backoff, Spotify-linked example songs) — matching the plan's checklist
+  scenario exactly. Confirmed genre changes the resolved context chain and
+  probabilities (re-verified with `genre=rock`); the top pick happened to
+  coincide with pop's for this specific fixture, but the underlying
+  distribution and evidence differed, which is the real behavior being
+  tested. Noted in passing, not a regression: `pg_total_relation_size`
+  over the `hcg` schema now reads ~357 MiB (over the original 300 MiB
+  budget), but `pg_stat_user_tables` shows zero dead tuples and identical
+  row counts to the original load report, so this looks like a
+  measurement-method difference from whatever produced the earlier 266.8
+  MiB figure, not real growth or bloat — worth double-checking with a
+  fresh `ANALYZE` next time someone is in there, not urgent.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Open, verify CI on, and merge F31's PR (branch `codex/eval-harness`,
-   diff against `main` as of this update).
-2. Pick up Codex's `codex/f32-recommend`: review the diff, rebase onto
-   the post-F31 `main`, apply migration `0006_ngram_discount_stats.sql`
-   to the live Supabase project, verify end to end against the real
-   corpus (e.g. `C G Am` in pop/chorus), check the Workbench preview and
-   production routes, then open a PR, verify CI, and merge. F40 (an
-   independent, never-merged Codex worktree) may proceed after the M3
-   exit gate, whoever picks it up.
-3. Verify the deployed API/web production routes after the main branch
-   build. Supabase migrations 0001–0005 are applied. Supabase advisors had
-   only informational private-schema RLS notices and unused-index findings
-   at the last read. The loader uses the direct database URL from gitignored
+1. Verify the deployed API/web production routes after this merge builds
+   on `main` (F32's new `/v2/recommend-next-chords` route in particular —
+   only verified so far via a local server pointed at the live database,
+   not through an actual Vercel deployment). Supabase migrations
+   0001–0006 are applied; advisors had only informational private-schema
+   RLS notices and unused-index findings at the last read.
+2. Continue the plan past M3: F40 (voice-leading engine, independent of
+   everything above) may proceed now that the M3 exit gate's prerequisites
+   (F30–F32) are merged; then F41 onward in order. Tune F30's
+   `DEFAULT_MIXING_K` placeholder on a dev split as a natural early step
+   (F31 quantified why it matters — see the "Current state" bullet above).
+3. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
 4. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record

@@ -416,47 +416,6 @@
         "title": "CanonicalChord",
         "type": "object"
       },
-      "ContextUsed": {
-        "additionalProperties": false,
-        "properties": {
-          "backoff": {
-            "items": {
-              "type": "string"
-            },
-            "title": "Backoff",
-            "type": "array"
-          },
-          "genre": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Genre"
-          },
-          "mode": {
-            "default": "major",
-            "title": "Mode",
-            "type": "string"
-          },
-          "section": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Section"
-          }
-        },
-        "title": "ContextUsed",
-        "type": "object"
-      },
       "EmbeddingRebuildPayload": {
         "additionalProperties": false,
         "properties": {
@@ -533,6 +492,95 @@
           "payload"
         ],
         "title": "EvaluationRunRequest",
+        "type": "object"
+      },
+      "Evidence": {
+        "additionalProperties": false,
+        "properties": {
+          "contexts": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Contexts",
+            "type": "array"
+          },
+          "count": {
+            "minimum": 0.0,
+            "title": "Count",
+            "type": "integer"
+          },
+          "example_refs": {
+            "items": {
+              "$ref": "#/components/schemas/ExampleRef"
+            },
+            "title": "Example Refs",
+            "type": "array"
+          }
+        },
+        "required": [
+          "count",
+          "contexts",
+          "example_refs"
+        ],
+        "title": "Evidence",
+        "type": "object"
+      },
+      "ExampleRef": {
+        "additionalProperties": false,
+        "properties": {
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "position": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Position"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          },
+          "song_id": {
+            "title": "Song Id",
+            "type": "string"
+          },
+          "spotify_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spotify Id"
+          }
+        },
+        "required": [
+          "song_id"
+        ],
+        "title": "ExampleRef",
         "type": "object"
       },
       "ExamplesData": {
@@ -762,7 +810,7 @@
             "type": "array"
           },
           "context_used": {
-            "$ref": "#/components/schemas/ContextUsed"
+            "$ref": "#/components/schemas/app__schemas__harmony__ContextUsed"
           },
           "data_source": {
             "default": "unknown",
@@ -899,6 +947,255 @@
           "to"
         ],
         "title": "PathRequest",
+        "type": "object"
+      },
+      "RecommendData": {
+        "additionalProperties": false,
+        "properties": {
+          "input_tokens": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Input Tokens",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "recommendations": {
+            "items": {
+              "$ref": "#/components/schemas/Recommendation"
+            },
+            "title": "Recommendations",
+            "type": "array"
+          }
+        },
+        "required": [
+          "input_tokens",
+          "key",
+          "recommendations"
+        ],
+        "title": "RecommendData",
+        "type": "object"
+      },
+      "RecommendMeta": {
+        "additionalProperties": false,
+        "properties": {
+          "context_used": {
+            "$ref": "#/components/schemas/app__schemas__recommend_v2__ContextUsed"
+          },
+          "corpus_version": {
+            "title": "Corpus Version",
+            "type": "string"
+          },
+          "latency_ms": {
+            "minimum": 0.0,
+            "title": "Latency Ms",
+            "type": "number"
+          },
+          "model_versions": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Model Versions",
+            "type": "object"
+          }
+        },
+        "required": [
+          "corpus_version",
+          "model_versions",
+          "latency_ms",
+          "context_used"
+        ],
+        "title": "RecommendMeta",
+        "type": "object"
+      },
+      "RecommendRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "genre": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "include_explanations": {
+            "default": true,
+            "title": "Include Explanations",
+            "type": "boolean"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "limit": {
+            "default": 10,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Limit",
+            "type": "integer"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Progression"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "required": [
+          "progression"
+        ],
+        "title": "RecommendRequest",
+        "type": "object"
+      },
+      "RecommendResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RecommendData"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/RecommendMeta"
+          },
+          "warnings": {
+            "items": {
+              "$ref": "#/components/schemas/RecommendWarning"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "RecommendResponse",
+        "type": "object"
+      },
+      "RecommendWarning": {
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "title": "RecommendWarning",
+        "type": "object"
+      },
+      "Recommendation": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "color": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Color",
+            "type": "object"
+          },
+          "evidence": {
+            "$ref": "#/components/schemas/Evidence"
+          },
+          "explanation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Explanation"
+          },
+          "fact_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Fact Ids",
+            "type": "array"
+          },
+          "figure": {
+            "title": "Figure",
+            "type": "string"
+          },
+          "labels": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Labels",
+            "type": "array"
+          },
+          "score": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "type": "number"
+          },
+          "score_breakdown": {
+            "$ref": "#/components/schemas/ScoreBreakdown"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "figure",
+          "chord",
+          "score",
+          "score_breakdown",
+          "labels",
+          "fact_ids",
+          "evidence"
+        ],
+        "title": "Recommendation",
         "type": "object"
       },
       "RelationshipFact": {
@@ -1128,6 +1425,36 @@
           "chord_index"
         ],
         "title": "RomanToken",
+        "type": "object"
+      },
+      "ScoreBreakdown": {
+        "additionalProperties": false,
+        "properties": {
+          "backoff": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Backoff",
+            "type": "number"
+          },
+          "context": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Context",
+            "type": "number"
+          },
+          "ngram": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Ngram",
+            "type": "number"
+          }
+        },
+        "required": [
+          "ngram",
+          "context",
+          "backoff"
+        ],
+        "title": "ScoreBreakdown",
         "type": "object"
       },
       "SongExample": {
@@ -1380,7 +1707,7 @@
         "additionalProperties": false,
         "properties": {
           "context_used": {
-            "$ref": "#/components/schemas/ContextUsed"
+            "$ref": "#/components/schemas/app__schemas__harmony__ContextUsed"
           },
           "data_source": {
             "default": "unknown",
@@ -1476,6 +1803,86 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "app__schemas__harmony__ContextUsed": {
+        "additionalProperties": false,
+        "properties": {
+          "backoff": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Backoff",
+            "type": "array"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "mode": {
+            "default": "major",
+            "title": "Mode",
+            "type": "string"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "title": "ContextUsed",
+        "type": "object"
+      },
+      "app__schemas__recommend_v2__ContextUsed": {
+        "additionalProperties": false,
+        "properties": {
+          "backoff": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Backoff",
+            "type": "array"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "section": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section"
+          }
+        },
+        "required": [
+          "backoff"
+        ],
+        "title": "ContextUsed",
         "type": "object"
       }
     }
@@ -2785,6 +3192,47 @@
         "summary": "Retry Job",
         "tags": [
           "jobs-v2"
+        ]
+      }
+    },
+    "/v2/recommend-next-chords": {
+      "post": {
+        "operationId": "recommend_next_chords_v2_recommend_next_chords_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RecommendRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecommendResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Recommend Next Chords",
+        "tags": [
+          "recommend-v2"
         ]
       }
     }

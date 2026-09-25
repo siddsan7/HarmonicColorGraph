@@ -41,6 +41,7 @@ def test_graph_schema_has_rls_and_active_version_view():
             "relationship_types",
             "facts",
             "edges_compact",
+            "ngram_discount_stats",
         }.issubset(rls)
         assert all(rls[name] for name in rls)
         assert (
@@ -166,7 +167,15 @@ def test_stores_only_read_active_version_after_atomic_flip():
                 assert patterns.examples("M:I M:V M:I")[0]["position"] == 4
                 assert patterns.transition_examples("M:V", "M:I")[0]["song_id"] == "song-f23"
                 assert patterns.transition_examples("M:V", "M:I")[0]["position"] == 7
+                batched = patterns.transition_examples_many(
+                    [("M:V", "M:I"), ("M:V", "M:vi")], limit=2
+                )
+                assert batched[("M:V", "M:I")][0]["position"] == 7
+                assert batched[("M:V", "M:vi")] == []
                 assert facts.fact("transition:M:V->M:I:global")["version"] == version
+                assert facts.existing_ids(
+                    ["transition:M:V->M:I:global", "transition:missing:global"]
+                ) == {"transition:M:V->M:I:global"}
                 assert facts.by_subject("M:V->M:I")[0]["version"] == version
                 assert graph.node("missing") is None
         finally:
