@@ -15,8 +15,7 @@ from pipeline.synth import write_mini_corpus
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_VOCAB_REPORT_OUTPUT = REPO_ROOT / "docs" / "eval" / "vocab.md"
 
-# F20: ingest and analyze are implemented; the rest are stubs (see
-# `pipeline/stages/_unimplemented.py`) scheduled for later features.
+# Stage ordering is stable; snapshot and export remain later-feature stubs.
 STAGE_ORDER = [
     "ingest",
     "analyze",
@@ -240,9 +239,29 @@ def _run_build(args: argparse.Namespace) -> None:
                 f"({profiles_summary.unrealizable_skipped:,} unrealizable, skipped) "
                 f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
             )
+        elif stage == "embeddings":
+            from pipeline.embedding_eval import evaluate_embeddings
+
+            summary = run_embeddings(sections_path, artifact_dir)
+            evaluations, default_model = evaluate_embeddings(artifact_dir / "embeddings.parquet")
+            manifest.row_counts["embeddings_rows"] = summary.rows_written
+            manifest.row_counts["embedding_projection_rows"] = summary.projection_rows
+            manifest.params["embedding_default_model"] = default_model
+            manifest.params["embedding_models"] = ["chord2vec", "fastrp"]
+            manifest.params["embedding_triplet_scores"] = {
+                item.model: {"passed": item.passed, "evaluated": item.evaluated}
+                for item in evaluations
+            }
+            for name in ("embeddings.parquet", "embedding_projection.parquet"):
+                manifest.output_hashes[name] = content_hash(pl.read_parquet(artifact_dir / name))
+            print(
+                f"embeddings: {summary.function_rows:,} function, "
+                f"{summary.pattern_rows:,} pattern vectors; "
+                f"{summary.projection_rows:,} projected, "
+                f"{summary.skipped_patterns:,} patterns skipped"
+            )
         else:
             stage_runner = {
-                "embeddings": run_embeddings,
                 "snapshot": run_snapshot,
                 "export": run_export,
             }[stage]
@@ -334,6 +353,20 @@ def _run_load(args: argparse.Namespace) -> None:
     print(json.dumps(report.__dict__, sort_keys=True, indent=2))
 
 
+def _run_embedding_report(args: argparse.Namespace) -> None:
+    from pipeline.embedding_eval import evaluate_embeddings, render_report
+
+    artifact = _artifact_dir(args.version) / "embeddings.parquet"
+    evaluations, default_model = evaluate_embeddings(artifact)
+    report = render_report(evaluations, default_model, args.version)
+    output = args.output or DEFAULT_VOCAB_REPORT_OUTPUT.parent / "embeddings.md"
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(report, encoding="utf-8")
+    print(f"Wrote {output}")
+    for item in evaluations:
+        print(f"{item.model}: {item.passed}/{item.evaluated} ({item.score:.1%})")
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="pipeline", description="Offline data pipeline CLI.")
     subparsers = parser.add_subparsers(dest="stage", required=True)
@@ -382,6 +415,13 @@ def build_parser() -> argparse.ArgumentParser:
     vocab_report.add_argument("--top", type=int, default=200)
     vocab_report.add_argument("--limit", type=int, default=None)
     vocab_report.set_defaults(func=_run_vocab_report)
+
+    embedding_report = subparsers.add_parser(
+        "embedding-report", help="F50 intrinsic triplets, neighbors and class purity."
+    )
+    embedding_report.add_argument("--version", type=str, required=True)
+    embedding_report.add_argument("--output", type=Path, default=None)
+    embedding_report.set_defaults(func=_run_embedding_report)
 
     load = subparsers.add_parser(
         "load", help="F24: load a versioned artifact set and atomically activate it."
