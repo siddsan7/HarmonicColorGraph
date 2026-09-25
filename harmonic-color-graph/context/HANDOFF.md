@@ -6,18 +6,21 @@ describes the target product and architecture, and
 `context/progress-tracker.md` holds the detailed implementation history.
 The older Phase 1 plans are historical.
 
-## Current state — 2026-09-24
+## Current state — 2026-09-25
 
-**M0–M3 are all merged to `main`.** F00–F09, F10–F14, F20–F29, F30, F31,
-F32 are done (checkboxes in `feature-specs/v2-implementation-plan.md`
-match). The M3 exit gate ("prediction report shows a clear win over v1;
-recommendations are context-sensitive in production") is satisfied.
-**F40 (voice-leading engine) is now feature-complete on branch
-`codex/f40-voice-leading`, rebased onto current `main`, but not yet
-pushed or opened as a PR** — see "Immediate next steps" below for the
-exact remaining actions (push, PR, and two blocked items that need
-explicit approval). The next unstarted work after F40 merges is F41
-(measurable color features + norms).
+**M0–M3 are all merged to `main`, and F40 is done too.** F00–F09, F10–F14,
+F20–F29, F30, F31, F32, F40 are done (checkboxes in
+`feature-specs/v2-implementation-plan.md` match). The M3 exit gate
+("prediction report shows a clear win over v1; recommendations are
+context-sensitive in production") is satisfied. F40's PR
+([#13](https://github.com/siddsan7/HarmonicColorGraph/pull/13)) and an
+unrelated recovered Next.js security-fix PR
+([#14](https://github.com/siddsan7/HarmonicColorGraph/pull/14)) both
+merged after all CI jobs passed. F40's migration
+(`supabase/migrations/0007_voice_leading_edges.sql`) is now **applied
+live**; advisors showed only the same pre-existing informational
+private-schema RLS notices, no new issues. The next unstarted work is
+**F41** (measurable color features + norms) — see "Immediate next steps".
 
 The rest of this section is the detailed PR-by-PR history, oldest first;
 skip to "Immediate next steps" if you just need to know what to do next.
@@ -168,81 +171,70 @@ skip to "Immediate next steps" if you just need to know what to do next.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
-- **F40 (voice-leading engine) is feature-complete but not yet pushed or
-  PR'd.** Its theory engine was a real checkpoint recovered from a
-  previous session's `codex/f40-voice-leading` worktree (see
-  `context/progress-tracker.md`'s F40 entry for the earlier note that
-  mistakenly hadn't been ticked off yet). This session verified the
-  engine against the plan's checklist, added the remaining "materialize
-  `VOICE_LEADS_TO`" pipeline stage plus loader wiring and migration
-  `0007_voice_leading_edges.sql`, and rebased cleanly onto `main`. See
-  "Immediate next steps" for exactly what's left.
+- **F40 (voice-leading engine) is merged.** Its theory engine was a real
+  checkpoint recovered from a previous session's `codex/f40-voice-leading`
+  worktree. This session verified the engine against the plan's
+  checklist, added the remaining "materialize `VOICE_LEADS_TO`" pipeline
+  stage plus loader wiring and migration `0007_voice_leading_edges.sql`,
+  rebased cleanly onto `main`, and — once a portable `gh` CLI was
+  installed and the user signed in via device-code auth (winget's MSI
+  installer was locked by another process; used the portable zip release
+  instead, added to the user `PATH`) — opened, watched CI on, and
+  squash-merged [PR #13](https://github.com/siddsan7/HarmonicColorGraph/pull/13).
 - Also recovered a second local worktree
   (`.claude/worktrees/laughing-chaplygin-a67ae8`) that a previous
   handoff pass had wrongly logged as "zero commits ahead of main, safe
   to remove" — it actually held a complete, uncommitted Next.js security
   upgrade (16.2.7 → 16.3.6, closing a critical RCE advisory) with its
   own passing `scripts/check.ps1 all` run. Committed, rebased onto
-  `main`, and pushed as `claude/laughing-chaplygin-a67ae8`. Lesson for
-  future worktree cleanup: check `git status` for uncommitted changes,
-  not just `git log main..branch` for unmerged commits, before treating
-  a worktree as empty.
+  `main`, pushed as `claude/laughing-chaplygin-a67ae8`, and opened as
+  [PR #14](https://github.com/siddsan7/HarmonicColorGraph/pull/14).
+  Its first merge attempt hit a transient "base branch was modified"
+  GitHub race (PR #13 merged seconds earlier); the retry then failed for
+  real, since both PRs touched `context/progress-tracker.md` and PR #13
+  had already landed its version — rebased PR #14 onto the new `main` in
+  a fresh worktree, resolved the conflict (same pattern as the earlier
+  F40 rebase: keep both sides' log entries), force-pushed, re-ran CI,
+  and squash-merged. Lesson for future worktree cleanup: check
+  `git status` for uncommitted changes, not just `git log main..branch`
+  for unmerged commits, before treating a worktree as empty.
+- Migration `0007_voice_leading_edges.sql` is now **applied live**
+  (widens `edges_compact_type_code_check` to 1–7, adds the
+  `VOICE_LEADS_TO` case to `hcg.edges_read`); advisors showed only the
+  same pre-existing informational private-schema RLS notices, no new
+  issues.
 
 ## Immediate next steps
 
-1. Open and merge F40's PR. Branch `codex/f40-voice-leading` (worktree
-   `C:/Users/sidds/OneDrive/Documents/GitHub/HCG-F40-voice-leading`) is
-   feature-complete, rebased cleanly onto `main` at `55cbbec`, and has a
-   clean local `pytest -q` / `ruff check` / `ruff format --check`, but is
-   not yet pushed. GitHub PR creation is currently blocked in this
-   environment: the GitHub connector's write methods return 403,
-   GitKraken's PR-create tool needs an interactive sign-in, `gh` CLI
-   isn't installed, and pulling the git credential-manager token
-   directly for a raw REST call is blocked by the sandbox as credential
-   exploration. Push the branch and open the PR (`gh pr create` or the
-   GitHub UI both work once one of those is available), verify CI, then
-   merge.
-2. Widen the live edges_compact schema for F40 (migration
-   `supabase/migrations/0007_voice_leading_edges.sql`) — additive only,
-   verified against the live schema's actual constraint name, but the
-   session's permission classifier would not allow applying it this
-   time. Needs a manual apply next session, ideally alongside or right
-   after merging the PR above.
-3. Open and merge the recovered Next.js security-fix PR. Branch
-   `claude/laughing-chaplygin-a67ae8` is pushed to origin (rebased onto
-   `main` at `55cbbec`) with a complete, verified Next.js 16.2.7 → 16.3.6
-   upgrade closing a critical RCE advisory (see `docs/adr/ADR-009.md`).
-   Same PR-creation blocker as item 1 — GitHub gave a ready compare link:
-   `https://github.com/siddsan7/HarmonicColorGraph/pull/new/claude/laughing-chaplygin-a67ae8`.
-4. A full pipeline re-run and reload is needed to get F40's voice-leading
-   edges into the live `cv-2026-09-a` version (the new stage only ran
-   against local fixtures and the `eval-train-a` chord vocabulary so
-   far, never the full corpus). Treat this as its own deliberate,
-   higher-risk step — the real corpus load has already failed twice on
-   storage budget/timeout before succeeding (see this file's M2 load
-   history and `docs/eval/corpus-cv-2026-09-a.md`) — not something to
-   fold into a routine PR.
-5. Once F40 is merged, continue the plan at **F41** (measurable color
-   features + norms), then F42 onward in order.
-6. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
+1. A full pipeline re-run and reload is needed to get F40's voice-leading
+   edges into the live `cv-2026-09-a` version (the `voice_leading` stage
+   only ran against local fixtures and the `eval-train-a` chord
+   vocabulary so far, never the full corpus). Treat this as its own
+   deliberate, higher-risk step — the real corpus load has already
+   failed twice on storage budget/timeout before succeeding (see this
+   file's M2 load history and `docs/eval/corpus-cv-2026-09-a.md`) — not
+   something to fold into a routine PR.
+2. Continue the plan at **F41** (measurable color features + norms),
+   then F42 onward in order.
+3. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
    (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
    it matters (context mixing currently *hurts* MRR at orders 4-5; see
    the F31 bullet above and `docs/eval/prediction-v2.md`'s Interpretation
    section). Not blocking, but a cheap, well-motivated win whenever
    picked up.
-7. Verify the deployed API/web production routes reflect the F32 merge
+4. Verify the deployed API/web production routes reflect the F32 merge
    (`/v2/recommend-next-chords` in particular — verified so far only via
    a local server pointed at the live database, never through an actual
-   Vercel deployment). Supabase migrations 0001–0006 are applied;
+   Vercel deployment). Supabase migrations 0001–0007 are applied;
    advisors had only informational private-schema RLS notices and
    unused-index findings at the last read. Also worth a glance: `hcg`
    schema's `pg_total_relation_size` read ~357 MiB at the last check
    (over the 300 MiB budget) despite identical row counts and zero dead
    tuples versus the original load report — likely a measurement-method
    artifact, not real growth, but a fresh `ANALYZE` would confirm.
-8. The loader uses the direct database URL from gitignored
+5. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-9. Update this file and `context/progress-tracker.md` after each merge,
+6. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 

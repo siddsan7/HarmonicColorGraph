@@ -1241,9 +1241,11 @@ verified against the real `eval-train-a` artifact). `load.py` gained
 `supabase/migrations/0007_voice_leading_edges.sql` widens
 `edges_compact_type_code_check` to `between 1 and 7` and adds the
 `VOICE_LEADS_TO` case to `hcg.edges_read` — written and verified against the
-live schema's actual constraint name, but **not yet applied live** (the
-auto-mode permission classifier blocks `apply_migration` as a "Production
-Deploy" action; needs explicit approval or a manual apply). Getting
+live schema's actual constraint name, and now **applied live** at
+Siddharth's explicit request in a follow-up turn (the auto-mode permission
+classifier initially blocked `apply_migration` as a "Production Deploy"
+action; verified after applying via `pg_get_constraintdef` and a fresh
+advisors read showing no new issues). Getting
 `VOICE_LEADS_TO` edges into the active `cv-2026-09-a` version additionally
 requires a full pipeline re-run and reload, which is its own deliberate,
 higher-risk step (the corpus load has failed on storage-budget/timeout twice
