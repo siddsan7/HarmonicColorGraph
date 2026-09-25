@@ -262,6 +262,54 @@
         "title": "AnalyzeV2Request",
         "type": "object"
       },
+      "ArcPoint": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "perceptual": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PerceptualAxisOut"
+            },
+            "title": "Perceptual",
+            "type": "object"
+          },
+          "position": {
+            "minimum": 0.0,
+            "title": "Position",
+            "type": "integer"
+          },
+          "raw": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Raw",
+            "type": "object"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "position",
+          "chord",
+          "token",
+          "raw",
+          "perceptual"
+        ],
+        "title": "ArcPoint",
+        "type": "object"
+      },
       "CanonicalChord": {
         "additionalProperties": false,
         "properties": {
@@ -414,6 +462,169 @@
           "quality"
         ],
         "title": "CanonicalChord",
+        "type": "object"
+      },
+      "ColorCompareResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "a": {
+            "$ref": "#/components/schemas/ColorProfileResponse"
+          },
+          "b": {
+            "$ref": "#/components/schemas/ColorProfileResponse"
+          },
+          "perceptual_deltas": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Perceptual Deltas",
+            "type": "object"
+          },
+          "raw_deltas": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Raw Deltas",
+            "type": "object"
+          }
+        },
+        "required": [
+          "a",
+          "b",
+          "raw_deltas",
+          "perceptual_deltas"
+        ],
+        "title": "ColorCompareResponse",
+        "type": "object"
+      },
+      "ColorProfileRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Progression"
+          }
+        },
+        "required": [
+          "progression"
+        ],
+        "title": "ColorProfileRequest",
+        "type": "object"
+      },
+      "ColorProfileResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "arc": {
+            "items": {
+              "$ref": "#/components/schemas/ArcPoint"
+            },
+            "title": "Arc",
+            "type": "array"
+          },
+          "drivers": {
+            "items": {
+              "$ref": "#/components/schemas/Driver"
+            },
+            "title": "Drivers",
+            "type": "array"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "summary": {
+            "$ref": "#/components/schemas/ColorSummary"
+          }
+        },
+        "required": [
+          "key",
+          "arc",
+          "summary",
+          "drivers"
+        ],
+        "title": "ColorProfileResponse",
+        "type": "object"
+      },
+      "ColorSummary": {
+        "additionalProperties": false,
+        "properties": {
+          "perceptual": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/PerceptualAxisOut"
+            },
+            "title": "Perceptual",
+            "type": "object"
+          },
+          "raw": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Raw",
+            "type": "object"
+          }
+        },
+        "required": [
+          "raw",
+          "perceptual"
+        ],
+        "title": "ColorSummary",
+        "type": "object"
+      },
+      "Driver": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "position": {
+            "minimum": 0.0,
+            "title": "Position",
+            "type": "integer"
+          },
+          "reason": {
+            "enum": [
+              "final_cadence",
+              "borrowed_chord",
+              "chromatic_chord"
+            ],
+            "title": "Reason",
+            "type": "string"
+          },
+          "weight": {
+            "exclusiveMinimum": 0.0,
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "position",
+          "chord",
+          "reason",
+          "weight"
+        ],
+        "title": "Driver",
         "type": "object"
       },
       "EmbeddingRebuildPayload": {
@@ -947,6 +1158,44 @@
           "to"
         ],
         "title": "PathRequest",
+        "type": "object"
+      },
+      "PerceptualAxisOut": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "rule",
+              "derived",
+              "feedback"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "value": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Value",
+            "type": "number"
+          }
+        },
+        "required": [
+          "value",
+          "confidence",
+          "source",
+          "explanation"
+        ],
+        "title": "PerceptualAxisOut",
         "type": "object"
       },
       "RecommendData": {
@@ -2543,6 +2792,130 @@
         "summary": "Analyze Endpoint",
         "tags": [
           "analysis-v2"
+        ]
+      }
+    },
+    "/v2/color/compare": {
+      "get": {
+        "operationId": "color_compare_v2_color_compare_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "a",
+            "required": true,
+            "schema": {
+              "title": "A",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "b",
+            "required": true,
+            "schema": {
+              "title": "B",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "key_a",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Key A"
+            }
+          },
+          {
+            "in": "query",
+            "name": "key_b",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Key B"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColorCompareResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Color Compare",
+        "tags": [
+          "color-v2"
+        ]
+      }
+    },
+    "/v2/color/profile": {
+      "post": {
+        "operationId": "color_profile_v2_color_profile_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ColorProfileRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ColorProfileResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Color Profile",
+        "tags": [
+          "color-v2"
         ]
       }
     },

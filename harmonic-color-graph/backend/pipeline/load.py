@@ -49,6 +49,7 @@ REQUIRED_ARTIFACTS = {
     "transition_examples.parquet": "transition_examples_rows",
     "song_refs.parquet": "song_refs_rows",
     "color.parquet": "color_norms_rows",
+    "color_profiles.parquet": "color_profiles_rows",
 }
 ARTIFACT_COLUMNS = {
     "sections.parquet": {"local_key", "genre", "section", "decade", "labels"},
@@ -96,6 +97,7 @@ ARTIFACT_COLUMNS = {
         "mean",
         "std",
     },
+    "color_profiles.parquet": {"subject_type", "subject_id", "mode", "support", "axes"},
 }
 
 PITCH_CLASSES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
@@ -524,6 +526,7 @@ def _table_counts(conn: Connection, version: str) -> dict[str, int]:
         "patterns",
         "song_refs",
         "color_norms",
+        "color_profiles",
         "pattern_examples",
         "transition_examples",
         "relationship_types",
@@ -774,6 +777,23 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                 )
                 _copy_rows(
                     conn,
+                    "color_profiles",
+                    ("version", "subject_type", "subject_id", "mode", "support", "axes"),
+                    ("text", "text", "text", "text", "int4", "jsonb"),
+                    (
+                        (
+                            version,
+                            r["subject_type"],
+                            r["subject_id"],
+                            r["mode"],
+                            r["support"],
+                            Jsonb(_json(r["axes"])),
+                        )
+                        for r in _artifact_rows(artifact_dir / "color_profiles.parquet")
+                    ),
+                )
+                _copy_rows(
+                    conn,
                     "pattern_examples",
                     ("version", "pattern", "song_id", "section", "ordinal", "position", "rank"),
                     ("text", "text", "text", "text", "int4", "int4", "int2"),
@@ -842,6 +862,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "patterns": artifact_counts["patterns.parquet"],
                     "song_refs": artifact_counts["song_refs.parquet"],
                     "color_norms": artifact_counts["color.parquet"],
+                    "color_profiles": artifact_counts["color_profiles.parquet"],
                     "pattern_examples": artifact_counts["pattern_examples.parquet"],
                     "transition_examples": artifact_counts["transition_examples.parquet"],
                 }
@@ -886,6 +907,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "patterns",
                     "song_refs",
                     "color_norms",
+                    "color_profiles",
                     "pattern_examples",
                     "transition_examples",
                     "relationship_types",

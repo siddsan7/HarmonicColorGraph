@@ -1424,13 +1424,98 @@ DB-free application code, matching F41's `color/features.py`/`norms.py`
 split; F43 is the feature that will materialize perceptual profiles into
 storage.
 
-### F43 — Color profiles: storage, progression arcs, API [M]
-- [ ] Pipeline stage `color`: profiles for every `Function` (per mode), every global transition, and every pattern → `hcg.color_profiles` (in `0003_color.sql`).
-- [ ] Progression aggregation: per-position vectors (the arc) plus a summary weighted toward the final cadence and rare borrowed chords (Phase 2 §6.4 "better later" items).
-- [ ] `POST /v2/color/profile {progression, key?}` → `{arc[], summary{}, drivers[]}`; `GET /v2/color/compare?a&b` → deltas.
+### F43 — Color profiles: storage, progression arcs, API [M] — DONE
+- [x] Pipeline stage `color`: profiles for every `Function` (per mode), every global transition, and every pattern → `hcg.color_profiles` (in `0003_color.sql`).
+- [x] Progression aggregation: per-position vectors (the arc) plus a summary weighted toward the final cadence and rare borrowed chords (Phase 2 §6.4 "better later" items).
+- [x] `POST /v2/color/profile {progression, key?}` → `{arc[], summary{}, drivers[]}`; `GET /v2/color/compare?a&b` → deltas.
 
 **Checks:** Coverage 100% of loaded functions, transitions, and patterns; the API arc length equals the progression length; `db_size` still ≤ 300 MB.
 **Commit:** `feat(color): profile storage, progression arcs, and color APIs`
+
+**Completed 2026-09-25.** New `backend/app/color/profile.py`:
+`realize_progression` reconstructs a concrete `(chords, tokens)` sequence
+from core-token labels alone (F30's `realize()`, context-free per token,
+then `romanize_chord` in sequence for real previous/next context), and
+`compute_color_profile` is the one entry point for a Function/Transition/
+Pattern "subject" -- F41's raw axes at the subject's final position, F41's
+norms-based [0, 1] normalization when a norms table is supplied, and F42's
+perceptual axes over the whole reconstructed progression. Verified
+transposition-invariant (same raw axis values regardless of which key in
+the subject's mode is used as the realization reference), so `REFERENCE_KEY`
+picks one fixed key per mode (`C major` / `A minor`) rather than requiring a
+caller-supplied one.
+
+`pipeline/stages/color.py`'s new `run_color_profiles` enumerates every
+distinct Function (`functions.parquet` grouped by `(mode, token)`), every
+global Transition (`transitions.parquet` rows with `context == "global"`),
+and every Pattern (`patterns.parquet`, already corpus-scale, not
+song-scale) and writes one `compute_color_profile` row for each --
+processing every row, not a sample, since these inputs are already small
+aggregated tables (the plan's "100% coverage" check is a hard requirement
+this way, not a statistical claim). `pipeline/cli.py`'s `color` stage now
+runs both halves (`run_color` for norms, then `run_color_profiles`);
+`pipeline/load.py` gained matching `REQUIRED_ARTIFACTS`/`ARTIFACT_COLUMNS`/
+`_copy_rows`/`_table_counts` wiring for the new `color_profiles.parquet`
+artifact and `hcg.color_profiles` table. Migration
+`supabase/migrations/0009_color_profiles.sql` (`version, subject_type,
+subject_id` primary key; `axes jsonb` holding `{raw, raw_normalized,
+perceptual}`) is written but **not yet applied live** -- same "deliberate,
+higher-risk, bundle-with-a-real-consumer" reasoning as F40/F41's unapplied
+migrations; no application code reads `hcg.color_profiles` yet (the new API
+endpoints are DB-free, analyzing a submitted progression on the fly, not
+reading corpus-precomputed profiles).
+
+New `backend/app/services/color_profile.py` builds the API-facing
+progression arc: `build_arc` is prefix-based -- position `i`'s perceptual
+axes come from `compute_perceptual_color` over `chords[:i+1]`/`tokens[:i+1]`
+("how does the progression read up through this chord"), so the final
+position's perceptual axes are exactly the whole progression's F42 read,
+reused directly as the summary's perceptual half (no separate aggregation
+invented). The summary's raw half is a real weighted blend, not a plain
+mean: every position gets a base weight of 1.0, the final position
+(cadence arrival) gets `+2.0`, and any borrowed or chromatic chord gets
+`+1.5`/`+1.0` -- directly implementing the plan's "weighted toward the
+final cadence and rare borrowed chords." `drivers[]` reports exactly which
+positions received a bonus and why (`final_cadence` / `borrowed_chord` /
+`chromatic_chord`), matching the codebase's existing "transparent scoring"
+convention (F52's planned `score_breakdown`, F30's backoff-chain
+reporting).
+
+`backend/app/schemas/color_v2.py` (`ColorProfileRequest/Response`,
+`ArcPoint`, `ColorSummary`, `Driver`, `PerceptualAxisOut`,
+`ColorCompareResponse`) and `backend/app/api/color_v2.py`
+(`POST /v2/color/profile`, `GET /v2/color/compare`) follow the standard v2
+error envelope (`{"error":{"code","message","details"}}`, per the
+`api-error-envelope` gotcha -- not `/v2/analyze`'s `HTTPException`
+exception), and are fully DB-free (mirroring `/v2/analyze`): a submitted
+progression is analyzed on the fly via `analyze_v2`, so neither endpoint
+needs an active corpus version or `hcg.color_norms`/`hcg.color_profiles`
+rows to exist. `backend/openapi.json` and `lib/api/types.ts` were
+regenerated (`scripts/export_openapi.py` + `npm run gen:api`) and verified
+byte-identical on a second run; no hand-written `lib/api/client.ts` wrapper
+was added yet since no UI consumes these endpoints until F44.
+
+`docs/codemap.html` and `context/brain/facts.json` were updated in the same
+pass per the `docs-codemap-drift` gotcha (new routes, the `color_profiles`
+table, the extended `color` pipeline-stage row, new module rows, a new
+`change_together` entry, and closing out the now-resolved F42/F43 seam
+rows).
+
+31 new tests: `tests/unit/test_color_profile.py` (13, `realize_progression`/
+`compute_color_profile`, including a transposition-invariance check),
+`tests/unit/test_pipeline_color.py`'s new `run_color_profiles` coverage (4:
+coverage counts, the JSON payload shape, norms-aware normalization,
+unrealizable-token skipping), `tests/unit/test_color_profile_service.py`
+(7: the arc, the weighted summary, driver attribution, compare deltas), and
+`tests/unit/test_api_color_v2.py` (7: HTTP contract, arc-length-equals-
+progression-length, 422 error-envelope paths). `tests/unit/
+test_pipeline_load.py`'s shared `artifact_dir` fixture gained a
+`color_profiles.parquet` frame and `color_profiles_rows` manifest key.
+Full `pytest -q` (852 passed, 13 skipped -- the pre-existing `pg`-marked
+tests), `ruff check .`/`ruff format --check .`, `npm run
+lint`/`typecheck`/`test` all pass; `npm run build` was not run for this
+PR (backend + generated-types-only change, no UI consumer yet -- same
+reasoning F41 used for a backend-only feature).
 
 ### F44 — Color UI [S]
 - [ ] Custom SVG components (no chart library): `ColorBars` (axes with numeric labels), `ColorArc` (sparkline per axis across the progression), `ColorDelta` (candidate versus current), legend with text labels (never color alone), confidence shown as opacity plus "(est.)" text for derived values.

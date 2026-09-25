@@ -208,6 +208,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/color/compare": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Color Compare */
+        get: operations["color_compare_v2_color_compare_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v2/color/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Color Profile */
+        post: operations["color_profile_v2_color_profile_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/examples": {
         parameters: {
             query?: never;
@@ -474,6 +508,23 @@ export interface components {
              */
             section_markers: boolean;
         };
+        /** ArcPoint */
+        ArcPoint: {
+            /** Chord */
+            chord: string;
+            /** Perceptual */
+            perceptual: {
+                [key: string]: components["schemas"]["PerceptualAxisOut"];
+            };
+            /** Position */
+            position: number;
+            /** Raw */
+            raw: {
+                [key: string]: number | null;
+            };
+            /** Token */
+            token: string;
+        };
         /** CanonicalChord */
         CanonicalChord: {
             /** Bass */
@@ -508,6 +559,61 @@ export interface components {
             tones_spelled?: string[];
             /** Warnings */
             warnings?: components["schemas"]["ParseWarning"][];
+        };
+        /** ColorCompareResponse */
+        ColorCompareResponse: {
+            a: components["schemas"]["ColorProfileResponse"];
+            b: components["schemas"]["ColorProfileResponse"];
+            /** Perceptual Deltas */
+            perceptual_deltas: {
+                [key: string]: number;
+            };
+            /** Raw Deltas */
+            raw_deltas: {
+                [key: string]: number;
+            };
+        };
+        /** ColorProfileRequest */
+        ColorProfileRequest: {
+            /** Key */
+            key?: string | null;
+            /** Progression */
+            progression: string | string[];
+        };
+        /** ColorProfileResponse */
+        ColorProfileResponse: {
+            /** Arc */
+            arc: components["schemas"]["ArcPoint"][];
+            /** Drivers */
+            drivers: components["schemas"]["Driver"][];
+            /** Key */
+            key: string;
+            summary: components["schemas"]["ColorSummary"];
+        };
+        /** ColorSummary */
+        ColorSummary: {
+            /** Perceptual */
+            perceptual: {
+                [key: string]: components["schemas"]["PerceptualAxisOut"];
+            };
+            /** Raw */
+            raw: {
+                [key: string]: number;
+            };
+        };
+        /** Driver */
+        Driver: {
+            /** Chord */
+            chord: string;
+            /** Position */
+            position: number;
+            /**
+             * Reason
+             * @enum {string}
+             */
+            reason: "final_cadence" | "borrowed_chord" | "chromatic_chord";
+            /** Weight */
+            weight: number;
         };
         /** EmbeddingRebuildPayload */
         EmbeddingRebuildPayload: {
@@ -713,6 +819,20 @@ export interface components {
             max_len: number;
             /** To */
             to: string;
+        };
+        /** PerceptualAxisOut */
+        PerceptualAxisOut: {
+            /** Confidence */
+            confidence: number;
+            /** Explanation */
+            explanation: string;
+            /**
+             * Source
+             * @enum {string}
+             */
+            source: "rule" | "derived" | "feedback";
+            /** Value */
+            value: number;
         };
         /** RecommendData */
         RecommendData: {
@@ -1387,6 +1507,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AnalysisV2"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    color_compare_v2_color_compare_get: {
+        parameters: {
+            query: {
+                a: string;
+                b: string;
+                key_a?: string | null;
+                key_b?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ColorCompareResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    color_profile_v2_color_profile_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ColorProfileRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ColorProfileResponse"];
                 };
             };
             /** @description Validation Error */
