@@ -7,8 +7,10 @@ detail it points to.
 
 ## v2 Plan — Active
 
-- 2026-09-25 F43 (color profiles: storage, progression arcs, API) is done,
-  not yet merged. New `backend/app/color/profile.py`
+- 2026-09-25 F43 (color profiles: storage, progression arcs, API) is done
+  and merged ([PR #19](https://github.com/siddsan7/HarmonicColorGraph/pull/19),
+  squash `d251058`, all four CI jobs and both Vercel previews passed). New
+  `backend/app/color/profile.py`
   (`compute_color_profile`/`realize_progression`, reconstructing a real
   chord sequence from core-token labels via F30's `realize()`), a new
   `run_color_profiles` half of the `color` pipeline stage (processes every

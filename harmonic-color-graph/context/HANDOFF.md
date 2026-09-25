@@ -8,12 +8,11 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M3 are merged to `main`; F40, F41, and F42 (M4) are all merged; F43
-is implemented but not yet on a PR.** F00–F09, F10–F14, F20–F29, F30, F31,
-F32, F40, F41, F42, F43 are done (checkboxes in
-`feature-specs/v2-implementation-plan.md` match). The M3 exit gate
-("prediction report shows a clear win over v1; recommendations are
-context-sensitive in production") is satisfied. F40's PR
+**M0–M3 are merged to `main`; F40, F41, F42, and F43 (M4) are all merged.**
+F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43 are done
+(checkboxes in `feature-specs/v2-implementation-plan.md` match). The M3
+exit gate ("prediction report shows a clear win over v1; recommendations
+are context-sensitive in production") is satisfied. F40's PR
 ([#13](https://github.com/siddsan7/HarmonicColorGraph/pull/13)) and an
 unrelated recovered Next.js security-fix PR
 ([#14](https://github.com/siddsan7/HarmonicColorGraph/pull/14)) both
@@ -30,9 +29,10 @@ migration `0008_color_norms.sql` — see the F41 bullet below and
 `e3d0420`) merged after all four CI jobs and both Vercel previews passed:
 new `backend/app/color/perceptual.py`, `perceptual_params.json`, and
 `rules/color_rules.json` (pure application code, no pipeline/DB changes);
-see this file's F42 bullet below. **F43 is implemented but not yet on a
-PR/merged** — new `backend/app/color/profile.py`,
-`backend/app/services/color_profile.py`,
+see this file's F42 bullet below. F43's PR
+([#19](https://github.com/siddsan7/HarmonicColorGraph/pull/19), squash
+`d251058`) merged after all four CI jobs and both Vercel previews passed:
+new `backend/app/color/profile.py`, `backend/app/services/color_profile.py`,
 `backend/app/{api,schemas}/color_v2.py`, `run_color_profiles` in the
 `color` pipeline stage, `pipeline/load.py` wiring, and migration
 `0009_color_profiles.sql`; `backend/openapi.json`/`lib/api/types.ts`
@@ -318,20 +318,27 @@ skip to "Immediate next steps" if you just need to know what to do next.
   lint`/`typecheck`/`test` all pass. Full detail in
   `context/progress-tracker.md`'s F43 entry and
   `feature-specs/v2-implementation-plan.md`'s F43 "Completed" note.
-  **Not yet on a PR or merged to `main`** — the user explicitly asked to
-  stop after this feature, so F44 was deliberately not started; see
-  "Immediate next steps".
+  **Merged**: [PR #19](https://github.com/siddsan7/HarmonicColorGraph/pull/19)
+  (branch `codex/f43-color-profiles`), squash commit `d251058`, all four
+  CI jobs and both Vercel previews passed. The user explicitly asked to
+  stop after this feature, so F44 was deliberately not started this
+  session; see "Immediate next steps".
 
 ## Immediate next steps
 
-1. Open a PR for F43 (working-tree changes only as of this entry — no
-   `codex/`-style branch created yet). Run the Standard Check Gate,
-   inspect CI, and squash-merge once green, then continue the plan at
-   **F44** (color UI). F44 depends on F43's actual response shape
-   (`{arc[], summary{}, drivers[]}` from `POST /v2/color/profile`), so it
-   was intentionally left for the next session/agent rather than guessed
-   against, per the user's own question this session about parallelizing
-   F44 while F43 was still in progress.
+1. Continue the plan at **F44** (color UI) — the real, merged
+   `{arc[], summary{}, drivers[]}` shape from F43's
+   `POST /v2/color/profile` (and the deltas shape from
+   `GET /v2/color/compare`) is now on `main` in `backend/openapi.json` /
+   `lib/api/types.ts`, so F44 can build against the actual generated
+   types rather than guessing. It was intentionally left for the next
+   session/agent rather than started in parallel with F43, per the
+   user's own question this session about parallelizing F44 while F43
+   was still in progress — build the `ColorBars`/`ColorArc`/`ColorDelta`
+   SVG components, wire them to these endpoints (a new hand-written
+   `lib/api/client.ts` wrapper will be needed, per the
+   `api-contract-regen` gotcha), and run the Playwright/axe checks the
+   plan's F44 section specifies.
 2. Apply migrations `0008_color_norms.sql` and `0009_color_profiles.sql`
    live (MCP `apply_migration`, then `get_advisors`) whenever convenient
    — cheap and low-risk (empty tables until the next full load), unlike
