@@ -178,6 +178,15 @@
     {
       "what": "Color profiles artifact shape",
       "files": ["backend/app/color/profile.py (compute_color_profile, realize_progression)", "backend/pipeline/stages/color.py (run_color_profiles, writer, color_profiles.parquet)", "backend/pipeline/load.py (REQUIRED_ARTIFACTS/ARTIFACT_COLUMNS + color_profiles copy)", "supabase/migrations/0009_color_profiles.sql (hcg.color_profiles)", "backend/app/services/color_profile.py (POST /v2/color/profile, GET /v2/color/compare consumer)"]
+    },
+    {
+      "what": "Embeddings artifact shape",
+      "files": ["backend/pipeline/stages/embeddings.py (run_embeddings, writer, embeddings.parquet/embedding_projection.parquet)", "backend/pipeline/embedding_eval.py (evaluate_embeddings, docs/eval/embeddings.md)", "backend/pipeline/load.py (REQUIRED_ARTIFACTS/ARTIFACT_COLUMNS + _load_embeddings/_materialize_similar_edges)", "supabase/migrations/0010_embeddings.sql (hcg.embeddings, SIMILAR_TO edge type 8)", "backend/app/db/stores/embeddings.py + app/services/similarity.py (POST /v2/similar-* consumer)"]
+    },
+    {
+      "what": "Loader raw-connection search_path",
+      "files": ["backend/pipeline/load.py load_corpus() (set local search_path = hcg, extensions, public)", "backend/app/db/session.py (the app's own SQLAlchemy connect_args, same value)"],
+      "note": "Any future loader code using an unqualified pgvector/extensions operator (not a fully-qualified type) needs this; production roles already have it, a fresh CI/local Postgres role does not. Found via a real backend-pg CI failure (F51), not assumed."
     }
   ]
 }

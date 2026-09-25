@@ -210,7 +210,7 @@
       <div class="scope">
         <span>commit <b>ecfe566</b></span>
         <span>mapped <b>2026-09-25</b></span>
-        <span>shipped <b>M0–M3 + F40–F43</b></span>
+        <span>shipped <b>M0–M4 + F50–F53</b></span>
         <span>active corpus <b>cv-2026-09-a</b></span>
         <span>migrations live <b>0001–0007</b> (0008 written, not applied)</span>
       </div>
@@ -396,6 +396,10 @@
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/explain-edge</td><td>graph_v2 → <code>GraphService.explain_edge</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
             <tr><td><span class="m post">POST</span></td><td class="p">/v2/graph/path</td><td>graph_v2 → <code>GraphService.paths</code> (best-first, k ≤5, len ≤6)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>30</td><td>L1 + L2, 1 h; adjacency per version</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/examples</td><td>examples_v2 → <code>PatternStore.examples | transition_examples</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/similar-functions</td><td>similar_v2 → <code>SimilarityService.functions</code> → <code>EmbeddingStore</code> (pgvector HNSW neighbors)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/similar-chords</td><td>similar_v2 → <code>SimilarityService.chords</code> (pitch-class Jaccard blended with functional-usage cosine)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/similar-progressions</td><td>similar_v2 → <code>SimilarityService.progressions</code> (structural: chord2vec pattern/function vectors; surface: exact token overlap; rotations flagged via <code>rotation_of</code>)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/find-substitutes</td><td>substitutes_v2 → <code>SubstitutionService.find</code> (bidirectional KN + functional-equivalence bonus + voice-leading smoothness; <code>smooth</code> constraint bounds VL cost)</td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
             <tr class="grp"><td colspan="6">v2 · jobs (X-HCG-Jobs-Token; 503 when unset)</td></tr>
             <tr><td><span class="m post">POST</span></td><td class="p">/v2/jobs</td><td>jobs_v2 → <code>JobRepository.create</code> + <code>JobQueue.enqueue</code> (Idempotency-Key)</td><td><span class="pill db">db</span> <span class="pill redis">redis</span></td><td>token</td><td>—</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/jobs/{id}</td><td>jobs_v2 → <code>JobRepository.get</code></td><td><span class="pill db">db</span></td><td>token</td><td>—</td></tr>
@@ -505,7 +509,7 @@
             <tr><td class="p">patterns</td><td>F22</td><td>sections</td><td class="p">patterns.parquet</td><td><code>patterns</code>, <code>edges_compact</code> type 4</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">examples</td><td>F22/F26</td><td>patterns · transitions · sections</td><td class="p">pattern_examples · transition_examples · song_refs</td><td>same-named tables</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">color</td><td>F41/F43</td><td>sections · ngrams (optional, offline predictor); F43 half also reads functions · transitions · patterns · color.parquet</td><td class="p">color.parquet, color_profiles.parquet</td><td><code>color_norms</code> (migration 0008), <code>color_profiles</code> (migration 0009) — neither applied live yet</td><td><span class="pill done">done</span></td></tr>
-            <tr><td class="p">embeddings</td><td>F50</td><td>sections · transitions · patterns</td><td class="p">embeddings.parquet, embedding_projection.parquet</td><td>planned <code>hcg.embeddings</code> (pgvector, F51)</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">embeddings</td><td>F50</td><td>sections · transitions · patterns</td><td class="p">embeddings.parquet, embedding_projection.parquet</td><td><code>hcg.embeddings</code> (pgvector, migration 0010, F51 — not applied live yet)</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">snapshot</td><td>F63</td><td>—</td><td class="p">public/snapshot/graph-core.json</td><td>static degraded-mode file</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">export</td><td>stretch S1</td><td>—</td><td>Cypher/Neo4j export</td><td>—</td><td><span class="pill stub">stub</span></td></tr>
           </tbody>
@@ -552,6 +556,9 @@
           <li><code>color_norms</code> (version, axis, subject_type) → count, p05/p25/p50/p75/p95, mean, std. Loader-populated from <code>color.parquet</code>; no rows exist against any live version yet<span class="mig">0008</span></li>
           <li><code>color_profiles</code> (version, subject_type, subject_id) → mode, support, axes jsonb ({raw, raw_normalized, perceptual}). One row per Function (a core token), global Transition (<code>from_token&gt;to_token</code>), or frequent Pattern. Loader-populated from <code>color_profiles.parquet</code>, computed by <code>app/color/profile.py</code>'s <code>compute_color_profile</code> (reconstructs a real chord sequence from core-token labels via F30's <code>realize()</code>); no rows exist against any live version yet<span class="mig">0009</span></li>
         </ul></div>
+        <div class="sgroup"><h3>Embeddings <span>0010 (written, not applied)</span></h3><ul>
+          <li><code>embeddings</code> (version, subject_type, model, subject_id) → vec extensions.vector(64), created_at. Per-subject-type HNSW cosine index. Loader-populated from <code>embeddings.parquet</code> (validated: 64-dim, finite, L2-normalized, has a graph node); no rows exist against any live version yet<span class="mig">0010</span></li>
+        </ul></div>
         <div class="sgroup"><h3>Jobs <span>0003 · 0004</span></h3><ul>
           <li><code>jobs</code> type, payload, status, progress/stage, attempt/max_attempts (3), worker_id, lease_expires_at, available_at, request_hash</li>
           <li><code>job_events</code> append-only progress and state log</li>
@@ -564,7 +571,6 @@
           <li>Accessed only through <code>app/models/harmony.py</code> + <code>db/repositories.py</code></li>
         </ul></div>
         <div class="sgroup absent"><h3>Not created yet <span>planned</span></h3><ul>
-          <li><code>embeddings</code> (pgvector HNSW): F51. The <code>vector</code> extension is already installed in 0001.</li>
           <li><code>public.saved_progressions</code>, <code>taste_profiles</code>, <code>feedback</code>, <code>ai_query_logs</code>: F73/F80/F81</li>
         </ul></div>
       </div>
@@ -655,10 +661,17 @@
             <tr><td class="p">backend/app/api/examples_v2.py</td><td>GET /v2/examples for pattern or transition evidence (response models inline)</td></tr>
             <tr><td class="p">backend/app/api/jobs_v2.py</td><td>/v2/jobs admin API: token guard, idempotency, create/get/cancel/events/retry</td></tr>
             <tr><td class="p">backend/app/api/color_v2.py</td><td>F43 POST /v2/color/profile, GET /v2/color/compare → services.color_profile; pure, no DB dependency</td></tr>
+            <tr><td class="p">backend/app/api/similar_v2.py</td><td>F51 POST /v2/similar-{functions,chords,progressions} → SimilarityService; error envelope + 60/min limiter</td></tr>
+            <tr><td class="p">backend/app/api/substitutes_v2.py</td><td>F53 POST /v2/find-substitutes → SubstitutionService; error envelope</td></tr>
             <tr><td class="p">backend/app/api/phase1.py</td><td>Frozen v1 routes, including the in-code DEMO_TRANSITIONS fallback</td></tr>
             <tr class="grp"><td colspan="2">backend/app · domain</td></tr>
             <tr><td class="p">backend/app/services/recommend.py</td><td>RecommendationService, SessionNgramReader (+ version-keyed count cache), input parsing, explanations</td></tr>
             <tr><td class="p">backend/app/services/color_profile.py</td><td>F43 build_arc (prefix-based per-position color), build_summary_and_drivers (final-cadence/borrowed-chord weighted raw summary), compute_color_profile/compare</td></tr>
+            <tr><td class="p">backend/app/services/similarity.py</td><td>F51 SimilarityService: functions/chords/progressions ranking; structural-vs-surface mode, rotation flagging, color filter</td></tr>
+            <tr><td class="p">backend/app/recommend/candidates.py</td><td>F52 generate_candidates: F30 top-30 + graph neighbors + theory expansions (every token realize()-verified) + injected embedding neighbors, tagged by generator</td></tr>
+            <tr><td class="p">backend/app/recommend/features.py</td><td>F52 extract_features: 21 deterministic ranking features per candidate, reusing F41 compute_chord_color for vl_cost/color deltas</td></tr>
+            <tr><td class="p">backend/app/recommend/scorer.py</td><td>F52 score_candidates: offline-trained plausibility softmax (bottom-5th-percentile floor), bounded 6-axis intent term, diversity, plausible/balanced/adventurous presets, transparent score_breakdown</td></tr>
+            <tr><td class="p">backend/app/recommend/substitutes.py</td><td>F53 SubstitutionService: bidirectional-KN substitution scoring + functional-equivalence bonus + voice-leading smoothness, smooth-constraint</td></tr>
             <tr><td class="p">backend/app/graph/service.py</td><td>GraphService: neighborhood BFS, explain_edge, k-shortest-ish paths, adjacency cache</td></tr>
             <tr><td class="p">backend/app/predict/ngram.py</td><td>KNPredictor: interpolated Kneser-Ney + context mixing; InMemoryNgramStore for tests/eval</td></tr>
             <tr><td class="p">backend/app/predict/realize.py</td><td>realize(core_token, key) → chord symbol (inverse of romanize .core)</td></tr>
@@ -693,6 +706,8 @@
             <tr><td class="p">backend/app/schemas/analysis_v2.py</td><td>AnalyzeV2Request, AnalysisV2, RomanToken, RelationshipFact, KeyProbability</td></tr>
             <tr><td class="p">backend/app/schemas/recommend_v2.py</td><td>RecommendRequest/Response, ScoreBreakdown, Evidence</td></tr>
             <tr><td class="p">backend/app/schemas/color_v2.py</td><td>F43 ColorProfileRequest/Response, ArcPoint, ColorSummary, Driver, PerceptualAxisOut, ColorCompareResponse</td></tr>
+            <tr><td class="p">backend/app/schemas/similar_v2.py</td><td>F51 SimilarFunctionRequest/SimilarChordRequest/SimilarProgressionRequest, ColorFilter, SimilarItem, SimilarResponse</td></tr>
+            <tr><td class="p">backend/app/schemas/substitutes_v2.py</td><td>F53 SubstituteRequest/Response, SubstituteConstraints, Substitute, SubstituteScore</td></tr>
             <tr><td class="p">backend/app/schemas/harmony.py</td><td>StrictModel base, CanonicalChord, v1 request/response models</td></tr>
             <tr class="grp"><td colspan="2">backend/app · jobs</td></tr>
             <tr><td class="p">backend/app/jobs/schemas.py</td><td>Discriminated JobRequest union, corpus-version regex</td></tr>
