@@ -1,0 +1,37 @@
+{
+  "model": "candidate-softmax-v1",
+  "training": {
+    "train_artifact": "eval-train-a",
+    "dev_artifact": "cv-eval-smoke",
+    "split": "dev",
+    "leak_overlap": 0,
+    "sampled": 160,
+    "usable": 160,
+    "epochs": 12,
+    "seed": 52,
+    "candidate_cap": 14
+  },
+  "weights": {
+    "log_p_ngram": 6.37905905,
+    "log_p_global_bigram": 0.0,
+    "pmi": 0.0,
+    "diatonic": -0.03229782,
+    "borrowed": 0.40016146,
+    "applied": -0.51481689,
+    "tritone_sub": -0.00599005,
+    "chromatic_mediant": -0.26180132,
+    "vl_cost": 0.05423567,
+    "common_tones": 0.32659507,
+    "emb_cos": 0.0,
+    "tonal_distance": -0.0477257,
+    "surprise": -0.55467708,
+    "genre_section_fit": 0.0,
+    "graph_probability": 0.0,
+    "delta_brightness": -0.4173562,
+    "delta_tension": 0.01866385,
+    "delta_surprise": -0.55467708,
+    "delta_complexity": 0.08858646,
+    "delta_resolution": 0.77627843,
+    "delta_smoothness": -0.05423567
+  }
+}
