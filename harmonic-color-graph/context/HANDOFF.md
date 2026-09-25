@@ -91,27 +91,44 @@ The older Phase 1 plans are historical.
   rate-limit hit, and periodic worker queue-depth events. Production
   verification after merge: `/health/db` returned 200 and connected,
   `/v2/graph/node/M%3AI` returned 200 with active `cv-2026-09-a`, and
-  the web app returned 200. F31 and F32 are in isolated subagent
-  worktrees and are not yet merged.
+  the web app returned 200. The Vercel connector currently requires
+  reauthentication, so the exact deployed SHA was not confirmed by that
+  tool. F31 and F32 are not yet merged.
+- Claude owns F31 on the root checkout and is building its train-only
+  evaluation artifacts; Codex owns F32 in isolated worktree/branch
+  `codex/f32-recommend`. An independent Codex F40 worktree is underway,
+  but F40 must wait for the M3 exit gate before merge. The stopped duplicate
+  Codex F31 branch is not active.
+- F32 code is committed on `codex/f32-recommend` (latest base includes
+  PR #8): typed statistical endpoint and Workbench, corpus-backed examples
+  and verified fact IDs, bounded Redis-backed public rate policy, contract
+  and Playwright checks. A live read exposed a five-second timeout in
+  F30's request-time `jsonb_each_text` count-of-counts aggregation.
+  F32 migration `0006_ngram_discount_stats.sql` creates a versioned summary
+  table and backfills the active corpus; the loader populates future
+  versions before activation, and cold requests use indexed summary reads.
+  **Migration 0006 is not applied live yet; F32 is not deployed or
+  production-verified.** See the F32 tracker entry for exact checks.
 - `scripts/check.ps1 all` passed before PR #3. Postgres
   integration tests skip locally because `TEST_DATABASE_URL` is unset;
   Docker is not installed here. GitHub CI runs both Postgres and Compose.
 
 ## Immediate next steps
 
-1. Complete F31 (leak-free evaluation harness) next — it's the natural
-   follow-up to F30 (needs `InMemoryNgramStore`, and should replace F30's
-   placeholder mixing constant `DEFAULT_MIXING_K = 100.0` in
-   `backend/app/predict/ngram.py` with a value actually tuned on its dev
-   split), then F32 (statistical recommend-next-chords endpoint + UI)
-   through reviewable PRs; then continue the remaining plan in order.
-   Record CI and live evidence before closing each milestone gate.
-2. Verify the deployed API/web production routes after the main branch
+1. Complete and merge Claude's F31 evaluation after its train-only build
+   and held-out report. Keep F32 independent of F31's tuned mixing K.
+2. Open and verify the F32 PR from `codex/f32-recommend`, apply migration
+   `0006_ngram_discount_stats.sql` to the live Supabase project before
+   deploying the new API, then probe `C G Am` in pop/chorus against the
+   live corpus and verify the Workbench preview and production routes.
+   Measure the cold summary read and record database size. Merge only after
+   CI and preview pass. F40 may merge after the M3 exit gate.
+3. Verify the deployed API/web production routes after the main branch
    build. Supabase migrations 0001–0005 are applied. Supabase advisors had
    only informational private-schema RLS notices and unused-index findings
    at the last read. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-3. Update this file and `context/progress-tracker.md` after each merge,
+4. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 

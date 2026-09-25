@@ -7,6 +7,29 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-24 F32 implementation is committed on isolated
+  `codex/f32-recommend`, based on `main` after PR #8. Claude owns F31 and
+  its train-only evaluation build on the root checkout; Codex owns F32.
+  An independent Codex F40 worktree is in progress but must wait for the
+  M3 gate before merge. The stopped duplicate Codex F31 branch is not
+  active. F32 adds a typed `/v2/recommend-next-chords` service/API,
+  chord/token input with explicit key rules, verified versioned fact IDs,
+  one batched evidence-song read, a 60/minute Redis rate policy, and a
+  Workbench recommendation panel with context selectors, probability,
+  evidence, explanation, and click-to-append. OpenAPI and generated client
+  types were refreshed. A direct live read discovered F30's dynamic
+  count-of-counts query exceeded the five-second database statement
+  timeout on the active corpus. Migration 0006 and the loader now
+  materialize per-version/context/order discount counts; request reads
+  use the summary primary key. Migration 0006 is not applied to production
+  yet, so F32 has no live end-to-end result or deployment claim.
+  Verification: backend `pytest -q` and Ruff passed locally (Postgres
+  tests skip without `TEST_DATABASE_URL`); frontend lint, typecheck,
+  Vitest, webpack production build, and a mocked Playwright flow passed.
+  GitHub CI, preview, live migration, and production smoke remain.
+  Production `/health/db`, graph node, and web home returned 200 after
+  PR #7, but Vercel reauthentication prevented exact deployed-SHA
+  confirmation.
 - 2026-09-24 latest: F30 PR #6 passed backend unit, Postgres integration,
   frontend, Compose smoke, and preview checks; squash merge `b1d560b`.
   F28's remaining metrics passed the same checks in PR #7; squash merge
