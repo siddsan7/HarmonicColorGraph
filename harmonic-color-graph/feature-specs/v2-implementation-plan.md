@@ -1346,13 +1346,83 @@ would populate `hcg.color_norms` for the active `cv-2026-09-a` version (same
 `VOICE_LEADS_TO` edges — F42–F44 don't need it either; F41's own sanity
 checks and the pipeline stage's own tests don't require a live table).
 
-### F42 — Perceptual axes with confidence & source [M]
-- [ ] `color/rules/color_rules.json`: curated entries from Phase 2 §6.1 plus ~20 more (e.g. `M:iv→M:I`, `M:V→M:vi`, `M:V→M:I`, `M:bVI→M:bVII→M:I`, `M:I→M:iii`, `M:IVmaj7→M:iv6`), each `{axes, tags, explanation, source: "rule", confidence: 0.8}`.
-- [ ] `color/perceptual.py`: `nostalgia`, `dreaminess`, `melancholy`, `warmth`, `openness`, `cinematic` as documented logistic combinations of measurable features (weights in `perceptual_params.json`, each with a one-line rationale), overridden or blended by matching rules; every value is `{value, confidence, source: rule|derived|feedback}`.
-- [ ] Explanation generator: picks the top two contributing features and writes hedged sentences ("tends to feel…", "commonly associated with…").
+### F42 — Perceptual axes with confidence & source [M] — DONE
+- [x] `color/rules/color_rules.json`: curated entries from Phase 2 §6.1 plus ~20 more (e.g. `M:iv→M:I`, `M:V→M:vi`, `M:V→M:I`, `M:bVI→M:bVII→M:I`, `M:I→M:iii`, `M:IVmaj7→M:iv6`), each `{axes, tags, explanation, source: "rule", confidence: 0.8}`.
+- [x] `color/perceptual.py`: `nostalgia`, `dreaminess`, `melancholy`, `warmth`, `openness`, `cinematic` as documented logistic combinations of measurable features (weights in `perceptual_params.json`, each with a one-line rationale), overridden or blended by matching rules; every value is `{value, confidence, source: rule|derived|feedback}`.
+- [x] Explanation generator: picks the top two contributing features and writes hedged sentences ("tends to feel…", "commonly associated with…").
 
 **Checks:** Rule orderings hold: `nostalgia(iv→I) > nostalgia(IV→I)`, `cinematic(bVI→bVII→I) > cinematic(IV→V→I)`, `dreaminess(Imaj7→iii7→vi7) > dreaminess(I→V→vi)`; the language lint passes; 100% of perceptual values carry confidence and source.
 **Commit:** `feat(color): perceptual axes with confidence, source, and hedged explanations`
+
+**Completed 2026-09-25.** `backend/app/color/perceptual.py`'s `compute_perceptual_color`
+is the one entry point (mirrors F41's `compute_chord_color`): given a whole
+progression's `chords`/`tokens` from `analyze_v2`, it runs F41's
+`compute_chord_color` at every position, aggregates the raw axes (plus a
+few token-metadata flags -- `is_borrowed`, `is_chromatic`, extensions, and
+cadence-fact ids read from F13's `analyze_relationships` rather than
+re-detecting cadences) into one feature vector per progression, and combines
+that vector into each of the 6 perceptual axes with a documented logistic
+(`perceptual_params.json`: bias + per-feature weight + one-line rationale,
+loaded and asserted-covered by a test). A real numeric prototype (computed
+directly against the actual analyzer, not hand-guessed) confirmed the
+*derived* logistic alone already produces all three required orderings
+before any rule blending was added, so the curated rules add real
+explanatory color without being load-bearing for the ordering checks.
+
+`color/rules/color_rules.json` has 21 curated entries (the plan's 5 literal
+examples -- `M:iv→M:I`, `M:V→M:vi`, `M:V→M:I`, `M:bVI→M:bVII→M:I`,
+`M:I→M:iii` -- plus 16 more spanning major and minor mode: deceptive/
+authentic cadences in both modes, ii-V-I and its extended-jazz form,
+Neapolitan approaches, chromatic mediants, a secondary-dominant chain, and
+a backdoor progression). Deliberate deviation from the plan's sixth example,
+`M:IVmaj7→M:iv6`: `RomanToken.core` is documented as the "inversion-free
+graph core figure" (matches F30's n-gram nodes and F13's cadence detection,
+both of which also key off inversion-free tokens), so `iv6` as a distinct
+*core* string doesn't exist in this codebase -- confirmed by direct
+experiment, not assumption. Every rule's `pattern` was verified reachable
+from a real `analyze_v2` call (`test_every_curated_rule_pattern_is_reachable`)
+rather than hand-typed against guessed core-token spelling, which is how the
+`m:`-prefixed minor-mode patterns and the extension suffixes (`m7`, `maj7`,
+`7`) were actually confirmed correct.
+
+Rule matching scans every contiguous window of the progression's
+`token.core` sequence for each rule's pattern length (2 or 3); on a match,
+the matched axes blend `confidence * rule_value + (1 - confidence) *
+derived_value` and report `source="rule"` at the rule's own confidence;
+unmatched axes on the same progression stay `source="derived"` at a
+data-availability-scaled confidence (0.5 base, +0.1 per transition up to
+0.7). `source="feedback"` is a reserved third value for a future
+user-feedback-adjusted axis; nothing produces it yet.
+
+The explanation generator (`_explain_derived`) picks each axis's top two
+contributing features by `|weight * feature_value|` and renders a hedged
+sentence from a feature-name -> phrase table
+("This progression tends to feel nostalgic, commonly associated with
+borrowed, modal-mixture color and a modal-mixture cadence."); matched rules
+use their own pre-written (also hedged) `explanation` field instead. The
+language lint (`lint_explanation`) is a real, tested function, not just a
+description: it flags forbidden absolute-claim words (`always`, `never`,
+`definitely`, `guarantee(s)`, `proves`, `must`, …) and separately requires
+at least one hedge marker (`tends to`, `commonly`, `often`, `reads as`,
+`associated with`, …) to be present; every curated rule explanation and
+every derived explanation generated in the test suite is asserted against
+it, and `compute_perceptual_color` itself asserts every rule explanation it
+uses passes lint before returning (belt-and-suspenders against a future bad
+JSON edit).
+
+18 new tests in `tests/unit/test_color_perceptual.py`: the three required
+rule-ordering checks (computed against the real analyzer, not mocked), a
+confidence/source-shape check over every axis, rule-vs-derived source
+attribution checks, the lint acceptance/rejection cases, a reachability
+check for every curated pattern, a rationale-coverage check over every
+`perceptual_params.json` weight, and API-shape checks (mismatched-length
+and empty-progression `ValueError`s, custom `rules=`/`params=` override).
+Full `pytest -q` and `ruff check`/`ruff format --check` on the changed
+files are clean; `python -c "import app.main"` still succeeds (no pipeline/
+polars imports added). No pipeline or database changes -- F42 is pure,
+DB-free application code, matching F41's `color/features.py`/`norms.py`
+split; F43 is the feature that will materialize perceptual profiles into
+storage.
 
 ### F43 — Color profiles: storage, progression arcs, API [M]
 - [ ] Pipeline stage `color`: profiles for every `Function` (per mode), every global transition, and every pattern → `hcg.color_profiles` (in `0003_color.sql`).

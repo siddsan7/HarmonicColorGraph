@@ -1,0 +1,131 @@
+{
+  "_comment": "F42: logistic weights for each perceptual axis over the derived feature vector app/color/perceptual.py's _progression_features() builds from F41's measurable axes plus a few token-metadata flags. Every weight carries a one-line rationale so the formula stays auditable, not just tuned. value = sigmoid(bias + sum(feature * weight)).",
+  "axes": {
+    "nostalgia": {
+      "bias": -0.6,
+      "weights": {
+        "any_borrowed": {
+          "weight": 1.6,
+          "rationale": "Modal mixture (borrowing from the parallel key) is the classic harmonic device for a wistful, 'looking back' color."
+        },
+        "has_modal_cadence": {
+          "weight": 1.0,
+          "rationale": "A cadence built from borrowed subdominant/submediant chords (minor plagal, Aeolian, backdoor) is a well-known nostalgic cadential fingerprint."
+        },
+        "mean_brightness01": {
+          "weight": -0.7,
+          "rationale": "Darker, minor-leaning harmony reads as wistful more often than bright major harmony."
+        },
+        "mean_smoothness": {
+          "weight": 0.4,
+          "rationale": "Gentle, mostly stepwise voice leading feels sentimental rather than jarring."
+        }
+      }
+    },
+    "melancholy": {
+      "bias": -0.5,
+      "weights": {
+        "mean_brightness01": {
+          "weight": -1.6,
+          "rationale": "Melancholy is centrally a darkness/minor-mode read of the harmony."
+        },
+        "mean_tension": {
+          "weight": 0.4,
+          "rationale": "A little unresolved tension reads as aching rather than settled."
+        },
+        "mean_resolution": {
+          "weight": -0.5,
+          "rationale": "A strong, clean cadential resolution reads as content, not melancholy."
+        },
+        "any_borrowed": {
+          "weight": 0.5,
+          "rationale": "Borrowed minor-mode color often carries a melancholic tinge even in a major-key song."
+        }
+      }
+    },
+    "warmth": {
+      "bias": -0.2,
+      "weights": {
+        "mean_brightness01": {
+          "weight": 0.9,
+          "rationale": "Major-leaning, consonant harmony is the core signal for a warm sound."
+        },
+        "mean_stability": {
+          "weight": 0.6,
+          "rationale": "Settled, tonic-leaning harmony feels comforting rather than unsettled."
+        },
+        "mean_tension": {
+          "weight": -0.8,
+          "rationale": "Dissonance and unresolved drive read as cold or anxious, not warm."
+        },
+        "any_chromatic": {
+          "weight": -0.3,
+          "rationale": "Chromatic motion outside the usual mixture/applied vocabulary reads as less cozy and more unsettled."
+        }
+      }
+    },
+    "dreaminess": {
+      "bias": -0.8,
+      "weights": {
+        "mean_complexity": {
+          "weight": 1.3,
+          "rationale": "Extended and added-tone chords (7ths, 9ths) are the classic hazy, impressionistic color device."
+        },
+        "has_extension": {
+          "weight": 0.6,
+          "rationale": "The mere presence of any chord extension is itself a strong dreamy-voicing signal."
+        },
+        "mean_tension": {
+          "weight": -0.6,
+          "rationale": "Dreaminess tends to read as soft and floating, not actively tense."
+        },
+        "mean_smoothness": {
+          "weight": 0.5,
+          "rationale": "Slow-moving, floating voice leading supports a hazy feel."
+        }
+      }
+    },
+    "openness": {
+      "bias": -0.3,
+      "weights": {
+        "mean_resolution": {
+          "weight": -0.9,
+          "rationale": "An open-ended progression avoids strongly closing off; the more resolved, the less open."
+        },
+        "max_finality": {
+          "weight": -0.7,
+          "rationale": "A progression that lands hard on a root-position tonic is the opposite of open-ended."
+        },
+        "has_deceptive": {
+          "weight": 0.8,
+          "rationale": "Deceptive motion is a textbook way to keep a phrase open rather than closing it."
+        },
+        "mean_stability": {
+          "weight": -0.3,
+          "rationale": "Constant tonic stability reads as settled and closed, not open."
+        }
+      }
+    },
+    "cinematic": {
+      "bias": -0.9,
+      "weights": {
+        "any_borrowed": {
+          "weight": 1.1,
+          "rationale": "Modal-mixture color (borrowed chords) is a signature epic/cinematic scoring device."
+        },
+        "has_modal_cadence": {
+          "weight": 1.2,
+          "rationale": "Aeolian and backdoor-style cadences are a common film-score cadential fingerprint."
+        },
+        "mean_chromaticity": {
+          "weight": 1.0,
+          "rationale": "Chromatic color outside the plain diatonic set reads as more dramatic and widescreen."
+        },
+        "mean_tension": {
+          "weight": 0.5,
+          "rationale": "A degree of harmonic tension supports a sense of scale and drama."
+        }
+      }
+    }
+  }
+}
