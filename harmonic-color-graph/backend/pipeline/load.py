@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
@@ -32,6 +33,7 @@ EDGE_TYPE_CODES = {
     "HAS_ROOT": 5,
     "HAS_QUALITY": 6,
     "VOICE_LEADS_TO": 7,
+    "SIMILAR_TO": 8,
 }
 # A contextual transition observed fewer than five times is too noisy for
 # public graph traversal and would exhaust the 300 MB graph budget. Keep every
@@ -50,6 +52,7 @@ REQUIRED_ARTIFACTS = {
     "song_refs.parquet": "song_refs_rows",
     "color.parquet": "color_norms_rows",
     "color_profiles.parquet": "color_profiles_rows",
+    "embeddings.parquet": "embeddings_rows",
 }
 ARTIFACT_COLUMNS = {
     "sections.parquet": {"local_key", "genre", "section", "decade", "labels"},
@@ -98,6 +101,7 @@ ARTIFACT_COLUMNS = {
         "std",
     },
     "color_profiles.parquet": {"subject_type", "subject_id", "mode", "support", "axes"},
+    "embeddings.parquet": {"subject_type", "subject_id", "model", "vec"},
 }
 
 PITCH_CLASSES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
@@ -518,6 +522,60 @@ def _fact_rows(artifact_dir: Path, version: str) -> Iterator[tuple]:
         )
 
 
+def _load_embeddings(conn: Connection, artifact_dir: Path, version: str, nodes: dict) -> int:
+    """Store the F50 vectors with pgvector's text adapter, validating each row."""
+    count = 0
+    statement = (
+        "insert into hcg.embeddings (version, subject_type, subject_id, model, vec) "
+        "values (%s, %s, %s, %s, %s::extensions.vector)"
+    )
+    for batch in _artifact_batches(artifact_dir / "embeddings.parquet"):
+        values = []
+        for row in batch:
+            kind, subject, model = row["subject_type"], row["subject_id"], row["model"]
+            vec = row["vec"]
+            if kind not in {"function", "pattern"} or model not in {"chord2vec", "fastrp"}:
+                raise ValueError(f"Invalid embedding subject/model: {kind}/{model}")
+            if _node_id(kind, subject) not in nodes:
+                raise ValueError(f"Embedding subject has no graph node: {kind}:{subject}")
+            if len(vec) != 64 or any(not math.isfinite(value) for value in vec):
+                raise ValueError(f"Invalid 64-dimensional embedding: {kind}:{subject}")
+            if not 0.99 <= math.sqrt(sum(value * value for value in vec)) <= 1.01:
+                raise ValueError(f"Embedding is not L2 normalized: {kind}:{subject}")
+            values.append((version, kind, subject, model, "[" + ",".join(map(str, vec)) + "]"))
+        with conn.cursor() as cursor:
+            cursor.executemany(statement, values)
+        count += len(values)
+    return count
+
+
+def _materialize_similar_edges(conn: Connection, version: str, model: str) -> None:
+    """Persist top-ten function neighbors for bounded graph reads."""
+    if model not in {"chord2vec", "fastrp"}:
+        raise ValueError(f"Unsupported default embedding model: {model}")
+    conn.execute(
+        """insert into hcg.edges_compact
+               (version_key, src_key, dst_key, type_code, context_id, weight, props)
+           select cv.version_key, src_node.node_key, dst_node.node_key, 8, 0,
+                  (1 - neighbor.distance)::real, jsonb_build_object('model', %s::text)
+           from hcg.embeddings src
+           join hcg.corpus_versions cv on cv.version = src.version
+           join hcg.nodes src_node on src_node.version = src.version
+                and src_node.id = 'function:' || src.subject_id
+           cross join lateral (
+               select dst.subject_id, dst.vec <=> src.vec as distance
+               from hcg.embeddings dst
+               where dst.version = src.version and dst.subject_type = 'function'
+                 and dst.model = src.model and dst.subject_id <> src.subject_id
+               order by dst.vec <=> src.vec limit 10
+           ) neighbor
+           join hcg.nodes dst_node on dst_node.version = src.version
+                and dst_node.id = 'function:' || neighbor.subject_id
+           where src.version = %s and src.subject_type = 'function' and src.model = %s""",
+        (model, version, model),
+    )
+
+
 def _table_counts(conn: Connection, version: str) -> dict[str, int]:
     tables = (
         "nodes",
@@ -527,6 +585,7 @@ def _table_counts(conn: Connection, version: str) -> dict[str, int]:
         "song_refs",
         "color_norms",
         "color_profiles",
+        "embeddings",
         "pattern_examples",
         "transition_examples",
         "relationship_types",
@@ -632,6 +691,12 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     conn.execute(
                         "select id, node_key from hcg.nodes where version = %s", (version,)
                     ).fetchall()
+                )
+                loaded_embeddings = _load_embeddings(conn, artifact_dir, version, nodes)
+                if loaded_embeddings != artifact_counts["embeddings.parquet"]:
+                    raise ValueError("Loaded embedding count differs from artifact")
+                _materialize_similar_edges(
+                    conn, version, manifest.params["embedding_default_model"]
                 )
                 _copy_rows(
                     conn,
@@ -863,6 +928,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "song_refs": artifact_counts["song_refs.parquet"],
                     "color_norms": artifact_counts["color.parquet"],
                     "color_profiles": artifact_counts["color_profiles.parquet"],
+                    "embeddings": artifact_counts["embeddings.parquet"],
                     "pattern_examples": artifact_counts["pattern_examples.parquet"],
                     "transition_examples": artifact_counts["transition_examples.parquet"],
                 }
@@ -908,6 +974,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "song_refs",
                     "color_norms",
                     "color_profiles",
+                    "embeddings",
                     "pattern_examples",
                     "transition_examples",
                     "relationship_types",
