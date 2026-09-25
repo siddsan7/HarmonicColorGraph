@@ -7,6 +7,35 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-25 F43 (color profiles: storage, progression arcs, API) is done,
+  not yet merged. New `backend/app/color/profile.py`
+  (`compute_color_profile`/`realize_progression`, reconstructing a real
+  chord sequence from core-token labels via F30's `realize()`), a new
+  `run_color_profiles` half of the `color` pipeline stage (processes every
+  row of `functions.parquet`/`transitions.parquet` (global-context
+  only)/`patterns.parquet` -- 100% coverage, not a sample, since these are
+  already corpus-scale aggregated tables), matching `pipeline/cli.py`/
+  `pipeline/load.py` wiring, and migration `0009_color_profiles.sql`
+  (`hcg.color_profiles`, not yet applied live). New
+  `backend/app/services/color_profile.py` builds the API's progression
+  arc (prefix-based: position `i`'s perceptual axes are F42's read of
+  `chords[:i+1]`) and a genuinely weighted raw-axis summary (final
+  position +2.0, borrowed chord +1.5, chromatic chord +1.0 -- the plan's
+  "weighted toward the final cadence and rare borrowed chords"), with
+  `drivers[]` reporting exactly which positions were up-weighted and why.
+  New `POST /v2/color/profile` and `GET /v2/color/compare` (DB-free,
+  standard error envelope, verified against the real analyzer end to end)
+  in `backend/app/api/color_v2.py` + `backend/app/schemas/color_v2.py`.
+  `backend/openapi.json`/`lib/api/types.ts` regenerated and verified
+  byte-identical on a second run. `docs/codemap.html` and
+  `context/brain/facts.json` updated in the same pass (new routes, the
+  `color_profiles` table, module rows, a new `change_together` entry, the
+  now-resolved F42/F43 seam rows closed out). 31 new tests across
+  `tests/unit/test_color_profile.py`, `test_pipeline_color.py`,
+  `test_color_profile_service.py`, and `test_api_color_v2.py`; full
+  `pytest -q` (852 passed, 13 skipped), `ruff check`/`ruff format --check`,
+  and `npm run lint`/`typecheck`/`test` all pass. Full detail in
+  `feature-specs/v2-implementation-plan.md`'s F43 "Completed" note.
 - 2026-09-25 F42 (perceptual axes with confidence & source) is done and
   merged ([PR #17](https://github.com/siddsan7/HarmonicColorGraph/pull/17),
   squash `e3d0420`, all four CI jobs and both Vercel previews passed). New

@@ -1,9 +1,12 @@
-"""F41 `color` stage: corpus percentile norms for the measurable color axes
-(`app/color/features.py`) over a bounded, seeded sample of sections.
+"""F41/F43 `color` stage: corpus percentile norms for the measurable color
+axes (`run_color`) and, from those same norms plus the corpus's own
+aggregated Functions/Transitions/Patterns, a color profile for every one
+of them (`run_color_profiles`).
 
-Bounded and seeded for the same reason as `corpus_report.py`'s sampling: this
-stage re-derives a `CanonicalChord`/`RomanToken` pair per sampled chord (the
-`analyze` stage already paid that cost once, across a worker pool, to write
+`run_color` is bounded and seeded for the same reason as
+`corpus_report.py`'s sampling: this stage re-derives a
+`CanonicalChord`/`RomanToken` pair per sampled chord (the `analyze` stage
+already paid that cost once, across a worker pool, to write
 `sections.parquet`), and percentile breakpoints don't need every row in the
 corpus to be stable -- only a large-enough, unbiased sample. Redoing the full
 corpus serially here just to compute norms would be slow and wasteful.
@@ -14,6 +17,13 @@ computed against a real (in-memory, offline) predictor built from that
 artifact -- no database involved. Without it, those two axes fall back to
 their predictor-free definitions (`resolution` still uses F13 cadence
 strength; `surprise` stays `None` and is excluded from its norms).
+
+`run_color_profiles`, by contrast, processes every row of its inputs (no
+sampling): `functions.parquet`/`transitions.parquet`/`patterns.parquet` are
+themselves already-aggregated, corpus-sized-not-song-sized tables (a few
+thousand rows at most, not millions), so full coverage is cheap -- and the
+plan's F43 check requires exactly that (100% coverage of loaded
+functions/transitions/patterns), not a sample.
 """
 
 from __future__ import annotations
@@ -174,6 +184,129 @@ def run_color(
         "p95": pl.Float64,
         "mean": pl.Float64,
         "std": pl.Float64,
+    }
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    pl.DataFrame(output_rows, schema=schema).write_parquet(output_path)
+
+    return summary
+
+
+# F43: `hcg.color_profiles`, one row per Function/global-Transition/Pattern
+# subject. `axes` is a JSON blob (raw axes, norms-normalized raw axes, and
+# the F42 perceptual axes with confidence/source) -- see
+# `app/color/profile.py`'s `compute_color_profile`, which does the real
+# work; this stage is only responsible for enumerating every subject and
+# writing the artifact.
+PROFILES_SCHEMA_TYPES = {
+    "subject_type": ("text", 12),
+    "subject_id": ("text", 40),
+    "mode": ("text", 6),
+    "support": ("int", 4),
+    "axes": ("jsonb", 700),
+}
+
+
+@dataclass
+class ColorProfilesSummary:
+    functions_profiled: int = 0
+    transitions_profiled: int = 0
+    patterns_profiled: int = 0
+    unrealizable_skipped: int = 0
+    rows_written: int = 0
+    budget_estimate_mb: float = 0.0
+
+
+def run_color_profiles(
+    functions_path: str | Path,
+    transitions_path: str | Path,
+    patterns_path: str | Path,
+    norms_path: str | Path,
+    output_path: str | Path,
+) -> ColorProfilesSummary:
+    """Enumerate every distinct Function (`functions.parquet`, grouped by
+    (mode, token)), every global Transition (`transitions.parquet` rows
+    with `context == "global"`), and every frequent Pattern
+    (`patterns.parquet`) and write one `compute_color_profile` row for
+    each to `output_path` (`color_profiles.parquet`)."""
+    import json
+
+    import polars as pl
+
+    from app.color.norms import index_norms
+    from app.color.perceptual import PERCEPTUAL_AXES
+    from app.color.profile import compute_color_profile, transition_subject_id
+
+    norms_file = Path(norms_path)
+    norms = index_norms(pl.read_parquet(norms_file).to_dicts()) if norms_file.is_file() else {}
+
+    summary = ColorProfilesSummary()
+    output_rows: list[dict] = []
+
+    def add(subject_type: str, subject_id: str, core_tokens: list[str], support: int) -> None:
+        try:
+            profile = compute_color_profile(
+                subject_type, subject_id, core_tokens, support=support, norms=norms
+            )
+        except ValueError:
+            summary.unrealizable_skipped += 1
+            return
+        axes_payload = {
+            "raw": profile.raw,
+            "raw_normalized": profile.raw_normalized,
+            "perceptual": {
+                axis: {
+                    "value": profile.perceptual[axis].value,
+                    "confidence": profile.perceptual[axis].confidence,
+                    "source": profile.perceptual[axis].source,
+                    "explanation": profile.perceptual[axis].explanation,
+                }
+                for axis in PERCEPTUAL_AXES
+            },
+        }
+        output_rows.append(
+            {
+                "subject_type": profile.subject_type,
+                "subject_id": profile.subject_id,
+                "mode": profile.mode,
+                "support": profile.support,
+                "axes": json.dumps(axes_payload, sort_keys=True),
+            }
+        )
+
+    functions = (
+        pl.read_parquet(functions_path)
+        .group_by(["mode", "token"])
+        .agg(pl.col("count").sum().alias("support"))
+    )
+    for row in functions.iter_rows(named=True):
+        add("function", row["token"], [row["token"]], int(row["support"]))
+        summary.functions_profiled += 1
+
+    transitions = pl.read_parquet(transitions_path).filter(pl.col("context") == "global")
+    for row in transitions.iter_rows(named=True):
+        subject_id = transition_subject_id(row["from_token"], row["to_token"])
+        add("transition", subject_id, [row["from_token"], row["to_token"]], int(row["count"]))
+        summary.transitions_profiled += 1
+
+    patterns = pl.read_parquet(patterns_path)
+    for row in patterns.iter_rows(named=True):
+        core_tokens = row["pattern"].split(" ")
+        add("pattern", row["pattern"], core_tokens, int(row["support"]))
+        summary.patterns_profiled += 1
+
+    summary.rows_written = len(output_rows)
+    bytes_per_row = sum(size for _, size in PROFILES_SCHEMA_TYPES.values())
+    summary.budget_estimate_mb = (
+        summary.rows_written * bytes_per_row * INDEX_OVERHEAD_FACTOR / (1024 * 1024)
+    )
+
+    schema = {
+        "subject_type": pl.Utf8,
+        "subject_id": pl.Utf8,
+        "mode": pl.Utf8,
+        "support": pl.Int64,
+        "axes": pl.Utf8,
     }
     output_path = Path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)

@@ -1,7 +1,10 @@
-"""F41 `color` stage: corpus percentile norms over a sampled `sections.parquet`,
-with and without a real (offline, in-memory) F30 predictor.
+"""F41/F43 `color` stage: corpus percentile norms over a sampled
+`sections.parquet` (`run_color`, with and without a real offline F30
+predictor), and a color profile for every Function/global-Transition/
+Pattern (`run_color_profiles`).
 """
 
+import json
 from pathlib import Path
 
 import pytest
@@ -9,7 +12,7 @@ import pytest
 pl = pytest.importorskip("polars")
 
 from pipeline.stages.analyze import SECTIONS_SCHEMA  # noqa: E402
-from pipeline.stages.color import run_color  # noqa: E402
+from pipeline.stages.color import run_color, run_color_profiles  # noqa: E402
 
 
 def _section_row(song_index, chords, key="C major", genre=None, section=None):
@@ -154,3 +157,168 @@ def test_run_color_uses_a_real_offline_predictor_when_ngrams_exist(tmp_path: Pat
     assert summary.used_predictor is True
     frame = pl.read_parquet(tmp_path / "color.parquet")
     assert "surprise" in set(frame["axis"].to_list())
+
+
+# --- F43: run_color_profiles -------------------------------------------------
+
+
+def _write_functions(path: Path, rows: list[dict]) -> Path:
+    schema = {"chord": pl.Utf8, "mode": pl.Utf8, "token": pl.Utf8, "count": pl.Int64}
+    pl.DataFrame(rows, schema=schema).write_parquet(path)
+    return path
+
+
+def _write_transitions(path: Path, rows: list[dict]) -> Path:
+    schema = {
+        "context": pl.Utf8,
+        "from_token": pl.Utf8,
+        "to_token": pl.Utf8,
+        "count": pl.Int64,
+        "prob": pl.Float64,
+        "pmi": pl.Float64,
+        "support": pl.Int64,
+    }
+    pl.DataFrame(rows, schema=schema).write_parquet(path)
+    return path
+
+
+def _write_patterns(path: Path, rows: list[dict]) -> Path:
+    schema = {"pattern": pl.Utf8, "length": pl.Int64, "support": pl.Int64}
+    pl.DataFrame(rows, schema=schema).write_parquet(path)
+    return path
+
+
+_FUNCTIONS_FIXTURE = [
+    {"chord": "C:maj", "mode": "major", "token": "M:I", "count": 10},
+    {"chord": "D:maj", "mode": "major", "token": "M:I", "count": 5},
+    {"chord": "A:min", "mode": "minor", "token": "m:i", "count": 3},
+]
+_TRANSITIONS_FIXTURE = [
+    {
+        "context": "global",
+        "from_token": "M:V",
+        "to_token": "M:I",
+        "count": 100,
+        "prob": 0.5,
+        "pmi": 0.1,
+        "support": 90,
+    },
+    {
+        "context": "genre:pop",
+        "from_token": "M:V",
+        "to_token": "M:I",
+        "count": 20,
+        "prob": 0.4,
+        "pmi": 0.1,
+        "support": 15,
+    },
+]
+_PATTERNS_FIXTURE = [
+    {"pattern": "M:I M:V M:vi M:IV", "length": 4, "support": 900},
+    {"pattern": "M:bVI M:bVII M:I", "length": 3, "support": 30},
+]
+
+
+def test_run_color_profiles_covers_every_function_transition_and_pattern(tmp_path: Path):
+    functions = _write_functions(tmp_path / "functions.parquet", _FUNCTIONS_FIXTURE)
+    transitions = _write_transitions(tmp_path / "transitions.parquet", _TRANSITIONS_FIXTURE)
+    patterns = _write_patterns(tmp_path / "patterns.parquet", _PATTERNS_FIXTURE)
+
+    summary = run_color_profiles(
+        functions,
+        transitions,
+        patterns,
+        tmp_path / "missing_norms.parquet",
+        tmp_path / "color_profiles.parquet",
+    )
+
+    # Two chords share the M:I function -> one profiled row, not two.
+    assert summary.functions_profiled == 2
+    # Only the "global" context transition counts, not "genre:pop".
+    assert summary.transitions_profiled == 1
+    assert summary.patterns_profiled == 2
+    assert summary.unrealizable_skipped == 0
+    assert summary.rows_written == 5
+
+    frame = pl.read_parquet(tmp_path / "color_profiles.parquet")
+    assert frame.height == 5
+    assert set(frame["subject_type"].to_list()) == {"function", "transition", "pattern"}
+    assert set(frame["subject_id"].to_list()) == {
+        "M:I",
+        "m:i",
+        "M:V>M:I",
+        "M:I M:V M:vi M:IV",
+        "M:bVI M:bVII M:I",
+    }
+
+
+def test_run_color_profiles_axes_payload_has_raw_and_perceptual_sections(tmp_path: Path):
+    functions = _write_functions(tmp_path / "functions.parquet", _FUNCTIONS_FIXTURE[:1])
+    transitions = _write_transitions(tmp_path / "transitions.parquet", [])
+    patterns = _write_patterns(tmp_path / "patterns.parquet", [])
+
+    run_color_profiles(
+        functions,
+        transitions,
+        patterns,
+        tmp_path / "missing_norms.parquet",
+        tmp_path / "color_profiles.parquet",
+    )
+    frame = pl.read_parquet(tmp_path / "color_profiles.parquet")
+    row = frame.row(0, named=True)
+    payload = json.loads(row["axes"])
+    assert set(payload) == {"raw", "raw_normalized", "perceptual"}
+    assert payload["raw_normalized"] == {}  # no norms artifact was supplied
+    for axis in ("nostalgia", "dreaminess", "melancholy", "warmth", "openness", "cinematic"):
+        entry = payload["perceptual"][axis]
+        assert set(entry) == {"value", "confidence", "source", "explanation"}
+
+
+def test_run_color_profiles_normalizes_raw_axes_when_norms_exist(tmp_path: Path):
+    functions = _write_functions(tmp_path / "functions.parquet", _FUNCTIONS_FIXTURE[:1])
+    transitions = _write_transitions(tmp_path / "transitions.parquet", [])
+    patterns = _write_patterns(tmp_path / "patterns.parquet", [])
+    norms_rows = [
+        {
+            "axis": "brightness",
+            "subject_type": "chord",
+            "count": 1000,
+            "p05": -1.0,
+            "p25": -0.3,
+            "p50": 0.0,
+            "p75": 0.3,
+            "p95": 1.0,
+            "mean": 0.0,
+            "std": 0.4,
+        }
+    ]
+    norms_path = tmp_path / "color.parquet"
+    pl.DataFrame(norms_rows).write_parquet(norms_path)
+
+    run_color_profiles(
+        functions, transitions, patterns, norms_path, tmp_path / "color_profiles.parquet"
+    )
+    frame = pl.read_parquet(tmp_path / "color_profiles.parquet")
+    payload = json.loads(frame.row(0, named=True)["axes"])
+    assert "brightness" in payload["raw_normalized"]
+    assert 0.0 <= payload["raw_normalized"]["brightness"] <= 1.0
+
+
+def test_run_color_profiles_skips_unrealizable_tokens(tmp_path: Path):
+    functions = _write_functions(
+        tmp_path / "functions.parquet",
+        [{"chord": "X:weird", "mode": "major", "token": "M:not-a-real-numeral", "count": 1}],
+    )
+    transitions = _write_transitions(tmp_path / "transitions.parquet", [])
+    patterns = _write_patterns(tmp_path / "patterns.parquet", [])
+
+    summary = run_color_profiles(
+        functions,
+        transitions,
+        patterns,
+        tmp_path / "missing_norms.parquet",
+        tmp_path / "color_profiles.parquet",
+    )
+    assert summary.functions_profiled == 1
+    assert summary.unrealizable_skipped == 1
+    assert summary.rows_written == 0

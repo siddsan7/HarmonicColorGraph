@@ -210,7 +210,7 @@
       <div class="scope">
         <span>commit <b>ecfe566</b></span>
         <span>mapped <b>2026-09-25</b></span>
-        <span>shipped <b>M0–M3 + F40 + F41</b></span>
+        <span>shipped <b>M0–M3 + F40–F43</b></span>
         <span>active corpus <b>cv-2026-09-a</b></span>
         <span>migrations live <b>0001–0007</b> (0008 written, not applied)</span>
       </div>
@@ -389,6 +389,8 @@
             <tr class="grp"><td colspan="6">v2 · public</td></tr>
             <tr><td><span class="m post">POST</span></td><td class="p">/v2/analyze</td><td>analysis_v2 → <code>theory.roman.analyze_v2</code></td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
             <tr><td><span class="m post">POST</span></td><td class="p">/v2/recommend-next-chords</td><td>recommend_v2 → <code>RecommendationService</code> → <code>KNPredictor</code>, <code>PatternStore</code>, <code>FactStore</code></td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>count-of-counts (in-proc, per version)</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/color/profile</td><td>color_v2 → <code>services.color_profile.compute_color_profile</code> → F41 <code>compute_chord_color</code> + F42 <code>compute_perceptual_color</code> (prefix-based arc; weighted raw summary)</td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/color/compare</td><td>color_v2 → <code>services.color_profile.compute_color_compare</code> (two profiles, b − a deltas)</td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/node/{id}</td><td>graph_v2 → <code>GraphService.get_node</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/neighborhood</td><td>graph_v2 → <code>GraphService.neighborhood</code> (1–2 hops, ≤200 edges)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>120</td><td>L1 + L2, 1 h</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/explain-edge</td><td>graph_v2 → <code>GraphService.explain_edge</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
@@ -502,7 +504,7 @@
             <tr><td class="p">ngrams</td><td>F22</td><td>sections</td><td class="p">ngrams.parquet</td><td><code>ngram_histories</code>, <code>ngram_discount_stats</code></td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">patterns</td><td>F22</td><td>sections</td><td class="p">patterns.parquet</td><td><code>patterns</code>, <code>edges_compact</code> type 4</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">examples</td><td>F22/F26</td><td>patterns · transitions · sections</td><td class="p">pattern_examples · transition_examples · song_refs</td><td>same-named tables</td><td><span class="pill done">done</span></td></tr>
-            <tr><td class="p">color</td><td>F41</td><td>sections · ngrams (optional, offline predictor)</td><td class="p">color.parquet</td><td><code>color_norms</code> (migration 0008, not applied live yet)</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">color</td><td>F41/F43</td><td>sections · ngrams (optional, offline predictor); F43 half also reads functions · transitions · patterns · color.parquet</td><td class="p">color.parquet, color_profiles.parquet</td><td><code>color_norms</code> (migration 0008), <code>color_profiles</code> (migration 0009) — neither applied live yet</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">embeddings</td><td>F50</td><td>sections</td><td class="p">embeddings.parquet</td><td>planned <code>embeddings</code> (pgvector)</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">snapshot</td><td>F63</td><td>—</td><td class="p">public/snapshot/graph-core.json</td><td>static degraded-mode file</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">export</td><td>stretch S1</td><td>—</td><td>Cypher/Neo4j export</td><td>—</td><td><span class="pill stub">stub</span></td></tr>
@@ -546,8 +548,9 @@
           <li><code>facts</code> (fact_id, version), kind, subject, template, params</li>
           <li><code>relationship_types</code> catalog</li>
         </ul></div>
-        <div class="sgroup"><h3>Color <span>0008 (written, not applied)</span></h3><ul>
+        <div class="sgroup"><h3>Color <span>0008 · 0009 (both written, not applied)</span></h3><ul>
           <li><code>color_norms</code> (version, axis, subject_type) → count, p05/p25/p50/p75/p95, mean, std. Loader-populated from <code>color.parquet</code>; no rows exist against any live version yet<span class="mig">0008</span></li>
+          <li><code>color_profiles</code> (version, subject_type, subject_id) → mode, support, axes jsonb ({raw, raw_normalized, perceptual}). One row per Function (a core token), global Transition (<code>from_token&gt;to_token</code>), or frequent Pattern. Loader-populated from <code>color_profiles.parquet</code>, computed by <code>app/color/profile.py</code>'s <code>compute_color_profile</code> (reconstructs a real chord sequence from core-token labels via F30's <code>realize()</code>); no rows exist against any live version yet<span class="mig">0009</span></li>
         </ul></div>
         <div class="sgroup"><h3>Jobs <span>0003 · 0004</span></h3><ul>
           <li><code>jobs</code> type, payload, status, progress/stage, attempt/max_attempts (3), worker_id, lease_expires_at, available_at, request_hash</li>
@@ -561,7 +564,6 @@
           <li>Accessed only through <code>app/models/harmony.py</code> + <code>db/repositories.py</code></li>
         </ul></div>
         <div class="sgroup absent"><h3>Not created yet <span>planned</span></h3><ul>
-          <li><code>color_profiles</code>: F43</li>
           <li><code>embeddings</code> (pgvector HNSW): F51. The <code>vector</code> extension is already installed in 0001.</li>
           <li><code>public.saved_progressions</code>, <code>taste_profiles</code>, <code>feedback</code>, <code>ai_query_logs</code>: F73/F80/F81</li>
         </ul></div>
@@ -613,9 +615,8 @@
         <table>
           <thead><tr><th>Seam</th><th>Where</th><th>Next owner</th></tr></thead>
           <tbody>
-            <tr><td>Nine color axes: <code>app/color/features.py AXES</code> and the older loader-side <code>pipeline/load.py COLOR_AXES</code> (kept in sync by convention, not by import — see <code>context/brain/facts.json</code>'s <code>color_axis</code> entry)</td><td class="p">app/color/features.py, pipeline/load.py</td><td>F42–F43 (perceptual axes, profile storage/API)</td></tr>
-            <tr><td><code>Recommendation.color</code> defaults to <code>{}</code></td><td class="p">app/schemas/recommend_v2.py</td><td>F43/F44</td></tr>
-            <tr><td><code>hcg.color_norms</code> table exists (migration 0008) but has no live rows yet (not applied; no full reload has run <code>color</code> against the real corpus)</td><td class="p">supabase/migrations/0008_color_norms.sql</td><td>F43 (bundle with the reload)</td></tr>
+            <tr><td><code>Recommendation.color</code> defaults to <code>{}</code> — F42/F43's axes are not yet wired into recommend responses</td><td class="p">app/schemas/recommend_v2.py</td><td>a later recommend-engine integration (not scheduled to a feature number yet)</td></tr>
+            <tr><td><code>hcg.color_norms</code> (0008) and <code>hcg.color_profiles</code> (0009) tables exist but have no live rows yet (neither migration applied; no full reload has run <code>color</code> against the real corpus)</td><td class="p">supabase/migrations/0008_color_norms.sql, 0009_color_profiles.sql</td><td>apply live + bundle a full reload once a graph-evidence consumer needs it</td></tr>
             <tr><td><code>embedding_rebuild</code> job returns 409</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>F50</td></tr>
             <tr><td><code>embeddings</code> / <code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F50 / F63 / S1</td></tr>
             <tr><td><code>DEFAULT_MIXING_K = 100.0</code> placeholder</td><td class="p">app/predict/ngram.py</td><td>tuning follow-up (docs/eval/prediction-v2.md)</td></tr>
@@ -653,9 +654,11 @@
             <tr><td class="p">backend/app/api/graph_v2.py</td><td>/v2/graph node, neighborhood, explain-edge, path; cache + limits</td></tr>
             <tr><td class="p">backend/app/api/examples_v2.py</td><td>GET /v2/examples for pattern or transition evidence (response models inline)</td></tr>
             <tr><td class="p">backend/app/api/jobs_v2.py</td><td>/v2/jobs admin API: token guard, idempotency, create/get/cancel/events/retry</td></tr>
+            <tr><td class="p">backend/app/api/color_v2.py</td><td>F43 POST /v2/color/profile, GET /v2/color/compare → services.color_profile; pure, no DB dependency</td></tr>
             <tr><td class="p">backend/app/api/phase1.py</td><td>Frozen v1 routes, including the in-code DEMO_TRANSITIONS fallback</td></tr>
             <tr class="grp"><td colspan="2">backend/app · domain</td></tr>
             <tr><td class="p">backend/app/services/recommend.py</td><td>RecommendationService, SessionNgramReader (+ version-keyed count cache), input parsing, explanations</td></tr>
+            <tr><td class="p">backend/app/services/color_profile.py</td><td>F43 build_arc (prefix-based per-position color), build_summary_and_drivers (final-cadence/borrowed-chord weighted raw summary), compute_color_profile/compare</td></tr>
             <tr><td class="p">backend/app/graph/service.py</td><td>GraphService: neighborhood BFS, explain_edge, k-shortest-ish paths, adjacency cache</td></tr>
             <tr><td class="p">backend/app/predict/ngram.py</td><td>KNPredictor: interpolated Kneser-Ney + context mixing; InMemoryNgramStore for tests/eval</td></tr>
             <tr><td class="p">backend/app/predict/realize.py</td><td>realize(core_token, key) → chord symbol (inverse of romanize .core)</td></tr>
@@ -678,6 +681,10 @@
             <tr><td class="p">backend/app/theory/relationships.py</td><td>v1 transition labels and explanations</td></tr>
             <tr><td class="p">backend/app/color/features.py</td><td>F41 compute_chord_color: 9 raw axes per position; SurprisePredictor protocol (no app.predict import)</td></tr>
             <tr><td class="p">backend/app/color/norms.py</td><td>F41 AxisNorm, normalize() (percentile clip to [0, 1]), index_norms()</td></tr>
+            <tr><td class="p">backend/app/color/perceptual.py</td><td>F42 compute_perceptual_color: 6 perceptual axes (logistic over F41's aggregated features, blended with color_rules.json matches); lint_explanation</td></tr>
+            <tr><td class="p">backend/app/color/perceptual_params.json</td><td>F42 documented per-axis logistic weights (bias + rationale per weight)</td></tr>
+            <tr><td class="p">backend/app/color/rules/color_rules.json</td><td>F42 21 curated progression-pattern rules → perceptual axis targets, tags, hedged explanations</td></tr>
+            <tr><td class="p">backend/app/color/profile.py</td><td>F43 realize_progression (core tokens → real chord sequence via F30's realize + romanize_chord), compute_color_profile (Function/Transition/Pattern subject → raw + perceptual axes)</td></tr>
             <tr class="grp"><td colspan="2">backend/app · data &amp; contracts</td></tr>
             <tr><td class="p">backend/app/db/session.py</td><td>Engine factory (NullPool, no prepares, search_path, 5 s timeout), lazy get_session</td></tr>
             <tr><td class="p">backend/app/db/stores/graph.py</td><td>GraphStore, NgramStore, PatternStore, FactStore: all v2 SQL, version-scoped</td></tr>
@@ -685,6 +692,7 @@
             <tr><td class="p">backend/app/db/base.py, models/harmony.py</td><td>v1 DeclarativeBase + ORM models</td></tr>
             <tr><td class="p">backend/app/schemas/analysis_v2.py</td><td>AnalyzeV2Request, AnalysisV2, RomanToken, RelationshipFact, KeyProbability</td></tr>
             <tr><td class="p">backend/app/schemas/recommend_v2.py</td><td>RecommendRequest/Response, ScoreBreakdown, Evidence</td></tr>
+            <tr><td class="p">backend/app/schemas/color_v2.py</td><td>F43 ColorProfileRequest/Response, ArcPoint, ColorSummary, Driver, PerceptualAxisOut, ColorCompareResponse</td></tr>
             <tr><td class="p">backend/app/schemas/harmony.py</td><td>StrictModel base, CanonicalChord, v1 request/response models</td></tr>
             <tr class="grp"><td colspan="2">backend/app · jobs</td></tr>
             <tr><td class="p">backend/app/jobs/schemas.py</td><td>Discriminated JobRequest union, corpus-version regex</td></tr>

@@ -8,11 +8,12 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M3 are merged to `main`; F40, F41, and F42 (M4) are all merged too.**
-F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42 are done
-(checkboxes in `feature-specs/v2-implementation-plan.md` match). The M3
-exit gate ("prediction report shows a clear win over v1; recommendations
-are context-sensitive in production") is satisfied. F40's PR
+**M0–M3 are merged to `main`; F40, F41, and F42 (M4) are all merged; F43
+is implemented but not yet on a PR.** F00–F09, F10–F14, F20–F29, F30, F31,
+F32, F40, F41, F42, F43 are done (checkboxes in
+`feature-specs/v2-implementation-plan.md` match). The M3 exit gate
+("prediction report shows a clear win over v1; recommendations are
+context-sensitive in production") is satisfied. F40's PR
 ([#13](https://github.com/siddsan7/HarmonicColorGraph/pull/13)) and an
 unrelated recovered Next.js security-fix PR
 ([#14](https://github.com/siddsan7/HarmonicColorGraph/pull/14)) both
@@ -29,9 +30,16 @@ migration `0008_color_norms.sql` — see the F41 bullet below and
 `e3d0420`) merged after all four CI jobs and both Vercel previews passed:
 new `backend/app/color/perceptual.py`, `perceptual_params.json`, and
 `rules/color_rules.json` (pure application code, no pipeline/DB changes);
-see this file's F42 bullet below. The next unstarted work is **F43**
-(color profile storage, progression arcs, API) — see "Immediate next
-steps".
+see this file's F42 bullet below. **F43 is implemented but not yet on a
+PR/merged** — new `backend/app/color/profile.py`,
+`backend/app/services/color_profile.py`,
+`backend/app/{api,schemas}/color_v2.py`, `run_color_profiles` in the
+`color` pipeline stage, `pipeline/load.py` wiring, and migration
+`0009_color_profiles.sql`; `backend/openapi.json`/`lib/api/types.ts`
+regenerated; `docs/codemap.html`/`context/brain/facts.json` updated; see
+this file's F43 bullet below. Per the user's explicit instruction this
+session, work stopped here — **F44 is next**, but was deliberately not
+started yet (see "Immediate next steps").
 
 The rest of this section is the detailed PR-by-PR history, oldest first;
 skip to "Immediate next steps" if you just need to know what to do next.
@@ -270,36 +278,79 @@ skip to "Immediate next steps" if you just need to know what to do next.
   **Merged**: [PR #17](https://github.com/siddsan7/HarmonicColorGraph/pull/17)
   (branch `codex/f42-perceptual-color`), squash commit `e3d0420`, all four
   CI jobs and both Vercel previews passed.
+- **F43 (color profile storage, progression arcs, and color APIs) is
+  done.** New `backend/app/color/profile.py`: `realize_progression`
+  rebuilds a real chord sequence from core-token labels alone (F30's
+  `realize()`, context-free per token, then `romanize_chord` in sequence
+  for real previous/next context), and `compute_color_profile` is the one
+  entry point for a Function/Transition/Pattern "subject" — F41's raw
+  axes at the final position, F41's norms-based normalization when a
+  norms table is supplied, and F42's perceptual axes over the whole
+  reconstructed progression. `pipeline/stages/color.py`'s new
+  `run_color_profiles` processes every row (not a sample — these inputs
+  are already corpus-scale aggregated tables) of `functions.parquet`
+  (grouped by `(mode, token)`), `transitions.parquet` (`context ==
+  "global"` only), and `patterns.parquet`, writing `color_profiles.parquet`.
+  `pipeline/cli.py`/`pipeline/load.py` gained matching wiring; migration
+  `supabase/migrations/0009_color_profiles.sql` (`hcg.color_profiles`,
+  `version/subject_type/subject_id` primary key, `axes jsonb`) is written
+  but **not yet applied live** — no application code reads it yet (see
+  below). New `backend/app/services/color_profile.py` builds the API's
+  progression arc: prefix-based (position `i`'s perceptual axes are F42's
+  read of `chords[:i+1]`, so the final position's perceptual axes are
+  exactly the whole progression's F42 read, reused directly as the
+  summary), and a genuinely weighted raw-axis summary (final position
+  `+2.0`, borrowed chord `+1.5`, chromatic chord `+1.0` — the plan's
+  "weighted toward the final cadence and rare borrowed chords"), with
+  `drivers[]` reporting exactly which positions were up-weighted and why.
+  New `POST /v2/color/profile` and `GET /v2/color/compare`
+  (`backend/app/api/color_v2.py` + `schemas/color_v2.py`) are fully
+  DB-free (mirroring `/v2/analyze`: a submitted progression is analyzed
+  on the fly, no active corpus version needed) and use the standard v2
+  error envelope (per the `api-contract-regen`/`api-error-envelope`
+  gotchas, not `/v2/analyze`'s `HTTPException` exception).
+  `backend/openapi.json`/`lib/api/types.ts` were regenerated and verified
+  byte-identical on a second run; no `lib/api/client.ts` wrapper yet since
+  no UI consumes these endpoints until F44. `docs/codemap.html` and
+  `context/brain/facts.json` were updated in the same pass per the
+  `docs-codemap-drift` gotcha. 31 new tests; full `pytest -q` (852 passed,
+  13 skipped), `ruff check`/`ruff format --check`, and `npm run
+  lint`/`typecheck`/`test` all pass. Full detail in
+  `context/progress-tracker.md`'s F43 entry and
+  `feature-specs/v2-implementation-plan.md`'s F43 "Completed" note.
+  **Not yet on a PR or merged to `main`** — the user explicitly asked to
+  stop after this feature, so F44 was deliberately not started; see
+  "Immediate next steps".
 
 ## Immediate next steps
 
-1. Continue the plan at **F43** (color profile storage, progression arcs,
-   API), then F44. **F43 is not blocked by item 2 below** — same
-   reasoning F41/F42 already
-   confirmed: no application code anywhere references `VOICE_LEADS_TO` or
-   reads `hcg.color_norms` yet, and F41/F42's axes all compute live
-   per-progression through pure functions, not graph/table lookups. F43
-   is the feature that actually needs `hcg.color_norms` (and its own
-   profile-storage migration) to materialize corpus-wide profiles, so
-   plan for that dependency directly in F43, not as a separate pre-step.
-2. Apply migration `0008_color_norms.sql` live (MCP `apply_migration`,
-   then `get_advisors`) whenever convenient — cheap and low-risk (an
-   empty table until the next full load), unlike item 3. F43 will need
-   this applied before its own profile-storage migration can build on it.
+1. Open a PR for F43 (working-tree changes only as of this entry — no
+   `codex/`-style branch created yet). Run the Standard Check Gate,
+   inspect CI, and squash-merge once green, then continue the plan at
+   **F44** (color UI). F44 depends on F43's actual response shape
+   (`{arc[], summary{}, drivers[]}` from `POST /v2/color/profile`), so it
+   was intentionally left for the next session/agent rather than guessed
+   against, per the user's own question this session about parallelizing
+   F44 while F43 was still in progress.
+2. Apply migrations `0008_color_norms.sql` and `0009_color_profiles.sql`
+   live (MCP `apply_migration`, then `get_advisors`) whenever convenient
+   — cheap and low-risk (empty tables until the next full load), unlike
+   item 3.
 3. A full pipeline re-run and reload is needed to get F40's voice-leading
-   edges AND F41's color norms into the live `cv-2026-09-a` version (the
-   `voice_leading` and `color` stages have only run against local
-   fixtures and the `eval-train-a` chord vocabulary so far, never the
-   full corpus) — but only actually matters once something wants to show
-   precomputed voice-leading evidence or corpus-normalized color values
-   in a graph UI or API (there is no such consumer yet; see item 1).
-   Treat the reload as its own deliberate, higher-risk step when that
+   edges, F41's color norms, AND F43's color profiles into the live
+   `cv-2026-09-a` version (the `voice_leading` and `color` stages have
+   only run against local fixtures and the `eval-train-a` chord
+   vocabulary so far, never the full corpus) — but only actually matters
+   once something wants to show precomputed voice-leading evidence or
+   corpus-normalized/precomputed color values in a graph UI or API (the
+   new `/v2/color/*` endpoints don't need it — they're DB-free; see item
+   1). Treat the reload as its own deliberate, higher-risk step when that
    need arises — the real corpus load has already failed twice on
    storage budget/timeout before succeeding (see this file's M2 load
    history and `docs/eval/corpus-cv-2026-09-a.md`) — not something to
-   fold into a routine PR. Reasonable to bundle with F43/F44 (color
-   profile storage and UI) if/when a graph-evidence consumer is added,
-   rather than doing it standalone.
+   fold into a routine PR. Reasonable to bundle with F44 (color UI) or a
+   later graph-evidence consumer if/when one is added, rather than doing
+   it standalone.
 4. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
    (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
    it matters (context mixing currently *hurts* MRR at orders 4-5; see

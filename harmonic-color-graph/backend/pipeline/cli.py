@@ -52,7 +52,7 @@ def _run_build(args: argparse.Namespace) -> None:
 
     from pipeline.stages.aggregate import run_aggregate
     from pipeline.stages.analyze import run_analyze
-    from pipeline.stages.color import run_color
+    from pipeline.stages.color import run_color, run_color_profiles
     from pipeline.stages.embeddings import run_embeddings
     from pipeline.stages.examples import run_examples
     from pipeline.stages.export import run_export
@@ -218,6 +218,26 @@ def _run_build(args: argparse.Namespace) -> None:
                 f"{summary.rows_sampled:,} sampled sections "
                 f"({summary.unscored_sections:,} unscored, "
                 f"predictor={'yes' if summary.used_predictor else 'no'}) "
+                f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
+            )
+            profiles_summary = run_color_profiles(
+                artifact_dir / "functions.parquet",
+                artifact_dir / "transitions.parquet",
+                artifact_dir / "patterns.parquet",
+                artifact_dir / "color.parquet",
+                artifact_dir / "color_profiles.parquet",
+            )
+            manifest.row_counts["color_profiles_rows"] = profiles_summary.rows_written
+            manifest.budget_estimate_mb["color_profiles"] = profiles_summary.budget_estimate_mb
+            _recompute_budget_total(manifest)
+            manifest.output_hashes["color_profiles.parquet"] = content_hash(
+                pl.read_parquet(artifact_dir / "color_profiles.parquet")
+            )
+            print(
+                f"color_profiles: {profiles_summary.functions_profiled:,} functions, "
+                f"{profiles_summary.transitions_profiled:,} global transitions, "
+                f"{profiles_summary.patterns_profiled:,} patterns "
+                f"({profiles_summary.unrealizable_skipped:,} unrealizable, skipped) "
                 f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
             )
         else:

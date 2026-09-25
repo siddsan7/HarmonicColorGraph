@@ -152,6 +152,15 @@ def artifact_dir(tmp_path: Path) -> Path:
                 "std": [0.1],
             }
         ),
+        "color_profiles.parquet": pl.DataFrame(
+            {
+                "subject_type": ["function", "transition", "pattern"],
+                "subject_id": ["M:I", "M:V>M:I", "M:I M:V M:I"],
+                "mode": ["major", "major", "major"],
+                "support": [3, 3, 1],
+                "axes": ['{"raw": {}}', '{"raw": {}}', '{"raw": {}}'],
+            }
+        ),
     }
     manifest = Manifest(version=path.name, source_path="fixture", source_sha256="fixture")
     manifest.row_counts = {
@@ -166,6 +175,7 @@ def artifact_dir(tmp_path: Path) -> Path:
         "transition_examples_rows": 1,
         "song_refs_rows": 1,
         "color_norms_rows": 1,
+        "color_profiles_rows": 3,
     }
     for filename, frame in frames.items():
         frame.write_parquet(path / filename)
