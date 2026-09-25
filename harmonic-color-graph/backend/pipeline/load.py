@@ -649,6 +649,12 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
             # Direct Supabase roles default to a two-minute statement timeout;
             # binary COPY of the complete graph can legitimately take longer.
             conn.execute("set local statement_timeout = '20min'")
+            # Production roles are configured with this search_path already
+            # (see app/db/session.py); a bare CI/local Postgres role is not,
+            # and pgvector's `<=>` operator (registered in `extensions` by
+            # migration 0001/0010) only resolves through search_path, unlike
+            # the fully-qualified `extensions.vector` type itself.
+            conn.execute("set local search_path = hcg, extensions, public")
             conn.execute("select pg_advisory_xact_lock(hashtext('hcg.corpus_loader'))")
             current = conn.execute(
                 "select manifest, active from hcg.corpus_versions where version = %s for update",
