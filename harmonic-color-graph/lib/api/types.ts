@@ -259,6 +259,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/find-substitutes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Find Substitutes */
+        post: operations["find_substitutes_v2_find_substitutes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/graph/explain-edge": {
         parameters: {
             query?: never;
@@ -1176,6 +1193,91 @@ export interface components {
             /** Spotify Id */
             spotify_id: string | null;
         };
+        /** Substitute */
+        Substitute: {
+            /** Chord */
+            chord: string;
+            /** Pitch Classes */
+            pitch_classes: number[];
+            /** Reasons */
+            reasons: string[];
+            /** Score */
+            score: number;
+            score_breakdown: components["schemas"]["SubstituteScore"];
+            /** Token */
+            token: string;
+            /** Voice Leading Cost */
+            voice_leading_cost: number;
+        };
+        /** SubstituteConstraints */
+        SubstituteConstraints: {
+            /**
+             * Keep Function
+             * @default false
+             */
+            keep_function: boolean;
+            /**
+             * Smooth
+             * @default false
+             */
+            smooth: boolean;
+            /**
+             * Surprise
+             * @default false
+             */
+            surprise: boolean;
+        };
+        /** SubstituteData */
+        SubstituteData: {
+            /** Index */
+            index: number;
+            /** Key */
+            key: string;
+            /** Original Chord */
+            original_chord: string;
+            /** Substitutes */
+            substitutes: components["schemas"]["Substitute"][];
+        };
+        /** SubstituteRequest */
+        SubstituteRequest: {
+            constraints?: components["schemas"]["SubstituteConstraints"];
+            /** Index */
+            index: number;
+            /**
+             * K
+             * @default 8
+             */
+            k: number;
+            /** Key */
+            key?: string | null;
+            /** Progression */
+            progression: string | string[];
+        };
+        /** SubstituteResponse */
+        SubstituteResponse: {
+            data: components["schemas"]["SubstituteData"];
+            /** Meta */
+            meta: {
+                [key: string]: string;
+            };
+            /** Warnings */
+            warnings?: string[];
+        };
+        /** SubstituteScore */
+        SubstituteScore: {
+            /** Function Bonus */
+            function_bonus: number;
+            /** Left Log Probability */
+            left_log_probability: number;
+            /** Right Log Probability */
+            right_log_probability: number;
+            /** Smoothness */
+            smoothness: number;
+            /** Surprise */
+            surprise: number;
+            /** Total */
+            total: number;
+        };
         /** TransitionCandidate */
         TransitionCandidate: {
             /** Chord */
@@ -1752,6 +1854,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ExamplesResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    find_substitutes_v2_find_substitutes_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubstituteRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubstituteResponse"];
                 };
             };
             /** @description Validation Error */

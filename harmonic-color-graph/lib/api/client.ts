@@ -87,6 +87,59 @@ export type RecommendResponse = {
   warnings: Array<{ code: string; message: string }>
 }
 
+export type SubstituteResponse = {
+  data: {
+    index: number
+    original_chord: string
+    key: string
+    substitutes: Array<{
+      token: string
+      chord: string
+      pitch_classes: number[]
+      score: number
+      voice_leading_cost: number
+      reasons: string[]
+      score_breakdown: {
+        left_log_probability: number
+        right_log_probability: number
+        function_bonus: number
+        smoothness: number
+        surprise: number
+        total: number
+      }
+    }>
+  }
+  meta: { corpus_version: string; model: string }
+  warnings: string[]
+}
+
+export async function findSubstitutes(request: {
+  progression: string[]
+  index: number
+  key: string
+  constraints?: { keep_function?: boolean; smooth?: boolean; surprise?: boolean }
+  k?: number
+  signal?: AbortSignal
+}): Promise<SubstituteResponse> {
+  const { signal, ...body } = request
+  const payload: unknown = await apiFetch<unknown>("/v2/find-substitutes", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  })
+  if (typeof payload !== "object" || payload === null) throw new Error("Invalid substitute response.")
+  const response = payload as Record<string, unknown>
+  const data = response.data as Record<string, unknown> | null
+  if (!data || !Array.isArray(data.substitutes) || typeof data.key !== "string" ||
+      !data.substitutes.every((item) => typeof item === "object" && item !== null &&
+        typeof (item as Record<string, unknown>).chord === "string" &&
+        Array.isArray((item as Record<string, unknown>).pitch_classes))) {
+    throw new Error("Invalid substitute response.")
+  }
+  return payload as SubstituteResponse
+}
+
 export async function recommendNextChords(request: {
   progression: string[]
   key: string
