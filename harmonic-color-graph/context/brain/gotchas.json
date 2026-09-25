@@ -1,8 +1,8 @@
 {
   "_meta": {
     "purpose": "Recurring traps an agent falls into on this repo. Each entry is a rule plus a quick check. It does not retell history: `see` points to where the full story lives.",
-    "verified_at_commit": "994b648",
-    "verified_on": "2026-09-24",
+    "verified_at_commit": "ecfe566",
+    "verified_on": "2026-09-25",
     "how_to_use": "Before a task, scan the ids for your area (env, docs, git, db, pipeline, api, frontend, domain). Treat `rule` as binding. If a gotcha no longer matches the code, fix or delete it in the same PR; a stale gotcha is itself a trap.",
     "how_to_add": "Add an entry only when a mistake happened or nearly happened, and only if the rule is not already stated as a rule in context/, docs/adr/, or feature-specs/. Otherwise point to the existing rule."
   },
@@ -123,10 +123,18 @@
       "see": "backend/pipeline/stages/ngrams.py threshold comment"
     },
     {
+      "id": "pipeline-chord-label-form",
+      "area": "pipeline",
+      "trap": "sections.parquet/abs_transitions.parquet chord columns store CanonicalChord.symbol, colon-separated (\"C:maj\", \"A:min7\") -- normalize_chord() rejects that form outright (parses the whole remainder after the root as the quality string). A stage that re-parses these labels without stripping the colon first silently fails every chord.",
+      "rule": "Before calling normalize_chord/normalize_progression/analyze_v2 on a label pulled from a parquet chords/from_chord/to_chord column, strip the first colon (chord_label.replace(\":\", \"\", 1)). voice_leading.py's _to_symbol and color.py's _to_symbol both do this; write-your-own tests with realistic colon-form fixtures, not plain letter chords, to catch a missed conversion.",
+      "see": "backend/pipeline/stages/voice_leading.py (_to_symbol), backend/pipeline/stages/color.py (_to_symbol)"
+    },
+    {
       "id": "pipeline-stub-stages",
       "area": "pipeline",
-      "trap": "Running `pipeline.cli run` through the last stage fails. color (F41), embeddings (F50), snapshot (F63), and export are stubs that raise StageNotImplementedError.",
-      "rule": "Use `--to-stage voice_leading` until F41 lands. Replace a stub in place when implementing it; do not add a parallel stage."
+      "trap": "Running `pipeline.cli run` through the last stage fails. embeddings (F50), snapshot (F63), and export are still stubs that raise StageNotImplementedError; color (F41) is implemented as of this entry.",
+      "rule": "Use `--to-stage color` until F50 lands. Replace a stub in place when implementing it; do not add a parallel stage.",
+      "see": "context/HANDOFF.md (F41 bullet)"
     },
     {
       "id": "api-error-envelope",

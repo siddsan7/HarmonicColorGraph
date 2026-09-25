@@ -1263,8 +1263,8 @@ this repo) — CI's Postgres job applies `supabase/migrations/*.sql` by glob
 (`scripts/docker-migrate.sh`), so migration 0007 is picked up automatically
 there with no separate wiring.
 
-### F41 — Measurable color features + norms [M]
-- [ ] `color/features.py`, for a chord in context and for a transition (all raw, then normalized):
+### F41 — Measurable color features + norms [M] — DONE
+- [x] `color/features.py`, for a chord in context and for a transition (all raw, then normalized):
   - `chromaticity` = share of chord tones outside the local scale (transition: newly introduced ones).
   - `brightness` = 0.6·norm(mean line-of-fifths index of the **spelled** chord tones relative to the tonic) + 0.4·third-quality term (+1 major, −1 minor/dim, 0 sus/power).
   - `tension` = 0.4·dissonance(interval vector: m2/M7 1.0, tritone 0.8, M2/m7 0.4) + 0.3·function (D 1, PD 0.5, T 0) + 0.2·chromaticity + 0.1·(inversion 64 → 1).
@@ -1274,10 +1274,77 @@ there with no separate wiring.
   - `complexity` = clip((|PCs| − 3)/4 + 0.15·|extensions|).
   - `resolution` (transition) = cadence strength from F13 (authentic 0.95, plagal 0.75, half 0.3, deceptive 0.45) blended with P(next is T-class).
   - `finality` = resolution × tonic-arrival × root-position.
-- [ ] `color/norms.py`: pipeline computes corpus percentiles per axis → `hcg.color_norms` (migration `0003_color.sql`); runtime normalizes with them.
+- [x] `color/norms.py`: pipeline computes corpus percentiles per axis → `hcg.color_norms` (migration `0008_color_norms.sql`, renumbered from the plan's stale `0003` — 0001–0007 are already applied); runtime normalizes with them.
 
 **Checks:** Phase 2 §12.1 sanity suite as tests (in C major): `res(V→I) > res(V→vi)`; `surprise(V→vi) > surprise(V→I)`; `brightness(iv) < brightness(IV)`; `chromaticity(bVI→bVII→I) > chromaticity(IV→V→I)`; `smoothness(I→iii→vi) ≥ 0.7`; `tension(V7) > tension(I)`. Non-degenerate distributions (std > 0.1 per axis on the corpus).
 **Commit:** `feat(color): measurable harmonic color features with corpus norms`
+
+**Completed 2026-09-25.** `backend/app/color/features.py`: `compute_chord_color`
+is the one entry point (mirrors `romanize_chord`'s `chord, key, *,
+previous_chord=`/`next_chord=` shape), taking a chord's `CanonicalChord`
+(real pitches, for voice leading) and `RomanToken` (function/degree/inversion)
+plus the previous position's pair when there is one. All 9 axes are pure and
+DB-free except `surprise` and `resolution`'s forward-looking P(T-class) term,
+which take an injected `SurprisePredictor` protocol (structurally matches
+`KNPredictor`, so this module never imports `app.predict.ngram` — same split
+as that module's own `NgramReader` protocol); without a predictor, `surprise`
+is `None` and `resolution` falls back to cadence strength alone. Cadence
+detection reuses F13's `analyze_relationships` directly rather than
+duplicating the rule table. `backend/app/color/norms.py`: `AxisNorm` +
+`normalize()` (percentile floor/ceiling clip to [0, 1], degenerate zero-span
+guarded to 0.5) + `index_norms()` for building the `(axis, subject_type) ->
+AxisNorm` lookup from `hcg.color_norms` rows.
+
+`pipeline/stages/color.py` (replacing the F41 stub in place) computes corpus
+percentiles from a bounded, seeded sample of `sections.parquet` rows (default
+20,000, matching `corpus_report.py`'s "a large unbiased sample beats a full
+re-derivation" philosophy — re-running Roman/key analysis over the full
+multi-million-row corpus just for percentile breakpoints would be slow and
+wasteful, and percentiles don't need every row to be stable). When
+`ngrams.parquet` exists (the `ngrams` stage already runs earlier in
+`STAGE_ORDER`), it builds a real, fully offline `KNPredictor` from it via
+`InMemoryNgramStore.from_parquet` — no database involved — so `surprise` and
+`resolution`'s real P(T-class) term get genuine corpus-derived percentiles,
+not just theory-only ones. Each sampled section's first chord contributes a
+`subject_type="chord"` row (no previous chord); every later position
+contributes `subject_type="transition"`. `pipeline/cli.py`'s `color` branch
+now wires manifest row counts/budget/hashes the same way `voice_leading` does
+(previously it fell through the stub-only generic 2-arg handler).
+`pipeline/load.py` gained `color.parquet` to `REQUIRED_ARTIFACTS`/
+`ARTIFACT_COLUMNS`, a `color_norms` copy in the same atomic load transaction
+as every other new-version table, and `color_norms` in `_table_counts`/the
+post-load `analyze` loop. Migration `0008_color_norms.sql` creates
+`hcg.color_norms(version, axis, subject_type, count, p05, p25, p50, p75, p95,
+mean, std)` with RLS enabled, following the same
+`version references hcg.corpus_versions ... on delete cascade` shape as every
+other versioned table — **not yet applied live** (the loader now requires
+`color.parquet` for every future load, so it only matters once a full
+pipeline reload happens; see `HANDOFF.md`'s next steps).
+
+Verified: the real end-to-end `ingest → analyze → ... → color` pipeline run
+(via `pipeline.cli run`, exercised by `test_pipeline_cli_run.py`'s existing
+30-song synthetic-corpus fixture) now runs `color` successfully instead of
+raising `StageNotImplementedError`, so
+`test_unimplemented_downstream_stage_raises_clear_error` was updated to point
+at the next real stub (`embeddings`/F50) — the correct move per the
+`pipeline-stub-stages` gotcha ("replace the stub in place"), not a weakened
+check. 22 new unit tests across `test_color_features.py` (the Phase 2 §12.1
+sanity suite, plus per-axis coverage including a hand-built
+`InMemoryNgramStore` fixture for `surprise`/`resolution`'s predictor path),
+`test_color_norms.py`, and `test_pipeline_color.py` (percentile ordering,
+sample-cap enforcement, empty/keyless-section skipping, the offline-predictor
+path). `test_pipeline_load.py`'s shared `artifact_dir` fixture gained a
+`color.parquet` frame and `color_norms_rows` manifest key (the loader's
+`_validate_artifacts` now requires it). Full `pytest -q` (803 passed, 13
+skipped — the `pg`-marked tests, matching the `env-local-coverage` gotcha),
+`ruff check .`, and `ruff format --check .` are clean;
+`python -c "import app.main"` still succeeds (the `pipeline-import-weight`
+gotcha check — `app/color/features.py` imports no pipeline/polars modules).
+Not yet done: applying migration 0008 live, and the full corpus reload that
+would populate `hcg.color_norms` for the active `cv-2026-09-a` version (same
+"deliberate, higher-risk, bundle-with-a-real-consumer" reasoning as F40's
+`VOICE_LEADS_TO` edges — F42–F44 don't need it either; F41's own sanity
+checks and the pipeline stage's own tests don't require a live table).
 
 ### F42 — Perceptual axes with confidence & source [M]
 - [ ] `color/rules/color_rules.json`: curated entries from Phase 2 §6.1 plus ~20 more (e.g. `M:iv→M:I`, `M:V→M:vi`, `M:V→M:I`, `M:bVI→M:bVII→M:I`, `M:I→M:iii`, `M:IVmaj7→M:iv6`), each `{axes, tags, explanation, source: "rule", confidence: 0.8}`.

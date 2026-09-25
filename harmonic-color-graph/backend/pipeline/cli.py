@@ -202,9 +202,26 @@ def _run_build(args: argparse.Namespace) -> None:
                 f"{summary.transition_examples_rows:,} transition examples, "
                 f"{summary.song_refs_rows:,} distinct songs referenced"
             )
+        elif stage == "color":
+            summary = run_color(
+                sections_path, artifact_dir / "ngrams.parquet", artifact_dir / "color.parquet"
+            )
+            manifest.row_counts["color_norms_rows"] = summary.axes_written
+            manifest.budget_estimate_mb["color_norms"] = summary.budget_estimate_mb
+            _recompute_budget_total(manifest)
+            manifest.output_hashes["color.parquet"] = content_hash(
+                pl.read_parquet(artifact_dir / "color.parquet")
+            )
+            print(
+                f"color: {summary.axes_written} axis/subject_type norm rows from "
+                f"{summary.positions_scored:,} scored positions across "
+                f"{summary.rows_sampled:,} sampled sections "
+                f"({summary.unscored_sections:,} unscored, "
+                f"predictor={'yes' if summary.used_predictor else 'no'}) "
+                f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
+            )
         else:
             stage_runner = {
-                "color": run_color,
                 "embeddings": run_embeddings,
                 "snapshot": run_snapshot,
                 "export": run_export,

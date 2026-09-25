@@ -138,6 +138,20 @@ def artifact_dir(tmp_path: Path) -> Path:
                 "decade": ["2020s"],
             }
         ),
+        "color.parquet": pl.DataFrame(
+            {
+                "axis": ["tension"],
+                "subject_type": ["transition"],
+                "count": [1],
+                "p05": [0.1],
+                "p25": [0.2],
+                "p50": [0.3],
+                "p75": [0.4],
+                "p95": [0.5],
+                "mean": [0.3],
+                "std": [0.1],
+            }
+        ),
     }
     manifest = Manifest(version=path.name, source_path="fixture", source_sha256="fixture")
     manifest.row_counts = {
@@ -151,6 +165,7 @@ def artifact_dir(tmp_path: Path) -> Path:
         "pattern_examples_rows": 1,
         "transition_examples_rows": 1,
         "song_refs_rows": 1,
+        "color_norms_rows": 1,
     }
     for filename, frame in frames.items():
         frame.write_parquet(path / filename)

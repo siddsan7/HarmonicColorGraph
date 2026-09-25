@@ -48,6 +48,7 @@ REQUIRED_ARTIFACTS = {
     "pattern_examples.parquet": "pattern_examples_rows",
     "transition_examples.parquet": "transition_examples_rows",
     "song_refs.parquet": "song_refs_rows",
+    "color.parquet": "color_norms_rows",
 }
 ARTIFACT_COLUMNS = {
     "sections.parquet": {"local_key", "genre", "section", "decade", "labels"},
@@ -83,6 +84,18 @@ ARTIFACT_COLUMNS = {
         "rank",
     },
     "song_refs.parquet": {"song_id", "spotify_id", "genre", "decade"},
+    "color.parquet": {
+        "axis",
+        "subject_type",
+        "count",
+        "p05",
+        "p25",
+        "p50",
+        "p75",
+        "p95",
+        "mean",
+        "std",
+    },
 }
 
 PITCH_CLASSES = ("C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B")
@@ -510,6 +523,7 @@ def _table_counts(conn: Connection, version: str) -> dict[str, int]:
         "ngram_discount_stats",
         "patterns",
         "song_refs",
+        "color_norms",
         "pattern_examples",
         "transition_examples",
         "relationship_types",
@@ -714,6 +728,52 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                 )
                 _copy_rows(
                     conn,
+                    "color_norms",
+                    (
+                        "version",
+                        "axis",
+                        "subject_type",
+                        "count",
+                        "p05",
+                        "p25",
+                        "p50",
+                        "p75",
+                        "p95",
+                        "mean",
+                        "std",
+                    ),
+                    (
+                        "text",
+                        "text",
+                        "text",
+                        "int4",
+                        "float8",
+                        "float8",
+                        "float8",
+                        "float8",
+                        "float8",
+                        "float8",
+                        "float8",
+                    ),
+                    (
+                        (
+                            version,
+                            r["axis"],
+                            r["subject_type"],
+                            r["count"],
+                            r["p05"],
+                            r["p25"],
+                            r["p50"],
+                            r["p75"],
+                            r["p95"],
+                            r["mean"],
+                            r["std"],
+                        )
+                        for r in _artifact_rows(artifact_dir / "color.parquet")
+                    ),
+                )
+                _copy_rows(
+                    conn,
                     "pattern_examples",
                     ("version", "pattern", "song_id", "section", "ordinal", "position", "rank"),
                     ("text", "text", "text", "text", "int4", "int4", "int2"),
@@ -781,6 +841,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "ngram_histories": artifact_counts["ngrams.parquet"],
                     "patterns": artifact_counts["patterns.parquet"],
                     "song_refs": artifact_counts["song_refs.parquet"],
+                    "color_norms": artifact_counts["color.parquet"],
                     "pattern_examples": artifact_counts["pattern_examples.parquet"],
                     "transition_examples": artifact_counts["transition_examples.parquet"],
                 }
@@ -824,6 +885,7 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     "ngram_discount_stats",
                     "patterns",
                     "song_refs",
+                    "color_norms",
                     "pattern_examples",
                     "transition_examples",
                     "relationship_types",
