@@ -8,11 +8,26 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M3 are merged to `main`; F40, F41, F42, and F43 (M4) are all merged.**
-F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43 are done
-(checkboxes in `feature-specs/v2-implementation-plan.md` match). The M3
-exit gate ("prediction report shows a clear win over v1; recommendations
-are context-sensitive in production") is satisfied. F40's PR
+**M0–M4 are merged to `main`; F50–F53 (most of M5) are merged too.**
+F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43, F50, F51, F52,
+F53 are done (checkboxes in `feature-specs/v2-implementation-plan.md`
+match). **F44** (color UI) and **F54** (intent-driven recommendations in the
+product) are the two remaining M4/M5 features — see "Immediate next steps".
+F50–F53 were picked up from four independent local worktree checkpoints
+(`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
+each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
+request to finish, verify, and merge them; see each feature's "Completed"
+note in `feature-specs/v2-implementation-plan.md` for the real gaps closed
+in each (F50 had zero tests and no eval report; F51 had a real CI-only
+Postgres bug; F52 was missing its eval report; F53 needed only a rebase).
+All four merged in dependency order (F50 → F51 → F52 → F53) via
+[PR #22](https://github.com/siddsan7/HarmonicColorGraph/pull/22),
+[PR #21](https://github.com/siddsan7/HarmonicColorGraph/pull/21),
+[PR #23](https://github.com/siddsan7/HarmonicColorGraph/pull/23), and
+[PR #24](https://github.com/siddsan7/HarmonicColorGraph/pull/24)
+respectively, each after all four CI jobs passed. The M3 exit gate
+("prediction report shows a clear win over v1; recommendations are
+context-sensitive in production") is satisfied. F40's PR
 ([#13](https://github.com/siddsan7/HarmonicColorGraph/pull/13)) and an
 unrelated recovered Next.js security-fix PR
 ([#14](https://github.com/siddsan7/HarmonicColorGraph/pull/14)) both
@@ -321,63 +336,113 @@ skip to "Immediate next steps" if you just need to know what to do next.
   **Merged**: [PR #19](https://github.com/siddsan7/HarmonicColorGraph/pull/19)
   (branch `codex/f43-color-profiles`), squash commit `d251058`, all four
   CI jobs and both Vercel previews passed. The user explicitly asked to
-  stop after this feature, so F44 was deliberately not started this
-  session; see "Immediate next steps".
+  stop after this feature, so F44 was deliberately not started that
+  session.
+- **F50–F53 (M5) are done and merged**, picked up from four independent
+  local worktree checkpoints (`../HarmonicColorGraph-f50` through `-f53`,
+  each a real, substantial Codex-authored implementation, all uncommitted
+  and based on a pre-F43 `main`) at Siddharth's explicit request to
+  finish, verify, and merge them. Rebased each onto current `main` in
+  dependency order and ran the real Standard Check Gate on every one —
+  full detail (real gaps found and closed, real corpus verification
+  numbers) is in each feature's own "Completed" note in
+  `feature-specs/v2-implementation-plan.md` and
+  `context/progress-tracker.md`; summary:
+  - **F50** (chord2vec/FastRP/pattern embeddings): had zero tests and no
+    `docs/eval/embeddings.md`. Added 5 tests, ran the real pipeline
+    (ingest→embeddings) against a real 17,951-song train-split sample
+    (`cv-embed-smoke`, gitignored, not the full corpus), scored
+    **chord2vec 32/40 (80.0%)** on the 40-triplet suite (clears the
+    plan's bar), fixed a CI gap the rebase exposed (a `gensim` import
+    reachable from a test the `backend (unit)` job doesn't install `[ml]`
+    for). [PR #22](https://github.com/siddsan7/HarmonicColorGraph/pull/22),
+    squash `202e50d`.
+  - **F51** (pgvector similarity API): most complete of the four already.
+    Rebase hit real `app/main.py`/`pipeline/load.py` conflicts (resolved
+    by keeping both sides' additions — F43's `color_profiles` wiring and
+    F51's `embeddings` wiring are independent). The real
+    `backend (postgres integration)` CI job caught a genuine bug no local
+    check could (this machine's ambient Postgres role already has a
+    working `search_path`): the loader's raw connection needed
+    `set local search_path = hcg, extensions, public` for pgvector's
+    `<=>` operator to resolve. [PR #21](https://github.com/siddsan7/HarmonicColorGraph/pull/21),
+    squash `ff80685`.
+  - **F52** (hybrid recommender scorer): had a lint error and no
+    `docs/eval/recommender.md`. Built a second small real corpus sample
+    (`cv-eval-smoke`, `--split all`, gitignored) for dev/test positions,
+    reused the existing `eval-train-a` train artifact (zero overlap by
+    construction), fit real weights and measured **hybrid MRR 0.6689 vs.
+    F30 MRR 0.6647** and **all 4 intent axes ≥ 80%** — both clear the
+    plan's bars. [PR #23](https://github.com/siddsan7/HarmonicColorGraph/pull/23),
+    squash `75cccd3`.
+  - **F53** (substitution finder + UI): most functionally complete;
+    needed only a rebase (one trivial `app/recommend/__init__.py`
+    docstring conflict with F52) and a contract-consistency check.
+    [PR #24](https://github.com/siddsan7/HarmonicColorGraph/pull/24),
+    squash `7f73d44`.
+  - The four worktrees still exist on disk
+    (`../HarmonicColorGraph-f50`..`-f53`) with nothing left unmerged —
+    safe to `git worktree remove` whenever convenient; not done yet in
+    this session so their `data/artifacts/` (gitignored real-corpus
+    samples) stay available in case a future session wants to re-run
+    anything without rebuilding.
 
 ## Immediate next steps
 
 1. Continue the plan at **F44** (color UI) — the real, merged
    `{arc[], summary{}, drivers[]}` shape from F43's
    `POST /v2/color/profile` (and the deltas shape from
-   `GET /v2/color/compare`) is now on `main` in `backend/openapi.json` /
+   `GET /v2/color/compare`) is on `main` in `backend/openapi.json` /
    `lib/api/types.ts`, so F44 can build against the actual generated
-   types rather than guessing. It was intentionally left for the next
-   session/agent rather than started in parallel with F43, per the
-   user's own question this session about parallelizing F44 while F43
-   was still in progress — build the `ColorBars`/`ColorArc`/`ColorDelta`
-   SVG components, wire them to these endpoints (a new hand-written
-   `lib/api/client.ts` wrapper will be needed, per the
+   types rather than guessing — build the `ColorBars`/`ColorArc`/
+   `ColorDelta` SVG components, wire them to these endpoints (a new
+   hand-written `lib/api/client.ts` wrapper will be needed, per the
    `api-contract-regen` gotcha), and run the Playwright/axe checks the
    plan's F44 section specifies.
-2. Apply migrations `0008_color_norms.sql` and `0009_color_profiles.sql`
-   live (MCP `apply_migration`, then `get_advisors`) whenever convenient
-   — cheap and low-risk (empty tables until the next full load), unlike
-   item 3.
-3. A full pipeline re-run and reload is needed to get F40's voice-leading
-   edges, F41's color norms, AND F43's color profiles into the live
-   `cv-2026-09-a` version (the `voice_leading` and `color` stages have
-   only run against local fixtures and the `eval-train-a` chord
-   vocabulary so far, never the full corpus) — but only actually matters
-   once something wants to show precomputed voice-leading evidence or
-   corpus-normalized/precomputed color values in a graph UI or API (the
-   new `/v2/color/*` endpoints don't need it — they're DB-free; see item
-   1). Treat the reload as its own deliberate, higher-risk step when that
-   need arises — the real corpus load has already failed twice on
-   storage budget/timeout before succeeding (see this file's M2 load
-   history and `docs/eval/corpus-cv-2026-09-a.md`) — not something to
-   fold into a routine PR. Reasonable to bundle with F44 (color UI) or a
-   later graph-evidence consumer if/when one is added, rather than doing
-   it standalone.
-4. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
+2. Then **F54** (intent-driven recommendations in the product): wire
+   F52's `intent{…}`/`preset` into `/v2/recommend-next-chords` (a new
+   route, not yet built — F52 only built the scoring library), add UI
+   intent sliders/preset control/compare cards, and the Phase 2 §14
+   demo-scenario e2e tests. This closes the M5 exit gate.
+3. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
+   and `0010_embeddings.sql` live (MCP `apply_migration`, then
+   `get_advisors`) whenever convenient — cheap and low-risk (empty
+   tables until the next full load), unlike item 4.
+4. A full pipeline re-run and reload is needed to get F40's voice-leading
+   edges, F41's color norms, F43's color profiles, AND F50's embeddings
+   into the live `cv-2026-09-a` version (the `voice_leading`/`color`/
+   `embeddings` stages have only run against local fixtures and small
+   real-corpus samples so far, never the full corpus) — but only
+   actually matters once something wants to show precomputed
+   voice-leading evidence, corpus-normalized/precomputed color values,
+   or live `hcg.embeddings`-backed similarity in a graph UI or API (the
+   `/v2/color/*` and `/v2/similar-*` endpoints don't need it yet — see
+   items 1 and F51's own note above). Treat the reload as its own
+   deliberate, higher-risk step when that need arises — the real corpus
+   load has already failed twice on storage budget/timeout before
+   succeeding (see this file's M2 load history and
+   `docs/eval/corpus-cv-2026-09-a.md`) — not something to fold into a
+   routine PR.
+5. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
    (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
    it matters (context mixing currently *hurts* MRR at orders 4-5; see
    the F31 bullet above and `docs/eval/prediction-v2.md`'s Interpretation
    section). Not blocking, but a cheap, well-motivated win whenever
    picked up.
-5. Verify the deployed API/web production routes reflect the F32 merge
+6. Verify the deployed API/web production routes reflect the F32 merge
    (`/v2/recommend-next-chords` in particular — verified so far only via
    a local server pointed at the live database, never through an actual
-   Vercel deployment). Supabase migrations 0001–0007 are applied (0008
-   is written, not yet applied — see item 2); advisors had only
+   Vercel deployment). Supabase migrations 0001–0007 are applied (0008,
+   0009, 0010 written, not yet applied — see item 3); advisors had only
    informational private-schema RLS notices and unused-index findings at
    the last read. Also worth a glance: `hcg` schema's
    `pg_total_relation_size` read ~357 MiB at the last check (over the
    300 MiB budget) despite identical row counts and zero dead tuples
    versus the original load report — likely a measurement-method
    artifact, not real growth, but a fresh `ANALYZE` would confirm.
-6. The loader uses the direct database URL from gitignored
+7. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-7. Update this file and `context/progress-tracker.md` after each merge,
+8. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 

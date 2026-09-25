@@ -1529,37 +1529,122 @@ reasoning F41 used for a backend-only feature).
 
 ## M5 — Embeddings, similarity & hybrid recommender
 
-### F50 — Chord2Vec + graph embeddings [M]
-- [ ] Pipeline stage `embeddings` (extras `ml`): Word2Vec skip-gram on deduplicated train-split token sequences (dim 64, window 4, min_count 20, seed fixed); FastRP on the function graph (TRANSITIONS_TO global + theory edges, dim 64, iterations 3, NumPy/SciPy sparse); pattern embeddings = SIF-weighted mean of token vectors plus a positional cadence component; 2D UMAP projections of functions and the top 5k patterns for F65.
-- [ ] Intrinsic evaluation `docs/eval/embeddings.md`: 40 curated similarity triplets (e.g. `sim(M:V7, M:V) > sim(M:V7, M:iii)`, `sim(M:V7/vi, M:V7/ii) > sim(M:V7/vi, M:IV)`), nearest-neighbor tables, cluster purity by function class.
+### F50 — Chord2Vec + graph embeddings [M] — DONE
+- [x] Pipeline stage `embeddings` (extras `ml`): Word2Vec skip-gram on deduplicated train-split token sequences (dim 64, window 4, min_count 20, seed fixed); FastRP on the function graph (TRANSITIONS_TO global + theory edges, dim 64, iterations 3, NumPy/SciPy sparse); pattern embeddings = SIF-weighted mean of token vectors plus a positional cadence component; 2D UMAP projections of functions and the top 5k patterns for F65.
+- [x] Intrinsic evaluation `docs/eval/embeddings.md`: 40 curated similarity triplets (e.g. `sim(M:V7, M:V) > sim(M:V7, M:iii)`, `sim(M:V7/vi, M:V7/ii) > sim(M:V7/vi, M:IV)`), nearest-neighbor tables, cluster purity by function class.
 
 **Checks:** ≥ 80% of the triplets hold for at least one of the two models; the chosen default model is recorded in the manifest.
 **Commit:** `feat(ml): chord2vec, FastRP, and pattern embeddings`
 
-### F51 — pgvector storage & similarity APIs [M]
-- [ ] `0004_embeddings.sql`: `hcg.embeddings(version, subject_type, subject_id, model, vec extensions.vector(64), primary key(version, subject_type, model, subject_id))` plus an HNSW index (`vector_cosine_ops`) per subject type (partial index).
-- [ ] Loader extension; materialize `SIMILAR_TO` top-10 edges for functions.
-- [ ] `POST /v2/similar-functions {token, k, model}`; `POST /v2/similar-chords {chord, k}` (pitch-class Jaccard blended with functional-usage similarity); `POST /v2/similar-progressions {progression|tokens, k, mode: structural|surface, filters{genre, color}}`. Structural uses embeddings over core tokens; surface uses exact-token overlap. Rotations of loops are flagged as `rotation_of`.
+**Completed 2026-09-25** (picked up from an independent worktree checkpoint —
+substantial real code, unpushed, no PR, no tests, and no eval report yet; see
+the note below for full provenance). `pipeline/stages/embeddings.py`'s
+`run_embeddings` uses real `gensim.models.Word2Vec` (lazy-imported inside the
+function, matching the `pipeline-import-weight` gotcha) for chord2vec, a
+from-scratch NumPy/SciPy-sparse FastRP over the global `TRANSITIONS_TO` graph
+plus same-base-degree theory-family edges, SIF-weighted pattern vectors with a
+positional cadence term, and real `umap-learn` 2D projections (SVD fallback
+below 4 points). `pipeline/embedding_eval.py` scores the 40 curated triplets
+by cosine similarity and renders `docs/eval/embeddings.md` via a new
+`pipeline embedding-report --version <v>` subcommand. Verified against a
+real, non-synthetic 17,951-song train-split sample of the actual
+Chordonomicon corpus (not the full 679K corpus — a full reload is its own
+deliberate, higher-risk step per this repo's established M2 load history):
+**chord2vec passes 32/40 (80.0%)**, clearing the plan's bar; fastrp passes
+19/40 (47.5%); chord2vec recorded as the default model. Added 5 new tests
+(`test_pipeline_embeddings.py`) and fixed a real CI gap the rebase exposed:
+`test_pipeline_cli_run.py`'s "next unimplemented stage" test now runs through
+the real `embeddings` stage on its way to `snapshot`, which needs `gensim` —
+the `backend (unit)` CI job installs `.[dev,pipeline]` only, not `[ml]`, so
+that one test needed the same `pytest.importorskip("gensim")` guard every
+other ml-dependent pipeline test already uses (found via the real CI run
+failing, not assumed). Merged via
+[PR #22](https://github.com/siddsan7/HarmonicColorGraph/pull/22) after all
+four CI jobs passed, squash commit `202e50d`.
+
+### F51 — pgvector storage & similarity APIs [M] — DONE
+- [x] `0004_embeddings.sql`: `hcg.embeddings(version, subject_type, subject_id, model, vec extensions.vector(64), primary key(version, subject_type, model, subject_id))` plus an HNSW index (`vector_cosine_ops`) per subject type (partial index).
+- [x] Loader extension; materialize `SIMILAR_TO` top-10 edges for functions.
+- [x] `POST /v2/similar-functions {token, k, model}`; `POST /v2/similar-chords {chord, k}` (pitch-class Jaccard blended with functional-usage similarity); `POST /v2/similar-progressions {progression|tokens, k, mode: structural|surface, filters{genre, color}}`. Structural uses embeddings over core tokens; surface uses exact-token overlap. Rotations of loops are flagged as `rotation_of`.
 
 **Checks:** `EXPLAIN` shows the HNSW index used; p95 < 120 ms; `similar-progressions(I V vi IV)` returns related-but-different loops, with the rotation `vi IV I V` flagged rather than listed as a discovery.
 **Commit:** `feat(similarity): pgvector-backed similar functions, chords, and progressions`
 
-### F52 — Candidate generation & hybrid scorer [L]
-- [ ] `recommend/candidates.py`, a union of: F30 top-30; graph neighbors of the last token (TRANSITIONS_TO ≥ min prob); theory expansions (applied `V7/x` and `viio7/x` for plausible next targets, borrowed alternatives from the parallel mode, tritone subs of dominant candidates, chromatic mediants of the tonic); embedding neighbors of the top-5 candidates. Each is tagged with its generator(s).
-- [ ] `recommend/features.py`: `log_p_ngram`, `log_p_global_bigram`, `pmi`, `theory_valid` flags, `vl_cost`, `common_tones`, `emb_cos(prev, cand)`, `tonal_distance` (line of fifths), `surprise`, color deltas per axis, genre/section fit (lift).
-- [ ] Plausibility model: logistic regression (candidate-ranking with a softmax over the candidate set) trained offline on the dev split → `recommend/weights/plausibility_v1.json` (runtime = dot product, no sklearn).
-- [ ] Intent term: user intent `u ∈ [−1, 1]^A` over axes {darker↔brighter, tense↔relaxed, common↔surprising, simple↔complex, resolved↔open, smooth}; `intent(c) = Σ_a u_a · Δcolor_a(c)` normalized. Final `score = w_p·z(plaus) + w_i·intent + w_d·diversity`, with presets `plausible (0.85/0.15)`, `balanced (0.6/0.4)`, `adventurous (0.35/0.65 + surprise bonus)` and a plausibility floor (drop candidates below the 5th percentile).
-- [ ] `score_breakdown` returns every feature contribution.
+**Completed 2026-09-25** (same worktree-checkpoint provenance as F50).
+Migration `supabase/migrations/0010_embeddings.sql` matches the plan's schema
+exactly, plus widens the edge type-code check to 8 and adds `SIMILAR_TO` to
+`hcg.edges_read`. `pipeline/load.py` validates every embedding row (64-dim,
+finite, L2-normalized, has a graph node) before materializing top-10
+`SIMILAR_TO` function-neighbor edges from the manifest's recorded default
+model. `app/services/similarity.py`/`app/api/similar_v2.py` implement all
+three endpoints with the standard v2 error envelope and a 60/min rate limit
+(matching `recommend_v2`/`graph_v2` precedent); rotation flagging and the
+structural/surface split are directly tested with a `FakeStore` (6 tests, no
+live DB needed). A real bug surfaced only by the live `backend (postgres
+integration)` CI job (not caught locally, since this machine's ambient
+Postgres role happens to have a working search_path): the loader's raw
+psycopg connection had no `search_path` set, so `_materialize_similar_edges`'
+unqualified `<=>` cosine operator failed to resolve (`extensions.vector`
+being fully schema-qualified resolved fine regardless; the *operator* only
+resolves via search_path) — fixed with `set local search_path = hcg,
+extensions, public`, the same value `app/db/session.py` already configures
+for production roles. Merged via
+[PR #21](https://github.com/siddsan7/HarmonicColorGraph/pull/21) after all
+four CI jobs passed, squash commit `ff80685`.
+
+### F52 — Candidate generation & hybrid scorer [L] — DONE
+- [x] `recommend/candidates.py`, a union of: F30 top-30; graph neighbors of the last token (TRANSITIONS_TO ≥ min prob); theory expansions (applied `V7/x` and `viio7/x` for plausible next targets, borrowed alternatives from the parallel mode, tritone subs of dominant candidates, chromatic mediants of the tonic); embedding neighbors of the top-5 candidates. Each is tagged with its generator(s).
+- [x] `recommend/features.py`: `log_p_ngram`, `log_p_global_bigram`, `pmi`, `theory_valid` flags, `vl_cost`, `common_tones`, `emb_cos(prev, cand)`, `tonal_distance` (line of fifths), `surprise`, color deltas per axis, genre/section fit (lift).
+- [x] Plausibility model: logistic regression (candidate-ranking with a softmax over the candidate set) trained offline on the dev split → `recommend/weights/plausibility_v1.json` (runtime = dot product, no sklearn).
+- [x] Intent term: user intent `u ∈ [−1, 1]^A` over axes {darker↔brighter, tense↔relaxed, common↔surprising, simple↔complex, resolved↔open, smooth}; `intent(c) = Σ_a u_a · Δcolor_a(c)` normalized. Final `score = w_p·z(plaus) + w_i·intent + w_d·diversity`, with presets `plausible (0.85/0.15)`, `balanced (0.6/0.4)`, `adventurous (0.35/0.65 + surprise bonus)` and a plausibility floor (drop candidates below the 5th percentile).
+- [x] `score_breakdown` returns every feature contribution.
 
 **Checks:** On the test split with neutral intent, hybrid MRR ≥ F30 MRR − 0.02 and coverage/novelty improve (report `docs/eval/recommender.md`); intent benchmark (30 inputs × {darker, brighter, more surprising, smoother}): the mean target-axis delta of the top 5 moves in the requested direction in ≥ 80% of cases; every returned candidate passes the plausibility floor.
 **Commit:** `feat(recommend): multi-source candidates and transparent hybrid scorer`
 
-### F53 — Substitution finder [M]
-- [ ] `POST /v2/find-substitutes {progression, index, key?, constraints{keep_function?, smooth?, surprise?}, k}`: score `x` by `log P(x | left) + log P(right | left+x)` (bidirectional KN) + functional-equivalence bonus (same function class, `SUBSTITUTES_FOR`/`TRITONE_SUB_FOR`) + voice-leading smoothness with both neighbors + intent term.
-- [ ] Workbench: click a chord chip → substitutes popover with play and preview.
+**Completed 2026-09-25** (same worktree-checkpoint provenance as F50/F51).
+`candidates.py`'s theory expansions verify every generated token actually
+round-trips through F30's `realize()` before inclusion. `features.py` reuses
+F41's `compute_chord_color` directly for `vl_cost`/color deltas rather than a
+second voice-leading search. `scorer.py`'s presets match the plan's weights
+exactly. Weight fitting and held-out evaluation
+(`tests/eval/recommender.py`) ran against a real, independently-sampled
+20,000-song `--split all` slice of the actual corpus (`cv-eval-smoke`) for
+dev/test positions, reusing the existing `eval-train-a` (612,021-song,
+train-only) artifact for the n-gram predictor — zero overlap by construction
+(same deterministic song-id-hash split F31 relies on), asserted before any
+metric is computed. Results in `docs/eval/recommender.md`: **hybrid MRR
+0.6689 vs. F30 MRR 0.6647** (clears the `>= -0.02` bar with margin, and is
+directionally better at this scale); **all 4 intent axes clear the `>= 80%`
+bar** (darker/brighter 100%, surprising 86.7%, smoother 80.0%); real fitted
+weights committed. One trivial lint fix (a line-too-long `ruff format`
+already resolves). Merged via
+[PR #23](https://github.com/siddsan7/HarmonicColorGraph/pull/23) after all
+four CI jobs passed, squash commit `75cccd3`.
+
+### F53 — Substitution finder [M] — DONE
+- [x] `POST /v2/find-substitutes {progression, index, key?, constraints{keep_function?, smooth?, surprise?}, k}`: score `x` by `log P(x | left) + log P(right | left+x)` (bidirectional KN) + functional-equivalence bonus (same function class, `SUBSTITUTES_FOR`/`TRITONE_SUB_FOR`) + voice-leading smoothness with both neighbors + intent term.
+- [x] Workbench: click a chord chip → substitutes popover with play and preview.
 
 **Checks:** For `C F G C` at index 1 (IV): the top 8 include `Dm` (ii), `Fm` (iv), and `Am` or `Bb`-family options, each with reasons; `smooth=true` never returns a candidate whose VL cost exceeds the original's by > 3 semitones.
 **Commit:** `feat(recommend): substitution finder`
+
+**Completed 2026-09-25** (same worktree-checkpoint provenance as F50–F52).
+`app/recommend/substitutes.py`'s `SubstitutionService` implements the exact
+bidirectional-KN-plus-bonuses scoring the plan specifies; the plan's own
+literal `C F G C` index-1 scenario and the `smooth=true` voice-leading-cost
+constraint are both directly tested (2 comprehensive tests). The Workbench
+popover (`components/workbench-v2.tsx`) adds per-substitute play via a new,
+dependency-free `lib/music/preview.ts` (raw Web Audio API oscillators) and
+apply-to-progression. Rebasing onto post-F52 `main` produced the expected,
+trivial `app/recommend/__init__.py` docstring conflict (both features add
+files to the same new package, no logic overlap) — resolved by combining
+both docstrings. The hand-written `lib/api/client.ts` `SubstituteResponse`
+type was checked field-for-field against the actual Pydantic
+`SubstituteResponse` schema (including `meta`'s exact two keys), per the
+`api-contract-regen` gotcha. Merged via
+[PR #24](https://github.com/siddsan7/HarmonicColorGraph/pull/24) after all
+four CI jobs passed, squash commit `7f73d44`.
 
 ### F54 — Intent-driven recommendations in the product [M]
 - [ ] `/v2/recommend-next-chords` gains `intent{…}` and `preset`; defaults are unchanged for old clients.
@@ -1569,7 +1654,7 @@ reasoning F41 used for a backend-only feature).
 **Checks:** The three scenario tests pass; manual listening checklist (Siddharth) for the three scenarios noted in the tracker.
 **Commit:** `feat(ui): intent sliders, presets, and compare cards`
 
-**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production.
+**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 is not started**, so the gate is not yet fully closed.
 
 ---
 

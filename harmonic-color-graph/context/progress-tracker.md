@@ -7,6 +7,114 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-25 F50–F53 (most of M5) are done and merged, picked up from four
+  independent local worktree checkpoints (`../HarmonicColorGraph-f50`
+  through `-f53`) at Siddharth's explicit request to finish, verify, and
+  merge them across M4/M5. Each worktree held real, substantial
+  Codex-authored code, uncommitted, based on a pre-F43 `main` (so none of
+  it referenced F43's `hcg.color_profiles`, even though F51's own design
+  independently uses that exact table for `similar-progressions`' color
+  filter — a good sign of convergent design). Rebased each onto current
+  `main` in strict dependency order (F50 → F51 → F52 → F53, so the only
+  real conflicts were the expected shared-file ones, never a logical
+  contradiction) and ran the full Standard Check Gate — real pytest runs,
+  real ruff, real CI — on every one, not just a glance.
+  - **F50** (`pipeline/stages/embeddings.py`'s `run_embeddings`: real
+    gensim Word2Vec chord2vec, from-scratch NumPy/SciPy FastRP, SIF
+    pattern vectors, real umap-learn projections) had zero tests and no
+    `docs/eval/embeddings.md`. Added 5 tests
+    (`tests/unit/test_pipeline_embeddings.py`) and actually ran the
+    pipeline (ingest→embeddings) against a real, non-synthetic
+    17,951-song train-split sample of the real Chordonomicon CSV
+    (`cv-embed-smoke`, built via `hcg-build run --limit 20000 --split
+    train --to-stage patterns` then `--to-stage embeddings`, gitignored,
+    not committed) — not the full 679K corpus, a separate deliberate step
+    per this repo's own established M2-load caution. Real result:
+    **chord2vec 32/40 (80.0%)** on the 40 curated triplets (clears the
+    plan's `>= 80%` bar), fastrp 19/40 (47.5%), chord2vec recorded as
+    default. The rebase exposed a real CI gap: `test_pipeline_cli_run.py`'s
+    "next unimplemented stage" test now runs through the real `embeddings`
+    stage (needs `gensim`) on its way to `snapshot`; the `backend (unit)`
+    CI job installs `.[dev,pipeline]` only, not `[ml]`, so it failed for
+    real on the actual GitHub Actions runner (not locally, since this dev
+    machine already has `gensim`/`umap-learn`/`scikit-learn`/`scipy`
+    installed) — fixed with the same `pytest.importorskip("gensim")`
+    guard every other ml-dependent pipeline test already uses. Merged as
+    [PR #22](https://github.com/siddsan7/HarmonicColorGraph/pull/22),
+    squash `202e50d`, all four CI jobs passed.
+  - **F51** (`hcg.embeddings` migration `0010_embeddings.sql`, HNSW
+    indexes, `SIMILAR_TO` edge materialization,
+    `POST /v2/similar-{functions,chords,progressions}`) was the most
+    complete of the four already — rotation flagging, structural/surface
+    modes, and the HTTP error envelope were all directly tested (6 tests)
+    with a `FakeStore`/`FakeService`, no live DB needed for that part. The
+    rebase hit real conflicts in `app/main.py` and `pipeline/load.py`
+    (F43's `color_profiles` wiring and F51's `embeddings` wiring are
+    independent additions in the same functions/dicts — resolved by
+    keeping both). The real payoff of actually running CI rather than
+    trusting local `pytest` (which skips every `pg`-marked test here,
+    `TEST_DATABASE_URL` unset): the live `backend (postgres integration)`
+    job against `pgvector/pgvector:pg17` failed with
+    `operator does not exist: extensions.vector <=> extensions.vector`
+    — a real, previously-latent bug. Root cause, confirmed by reading the
+    actual error and this repo's own `app/db/session.py`: the loader's
+    raw `psycopg.connect()` has no `search_path` set, so pgvector's `<=>`
+    operator (registered by `CREATE EXTENSION vector WITH SCHEMA
+    extensions`) doesn't resolve on a fresh CI/local Postgres role even
+    though the fully-schema-qualified `extensions.vector` *type* resolves
+    fine regardless — production roles already have `search_path` set
+    (that's *why* this bug was latent until F51's code was the first to
+    actually use a pgvector operator). Fixed with one line,
+    `conn.execute("set local search_path = hcg, extensions, public")`,
+    matching the exact value `app/db/session.py` already configures for
+    the app's own SQLAlchemy sessions. Re-ran the real CI job to confirm
+    the fix (not assumed) before merging. Merged as
+    [PR #21](https://github.com/siddsan7/HarmonicColorGraph/pull/21),
+    squash `ff80685`, all four CI jobs passed.
+  - **F52** (`app/recommend/{candidates,features,scorer}.py`: multi-source
+    candidate union, 21 deterministic ranking features reusing F41's
+    `compute_chord_color` directly, offline-trained plausibility softmax
+    with a bottom-5th-percentile floor, bounded intent term, presets
+    matching the plan's weights exactly) had one trivial `ruff format`
+    fix and no `docs/eval/recommender.md`. Built a second small real
+    corpus sample (`cv-eval-smoke`, `--split all --limit 20000`,
+    gitignored) specifically to get real dev/test-split positions
+    (`eval-train-a` is train-only by design, per F31), reused
+    `eval-train-a`'s existing `ngrams.parquet` for the predictor — zero
+    train/eval overlap, asserted before any metric (same deterministic
+    song-id-hash-split guarantee F31 relies on). Fit real weights (160
+    dev positions, 12 epochs) and measured on 40 real held-out positions:
+    **hybrid MRR 0.6689 vs. F30 MRR 0.6647** (clears the plan's
+    `>= -0.02` bar with margin — directionally *better* at this scale)
+    and **all 4 single-axis intent benchmarks clear the plan's `>= 80%`
+    bar** (darker/brighter 100%, surprising 86.7%, smoother 80.0%). Real
+    fitted weights and the full report committed. Merged as
+    [PR #23](https://github.com/siddsan7/HarmonicColorGraph/pull/23),
+    squash `75cccd3`, all four CI jobs passed.
+  - **F53** (`app/recommend/substitutes.py`'s `SubstitutionService`:
+    bidirectional-KN substitution scoring, `POST /v2/find-substitutes`,
+    a Workbench substitutes popover with a new dependency-free
+    `lib/music/preview.ts` Web Audio player) was the most functionally
+    complete already — the plan's own literal `C F G C` index-1 scenario
+    and the `smooth=true` voice-leading-cost constraint are both directly
+    tested. Needed only a rebase, which hit one trivial expected conflict
+    (`app/recommend/__init__.py`'s docstring, since F52 also added files
+    to that same new package — resolved by combining both docstrings) and
+    a contract-consistency check (the hand-written `lib/api/client.ts`
+    `SubstituteResponse` type verified field-for-field against the real
+    Pydantic schema, including `meta`'s exact two keys, per the
+    `api-contract-regen` gotcha). Merged as
+    [PR #24](https://github.com/siddsan7/HarmonicColorGraph/pull/24),
+    squash `7f73d44`, all four CI jobs passed.
+  - The four worktrees are still on disk with nothing left unmerged —
+    safe to `git worktree remove` whenever convenient. Not removed this
+    session so their gitignored `data/artifacts/` real-corpus samples
+    (`cv-embed-smoke`, `cv-eval-smoke`) stay available without rebuilding.
+  - **M5 is not fully closed**: F54 (intent-driven recommendations wired
+    into `/v2/recommend-next-chords` and the product UI, plus the Phase 2
+    §14 demo-scenario e2e tests) has not been started. **F44** (M4's color
+    UI) also remains open. Full detail for all four features in
+    `feature-specs/v2-implementation-plan.md`'s F50–F53 "Completed" notes.
 - 2026-09-25 F43 (color profiles: storage, progression arcs, API) is done
   and merged ([PR #19](https://github.com/siddsan7/HarmonicColorGraph/pull/19),
   squash `d251058`, all four CI jobs and both Vercel previews passed). New
