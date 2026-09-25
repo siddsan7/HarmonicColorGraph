@@ -110,6 +110,16 @@ def test_histories_and_count_of_counts_batch_in_one_round_trip_each():
                     },
                 )
 
+            session.execute(
+                text(
+                    """insert into hcg.ngram_discount_stats
+                       (version, context_id, ord, n1, n2)
+                       values ('cv-f30-test', 0, 2, 2, 1)
+                       on conflict (version, context_id, ord) do update set
+                           n1 = excluded.n1, n2 = excluded.n2"""
+                )
+            )
+
             store = NgramStore(session)
             fetched = store.histories([(0, 2, "A"), (0, 2, "B"), (0, 1, "")])
             assert len(fetched) == 3  # one round trip, all three rows back
@@ -121,6 +131,20 @@ def test_histories_and_count_of_counts_batch_in_one_round_trip_each():
             assert len(counts) == 1
             # Raw order-2 counts here: A->B=2, B->C=1, B->D=1 -> n1=2, n2=1.
             assert (counts[0]["n1"], counts[0]["n2"]) == (2, 1)
+            # Regression: this lookup must never scan/expand the full
+            # ngram_histories JSONB at request time (timed out on live data).
+            plan = (
+                session.execute(
+                    text(
+                        """explain select context_id, ord, n1, n2
+                       from hcg.ngram_discount_stats
+                       where version = hcg.v() and context_id = 0 and ord = 2"""
+                    )
+                )
+                .scalars()
+                .all()
+            )
+            assert not any("ngram_histories" in step for step in plan)
 
             predictor = KNPredictor(_SessionNgramReader(session))
             dist = predictor.distribution(["A"])

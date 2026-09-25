@@ -53,6 +53,71 @@ export type NextChordsResponse = {
   database_transition_count: number
 }
 
+export type Recommendation = {
+  token: string
+  figure: string
+  chord: string
+  score: number
+  score_breakdown: { ngram: number; context: number; backoff: number }
+  labels: string[]
+  fact_ids: string[]
+  evidence: {
+    count: number
+    contexts: string[]
+    example_refs: Array<{
+      song_id: string
+      spotify_id: string | null
+      genre: string | null
+      section: string | null
+      position: number | null
+    }>
+  }
+  color: Record<string, number>
+  explanation: string | null
+}
+
+export type RecommendResponse = {
+  data: { input_tokens: string[]; key: string; recommendations: Recommendation[] }
+  meta: {
+    corpus_version: string
+    model_versions: Record<string, string>
+    latency_ms: number
+    context_used: { genre: string | null; section: string | null; backoff: string[] }
+  }
+  warnings: Array<{ code: string; message: string }>
+}
+
+export async function recommendNextChords(request: {
+  progression: string[]
+  key: string
+  genre?: string
+  section?: string
+  limit?: number
+  include_explanations?: boolean
+  signal?: AbortSignal
+}): Promise<RecommendResponse> {
+  const { signal, ...body } = request
+  const payload: unknown = await apiFetch<unknown>("/v2/recommend-next-chords", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  })
+  if (typeof payload !== "object" || payload === null) throw new Error("Invalid recommendation response.")
+  const response = payload as Record<string, unknown>
+  const data = response.data as Record<string, unknown> | null
+  const meta = response.meta as Record<string, unknown> | null
+  if (!data || !meta || !Array.isArray(data.recommendations) ||
+      typeof data.key !== "string" || typeof meta.corpus_version !== "string" ||
+      !data.recommendations.every((item) =>
+        typeof item === "object" && item !== null &&
+        typeof (item as Recommendation).chord === "string" &&
+        typeof (item as Recommendation).score === "number")) {
+    throw new Error("Invalid recommendation response.")
+  }
+  return payload as RecommendResponse
+}
+
 export type ExplainTransitionResponse = {
   from_roman: string
   to_roman: string

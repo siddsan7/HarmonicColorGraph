@@ -159,12 +159,11 @@ class NgramStore(_ActiveStore):
         )
 
     def count_of_counts(self, requests: Sequence[tuple[int, int]]) -> list[dict[str, Any]]:
-        """F30: per (context_id, order) counts of how many (history, next
-        token) pairs have a raw count of exactly 1 or 2, pooled across every
-        history at that context and order. Feeds the single-discount
-        interpolated Kneser-Ney formula `D = n1 / (n1 + 2*n2)`. Cached by
-        the caller (KN discounts change only when the corpus version
-        changes, unlike the per-request history fetch above).
+        """F32: bounded reads from loader-maintained count-of-counts.
+
+        The former request-time jsonb expansion exceeded the five-second
+        statement timeout on the active corpus. This lookup visits at most
+        one primary-key row per requested (context, order).
         """
         if not requests:
             return []
@@ -175,15 +174,9 @@ class NgramStore(_ActiveStore):
             params[f"c{index}"] = context_id
             params[f"o{index}"] = order
         return self._all(
-            f"""select context_id, ord,
-                      count(*) filter (where raw_count = 1) as n1,
-                      count(*) filter (where raw_count = 2) as n2
-               from (
-                   select h.context_id, h.ord, (kv.value)::int as raw_count
-                   from hcg.ngram_histories h, jsonb_each_text(h.next) as kv
-                   where h.version = hcg.v() and ({" or ".join(clauses)})
-               ) counts
-               group by context_id, ord""",
+            f"""select context_id, ord, n1, n2
+               from hcg.ngram_discount_stats
+               where version = hcg.v() and ({" or ".join(clauses)})""",
             **params,
         )
 
@@ -256,8 +249,56 @@ class PatternStore(_ActiveStore):
             **params,
         )
 
+    def transition_examples_many(
+        self, pairs: Sequence[tuple[str, str]], *, limit: int = 2
+    ) -> dict[tuple[str, str], list[dict[str, Any]]]:
+        """One bounded read for recommendation evidence across up to 20 pairs.
+
+        The examples artifact ranks rows per transition, so `rank <= limit`
+        constrains results without a window scan. Examples are corpus-wide;
+        the separate prediction breakdown reports context-specific support.
+        """
+        if not pairs:
+            return {}
+        if len(pairs) > 20 or not 1 <= limit <= 5:
+            raise ValueError("At most 20 transitions and 1–5 examples are allowed")
+        clauses: list[str] = []
+        params: dict[str, Any] = {"limit": limit}
+        for index, (source, target) in enumerate(pairs):
+            clauses.append(f"(e.from_token = :from{index} and e.to_token = :to{index})")
+            params[f"from{index}"] = source
+            params[f"to{index}"] = target
+        rows = self._all(
+            f"""select e.from_token, e.to_token, e.song_id, e.section, e.ordinal,
+                      e.position, e.rank, s.spotify_id, s.genre, s.decade
+               from hcg.transition_examples e
+               join hcg.song_refs s on (s.version, s.song_id) = (e.version, e.song_id)
+               where e.version = hcg.v() and e.rank <= :limit
+                 and ({" or ".join(clauses)})
+               order by e.from_token, e.to_token, e.rank""",
+            **params,
+        )
+        grouped: dict[tuple[str, str], list[dict[str, Any]]] = {pair: [] for pair in pairs}
+        for row in rows:
+            grouped[(row["from_token"], row["to_token"])].append(row)
+        return grouped
+
 
 class FactStore(_ActiveStore):
+    def existing_ids(self, fact_ids: Sequence[str]) -> set[str]:
+        """Verify candidate citations in one version-scoped indexed read."""
+        if not fact_ids:
+            return set()
+        if len(fact_ids) > 20:
+            raise ValueError("At most 20 fact IDs are allowed")
+        placeholders = ", ".join(f":id{index}" for index in range(len(fact_ids)))
+        rows = self._all(
+            f"""select fact_id from hcg.facts
+               where version = hcg.v() and fact_id in ({placeholders})""",
+            **{f"id{index}": fact_id for index, fact_id in enumerate(fact_ids)},
+        )
+        return {row["fact_id"] for row in rows}
+
     def fact(self, fact_id: str) -> dict[str, Any] | None:
         return self._one(
             """select fact_id, version, kind, subject, template, params
