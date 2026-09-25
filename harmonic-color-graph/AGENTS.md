@@ -11,6 +11,15 @@ or making any architectural decision:
 0. `context/HANDOFF.md` — start here. Orientation for a new
    session picking up this project: current state, established
    conventions, known gaps, and where everything below lives.
+0a. `context/brain/gotchas.json` — recurring agent traps with
+    the rule and check for each; scan the ids for your area
+    before starting. `context/brain/facts.json` holds
+    code-verified identifiers, limits, env vars, and files that
+    must change together. `docs/codemap.html` is the as-built
+    structure map (topology, layers, routes, flows, schema,
+    every file); `docs/codebase-audit.html` lists open findings.
+    Update these in the same PR when the code they describe
+    changes.
 1. `context/project-overview.md` — product definition,
    goals, features, and scope
 2. `context/architecture.md` — system structure,

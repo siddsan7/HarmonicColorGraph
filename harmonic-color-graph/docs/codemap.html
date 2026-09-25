@@ -1,0 +1,783 @@
+<title>Harmonic Color Graph Codemap</title>
+<meta name="description" content="As-built architecture map of Harmonic Color Graph: runtime topology, layers, routes, flows, pipeline, schema, and every source file.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-base: #08090b;
+    --bg-surface: #111318;
+    --bg-subtle: #191d24;
+    --text-primary: #f4f1e8;
+    --text-secondary: #b7bdc8;
+    --text-muted: #8a92a2;
+    --accent-primary: #42e8b4;
+    --accent-secondary: #7aa7ff;
+    --accent-warm: #f2c86b;
+    --accent-tension: #f05d8e;
+    --border-default: #2a303a;
+    --border-strong: #3e4654;
+    --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg-base: #f4f5f7;
+      --bg-surface: #ffffff;
+      --bg-subtle: #eceef2;
+      --text-primary: #14171d;
+      --text-secondary: #3f4653;
+      --text-muted: #646c7b;
+      --accent-primary: #0c8a64;
+      --accent-secondary: #2f5fcf;
+      --accent-warm: #936200;
+      --accent-tension: #c2285b;
+      --border-default: #d9dce3;
+      --border-strong: #b9bfca;
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg-base: #f4f5f7;
+    --bg-surface: #ffffff;
+    --bg-subtle: #eceef2;
+    --text-primary: #14171d;
+    --text-secondary: #3f4653;
+    --text-muted: #646c7b;
+    --accent-primary: #0c8a64;
+    --accent-secondary: #2f5fcf;
+    --accent-warm: #936200;
+    --accent-tension: #c2285b;
+    --border-default: #d9dce3;
+    --border-strong: #b9bfca;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  body {
+    margin: 0;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  table { font-size: inherit; }
+  a { color: var(--accent-secondary); }
+  a:focus-visible, input:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+  code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+  code { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: 4px; padding: 0.05em 0.35em; overflow-wrap: anywhere; }
+
+  .shell { max-width: 1240px; margin: 0 auto; padding-inline: 20px; padding-block: 36px 80px; display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 40px; }
+  nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+  nav.toc p { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text-muted); margin: 0 0 10px; }
+  nav.toc ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  nav.toc a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--text-secondary); text-decoration: none; border-left: 2px solid transparent; }
+  nav.toc a:hover { background: var(--bg-subtle); color: var(--text-primary); }
+  nav.toc a.on { color: var(--text-primary); border-left-color: var(--accent-primary); background: var(--bg-subtle); }
+
+  header.top { display: grid; gap: 14px; padding-bottom: 26px; border-bottom: 1px solid var(--border-default); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-primary); margin: 0; }
+  h1 { font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -0.02em; margin: 0; text-wrap: balance; font-weight: 650; }
+  .lede { color: var(--text-secondary); max-width: 70ch; margin: 0; }
+  .scope { display: flex; flex-wrap: wrap; gap: 6px 22px; font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); }
+  .scope b { color: var(--text-primary); font-weight: 500; }
+
+  section.part { padding-top: 44px; scroll-margin-top: 16px; }
+  h2 { font-size: 21px; letter-spacing: -0.01em; margin: 0 0 6px; text-wrap: balance; }
+  h3 { font-size: 15.5px; margin: 22px 0 8px; }
+  .sub { color: var(--text-secondary); margin: 0 0 18px; max-width: 72ch; }
+
+  figure { margin: 0; }
+  .diagram { border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); padding: 12px; overflow-x: auto; color: var(--text-secondary); }
+  .diagram svg { display: block; width: 100%; min-width: 760px; height: auto; }
+  figcaption { color: var(--text-secondary); font-size: 13.5px; margin-top: 10px; max-width: 76ch; }
+
+  /* layers */
+  .layers { display: grid; gap: 0; border: 1px solid var(--border-default); border-radius: 8px; overflow: hidden; background: var(--bg-surface); }
+  .layer { display: grid; grid-template-columns: 170px minmax(0, 1fr); border-bottom: 1px solid var(--border-default); }
+  .layer:last-child { border-bottom: 0; }
+  .layer .lname { padding: 14px 16px; background: var(--bg-subtle); border-right: 1px solid var(--border-default); }
+  .layer .lname b { display: block; font-size: 14px; }
+  .layer .lname span { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); letter-spacing: 0.04em; }
+  .layer .mods { padding: 12px 14px; display: flex; flex-wrap: wrap; gap: 6px; align-content: flex-start; }
+  .mod { font-family: var(--font-mono); font-size: 12px; padding: 5px 8px; border-radius: 5px; border: 1px solid var(--border-strong); color: var(--text-primary); background: var(--bg-base); }
+  .mod small { color: var(--text-muted); font-size: 11px; margin-left: 6px; }
+  .rules { margin: 14px 0 0; padding-left: 18px; color: var(--text-secondary); max-width: 80ch; }
+  .rules li + li { margin-top: 5px; }
+
+  /* tables */
+  .tbl { overflow-x: auto; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); }
+  .tbl table { width: 100%; border-collapse: collapse; }
+  .tbl th, .tbl td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--border-default); vertical-align: top; }
+  .tbl tbody tr:last-child td { border-bottom: 0; }
+  .tbl th { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; background: var(--bg-subtle); white-space: nowrap; }
+  .tbl td { color: var(--text-secondary); font-size: 13.5px; }
+  .tbl td.p { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-primary); white-space: nowrap; }
+  .tbl tr.grp td { background: var(--bg-subtle); color: var(--text-muted); font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding-top: 7px; padding-bottom: 7px; }
+  .routes table { min-width: 900px; }
+  .pipe table { min-width: 860px; }
+  .files table { min-width: 640px; }
+
+  .m { display: inline-block; font: 600 10.5px/1 var(--font-mono); letter-spacing: 0.04em; padding: 4px 6px; border-radius: 4px; border: 1px solid currentColor; }
+  .m.get { color: var(--accent-secondary); }
+  .m.post { color: var(--accent-primary); }
+  .pill { display: inline-block; font: 500 11px/1 var(--font-mono); padding: 4px 7px; border-radius: 999px; border: 1px solid var(--border-strong); color: var(--text-secondary); white-space: nowrap; }
+  .pill.db { border-color: var(--accent-secondary); color: var(--accent-secondary); }
+  .pill.redis { border-color: var(--accent-tension); color: var(--accent-tension); }
+  .pill.pure { border-color: var(--accent-primary); color: var(--accent-primary); }
+  .pill.stub { border-color: var(--accent-warm); color: var(--accent-warm); }
+  .pill.done { border-color: var(--accent-primary); color: var(--accent-primary); }
+
+  /* flows */
+  .flows { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  .flow { border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); padding: 16px 18px; }
+  .flow h3 { margin: 0 0 4px; }
+  .flow .trig { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); margin: 0 0 10px; }
+  .flow ol { margin: 0; padding-left: 22px; color: var(--text-secondary); font-size: 14px; }
+  .flow li { padding-left: 4px; }
+  .flow li + li { margin-top: 6px; }
+  .flow li::marker { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .rt { font-family: var(--font-mono); font-size: 11px; color: var(--accent-secondary); white-space: nowrap; }
+  .flow .out { margin: 12px 0 0; padding-top: 10px; border-top: 1px dashed var(--border-strong); font-size: 13.5px; color: var(--text-secondary); }
+
+  /* schema */
+  .schema { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .sgroup { border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); overflow: hidden; }
+  .sgroup h3 { margin: 0; padding: 11px 14px; background: var(--bg-subtle); border-bottom: 1px solid var(--border-default); font-size: 14px; display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+  .sgroup h3 span { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); font-weight: 400; }
+  .sgroup ul { list-style: none; margin: 0; padding: 8px 14px 12px; display: grid; gap: 7px; }
+  .sgroup li { font-size: 13.5px; color: var(--text-secondary); }
+  .sgroup li code { color: var(--text-primary); }
+  .sgroup li .mig { font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-left: 4px; }
+  .sgroup.legacy { opacity: 0.85; }
+  .sgroup.absent h3 { color: var(--accent-warm); }
+
+  /* files */
+  .search { display: flex; gap: 10px; align-items: center; margin: 0 0 12px; flex-wrap: wrap; }
+  .search label { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+  .search input { font: 14px var(--font-mono); padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-strong); background: var(--bg-surface); color: var(--text-primary); width: min(420px, 100%); }
+  .search output { font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+
+  .envs { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+  .env { border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); padding: 14px 16px; }
+  .env h3 { margin: 0 0 6px; font-size: 14.5px; }
+  .env p { margin: 0; color: var(--text-secondary); font-size: 13.5px; }
+  .env p + p { margin-top: 6px; }
+
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--border-default); font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+
+  @media (max-width: 980px) {
+    .shell { grid-template-columns: 1fr; gap: 0; }
+    nav.toc { position: static; margin-bottom: 8px; }
+    nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+    nav.toc a { border-left: 0; border: 1px solid var(--border-default); padding: 4px 9px; }
+  }
+  @media (max-width: 640px) {
+    .shell { padding-inline: 16px; }
+    .layer { grid-template-columns: 1fr; }
+    .layer .lname { border-right: 0; border-bottom: 1px solid var(--border-default); }
+    .flows, .schema { grid-template-columns: 1fr; }
+  }
+</style>
+
+<div class="shell">
+  <nav class="toc" aria-label="Sections">
+    <p>Codemap</p>
+    <ol>
+      <li><a href="#topology">Runtime topology</a></li>
+      <li><a href="#layers">Backend layers</a></li>
+      <li><a href="#routes">HTTP surface</a></li>
+      <li><a href="#flows">Request flows</a></li>
+      <li><a href="#pipeline">Corpus pipeline</a></li>
+      <li><a href="#schema">Database</a></li>
+      <li><a href="#frontend">Frontend</a></li>
+      <li><a href="#environments">Environments</a></li>
+      <li><a href="#seams">Stubs &amp; seams</a></li>
+      <li><a href="#files">File directory</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="top">
+      <p class="eyebrow">Harmonic Color Graph · codemap</p>
+      <h1>How the system is actually built</h1>
+      <p class="lede">A map of the code as it exists, not as planned: what runs where, which module may call which, the path every request takes, and what each file is for. For intent and target architecture, read <code>context/architecture.md</code> and <code>docs/roadmap-v2.md</code>. For values and limits, read <code>context/brain/facts.json</code>.</p>
+      <div class="scope">
+        <span>commit <b>994b648</b></span>
+        <span>mapped <b>2026-09-24</b></span>
+        <span>shipped <b>M0–M3 + F40</b></span>
+        <span>active corpus <b>cv-2026-09-a</b></span>
+        <span>migrations live <b>0001–0007</b></span>
+      </div>
+    </header>
+
+    <!-- 1. topology -->
+    <section class="part" id="topology" aria-labelledby="topology-h">
+      <h2 id="topology-h">Runtime topology</h2>
+      <p class="sub">Two Vercel projects deploy from one repo. The browser only ever talks to the web origin. FastAPI is the only process that reads the <code>hcg</code> schema at request time. Corpus data enters the database solely through the versioned loader.</p>
+      <figure>
+        <div class="diagram">
+          <svg viewBox="0 0 1000 520" role="img" aria-label="Browser calls Next.js on Vercel, which rewrites /api/hcg to FastAPI on Vercel, which queries Supabase Postgres and optionally Redis. Vercel Cron pings Next.js daily. A job worker takes wakeups from Redis and keeps its ledger in Postgres. The offline pipeline turns the raw CSV into Parquet artifacts that the loader copies into Postgres in one transaction.">
+            <defs>
+              <marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker>
+              <marker id="ahA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill: var(--accent-primary)"/></marker>
+            </defs>
+
+            <!-- column labels -->
+            <g font-family="Geist Mono, ui-monospace, monospace" font-size="10.5" fill="currentColor" opacity="0.75" letter-spacing="1.2">
+              <text x="20" y="22">CLIENT</text>
+              <text x="280" y="22">VERCEL · WEB</text>
+              <text x="540" y="22">VERCEL · API / WORKER</text>
+              <text x="800" y="22">SUPABASE</text>
+            </g>
+
+            <!-- Postgres tall -->
+            <rect x="800" y="36" width="180" height="468" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+            <g font-family="Geist, system-ui, sans-serif" fill="currentColor">
+              <text x="890" y="64" text-anchor="middle" font-size="14" font-weight="600" style="fill: var(--text-primary)">Postgres 17</text>
+              <text x="890" y="82" text-anchor="middle" font-size="11.5">schema hcg · private</text>
+              <text x="890" y="98" text-anchor="middle" font-size="11.5">RLS on · no Data API</text>
+            </g>
+            <g font-family="Geist Mono, ui-monospace, monospace" font-size="10.5" fill="currentColor">
+              <text x="816" y="150">corpus_versions · hcg.v()</text>
+              <text x="816" y="168">nodes · edges_compact</text>
+              <text x="816" y="186">ngram_histories</text>
+              <text x="816" y="204">ngram_discount_stats</text>
+              <text x="816" y="222">patterns · examples</text>
+              <text x="816" y="240">facts · song_refs</text>
+              <text x="816" y="340">jobs · job_events</text>
+              <text x="816" y="358">idempotency_keys</text>
+              <text x="816" y="440">(all corpus tables,</text>
+              <text x="816" y="456">keyed by version)</text>
+            </g>
+
+            <!-- row 1 boxes -->
+            <g font-family="Geist, system-ui, sans-serif" fill="currentColor">
+              <rect x="20" y="40" width="180" height="96" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="110" y="74" text-anchor="middle" font-size="14" font-weight="600" style="fill: var(--text-primary)">Browser</text>
+              <text x="110" y="93" text-anchor="middle" font-size="11.5">WorkbenchV2</text>
+              <text x="110" y="109" text-anchor="middle" font-size="11.5">polls /health every 60 s</text>
+
+              <rect x="280" y="40" width="180" height="96" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="370" y="68" text-anchor="middle" font-size="14" font-weight="600" style="fill: var(--text-primary)">Next.js 16</text>
+              <text x="370" y="87" text-anchor="middle" font-size="11.5">GET / · RSC shell</text>
+              <text x="370" y="103" text-anchor="middle" font-size="11.5">rewrite /api/hcg/*</text>
+              <text x="370" y="119" text-anchor="middle" font-size="11.5">/api/cron/keepalive</text>
+
+              <rect x="540" y="40" width="180" height="96" rx="8" fill="none" style="stroke: var(--accent-primary)" stroke-width="1.5"/>
+              <text x="630" y="68" text-anchor="middle" font-size="14" font-weight="600" style="fill: var(--text-primary)">FastAPI</text>
+              <text x="630" y="87" text-anchor="middle" font-size="11.5">/v1 · /v2 · /health</text>
+              <text x="630" y="103" text-anchor="middle" font-size="11.5">NullPool · 5 s timeout</text>
+              <text x="630" y="119" text-anchor="middle" font-size="11.5">Python 3.12</text>
+            </g>
+
+            <!-- row 2 -->
+            <g font-family="Geist, system-ui, sans-serif" fill="currentColor">
+              <rect x="280" y="196" width="180" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.25" stroke-dasharray="4 3"/>
+              <text x="370" y="223" text-anchor="middle" font-size="13.5" font-weight="600" style="fill: var(--text-primary)">Vercel Cron</text>
+              <text x="370" y="241" text-anchor="middle" font-size="11.5">daily 15:00 UTC</text>
+
+              <rect x="540" y="196" width="180" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="630" y="223" text-anchor="middle" font-size="13.5" font-weight="600" style="fill: var(--text-primary)">Redis (optional)</text>
+              <text x="630" y="241" text-anchor="middle" font-size="11.5">cache · limits · wakeups</text>
+            </g>
+
+            <!-- row 3 -->
+            <g font-family="Geist, system-ui, sans-serif" fill="currentColor">
+              <rect x="540" y="316" width="180" height="64" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="630" y="343" text-anchor="middle" font-size="13.5" font-weight="600" style="fill: var(--text-primary)">Job worker</text>
+              <text x="630" y="361" text-anchor="middle" font-size="11.5">python -m app.worker</text>
+            </g>
+
+            <!-- row 4: offline -->
+            <g font-family="Geist, system-ui, sans-serif" fill="currentColor">
+              <text x="20" y="418" font-family="Geist Mono, ui-monospace, monospace" font-size="10.5" letter-spacing="1.2" opacity="0.75">OFFLINE · LOCAL MACHINE</text>
+              <rect x="20" y="428" width="180" height="76" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="110" y="458" text-anchor="middle" font-size="13.5" font-weight="600" style="fill: var(--text-primary)">Chordonomicon CSV</text>
+              <text x="110" y="476" text-anchor="middle" font-size="11.5">data/raw · gitignored</text>
+
+              <rect x="280" y="428" width="180" height="76" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="370" y="458" text-anchor="middle" font-size="13.5" font-weight="600" style="fill: var(--text-primary)">hcg-build run</text>
+              <text x="370" y="476" text-anchor="middle" font-size="11.5">7 stages · memory guard</text>
+
+              <rect x="540" y="428" width="180" height="76" rx="8" fill="none" stroke="currentColor" stroke-width="1.25"/>
+              <text x="630" y="458" text-anchor="middle" font-size="13.5" font-weight="600" style="fill: var(--text-primary)">Parquet artifacts</text>
+              <text x="630" y="476" text-anchor="middle" font-size="11.5">data/artifacts/&lt;version&gt;</text>
+            </g>
+
+            <!-- arrows: hot path (accent) -->
+            <g style="stroke: var(--accent-primary)" stroke-width="1.5" fill="none">
+              <line x1="200" y1="88" x2="276" y2="88" marker-end="url(#ahA)"/>
+              <line x1="460" y1="88" x2="536" y2="88" marker-end="url(#ahA)"/>
+              <line x1="720" y1="88" x2="796" y2="88" marker-end="url(#ahA)"/>
+            </g>
+            <g font-family="Geist Mono, ui-monospace, monospace" font-size="10.5" text-anchor="middle" style="fill: var(--accent-primary)">
+              <text x="240" y="80">/api/hcg/*</text>
+              <text x="498" y="80">rewrite</text>
+              <text x="760" y="80">SQL :6543</text>
+            </g>
+
+            <!-- arrows: supporting -->
+            <g stroke="currentColor" stroke-width="1.25" fill="none">
+              <line x1="370" y1="196" x2="370" y2="140" marker-end="url(#ah)"/>
+              <line x1="630" y1="136" x2="630" y2="192" marker-end="url(#ah)"/>
+              <line x1="630" y1="316" x2="630" y2="264" marker-end="url(#ah)"/>
+              <line x1="720" y1="348" x2="796" y2="348" marker-end="url(#ah)"/>
+              <line x1="200" y1="466" x2="276" y2="466" marker-end="url(#ah)"/>
+              <line x1="460" y1="466" x2="536" y2="466" marker-end="url(#ah)"/>
+              <line x1="720" y1="466" x2="796" y2="466" marker-end="url(#ah)"/>
+              <path d="M600,380 L600,424" stroke-dasharray="4 3" marker-end="url(#ah)"/>
+            </g>
+            <g font-family="Geist Mono, ui-monospace, monospace" font-size="10.5" fill="currentColor">
+              <text x="378" y="172">GET keepalive</text>
+              <text x="638" y="170">cache · limits · LPUSH</text>
+              <text x="638" y="294">BRPOP wakeup</text>
+              <text x="758" y="340" text-anchor="middle">lease</text>
+              <text x="240" y="458" text-anchor="middle">stream</text>
+              <text x="498" y="458" text-anchor="middle">write</text>
+              <text x="758" y="458" text-anchor="middle">1 txn load</text>
+              <text x="592" y="406" text-anchor="end">graph_rebuild</text>
+            </g>
+          </svg>
+        </div>
+        <figcaption>Green is the live request path. The keepalive cron calls the web app's own <code>/api/cron/keepalive</code>, which pings <code>/api/hcg/health/db</code> so the free-tier Supabase project doesn't pause. The <code>graph_rebuild</code> job runs the same loader against local artifacts. Redis loss never loses work: the worker re-enqueues <code>queued</code> rows from Postgres every 30 s.</figcaption>
+      </figure>
+    </section>
+
+    <!-- 2. layers -->
+    <section class="part" id="layers" aria-labelledby="layers-h">
+      <h2 id="layers-h">Backend layers</h2>
+      <p class="sub">Imports point downward only. Entry points are thin. Business logic lives in services and pure theory. SQL lives only in stores and repositories.</p>
+      <div class="layers">
+        <div class="layer"><div class="lname"><b>Entry points</b><span>parse · guard · call</span></div><div class="mods">
+          <span class="mod">api/analysis_v2.py</span><span class="mod">api/recommend_v2.py</span><span class="mod">api/graph_v2.py</span><span class="mod">api/examples_v2.py</span><span class="mod">api/jobs_v2.py</span><span class="mod">api/phase1.py<small>v1</small></span><span class="mod">main.py</span><span class="mod">worker.py</span><span class="mod">pipeline/cli.py</span><span class="mod">tests/eval/prediction.py<small>hcg-eval</small></span>
+        </div></div>
+        <div class="layer"><div class="lname"><b>Domain services</b><span>shared by HTTP · jobs · future MCP</span></div><div class="mods">
+          <span class="mod">services/recommend.py</span><span class="mod">graph/service.py</span><span class="mod">predict/ngram.py<small>KN math</small></span><span class="mod">predict/realize.py</span><span class="mod">jobs/handlers.py</span><span class="mod">jobs/worker_runtime.py</span><span class="mod">services/analysis.py<small>v1</small></span><span class="mod">services/transition_*.py<small>v1</small></span>
+        </div></div>
+        <div class="layer"><div class="lname"><b>Pure theory</b><span>no I/O · hot-path safe</span></div><div class="mods">
+          <span class="mod">theory/chord_normalizer.py</span><span class="mod">theory/spelling.py</span><span class="mod">theory/keys.py<small>+ keys_params.json</small></span><span class="mod">theory/roman.py<small>analyze_v2</small></span><span class="mod">theory/relationships_v2.py</span><span class="mod">theory/voice_leading.py</span><span class="mod">theory/roman_analysis.py<small>v1</small></span><span class="mod">theory/relationships.py<small>v1</small></span>
+        </div></div>
+        <div class="layer"><div class="lname"><b>Data access</b><span>owns all SQL / Redis calls</span></div><div class="mods">
+          <span class="mod">db/stores/graph.py<small>Graph · Ngram · Pattern · Fact</small></span><span class="mod">jobs/repository.py</span><span class="mod">jobs/queue.py</span><span class="mod">core/cache.py<small>VersionedCache · RateLimiter</small></span><span class="mod">db/session.py</span><span class="mod">db/repositories.py<small>v1 ORM</small></span>
+        </div></div>
+        <div class="layer"><div class="lname"><b>Contracts</b><span>imported by every layer</span></div><div class="mods">
+          <span class="mod">schemas/analysis_v2.py</span><span class="mod">schemas/recommend_v2.py</span><span class="mod">schemas/harmony.py<small>StrictModel · v1</small></span><span class="mod">jobs/schemas.py</span><span class="mod">core/config.py</span><span class="mod">core/metrics.py</span>
+        </div></div>
+      </div>
+      <ul class="rules">
+        <li><b>Store owns SQL, service owns logic.</b> <code>GraphStore</code>→<code>GraphService</code> and <code>NgramStore</code>→<code>KNPredictor</code>. Services depend on a <code>Protocol</code>, so tests pass <code>InMemoryNgramStore</code> or fakes.</li>
+        <li><b>One sanctioned cross-import:</b> <code>predict/ngram.py</code> imports <code>HISTORY_SEP</code>/<code>MAX_ORDER_*</code> from <code>pipeline/stages/ngrams.py</code>, so the runtime reads exactly what the pipeline wrote. That pipeline module must keep <code>polars</code> imports inside functions.</li>
+        <li><b>The pipeline imports app theory</b> (<code>analyze</code> stage → <code>theory/roman.py</code>), so corpus analysis and live analysis are the same code. The app never imports pipeline stages except that constant module and lazy imports in <code>jobs/handlers.py</code>.</li>
+        <li><b>The v1 stack</b> (<code>phase1.py</code> → <code>services/analysis|transition_*</code> → <code>theory/roman_analysis|relationships</code> → <code>db/repositories</code> + <code>models/</code>) is frozen and served at <code>/v1/*</code> and the unprefixed paths.</li>
+      </ul>
+    </section>
+
+    <!-- 3. routes -->
+    <section class="part" id="routes" aria-labelledby="routes-h">
+      <h2 id="routes-h">HTTP surface</h2>
+      <p class="sub">Every route the API serves, with what it needs to answer. In the browser, prefix with <code>/api/hcg</code>. Limits are per client per 60 s and fail open.</p>
+      <div class="tbl routes">
+        <table>
+          <thead><tr><th>Method</th><th>Path</th><th>Handler → logic</th><th>Needs</th><th>Limit</th><th>Cache</th></tr></thead>
+          <tbody>
+            <tr class="grp"><td colspan="6">v2 · public</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/analyze</td><td>analysis_v2 → <code>theory.roman.analyze_v2</code></td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/recommend-next-chords</td><td>recommend_v2 → <code>RecommendationService</code> → <code>KNPredictor</code>, <code>PatternStore</code>, <code>FactStore</code></td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>count-of-counts (in-proc, per version)</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/node/{id}</td><td>graph_v2 → <code>GraphService.get_node</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/neighborhood</td><td>graph_v2 → <code>GraphService.neighborhood</code> (1–2 hops, ≤200 edges)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>120</td><td>L1 + L2, 1 h</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/explain-edge</td><td>graph_v2 → <code>GraphService.explain_edge</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/graph/path</td><td>graph_v2 → <code>GraphService.paths</code> (best-first, k ≤5, len ≤6)</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>30</td><td>L1 + L2, 1 h; adjacency per version</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/examples</td><td>examples_v2 → <code>PatternStore.examples | transition_examples</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr class="grp"><td colspan="6">v2 · jobs (X-HCG-Jobs-Token; 503 when unset)</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/jobs</td><td>jobs_v2 → <code>JobRepository.create</code> + <code>JobQueue.enqueue</code> (Idempotency-Key)</td><td><span class="pill db">db</span> <span class="pill redis">redis</span></td><td>token</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/jobs/{id}</td><td>jobs_v2 → <code>JobRepository.get</code></td><td><span class="pill db">db</span></td><td>token</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/v2/jobs/{id}/events</td><td>jobs_v2 → <code>JobRepository.events</code></td><td><span class="pill db">db</span></td><td>token</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/jobs/{id}/cancel</td><td>jobs_v2 → <code>cancel_queued</code> (queued/retrying only)</td><td><span class="pill db">db</span></td><td>token</td><td>—</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/jobs/{id}/retry</td><td>jobs_v2 → <code>manual_retry</code> (failed/dead_letter) + forced enqueue</td><td><span class="pill db">db</span> <span class="pill redis">redis</span></td><td>token</td><td>—</td></tr>
+            <tr class="grp"><td colspan="6">system</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/health</td><td>main (env <code>HCG_CORPUS_VERSION</code>, commit SHA)</td><td><span class="pill pure">none</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/health/db</td><td>main → <code>select 1</code> (503 <code>db_unavailable</code>)</td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/health/redis</td><td>main → <code>ping_redis</code></td><td><span class="pill redis">redis</span></td><td>none</td><td>—</td></tr>
+            <tr class="grp"><td colspan="6">v1 · frozen baseline (served at /v1/* and unprefixed)</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/analyze-progression</td><td>phase1 → <code>services.analysis</code> → <code>theory.roman_analysis</code></td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/next-chords</td><td>phase1 → <code>HarmonicRepository</code> → <code>transition_lookup</code> (demo fallback if enabled)</td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/transition-stats</td><td>phase1 → same as next-chords</td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/explain-transition</td><td>phase1 → <code>theory.relationships.label_transition</code></td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
+            <tr class="grp"><td colspan="6">Next.js (web project)</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/</td><td><code>app/page.tsx</code> → <code>WorkbenchV2</code> (client component)</td><td>—</td><td>—</td><td>—</td></tr>
+            <tr><td><span class="m get">GET</span></td><td class="p">/api/cron/keepalive</td><td><code>app/api/cron/keepalive/route.ts</code> (Bearer <code>CRON_SECRET</code>) → <code>/api/hcg/health/db</code></td><td>—</td><td>401 without secret</td><td>no-store</td></tr>
+            <tr><td>ANY</td><td class="p">/api/hcg/:path*</td><td><code>next.config.ts</code> rewrite → <code>${HCG_API_ORIGIN}/:path*</code> (resolved at build)</td><td>—</td><td>—</td><td>—</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="sub" style="margin-top:12px">v2 errors use <code>{"error":{"code","message","details"}}</code>, except <code>/v2/analyze</code> (FastAPI <code>{"detail"}</code>). Contracts: <code>backend/openapi.json</code> → <code>lib/api/types.ts</code>, both drift-checked in CI.</p>
+    </section>
+
+    <!-- 4. flows -->
+    <section class="part" id="flows" aria-labelledby="flows-h">
+      <h2 id="flows-h">Request flows</h2>
+      <p class="sub">The steps each operation runs, in order. <span class="rt">↯ SQL</span> marks a database round trip, which matters under the 5 s serverless statement timeout and pooler latency.</p>
+      <div class="flows">
+        <article class="flow">
+          <h3>Analyze → recommend</h3>
+          <p class="trig">Analyze button in WorkbenchV2</p>
+          <ol>
+            <li><code>analyzeProgressionV2</code> → <code>POST /v2/analyze</code>. <code>analyze_v2</code> normalizes chords, estimates song and section keys (24-key softmax), romanizes functionally, and applies <code>relationships_v2</code> rules. No database.</li>
+            <li>The UI renders tokens and keys, then fires <code>recommendNextChords</code> with the <code>.core</code> tokens, <code>song_key</code>, and genre/section (abortable).</li>
+            <li><code>RateLimiter.check</code> runs a Redis <code>EVAL</code> fixed window; it allows the request if Redis is down.</li>
+            <li><code>select hcg.v()</code> <span class="rt">↯ SQL</span> returns 503 <code>corpus_unavailable</code> if no version is active.</li>
+            <li><code>_input_tokens</code> validates core tokens against the key's mode, or re-runs <code>analyze_v2</code> on raw chords.</li>
+            <li><code>_resolve_chain</code> runs one <code>context_by_key</code> query per level: genre_section → genre → section → global <span class="rt">↯ ×≤4</span>. Missing contexts drop out of the chain.</li>
+            <li><code>NgramStore.histories</code> fetches every (context, order, history) in one query <span class="rt">↯ SQL</span>.</li>
+            <li>Discounts come from <code>ngram_discount_stats</code> <span class="rt">↯ SQL on cache miss</span> (<code>_COUNT_CACHE</code>, keyed by version).</li>
+            <li>Interpolated KN runs within each context and is mixed across contexts (β = n/(n+K), K = 100). The top 100 are filtered to the history's mode and realized to chord symbols, stopping at <code>limit</code>.</li>
+            <li><code>transition_examples_many</code> (≤2 each) <span class="rt">↯ SQL</span> and <code>FactStore.existing_ids</code> <span class="rt">↯ SQL</span>.</li>
+          </ol>
+          <p class="out">Output: recommendations with <code>score_breakdown</code>, <code>evidence</code>, <code>fact_ids</code>, and a templated explanation, plus <code>context_backoff</code> / <code>key_ambiguous</code> warnings. Clicking a chord appends it and re-runs from step 1. In parallel, <code>EvidencePanel</code> calls <code>/v2/examples</code> once per distinct transition.</p>
+        </article>
+
+        <article class="flow">
+          <h3>Graph neighborhood / path</h3>
+          <p class="trig">GET /v2/graph/neighborhood · POST /v2/graph/path</p>
+          <ol>
+            <li>The public guard applies the rate limit (120 or 30 per 60 s).</li>
+            <li><code>active_version()</code> <span class="rt">↯ SQL</span> builds the cache key <code>hcg:&lt;version&gt;:graph:*:&lt;hash&gt;</code>. It checks L1 (per process, 256 entries), then L2 Redis.</li>
+            <li>Miss, neighborhood: <code>context_by_key</code> <span class="rt">↯</span> and the root node <span class="rt">↯</span>. Per hop, <code>outgoing_edges</code> <span class="rt">↯</span>, then <b>one <code>node()</code> per kept edge</b> <span class="rt">↯ ×N</span>.</li>
+            <li>Miss, path: the whole <code>function_adjacency</code> for the context <span class="rt">↯ once per version</span> goes into <code>_ADJACENCY_CACHE</code>, then a best-first search with cost −ln p (+0.5 for non-transition edges) and an optional chromaticity constraint.</li>
+            <li>The result is written to L1 and L2 (TTL 1 h). <code>_response()</code> re-reads the active version <span class="rt">↯ SQL</span> for <code>meta</code>.</li>
+          </ol>
+          <p class="out">Node IDs accept the <code>M:I</code> shorthand (prefixed <code>function:</code>). Unknown context → 422; missing node → 404.</p>
+        </article>
+
+        <article class="flow">
+          <h3>Durable job</h3>
+          <p class="trig">POST /v2/jobs with token + Idempotency-Key</p>
+          <ol>
+            <li>A typed, allowlisted request: <code>graph_rebuild</code> | <code>evaluation_run</code> (<code>embedding_rebuild</code> returns 409).</li>
+            <li><code>JobRepository.create</code> <span class="rt">↯ SQL</span> writes the <code>jobs</code> row plus <code>idempotency_keys</code>. A replay returns the same job; a different payload under the same key returns 409.</li>
+            <li><code>JobQueue.enqueue</code>: <code>SET NX hcg:jobs:queued:&lt;id&gt; EX 60</code> + <code>LPUSH hcg:jobs:ready</code>. If Redis is down, the API returns 503 and the row stays <code>queued</code>.</li>
+            <li>The worker <code>BRPOP</code>s the ID, <code>claim</code>s it with a 90 s lease <span class="rt">↯</span>, and a heartbeat thread renews it every 30 s.</li>
+            <li><code>run_job</code> → handler: <code>pipeline.load.load_corpus</code>, or <code>evaluate_keys|labels_corpus</code>. Progress goes to <code>job_events</code>.</li>
+            <li>The job ends <code>complete</code>, or <code>fail</code> → <code>retrying</code> (with <code>available_at</code>) or <code>dead_letter</code> once attempts ≥ 3.</li>
+            <li>Every 30 s: <code>recover_expired</code> leases and re-enqueue all <code>queued</code> IDs.</li>
+          </ol>
+          <p class="out">Delivery is at-least-once. Handlers must be idempotent, and Postgres is the truth.</p>
+        </article>
+
+        <article class="flow">
+          <h3>Corpus build → activate</h3>
+          <p class="trig">hcg-build run --version cv-… then load</p>
+          <ol>
+            <li>Stages run under <code>MemoryGuard</code> and write Parquet plus <code>manifest.json</code> (hashes, row counts, budget estimate).</li>
+            <li><code>load_corpus</code> takes <code>pg_advisory_xact_lock('hcg.corpus_loader')</code> and sets <code>statement_timeout = 20min</code>.</li>
+            <li>It validates required artifacts, columns, and the manifest budget estimate (≤300 MB).</li>
+            <li>It inserts an inactive <code>corpus_versions</code> row and upserts <code>contexts</code> (stable IDs, 0 = global).</li>
+            <li>It COPYs nodes, <code>edges_compact</code> (contextual edges with count &lt; 5 dropped), n-grams, patterns, examples, <code>song_refs</code>, and facts. Then it populates <code>ngram_discount_stats</code>.</li>
+            <li>It checks table counts, runs ANALYZE, and applies the size gate (<code>hcg</code> ≤300 MiB, DB ≤400 MiB).</li>
+            <li>It flips <code>active</code> and commits. Any error rolls everything back, and the old version keeps serving.</li>
+          </ol>
+          <p class="out"><code>garbage_collect(confirm=True)</code> removes inactive versions. The loader's direct URL comes from gitignored <code>backend/.env</code>.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- 5. pipeline -->
+    <section class="part" id="pipeline" aria-labelledby="pipeline-h">
+      <h2 id="pipeline-h">Corpus pipeline</h2>
+      <p class="sub">The <code>STAGE_ORDER</code> in <code>backend/pipeline/cli.py</code>. Each stage reads earlier artifacts from <code>data/artifacts/&lt;version&gt;/</code>. The loader requires every artifact through <code>examples</code>, including <code>voice_leads.parquet</code>.</p>
+      <div class="tbl pipe">
+        <table>
+          <thead><tr><th>Stage</th><th>Feature</th><th>Reads</th><th>Writes</th><th>Loaded into</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td class="p">ingest</td><td>F20</td><td>raw CSV</td><td class="p">ingest.parquet</td><td>— (deterministic train/dev/test split per song)</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">analyze</td><td>F20/F21</td><td>ingest</td><td class="p">sections.parquet</td><td>— (its context keys become <code>contexts</code> rows)</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">aggregate</td><td>F22</td><td>sections</td><td class="p">transitions · functions · abs_transitions</td><td><code>nodes</code>, <code>edges_compact</code> (types 1–3, 5, 6), <code>facts</code></td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">voice_leading</td><td>F40</td><td>abs_transitions</td><td class="p">voice_leads.parquet</td><td><code>edges_compact</code> type 7 (not in live corpus yet)</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">ngrams</td><td>F22</td><td>sections</td><td class="p">ngrams.parquet</td><td><code>ngram_histories</code>, <code>ngram_discount_stats</code></td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">patterns</td><td>F22</td><td>sections</td><td class="p">patterns.parquet</td><td><code>patterns</code>, <code>edges_compact</code> type 4</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">examples</td><td>F22/F26</td><td>patterns · transitions · sections</td><td class="p">pattern_examples · transition_examples · song_refs</td><td>same-named tables</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">color</td><td>F41</td><td>sections</td><td class="p">color.parquet</td><td>planned <code>color_profiles</code></td><td><span class="pill stub">stub</span></td></tr>
+            <tr><td class="p">embeddings</td><td>F50</td><td>sections</td><td class="p">embeddings.parquet</td><td>planned <code>embeddings</code> (pgvector)</td><td><span class="pill stub">stub</span></td></tr>
+            <tr><td class="p">snapshot</td><td>F63</td><td>—</td><td class="p">public/snapshot/graph-core.json</td><td>static degraded-mode file</td><td><span class="pill stub">stub</span></td></tr>
+            <tr><td class="p">export</td><td>stretch S1</td><td>—</td><td>Cypher/Neo4j export</td><td>—</td><td><span class="pill stub">stub</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <h3>Other CLI subcommands and offline tools</h3>
+      <ul class="rules">
+        <li><code>python -m pipeline.cli synth</code>: writes <code>data/samples/mini_corpus.csv</code> (no dataset content; feeds CI, Compose, and the <code>cv-mini-smoke</code> artifact).</li>
+        <li><code>corpus-report</code> / <code>vocab-report</code>: write <code>docs/eval/corpus-*.md</code> and <code>docs/eval/vocab.md</code>. <code>load</code>: the versioned loader.</li>
+        <li><code>stages/calibrate_keys.py</code> fits <code>app/theory/keys_params.json</code> on <code>data/gold/keys.jsonl</code>. <code>oracle_music21.py</code> is a dev-only music21 cross-check (never runtime, ADR-004).</li>
+        <li><code>evaluate_keys_corpus</code> / <code>evaluate_labels_corpus</code> are also the <code>evaluation_run</code> job handlers. <code>hcg-eval prediction</code> (<code>tests/eval/</code>) runs the leak-free F31 harness against a <code>--split train</code> artifact.</li>
+      </ul>
+    </section>
+
+    <!-- 6. schema -->
+    <section class="part" id="schema" aria-labelledby="schema-h">
+      <h2 id="schema-h">Database (<code>hcg</code> schema)</h2>
+      <p class="sub">Source of truth: <code>supabase/migrations/*.sql</code>, all applied live. Corpus tables carry a <code>version</code> column (edges carry <code>version_key</code>), and reads resolve the active one through <code>hcg.v()</code>.</p>
+      <div class="schema">
+        <div class="sgroup"><h3>Versioning <span>0002 · 0005</span></h3><ul>
+          <li><code>corpus_versions</code> version, manifest, active (≤1 true), <code>version_key</code> identity<span class="mig">0005</span></li>
+          <li><code>contexts</code> id smallint (stable; 0 = global), type, value, label</li>
+          <li><code>hcg.v()</code> SQL function → active version text</li>
+          <li><code>active_version</code> view</li>
+        </ul></div>
+        <div class="sgroup"><h3>Harmonic graph <span>0002 · 0005 · 0007</span></h3><ul>
+          <li><code>nodes</code> (version, id) PK, type, label, props; <code>node_key</code> identity<span class="mig">0005</span></li>
+          <li><code>edges_compact</code> version_key, src_key, dst_key, type_code 1–7, context_id, count, prob, weight (PMI), support, props<span class="mig">0005/0007</span></li>
+          <li><code>edges_read</code> view: decodes keys to text IDs and type names, and merges pmi/support into props<span class="mig">0007</span></li>
+          <li><code>edges</code>: original text-keyed table, kept empty<span class="mig">0002</span></li>
+        </ul></div>
+        <div class="sgroup"><h3>Prediction <span>0002 · 0006</span></h3><ul>
+          <li><code>ngram_histories</code> (version, context_id, ord, history) → total, distinct_next, next jsonb, cont jsonb</li>
+          <li><code>ngram_discount_stats</code> (version, context_id, ord) → n1, n2. Loader-maintained, so the request never scans jsonb<span class="mig">0006</span></li>
+        </ul></div>
+        <div class="sgroup"><h3>Evidence <span>0002</span></h3><ul>
+          <li><code>patterns</code> pattern, length, support, song_count, rotations_observed, context_lifts</li>
+          <li><code>pattern_examples</code> / <code>transition_examples</code> ranked song positions</li>
+          <li><code>song_refs</code> song_id, spotify_id, genre, decade</li>
+          <li><code>facts</code> (fact_id, version), kind, subject, template, params</li>
+          <li><code>relationship_types</code> catalog</li>
+        </ul></div>
+        <div class="sgroup"><h3>Jobs <span>0003 · 0004</span></h3><ul>
+          <li><code>jobs</code> type, payload, status, progress/stage, attempt/max_attempts (3), worker_id, lease_expires_at, available_at, request_hash</li>
+          <li><code>job_events</code> append-only progress and state log</li>
+          <li><code>idempotency_keys</code> key → job, request hash, expires_at<span class="mig">0004</span></li>
+        </ul></div>
+        <div class="sgroup legacy"><h3>Phase 1 (v1 routes) <span>0001</span></h3><ul>
+          <li><code>chords</code>, <code>roman_chords</code>, <code>songs</code>, <code>progressions</code>, <code>progression_chords</code></li>
+          <li><code>transitions</code> (lookup index on from_roman, mode, genre, section, decade)</li>
+          <li><code>genres</code>, <code>sections</code>, <code>theory_labels</code>, <code>transition_theory_labels</code>, <code>source_metadata</code></li>
+          <li>Accessed only through <code>app/models/harmony.py</code> + <code>db/repositories.py</code></li>
+        </ul></div>
+        <div class="sgroup absent"><h3>Not created yet <span>planned</span></h3><ul>
+          <li><code>color_profiles</code>: F43</li>
+          <li><code>embeddings</code> (pgvector HNSW): F51. The <code>vector</code> extension is already installed in 0001.</li>
+          <li><code>public.saved_progressions</code>, <code>taste_profiles</code>, <code>feedback</code>, <code>ai_query_logs</code>: F73/F80/F81</li>
+        </ul></div>
+      </div>
+    </section>
+
+    <!-- 7. frontend -->
+    <section class="part" id="frontend" aria-labelledby="frontend-h">
+      <h2 id="frontend-h">Frontend</h2>
+      <p class="sub">A single-page workbench. All harmonic logic is server-side. The client renders server facts and validates response shapes at runtime.</p>
+      <div class="tbl files">
+        <table>
+          <thead><tr><th>Piece</th><th>Role</th></tr></thead>
+          <tbody>
+            <tr><td class="p">app/layout.tsx</td><td>Root layout, Geist fonts, metadata, <code>.dark</code> tokens from <code>app/globals.css</code></td></tr>
+            <tr><td class="p">app/page.tsx</td><td>Server component that renders <code>&lt;WorkbenchV2 /&gt;</code></td></tr>
+            <tr><td class="p">components/workbench-v2.tsx</td><td>Client state: input, key, genre/section. Orchestrates analyze → recommend, AbortController for recommendations</td></tr>
+            <tr><td class="p">components/recommendations-panel.tsx</td><td>Renders <code>RecommendResponse</code>: scores, evidence, warnings, "append chord"</td></tr>
+            <tr><td class="p">components/evidence-panel.tsx</td><td>Fetches <code>/v2/examples</code> per transition and shows Spotify-linked songs</td></tr>
+            <tr><td class="p">components/system-status.tsx</td><td>API/DB/corpus badges plus the degraded-mode banner</td></tr>
+            <tr><td class="p">lib/hooks/use-system-health.ts</td><td>Polls <code>/health</code> then <code>/health/db</code> every 60 s; distinguishes <code>unavailable</code> (503) from <code>down</code></td></tr>
+            <tr><td class="p">lib/api/client.ts</td><td>The only network layer: <code>apiFetch</code> on <code>/api/hcg</code>, runtime guards, hand-written v2 types (see audit A-06)</td></tr>
+            <tr><td class="p">lib/api/types.ts</td><td>Generated by <code>npm run gen:api</code> from <code>backend/openapi.json</code>; never hand-edit</td></tr>
+            <tr><td class="p">components/ui/*</td><td>shadcn primitives (badge, button, input, label), owned source</td></tr>
+            <tr><td class="p">components/phase-one-demo.tsx</td><td><b>Unused.</b> v1 demo, imported nowhere</td></tr>
+            <tr><td class="p">tests/e2e/*.spec.ts</td><td>Playwright: <code>smoke</code>, <code>recommendations</code>, <code>degraded-mode</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 8. environments -->
+    <section class="part" id="environments" aria-labelledby="env-h">
+      <h2 id="env-h">Environments</h2>
+      <p class="sub">The same code runs in four places. Only configuration differs.</p>
+      <div class="envs">
+        <div class="env"><h3>Local dev (Windows)</h3><p><code>next dev</code> on :3000 proxies to uvicorn on :8000. The default <code>DATABASE_URL</code> is SQLite under <code>backend/.tmp</code>; point it at Supabase for real data.</p><p>Gate: <code>scripts/check.ps1 all</code>. pg tests skip here.</p></div>
+        <div class="env"><h3>Compose stack</h3><p><code>compose.yaml</code>: pgvector pg17 on :15432, Redis 7 on :16379 (no persistence), <code>migrate</code> (applies SQL), <code>api</code> on :8000, <code>worker</code>, <code>frontend</code> on :3000. All have health checks.</p><p><code>scripts/dev-up.*</code> / <code>dev-down.*</code>, env from <code>.env.docker.example</code>.</p></div>
+        <div class="env"><h3>CI (GitHub Actions)</h3><p><b>backend</b>: ruff, format, OpenAPI drift, pytest + coverage. <b>backend-pg</b>: pg17 service, migrations, <code>-m pg</code>. <b>frontend</b>: types drift, lint, typecheck, vitest, build. <b>compose</b>: full stack plus a real queued <code>evaluation_run</code>.</p></div>
+        <div class="env"><h3>Production (Vercel + Supabase)</h3><p>Web project root <code>harmonic-color-graph/</code>; API project root <code>backend/</code> (<code>backend/vercel.json</code>). Supabase via the transaction pooler :6543. The daily cron keeps it warm. Redis presence in production is unconfirmed.</p></div>
+      </div>
+    </section>
+
+    <!-- 9. seams -->
+    <section class="part" id="seams" aria-labelledby="seams-h">
+      <h2 id="seams-h">Stubs and seams already in the code</h2>
+      <p class="sub">Places where upcoming milestones plug in. Extend these instead of adding parallel paths.</p>
+      <div class="tbl files">
+        <table>
+          <thead><tr><th>Seam</th><th>Where</th><th>Next owner</th></tr></thead>
+          <tbody>
+            <tr><td>Nine color axes named in the loader</td><td class="p">pipeline/load.py COLOR_AXES</td><td>F41–F43</td></tr>
+            <tr><td><code>color</code> stage raises StageNotImplementedError</td><td class="p">pipeline/stages/color.py</td><td>F41</td></tr>
+            <tr><td><code>Recommendation.color</code> defaults to <code>{}</code></td><td class="p">app/schemas/recommend_v2.py</td><td>F43/F44</td></tr>
+            <tr><td><code>transition_metrics()</code> for live smoothness</td><td class="p">app/theory/voice_leading.py</td><td>F41</td></tr>
+            <tr><td><code>embedding_rebuild</code> job returns 409</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>F50</td></tr>
+            <tr><td><code>embeddings</code> / <code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F50 / F63 / S1</td></tr>
+            <tr><td><code>DEFAULT_MIXING_K = 100.0</code> placeholder</td><td class="p">app/predict/ngram.py</td><td>tuning follow-up (docs/eval/prediction-v2.md)</td></tr>
+            <tr><td>Services written "shared by HTTP and future tools"</td><td class="p">app/services/recommend.py, app/graph/service.py</td><td>F70 tools, F70.5 MCP (<code>backend/app/mcp/</code> not created yet)</td></tr>
+            <tr><td>Structured metric events awaiting an exporter</td><td class="p">app/core/metrics.py</td><td>F75</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 10. files -->
+    <section class="part" id="files" aria-labelledby="files-h">
+      <h2 id="files-h">File directory</h2>
+      <p class="sub">Every tracked source file that carries logic, with its job. Tests, generated files, and fixtures are grouped. Type to filter by path or purpose.</p>
+      <div class="search">
+        <label for="file-filter">filter</label>
+        <input id="file-filter" type="search" placeholder="e.g. stores, lease, F40, polars" autocomplete="off">
+        <output id="file-count" for="file-filter"></output>
+      </div>
+      <div class="tbl files">
+        <table id="file-table">
+          <thead><tr><th>Path</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr class="grp"><td colspan="2">backend/app · entry &amp; core</td></tr>
+            <tr><td class="p">backend/app/main.py</td><td>FastAPI app: CORS, router mounting (v1 twice: bare and /v1), /health, /health/db, /health/redis</td></tr>
+            <tr><td class="p">backend/app/worker.py</td><td>Worker process: signals, dependency check, JobWorker.run_forever</td></tr>
+            <tr><td class="p">backend/app/runtime_check.py</td><td>Container health probes (DB/Redis, API) used by Compose</td></tr>
+            <tr><td class="p">backend/app/core/config.py</td><td>AppSettings (pydantic-settings, .env), the only env reader</td></tr>
+            <tr><td class="p">backend/app/core/cache.py</td><td>VersionedCache (L1 LRU + Redis L2), RateLimiter (Lua fixed window), cache_key</td></tr>
+            <tr><td class="p">backend/app/core/redis.py</td><td>ping_redis for /health/redis</td></tr>
+            <tr><td class="p">backend/app/core/metrics.py</td><td>emit_metric: JSON log events (cache, redis latency, rate hits, queue depth)</td></tr>
+            <tr class="grp"><td colspan="2">backend/app · api</td></tr>
+            <tr><td class="p">backend/app/api/analysis_v2.py</td><td>POST /v2/analyze → theory.roman.analyze_v2</td></tr>
+            <tr><td class="p">backend/app/api/recommend_v2.py</td><td>POST /v2/recommend-next-chords: limiter + RecommendationService + error mapping</td></tr>
+            <tr><td class="p">backend/app/api/graph_v2.py</td><td>/v2/graph node, neighborhood, explain-edge, path; cache + limits</td></tr>
+            <tr><td class="p">backend/app/api/examples_v2.py</td><td>GET /v2/examples for pattern or transition evidence (response models inline)</td></tr>
+            <tr><td class="p">backend/app/api/jobs_v2.py</td><td>/v2/jobs admin API: token guard, idempotency, create/get/cancel/events/retry</td></tr>
+            <tr><td class="p">backend/app/api/phase1.py</td><td>Frozen v1 routes, including the in-code DEMO_TRANSITIONS fallback</td></tr>
+            <tr class="grp"><td colspan="2">backend/app · domain</td></tr>
+            <tr><td class="p">backend/app/services/recommend.py</td><td>RecommendationService, SessionNgramReader (+ version-keyed count cache), input parsing, explanations</td></tr>
+            <tr><td class="p">backend/app/graph/service.py</td><td>GraphService: neighborhood BFS, explain_edge, k-shortest-ish paths, adjacency cache</td></tr>
+            <tr><td class="p">backend/app/predict/ngram.py</td><td>KNPredictor: interpolated Kneser-Ney + context mixing; InMemoryNgramStore for tests/eval</td></tr>
+            <tr><td class="p">backend/app/predict/realize.py</td><td>realize(core_token, key) → chord symbol (inverse of romanize .core)</td></tr>
+            <tr><td class="p">backend/app/services/analysis.py</td><td>v1 analyze_progression_service</td></tr>
+            <tr><td class="p">backend/app/services/transition_graph.py</td><td>v1 transition extraction and aggregation by context bucket</td></tr>
+            <tr><td class="p">backend/app/services/transition_lookup.py</td><td>v1 next-chords / transition-stats ranking</td></tr>
+            <tr><td class="p">backend/app/services/corpus_ingestion.py</td><td>v1 Chordonomicon → Phase 1 tables ingestion</td></tr>
+            <tr><td class="p">backend/app/services/quality_metrics.py</td><td>v1 parse-quality report</td></tr>
+            <tr><td class="p">backend/app/ingestion/*.py</td><td>v1 Chordonomicon row readers, seed_corpus and metrics_report scripts</td></tr>
+            <tr class="grp"><td colspan="2">backend/app · theory (pure)</td></tr>
+            <tr><td class="p">backend/app/theory/chord_normalizer.py</td><td>normalize_chord: aliases, parse, slash bass, v2 features (pc mask, interval vector, inversion), warnings</td></tr>
+            <tr><td class="p">backend/app/theory/spelling.py</td><td>Letter-name spelling, line of fifths, key-aware tones, quality classification</td></tr>
+            <tr><td class="p">backend/app/theory/keys.py</td><td>F11 24-key finder: salience, profile correlation, chord fit, cadence, softmax; section keys and modulations</td></tr>
+            <tr><td class="p">backend/app/theory/keys_params.json</td><td>Frozen calibrated weights and temperature (written by calibrate_keys)</td></tr>
+            <tr><td class="p">backend/app/theory/roman.py</td><td>F12 analyze_v2, romanize_chord, parse_key: functional, mode-aware tokens (ADR-003)</td></tr>
+            <tr><td class="p">backend/app/theory/relationships_v2.py</td><td>F13 rule registry over RomanTokens → RelationshipFact (request-local fact IDs)</td></tr>
+            <tr><td class="p">backend/app/theory/voice_leading.py</td><td>F40 voicings, voice_lead, transition_metrics (bounded, API-safe)</td></tr>
+            <tr><td class="p">backend/app/theory/progression_normalizer.py</td><td>Split and normalize a progression string</td></tr>
+            <tr><td class="p">backend/app/theory/roman_analysis.py</td><td>v1 Roman analysis (golden-tested baseline)</td></tr>
+            <tr><td class="p">backend/app/theory/relationships.py</td><td>v1 transition labels and explanations</td></tr>
+            <tr class="grp"><td colspan="2">backend/app · data &amp; contracts</td></tr>
+            <tr><td class="p">backend/app/db/session.py</td><td>Engine factory (NullPool, no prepares, search_path, 5 s timeout), lazy get_session</td></tr>
+            <tr><td class="p">backend/app/db/stores/graph.py</td><td>GraphStore, NgramStore, PatternStore, FactStore: all v2 SQL, version-scoped</td></tr>
+            <tr><td class="p">backend/app/db/repositories.py</td><td>v1 HarmonicRepository (SQLAlchemy ORM over Phase 1 tables)</td></tr>
+            <tr><td class="p">backend/app/db/base.py, models/harmony.py</td><td>v1 DeclarativeBase + ORM models</td></tr>
+            <tr><td class="p">backend/app/schemas/analysis_v2.py</td><td>AnalyzeV2Request, AnalysisV2, RomanToken, RelationshipFact, KeyProbability</td></tr>
+            <tr><td class="p">backend/app/schemas/recommend_v2.py</td><td>RecommendRequest/Response, ScoreBreakdown, Evidence</td></tr>
+            <tr><td class="p">backend/app/schemas/harmony.py</td><td>StrictModel base, CanonicalChord, v1 request/response models</td></tr>
+            <tr class="grp"><td colspan="2">backend/app · jobs</td></tr>
+            <tr><td class="p">backend/app/jobs/schemas.py</td><td>Discriminated JobRequest union, corpus-version regex</td></tr>
+            <tr><td class="p">backend/app/jobs/repository.py</td><td>Job ledger SQL: create (idempotent), claim, lease, progress, complete, fail, recover, retry</td></tr>
+            <tr><td class="p">backend/app/jobs/queue.py</td><td>Redis wakeup list with an NX dedupe marker; queue depth metric</td></tr>
+            <tr><td class="p">backend/app/jobs/worker_runtime.py</td><td>JobWorker: reconcile loop, heartbeat thread, failure classification</td></tr>
+            <tr><td class="p">backend/app/jobs/handlers.py</td><td>graph_rebuild → load_corpus; evaluation_run → evaluate_*; path traversal guard</td></tr>
+            <tr><td class="p">backend/app/jobs/policy.py</td><td>is_retryable (timeouts, connection, Redis, psycopg operational, HTTP 429/5xx)</td></tr>
+            <tr class="grp"><td colspan="2">backend/pipeline</td></tr>
+            <tr><td class="p">backend/pipeline/cli.py</td><td>hcg-build: run (stage range, split, workers), synth, corpus-report, vocab-report, load</td></tr>
+            <tr><td class="p">backend/pipeline/load.py</td><td>Versioned transactional loader, compact edges, facts, discount stats, storage gate, garbage_collect</td></tr>
+            <tr><td class="p">backend/pipeline/manifest.py</td><td>Manifest (provenance, params, hashes, budget estimate), content hashing</td></tr>
+            <tr><td class="p">backend/pipeline/memory_guard.py</td><td>RSS watchdog that hard-exits a runaway stage</td></tr>
+            <tr><td class="p">backend/pipeline/synth.py</td><td>Deterministic synthetic mini corpus (safe to commit)</td></tr>
+            <tr><td class="p">backend/pipeline/oracle_music21.py</td><td>Dev-only music21 comparisons for the gold sets</td></tr>
+            <tr><td class="p">backend/pipeline/stages/_context.py</td><td>context_keys(genre, section, decade) and the aggregate threshold</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{ingest,analyze,aggregate,voice_leading,ngrams,patterns,examples}.py</td><td>Implemented stages (see Corpus pipeline)</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{color,embeddings,snapshot,export}.py</td><td>Stubs raising StageNotImplementedError</td></tr>
+            <tr><td class="p">backend/pipeline/stages/calibrate_keys.py</td><td>F11 grid search on the gold dev half → keys_params.json + docs/eval/keys.md</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{corpus_report,vocab_report,evaluate_keys_corpus,evaluate_labels_corpus}.py</td><td>Quality and coverage reports; the evaluate_* modules double as job handlers</td></tr>
+            <tr class="grp"><td colspan="2">backend · tests &amp; contracts</td></tr>
+            <tr><td class="p">backend/tests/unit/</td><td>v2 unit tests: theory, predictor, pipeline stages, loader, cache, APIs, jobs policy</td></tr>
+            <tr><td class="p">backend/tests/integration/</td><td>@pg tests (CI only): session, graph store, predictor, jobs, /health/db</td></tr>
+            <tr><td class="p">backend/tests/test_*.py</td><td>v1 test suite (Phase 1 behavior)</td></tr>
+            <tr><td class="p">backend/tests/golden/</td><td>v1 golden outputs + capture script (regression lock)</td></tr>
+            <tr><td class="p">backend/tests/eval/</td><td>F31 harness: sampling, metrics, baselines, prediction CLI (hcg-eval)</td></tr>
+            <tr><td class="p">backend/openapi.json</td><td>Generated API contract (scripts/export_openapi.py); CI drift-checked</td></tr>
+            <tr><td class="p">backend/legacy/</td><td>Retired Alembic history (reference only)</td></tr>
+            <tr><td class="p">backend/pyproject.toml</td><td>Deps + extras (dev, pipeline, ml, oracle), scripts, ruff and pytest config</td></tr>
+            <tr><td class="p">backend/vercel.json, backend/Dockerfile</td><td>API deploy config / container image</td></tr>
+            <tr class="grp"><td colspan="2">frontend</td></tr>
+            <tr><td class="p">app/layout.tsx, app/page.tsx, app/globals.css</td><td>Shell, page, design tokens</td></tr>
+            <tr><td class="p">app/api/cron/keepalive/route.ts</td><td>Cron-secret-guarded Supabase keepalive (+ test)</td></tr>
+            <tr><td class="p">components/workbench-v2.tsx</td><td>The live UI</td></tr>
+            <tr><td class="p">components/{recommendations-panel,evidence-panel,system-status}.tsx</td><td>Workbench panels</td></tr>
+            <tr><td class="p">components/phase-one-demo.tsx</td><td>Dead v1 UI (not imported)</td></tr>
+            <tr><td class="p">components/ui/</td><td>shadcn primitives</td></tr>
+            <tr><td class="p">lib/api/client.ts, lib/api/types.ts</td><td>Network client / generated types</td></tr>
+            <tr><td class="p">lib/hooks/use-system-health.ts, lib/utils.ts</td><td>Health polling / cn() helper</td></tr>
+            <tr><td class="p">next.config.ts, vercel.json</td><td>/api/hcg rewrite / daily cron</td></tr>
+            <tr><td class="p">tests/e2e/, playwright.config.ts, vitest.*</td><td>Playwright specs, test runners</td></tr>
+            <tr class="grp"><td colspan="2">infrastructure, data &amp; docs</td></tr>
+            <tr><td class="p">supabase/migrations/0001–0007</td><td>Schema source of truth (ADR-005)</td></tr>
+            <tr><td class="p">compose.yaml, Dockerfile, .env.docker.example</td><td>Local production stack</td></tr>
+            <tr><td class="p">scripts/check.{ps1,sh}</td><td>Standard check gate (ruff, pytest, lint, typecheck, vitest, build)</td></tr>
+            <tr><td class="p">scripts/dev-{up,down}.*, docker-migrate.sh</td><td>Compose lifecycle and migration runner</td></tr>
+            <tr><td class="p">scripts/export_openapi.py, scripts/db_size.sql</td><td>Contract export / storage budget measurement</td></tr>
+            <tr><td class="p">../.github/workflows/ci.yml</td><td>Four CI jobs (at the repository root, one level above the app)</td></tr>
+            <tr><td class="p">data/samples/, data/gold/</td><td>Committed fixtures (mini corpus, normalization cases, key/Roman gold)</td></tr>
+            <tr><td class="p">data/raw/, data/artifacts/</td><td>Gitignored: Chordonomicon CSV, versioned build outputs</td></tr>
+            <tr><td class="p">context/</td><td>Agent memory: HANDOFF, architecture, standards, workflow, progress, brain/</td></tr>
+            <tr><td class="p">context/brain/gotchas.json, facts.json</td><td>Agent traps / code-verified values (companions to this map)</td></tr>
+            <tr><td class="p">docs/adr/, docs/eval/, docs/runbooks/</td><td>Decisions, measured reports, operations</td></tr>
+            <tr><td class="p">docs/codebase-audit.html</td><td>Findings at 994b648</td></tr>
+            <tr><td class="p">feature-specs/v2-implementation-plan.md</td><td>Active build plan (F00–F85)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>Harmonic Color Graph · codemap of 994b648 · 2026-09-24 · update in the same PR as any route, module, table, or stage change</footer>
+  </main>
+</div>
+
+<script>
+  (function () {
+    var input = document.getElementById("file-filter");
+    var out = document.getElementById("file-count");
+    var rows = Array.prototype.slice.call(document.querySelectorAll("#file-table tbody tr"));
+    function filter() {
+      var q = input.value.trim().toLowerCase();
+      var shown = 0;
+      var group = null, groupHas = false;
+      rows.forEach(function (row) {
+        if (row.classList.contains("grp")) {
+          if (group) group.hidden = !groupHas;
+          group = row; groupHas = false;
+          return;
+        }
+        var hit = !q || row.textContent.toLowerCase().indexOf(q) !== -1;
+        row.hidden = !hit;
+        if (hit) { shown++; groupHas = true; }
+      });
+      if (group) group.hidden = !groupHas;
+      out.textContent = q ? shown + " match" + (shown === 1 ? "" : "es") : "";
+    }
+    input.addEventListener("input", filter);
+
+    var links = Array.prototype.slice.call(document.querySelectorAll("nav.toc a"));
+    if ("IntersectionObserver" in window) {
+      var obs = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (!e.isIntersecting) return;
+          links.forEach(function (a) { a.classList.toggle("on", a.getAttribute("href") === "#" + e.target.id); });
+        });
+      }, { rootMargin: "-20% 0px -70% 0px" });
+      document.querySelectorAll("section.part").forEach(function (s) { obs.observe(s); });
+    }
+  })();
+</script>

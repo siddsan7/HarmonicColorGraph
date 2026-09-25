@@ -1,0 +1,430 @@
+<title>Harmonic Color Graph Audit</title>
+<meta name="description" content="Static codebase audit of Harmonic Color Graph at commit 994b648: findings by severity, evidence, and fixes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg-base: #08090b;
+    --bg-surface: #111318;
+    --bg-subtle: #191d24;
+    --text-primary: #f4f1e8;
+    --text-secondary: #b7bdc8;
+    --text-muted: #8a92a2;
+    --accent-primary: #42e8b4;
+    --accent-secondary: #7aa7ff;
+    --accent-warm: #f2c86b;
+    --accent-tension: #f05d8e;
+    --border-default: #2a303a;
+    --border-strong: #3e4654;
+    --sev-high: #f05d8e;
+    --sev-medium: #f2c86b;
+    --sev-low: #7aa7ff;
+    --sev-info: #8a92a2;
+    --good: #53d18a;
+    --font-sans: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      color-scheme: light;
+      --bg-base: #f4f5f7;
+      --bg-surface: #ffffff;
+      --bg-subtle: #eceef2;
+      --text-primary: #14171d;
+      --text-secondary: #3f4653;
+      --text-muted: #646c7b;
+      --accent-primary: #0c8a64;
+      --accent-secondary: #2f5fcf;
+      --accent-warm: #936200;
+      --accent-tension: #c2285b;
+      --border-default: #d9dce3;
+      --border-strong: #b9bfca;
+      --sev-high: #c2285b;
+      --sev-medium: #936200;
+      --sev-low: #2f5fcf;
+      --sev-info: #646c7b;
+      --good: #1b8a4e;
+    }
+  }
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg-base: #f4f5f7;
+    --bg-surface: #ffffff;
+    --bg-subtle: #eceef2;
+    --text-primary: #14171d;
+    --text-secondary: #3f4653;
+    --text-muted: #646c7b;
+    --accent-primary: #0c8a64;
+    --accent-secondary: #2f5fcf;
+    --accent-warm: #936200;
+    --accent-tension: #c2285b;
+    --border-default: #d9dce3;
+    --border-strong: #b9bfca;
+    --sev-high: #c2285b;
+    --sev-medium: #936200;
+    --sev-low: #2f5fcf;
+    --sev-info: #646c7b;
+    --good: #1b8a4e;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  table { font-size: inherit; }
+  a { color: var(--accent-secondary); }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+  code, .mono { font-family: var(--font-mono); font-size: 0.86em; }
+  code { background: var(--bg-subtle); border: 1px solid var(--border-default); border-radius: 4px; padding: 0.05em 0.35em; overflow-wrap: anywhere; }
+
+  .wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 72px; }
+
+  header.top { display: grid; gap: 18px; padding-bottom: 28px; border-bottom: 1px solid var(--border-default); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent-primary); margin: 0; }
+  h1 { font-size: clamp(28px, 4.2vw, 40px); line-height: 1.1; letter-spacing: -0.02em; margin: 0; text-wrap: balance; font-weight: 650; }
+  .lede { color: var(--text-secondary); max-width: 68ch; margin: 0; }
+  .scope { display: flex; flex-wrap: wrap; gap: 8px 22px; font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); }
+  .scope b { color: var(--text-primary); font-weight: 500; }
+
+  h2 { font-size: 20px; letter-spacing: -0.01em; margin: 0 0 6px; text-wrap: balance; }
+  .section { margin-top: 44px; }
+  .section > p.sub { color: var(--text-secondary); margin: 0 0 18px; max-width: 70ch; }
+
+  /* verdict + severity tally */
+  .verdict { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 20px; margin-top: 28px; }
+  .verdict .summary { color: var(--text-secondary); }
+  .verdict .summary p { margin: 0 0 10px; max-width: 64ch; }
+  .verdict .summary strong { color: var(--text-primary); }
+  .tally { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); overflow: hidden; align-self: start; }
+  .tally div { padding: 14px 14px 12px; border-right: 1px solid var(--border-default); }
+  .tally div:last-child { border-right: 0; }
+  .tally .n { font-size: 30px; font-weight: 650; line-height: 1; font-variant-numeric: tabular-nums; }
+  .tally .l { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); margin-top: 6px; }
+  .tally .high .n { color: var(--sev-high); }
+  .tally .medium .n { color: var(--sev-medium); }
+  .tally .low .n { color: var(--sev-low); }
+  .tally .info .n { color: var(--sev-info); }
+
+  /* area map */
+  .areas { overflow-x: auto; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); }
+  .areas table { width: 100%; border-collapse: collapse; min-width: 640px; }
+  .areas th, .areas td { text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--border-default); vertical-align: top; }
+  .areas tr:last-child td { border-bottom: 0; }
+  .areas th { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-muted); font-weight: 500; background: var(--bg-subtle); }
+  .areas td.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; color: var(--text-secondary); white-space: nowrap; }
+  .areas th.num { text-align: right; }
+  .bar { height: 6px; border-radius: 3px; background: var(--accent-secondary); opacity: 0.75; min-width: 2px; }
+  .areas td.barcell { width: 26%; padding-top: 16px; }
+  .areas .note { color: var(--text-secondary); font-size: 13.5px; }
+
+  /* filters */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
+  .chip { font: 500 12.5px/1 var(--font-mono); padding: 8px 12px; border-radius: 999px; border: 1px solid var(--border-strong); background: transparent; color: var(--text-secondary); cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--bg-subtle); color: var(--text-primary); border-color: var(--text-muted); }
+  .chip .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+
+  /* findings */
+  .findings { display: grid; gap: 12px; }
+  .finding { position: relative; border: 1px solid var(--border-default); border-radius: 8px; background: var(--bg-surface); padding: 16px 18px 16px 22px; }
+  .finding::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 8px 0 0 8px; background: var(--sev); }
+  .finding[data-sev="high"] { --sev: var(--sev-high); }
+  .finding[data-sev="medium"] { --sev: var(--sev-medium); }
+  .finding[data-sev="low"] { --sev: var(--sev-low); }
+  .finding[data-sev="info"] { --sev: var(--sev-info); }
+  .fhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+  .fid { font-family: var(--font-mono); font-size: 12.5px; color: var(--text-muted); }
+  .ftitle { font-size: 16.5px; font-weight: 600; margin: 0; flex: 1 1 320px; text-wrap: balance; }
+  .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .tag { font: 500 11px/1 var(--font-mono); letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 8px; border-radius: 4px; border: 1px solid var(--border-strong); color: var(--text-secondary); }
+  .tag.sev { border-color: var(--sev); color: var(--sev); }
+  .fbody { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 6px 16px; margin: 12px 0 0; }
+  .fbody dt { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding-top: 3px; }
+  .fbody dd { margin: 0; color: var(--text-secondary); }
+  .fbody dd ul { margin: 0; padding-left: 18px; }
+  .fbody dd li + li { margin-top: 3px; }
+
+  /* strengths */
+  .strengths { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 12px; }
+  .strength { border-top: 2px solid var(--good); padding: 12px 2px 0; }
+  .strength h3 { font-size: 14.5px; margin: 0 0 4px; }
+  .strength p { margin: 0; color: var(--text-secondary); font-size: 14px; }
+
+  .method { color: var(--text-secondary); max-width: 72ch; }
+  .method li + li { margin-top: 6px; }
+  footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--border-default); font-family: var(--font-mono); font-size: 12px; color: var(--text-muted); }
+
+  @media (max-width: 760px) {
+    .verdict { grid-template-columns: 1fr; }
+    .fbody { grid-template-columns: 1fr; }
+    .fbody dt { padding-top: 6px; }
+    .tally .n { font-size: 24px; }
+    .wrap { padding-inline: 16px; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .chip { transition: background-color .15s, color .15s, border-color .15s; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <p class="eyebrow">Harmonic Color Graph · codebase audit</p>
+    <h1>Where the repo is solid, and where it will bite next</h1>
+    <p class="lede">A static read of every tracked source file across the FastAPI service, the offline corpus pipeline, SQL migrations, the Next.js workbench, and CI. Each finding cites the file that proves it, says why it matters for this project specifically, and names the fix.</p>
+    <div class="scope">
+      <span>commit <b>994b648</b></span>
+      <span>branch <b>docs/migration-0007-applied</b></span>
+      <span>audited <b>2026-09-24</b></span>
+      <span>milestone <b>M4 · next is F41</b></span>
+      <span>active corpus <b>cv-2026-09-a</b></span>
+    </div>
+  </header>
+
+  <section class="verdict" aria-label="Summary">
+    <div class="summary">
+      <p><strong>The architecture is in good shape.</strong> Stores own SQL and services own the logic. Every read is scoped by corpus version. Loads are all-or-nothing, with a storage gate. Jobs are durable and idempotent. Prediction quality sits behind a leak-free evaluation gate. Nothing found here needs a redesign.</p>
+      <p><strong>The risk is at the edges:</strong> the backend's dependency versions aren't pinned, production rate limiting probably doesn't work, and agents are still being pointed at context docs that contradict the code. That last one matters more here than in most repos, because agents do most of the building.</p>
+    </div>
+    <div class="tally" role="list">
+      <div class="high" role="listitem"><div class="n">3</div><div class="l">High</div></div>
+      <div class="medium" role="listitem"><div class="n">4</div><div class="l">Medium</div></div>
+      <div class="low" role="listitem"><div class="n">6</div><div class="l">Low</div></div>
+      <div class="info" role="listitem"><div class="n">2</div><div class="l">Info</div></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="areas-h">
+    <h2 id="areas-h">What was read</h2>
+    <p class="sub">Lines of tracked source per area. The generated <code>lib/api/types.ts</code> (1,771 lines) is counted separately, not as frontend code.</p>
+    <div class="areas">
+      <table>
+        <thead><tr><th>Area</th><th class="num">Lines</th><th aria-hidden="true"></th><th>Health</th></tr></thead>
+        <tbody>
+          <tr><td class="mono">backend/pipeline</td><td class="num">3,912</td><td class="barcell"><div class="bar" style="width:59%"></div></td><td class="note">Strong: transactional loader, memory guard. 4 of 11 stages are stubs.</td></tr>
+          <tr><td class="mono">backend/app/theory</td><td class="num">2,223</td><td class="barcell"><div class="bar" style="width:33%"></div></td><td class="note">Pure, well tested; v1 and v2 analyzers coexist</td></tr>
+          <tr><td class="mono">frontend (app, components, lib)</td><td class="num">3,670</td><td class="barcell"><div class="bar" style="width:55%"></div></td><td class="note">631 lines are dead (<code>phase-one-demo.tsx</code>)</td></tr>
+          <tr><td class="mono">backend/app/services</td><td class="num">969</td><td class="barcell"><div class="bar" style="width:15%"></div></td><td class="note">recommend.py is the only v2 service; rest is Phase 1</td></tr>
+          <tr><td class="mono">backend/app/predict</td><td class="num">809</td><td class="barcell"><div class="bar" style="width:12%"></div></td><td class="note">Clean KN math; one ineffective cache layer</td></tr>
+          <tr><td class="mono">backend/app/db + models</td><td class="num">789</td><td class="barcell"><div class="bar" style="width:12%"></div></td><td class="note">Version-scoped stores; serverless-safe engine</td></tr>
+          <tr><td class="mono">backend/app/jobs + worker</td><td class="num">719</td><td class="barcell"><div class="bar" style="width:11%"></div></td><td class="note">Leases, reconcile, idempotency, dead letter</td></tr>
+          <tr><td class="mono">backend/app/api</td><td class="num">681</td><td class="barcell"><div class="bar" style="width:10%"></div></td><td class="note">Error shape inconsistent; rate limit keying</td></tr>
+          <tr><td class="mono">supabase/migrations</td><td class="num">460</td><td class="barcell"><div class="bar" style="width:7%"></div></td><td class="note">0001–0007 applied live; RLS on every table</td></tr>
+          <tr><td class="mono">backend/tests</td><td class="num">6,664</td><td class="barcell"><div class="bar" style="width:100%"></div></td><td class="note">256 test functions; pg-marked tests run in CI only</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="findings-h">
+    <h2 id="findings-h">Findings</h2>
+    <p class="sub">Ranked by severity, then by how soon each will cost something. Most severe first.</p>
+    <div class="filters" role="group" aria-label="Filter findings by severity">
+      <button class="chip" type="button" id="f-all" data-filter="all" aria-pressed="true">All 15</button>
+      <button class="chip" type="button" id="f-high" data-filter="high" aria-pressed="false"><span class="dot" style="background:var(--sev-high)"></span>High</button>
+      <button class="chip" type="button" id="f-medium" data-filter="medium" aria-pressed="false"><span class="dot" style="background:var(--sev-medium)"></span>Medium</button>
+      <button class="chip" type="button" id="f-low" data-filter="low" aria-pressed="false"><span class="dot" style="background:var(--sev-low)"></span>Low</button>
+      <button class="chip" type="button" id="f-info" data-filter="info" aria-pressed="false"><span class="dot" style="background:var(--sev-info)"></span>Info</button>
+    </div>
+
+    <div class="findings">
+
+      <article class="finding" data-sev="high" id="A-01">
+        <div class="fhead"><span class="fid">A-01</span><h3 class="ftitle">Backend dependencies are unpinned, and Vercel resolves them fresh on every deploy</h3><div class="tags"><span class="tag sev">High</span><span class="tag">supply chain</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>backend/pyproject.toml</code> declares floors only (<code>fastapi&gt;=0.124</code>, <code>pydantic&gt;=2.12</code>, <code>sqlalchemy&gt;=2.0.45</code>, <code>psycopg[binary]&gt;=3.2</code>). Only <code>redis&lt;7</code> is capped. The repo has no <code>uv.lock</code>, <code>requirements.txt</code>, or constraints file. The frontend, by contrast, pins exact <code>next</code>/<code>react</code> and ships a lockfile.</dd>
+          <dt>Why it matters</dt><dd>A production deploy can pick up a new FastAPI, Starlette, or Pydantic release that CI never ran against. CI also resolves its own latest set on each run, so a green PR doesn't prove what production installs. The API runs on its own Vercel project with no human watching builds.</dd>
+          <dt>Fix</dt><dd>Generate a lock (<code>uv pip compile pyproject.toml -o requirements.txt</code>, plus <code>--extra dev,pipeline</code> for CI). Have Vercel and CI install from it, and add <code>--upgrade</code> refreshes as deliberate PRs.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="high" id="A-02">
+        <div class="fhead"><span class="fid">A-02</span><h3 class="ftitle">Public rate limits are probably not limiting anyone in production</h3><div class="tags"><span class="tag sev">High</span><span class="tag">security</span><span class="tag">verify</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><ul>
+            <li>The subject is <code>request.client.host</code> (<code>app/api/graph_v2.py:37</code>, <code>app/api/recommend_v2.py:44</code>). Browser traffic arrives through the Next.js rewrite (<code>next.config.ts</code>), so the API may see a proxy address shared by every user, or a different one per edge node. Neither is the real client.</li>
+            <li>Every limit is <code>fail_mode="open"</code>, and <code>RateLimiter.check</code> returns <code>allowed</code> when <code>REDIS_URL</code> is unset (<code>app/core/cache.py:190-197</code>). Whether production Vercel has <code>REDIS_URL</code> set is undocumented.</li>
+            <li><code>/v2/analyze</code>, <code>/v2/graph/explain-edge</code>, <code>/v2/graph/node</code>, and <code>/v2/examples</code> have no limit at all.</li>
+          </ul></dd>
+          <dt>Why it matters</dt><dd>The Supabase free tier is the scarcest resource (500 MB, a 5 s statement timeout, pausing). One client looping <code>/v2/graph/path</code> could saturate it. If every user shares one key, the opposite failure applies: 30 path requests per minute locks out everyone at once.</dd>
+          <dt>Fix</dt><dd>Log <code>client.host</code> and <code>x-forwarded-for</code> from one preview deployment to learn the real shape. Key limits on the trusted forwarded address, confirm Redis in production, and add a coarse limit to the unlimited routes.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="high" id="A-03">
+        <div class="fhead"><span class="fid">A-03</span><h3 class="ftitle">The docs agents read first contradict the code</h3><div class="tags"><span class="tag sev">High</span><span class="tag">agent context</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><ul>
+            <li><code>context/progress-tracker.md</code> "In Progress", "Next Up", and "Session Notes" still say F10 is uncommitted, that <code>phase-one-demo.tsx</code> is the app shell, and that no backend exists.</li>
+            <li><code>context/code-standards.md</code> says "Use Alembic for schema migrations", against ADR-005.</li>
+            <li><code>context/architecture.md</code> puts the proxy in a <code>vercel.json</code> rewrite (it lives in <code>next.config.ts</code>), labels built directories "Planned", and describes a <code>public/snapshot/graph-core.json</code> fallback that doesn't exist.</li>
+            <li>ADR-009 says <code>next.config.ts</code> is empty.</li>
+            <li>Stale code comments in <code>pipeline/cli.py:18</code>, <code>app/predict/ngram.py:31</code>, <code>app/core/redis.py:1</code>, <code>pipeline/stages/_context.py:7</code>, and the <code>ci.yml</code> backend-pg env comment.</li>
+          </ul></dd>
+          <dt>Why it matters</dt><dd><code>AGENTS.md</code> tells every agent to read these files before acting, and the user has authorized agents to merge their own PRs. A stale instruction becomes a merged mistake, and the Alembic line is exactly the kind of instruction an agent follows literally.</dd>
+          <dt>Fix</dt><dd>Delete the three stale progress-tracker sections (their history is in the Completed log). Change the Alembic line to point at <code>supabase/migrations/</code>. Correct the architecture proxy and boundary text and mark the snapshot as F63. Refresh the five comments. Until then, <code>context/brain/gotchas.json → docs-stale-sections</code> warns agents off.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="medium" id="A-04">
+        <div class="fhead"><span class="fid">A-04</span><h3 class="ftitle">No automated dependency vulnerability scanning</h3><div class="tags"><span class="tag sev">Medium</span><span class="tag">security</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>.github/</code> has only <code>workflows/ci.yml</code>: no Dependabot config, no <code>npm audit</code> step, no <code>pip-audit</code>. The critical Next.js RCE that ADR-009 fixed was found by a manual <code>npm audit</code>. The fix itself sat in an abandoned worktree until it was recovered as PR #14.</dd>
+          <dt>Why it matters</dt><dd>Both services are public and deploy automatically from <code>main</code>. The last critical advisory was caught by luck.</dd>
+          <dt>Fix</dt><dd>Add <code>.github/dependabot.yml</code> for npm, pip, and github-actions. Add CI steps <code>npm audit --omit=dev --audit-level=high</code> and <code>pip-audit</code> against the lock from A-01.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="medium" id="A-05">
+        <div class="fhead"><span class="fid">A-05</span><h3 class="ftitle">Graph neighborhood makes one query per edge</h3><div class="tags"><span class="tag sev">Medium</span><span class="tag">performance</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>app/graph/service.py:98-110</code>: for every candidate edge, <code>self.store.node(edge["dst"])</code> is a separate SQL round trip through the Supabase transaction pooler. With <code>limit=200, hops=2</code> that is up to ~400 sequential queries per cache miss. Each query also runs through the <code>edges_read</code> view's three joins.</dd>
+          <dt>Why it matters</dt><dd>Serverless functions pay pooler latency on every trip. A high-degree node like <code>function:M:I</code> in the global context is exactly what the F63 Graph Explorer will request first, uncached, after each corpus flip.</dd>
+          <dt>Fix</dt><dd>Add <code>GraphStore.nodes(ids)</code> (<code>where version = hcg.v() and id = any(:ids)</code>) and fetch each hop's destinations in one batch. <code>paths()</code> has the same per-node pattern, softened by its local <code>node_cache</code>.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="medium" id="A-06">
+        <div class="fhead"><span class="fid">A-06</span><h3 class="ftitle">Hand-written frontend types bypass the generated contract</h3><div class="tags"><span class="tag sev">Medium</span><span class="tag">contracts</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>lib/api/client.ts:16-172</code> declares its own <code>Recommendation</code>, <code>RecommendResponse</code>, <code>SongExample</code>, <code>ExamplesResponse</code>, <code>NextChordsResponse</code>, and more. Only <code>AnalysisV2</code>/<code>AnalyzeV2Request</code> come from the generated <code>lib/api/types.ts</code>.</dd>
+          <dt>Why it matters</dt><dd>CI's drift gates (<code>export_openapi.py</code> and <code>gen:api</code>) only prove the generated file is fresh. A backend field rename passes CI and fails at runtime in the recommendations panel. M4–M6 will add color, generation, and graph payloads through this same client.</dd>
+          <dt>Fix</dt><dd>Alias every client type from <code>components["schemas"]</code>. Keep only the runtime guards hand-written.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="medium" id="A-07">
+        <div class="fhead"><span class="fid">A-07</span><h3 class="ftitle">The recommendation route was never verified on a real deployment</h3><div class="tags"><span class="tag sev">Medium</span><span class="tag">release</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>context/HANDOFF.md</code> next step 4: <code>/v2/recommend-next-chords</code> was verified only through a local server pointed at the live database. The Vercel connector needed reauthentication, so the deployed SHA was never confirmed.</dd>
+          <dt>Why it matters</dt><dd>This is the first route that depends on the full corpus plus precomputed discount stats (migration 0006) under the serverless 5 s timeout. Cold-start behavior on Vercel is the untested variable.</dd>
+          <dt>Fix</dt><dd>Hit <code>/api/hcg/v2/recommend-next-chords</code> on the production web origin with the F32 checklist input (<code>C G Am</code>, pop, chorus → <code>F</code>). Record the latency and <code>/health</code>'s <code>version</code> in HANDOFF.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="low" id="A-08">
+        <div class="fhead"><span class="fid">A-08</span><h3 class="ftitle">Repeated version and context round trips on every request</h3><div class="tags"><span class="tag sev">Low</span><span class="tag">performance</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd>One recommendation runs <code>select hcg.v()</code> separately in <code>RecommendationService.recommend</code>, <code>KNPredictor._discounts</code>, and <code>SessionNgramReader.count_of_counts</code>. It also runs up to four <code>context_by_key</code> queries. Graph routes call <code>active_version()</code> for the cache key and again in <code>_response()</code>. <code>KNPredictor._discount_cache</code> is rebuilt per request (<code>RecommendationService.from_session</code>), so it never hits; <code>_COUNT_CACHE</code> is what actually works.</dd>
+          <dt>Fix</dt><dd>Resolve the version once per request and pass it down. Cache the <code>contexts</code> table per version (it holds only ~3k rows and its IDs are stable). Delete the per-instance discount cache or make it module-level.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="low" id="A-09">
+        <div class="fhead"><span class="fid">A-09</span><h3 class="ftitle">Two error shapes, four copies of the error helper</h3><div class="tags"><span class="tag sev">Low</span><span class="tag">api consistency</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>app/api/analysis_v2.py:16</code> raises <code>HTTPException</code>, which returns <code>{"detail": …}</code>. Every other v2 route returns <code>{"error": {"code", "message", "details"}}</code>. The <code>_error</code> helper is duplicated in <code>graph_v2</code>, <code>recommend_v2</code>, <code>jobs_v2</code>, and <code>examples_v2</code>, and <code>main.py</code> inlines it twice more.</dd>
+          <dt>Fix</dt><dd>Move one <code>error_response(code, message, status, details)</code> into <code>app/api/errors.py</code> and switch <code>/v2/analyze</code> to it with code <code>parse_error</code>. The workbench already shows <code>message</code> from the body.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="low" id="A-10">
+        <div class="fhead"><span class="fid">A-10</span><h3 class="ftitle">631-line v1 demo component is dead code</h3><div class="tags"><span class="tag sev">Low</span><span class="tag">dead code</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd>Nothing imports <code>components/phase-one-demo.tsx</code>; <code>app/page.tsx</code> renders <code>WorkbenchV2</code>. Its client functions <code>analyzeProgression</code>, <code>fetchNextChords</code>, and <code>explainTransition</code> are exercised only by <code>lib/api/client.test.ts</code>.</dd>
+          <dt>Why it matters</dt><dd>It is the largest component in the repo and the one stale docs point agents to (A-03). The <code>/v1/*</code> backend routes stay by design (F06); only the dead UI goes.</dd>
+          <dt>Fix</dt><dd>Delete the component and the three v1 client functions and their tests in one PR, and note it in the progress tracker.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="low" id="A-11">
+        <div class="fhead"><span class="fid">A-11</span><h3 class="ftitle"><code>shadcn</code> CLI is a runtime dependency</h3><div class="tags"><span class="tag sev">Low</span><span class="tag">security hygiene</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>package.json</code> lists <code>"shadcn": "^4.10.0"</code> under <code>dependencies</code>. ADR-009 traced 11 of 16 audit findings to its bundled MCP server tooling (<code>express</code>, <code>body-parser</code>, <code>qs</code>).</dd>
+          <dt>Fix</dt><dd>Move it to <code>devDependencies</code> (it only generates <code>components/ui/*</code>). This also shrinks the <code>--omit=dev</code> audit surface from A-04.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="low" id="A-12">
+        <div class="fhead"><span class="fid">A-12</span><h3 class="ftitle">The status badge's corpus version comes from an env var, not the database</h3><div class="tags"><span class="tag sev">Low</span><span class="tag">correctness</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><code>GET /health</code> returns <code>settings.hcg_corpus_version</code> (default <code>"unversioned"</code>, <code>app/main.py:51</code>). The workbench badge shows that value. Graph, examples, and recommendation responses report the real <code>hcg.v()</code>.</dd>
+          <dt>Why it matters</dt><dd>After a loader flip, the badge and the data can disagree. The badge then says "unversioned" or an old version while serving <code>cv-2026-09-a</code>.</dd>
+          <dt>Fix</dt><dd>Report the active version from <code>/health/db</code> (it already opens a session) and read it there in <code>useSystemHealth</code>.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="low" id="A-13">
+        <div class="fhead"><span class="fid">A-13</span><h3 class="ftitle">Frontend behavior is covered almost entirely by end-to-end tests</h3><div class="tags"><span class="tag sev">Low</span><span class="tag">testing</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd>14 Vitest cases: the button primitive, the API client, and the keepalive route. The workbench, recommendations panel, evidence panel, and status components are exercised only by three Playwright specs (<code>smoke</code>, <code>recommendations</code>, <code>degraded-mode</code>). The backend has 256 test functions.</dd>
+          <dt>Fix</dt><dd>Add component tests for panel states (loading, error, empty, <code>context_backoff</code> warning) before F44 and F62 grow the UI.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="info" id="A-14">
+        <div class="fhead"><span class="fid">A-14</span><h3 class="ftitle">Declared but unused</h3><div class="tags"><span class="tag sev">Info</span><span class="tag">hygiene</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><ul>
+            <li><code>HCG_ENV</code> is defined in <code>app/core/config.py</code> and read nowhere.</li>
+            <li><code>numpy</code> is a runtime dependency with no imports in <code>app/</code> or <code>pipeline/</code> (ADR-001 anticipates it). It adds weight to every Vercel Python bundle.</li>
+            <li>The legacy <code>hcg.edges</code> table is kept "for migration compatibility" and receives no writes.</li>
+            <li>Unverified: the Phase 1 tables behind the <code>/v1</code> lookup routes may be empty in production, in which case those routes answer <code>data_source: "database_empty"</code>.</li>
+          </ul></dd>
+          <dt>Fix</dt><dd>Drop <code>HCG_ENV</code> or use it. Move <code>numpy</code> to an extra until something imports it. Check the <code>/v1</code> row counts with a read-only query when next connected to Supabase.</dd>
+        </dl>
+      </article>
+
+      <article class="finding" data-sev="info" id="A-15">
+        <div class="fhead"><span class="fid">A-15</span><h3 class="ftitle">Orphaned local files (all gitignored)</h3><div class="tags"><span class="tag sev">Info</span><span class="tag">workspace</span></div></div>
+        <dl class="fbody">
+          <dt>Evidence</dt><dd><ul>
+            <li><code>.claude/worktrees/laughing-chaplygin-a67ae8/</code> at the repo root is a full project copy that <code>git worktree list</code> no longer tracks. Its work merged as PR #14.</li>
+            <li><code>backend/harmonic_color_graph.db</code> and <code>-journal</code> are a stray SQLite file (the default path is <code>backend/.tmp/</code>).</li>
+            <li><code>backend/pytest-cache-files-*</code> directories.</li>
+            <li>Orphan <code>*.pyc.&lt;digits&gt;</code> temp files in <code>__pycache__</code> from interrupted writes under OneDrive sync.</li>
+          </ul></dd>
+          <dt>Fix</dt><dd>Check <code>git status</code> inside the worktree copy first (see <code>gotchas.json → git-worktree-empty-check</code>), then remove all of these. None are tracked, so the cleanup is local-only.</dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="str-h">
+    <h2 id="str-h">What's already done right</h2>
+    <p class="sub">Keep these patterns. New work should copy them rather than invent alternatives.</p>
+    <div class="strengths">
+      <div class="strength"><h3>Store owns SQL, service owns logic</h3><p><code>GraphStore</code>/<code>GraphService</code> and <code>NgramStore</code>/<code>KNPredictor</code>. Migration 0006 swapped the count-of-counts SQL without touching the predictor.</p></div>
+      <div class="strength"><h3>Version-scoped everything</h3><p>Every read filters <code>version = hcg.v()</code>, and every cache key includes the version. A corpus flip takes effect on the next statement.</p></div>
+      <div class="strength"><h3>All-or-nothing loads</h3><p>COPY, validation, storage gate, ANALYZE, and activation run in one transaction. A failed load leaves the previous corpus serving, which the two aborted M2 loads proved.</p></div>
+      <div class="strength"><h3>Durable jobs, disposable queue</h3><p>Postgres is the ledger and Redis only wakes workers. Leases, reconciliation, idempotency keys, and dead letters are in place, job types are allowlisted and typed, and artifact paths are guarded against traversal.</p></div>
+      <div class="strength"><h3>Serverless-safe database access</h3><p><code>NullPool</code>, no prepared statements, a lazy session factory, a 5 s statement timeout, and an <code>hcg</code>-first search path.</p></div>
+      <div class="strength"><h3>Evidence-gated quality</h3><p>A leak-free evaluation is a hard gate, and the MRR win over v1 is measured, not asserted. Contract drift checks and a real queued job in the Compose smoke run on every PR.</p></div>
+      <div class="strength"><h3>Blast-radius guards</h3><p><code>memory_guard</code> kills runaway stages. Redis outages bypass caches, and analysis keeps working with the database down.</p></div>
+    </div>
+  </section>
+
+  <section class="section" aria-labelledby="m-h">
+    <h2 id="m-h">Method and limits</h2>
+    <ul class="method">
+      <li>Static read of <code>git ls-files</code> at <code>994b648</code>: every backend module, every migration, the frontend, CI, and the configs. Line references are to that commit.</li>
+      <li>No production calls were made. Findings tagged <b>verify</b> depend on deployment configuration this audit could not see.</li>
+      <li>Documentation was cross-checked against code, and each finding cites the side that wins. Anything already recorded in <code>context/HANDOFF.md</code> is referenced, not restated.</li>
+      <li>Companion files: <code>docs/codemap.html</code> (structure) and <code>context/brain/gotchas.json</code> / <code>facts.json</code> (agent rules and code-verified values).</li>
+    </ul>
+  </section>
+
+  <footer>Harmonic Color Graph · audit of 994b648 · 2026-09-24</footer>
+</div>
+
+<script>
+  (function () {
+    var chips = document.querySelectorAll(".chip");
+    var cards = document.querySelectorAll(".finding");
+    function apply(filter) {
+      chips.forEach(function (c) { c.setAttribute("aria-pressed", String(c.dataset.filter === filter)); });
+      cards.forEach(function (card) { card.hidden = filter !== "all" && card.dataset.sev !== filter; });
+      try { localStorage.setItem("hcg-audit-filter", filter); } catch (e) {}
+    }
+    chips.forEach(function (c) { c.addEventListener("click", function () { apply(c.dataset.filter); }); });
+    var saved = null;
+    try { saved = localStorage.getItem("hcg-audit-filter"); } catch (e) {}
+    if (saved && document.querySelector('.chip[data-filter="' + saved + '"]')) apply(saved);
+  })();
+</script>

@@ -1,0 +1,169 @@
+{
+  "_meta": {
+    "purpose": "Code-verified identifiers, limits, and change-together sets that no context doc enumerates. Every value cites the file that owns it. The code wins if they disagree; update this file in that case.",
+    "not_here_on_purpose": "Stack, ADRs, corpus row counts, eval scores, milestones, and feature status live in context/architecture.md, docs/adr/, docs/eval/, context/HANDOFF.md, and feature-specs/v2-implementation-plan.md. Structure (modules, routes, flows) lives in docs/codemap.html.",
+    "verified_at_commit": "994b648",
+    "verified_on": "2026-09-24"
+  },
+
+  "identifiers": {
+    "core_token": {
+      "format": "<M|m>:<roman core>, e.g. M:I, M:V/V, m:iv. M = major-mode key, m = minor-mode key. `.core` omits inversions and 9/11/13 extensions; those live only in `.figure`.",
+      "rules": "Recommendation input must be all chords or all core tokens. Core tokens require a key whose mode matches every token's prefix.",
+      "owner": "backend/app/theory/roman.py (romanize_chord), backend/app/predict/realize.py (inverse), backend/app/services/recommend.py (_input_tokens)"
+    },
+    "graph_node_id": {
+      "format": "<kind>:<label>, e.g. function:M:I. Graph routes accept the shorthand M:I / m:iv and prefix `function:` for you.",
+      "owner": "backend/pipeline/load.py (_node_id), backend/app/graph/service.py (node_id)"
+    },
+    "context_key": {
+      "formats": ["global", "genre:<g>", "section:<s>", "decade:<d>", "genre_section:<g>:<s>"],
+      "context_id": "hcg.contexts.id (smallint) is stable across corpus versions; 0 = global.",
+      "values": "Lowercased. The recommend service maps '' and 'unknown' to no context.",
+      "predictor_backoff_chain": "genre_section → genre → section → global. Decade is never used for prediction.",
+      "owner": "backend/pipeline/stages/_context.py (context_keys), backend/app/predict/ngram.py (context_chain_keys), backend/app/db/stores/graph.py (context_by_key, PatternStore._example_scope)"
+    },
+    "fact_id": {
+      "corpus": "transition:<from_core>-><to_core>:global. Persisted per version in hcg.facts; verified with FactStore.existing_ids (≤20 per call).",
+      "request_local": "relationship:<rule_id>:<index>:<last>. Emitted by /v2/analyze, never persisted.",
+      "owner": "backend/pipeline/load.py (_edge_rows, _fact_rows), backend/app/services/recommend.py, backend/app/theory/relationships_v2.py"
+    },
+    "corpus_version": {
+      "format": "cv-YYYY-MM-<a-z0-9{1,12}> (the job payload regex). The active version comes from `select hcg.v()`; exactly one active row is enforced by a partial unique index.",
+      "active": "cv-2026-09-a",
+      "local_only_artifacts": ["cv-mini-smoke", "eval-train-a (train split only; never loaded to Supabase)"],
+      "owner": "backend/app/jobs/schemas.py, supabase/migrations/0002_graph.sql"
+    },
+    "redis_keys": {
+      "cache": "hcg:<corpus_version>:<kind>:<sha256[:32] of canonical JSON parts>",
+      "rate_limit": "hcg:rate:<scope>:<sha256[:32] of subject>:<unix_time // window_s>",
+      "job_queue_list": "hcg:jobs:ready",
+      "job_enqueue_dedupe_marker": "hcg:jobs:queued:<job_id> (SET NX EX 60)",
+      "owner": "backend/app/core/cache.py, backend/app/jobs/queue.py"
+    },
+    "ngram_orders": {
+      "convention": "Order 1 = unigram (empty history). Order n has n-1 history tokens joined by a single space.",
+      "max_order": {"global": 5, "other_contexts": 3},
+      "prune_min_total_by_order": {"3": 30, "4": 48, "5": 75, "1-2": "never pruned"},
+      "owner": "backend/pipeline/stages/ngrams.py (imported by backend/app/predict/ngram.py)"
+    }
+  },
+
+  "limits_and_timeouts": {
+    "postgres_api_statement_timeout_ms": {"value": 5000, "owner": "backend/app/db/session.py"},
+    "postgres_loader_statement_timeout": {"value": "20min (set local, inside the single load transaction)", "owner": "backend/pipeline/load.py"},
+    "redis_socket_timeout_s": {"cache_and_rate": 0.5, "queue_and_health": 3, "owner": "backend/app/core/cache.py, backend/app/jobs/queue.py, backend/app/core/redis.py"},
+    "cache": {
+      "graph_route_ttl_s": 3600,
+      "l1_entries_per_process": 256,
+      "graph_adjacency_cache_entries": 8,
+      "kn_count_of_counts_cache_entries": 128,
+      "kn_discount_cache_entries": "64, per KNPredictor instance. The API builds a new instance per request, so only _COUNT_CACHE persists across requests.",
+      "owner": "backend/app/api/graph_v2.py, backend/app/core/cache.py, backend/app/graph/service.py, backend/app/services/recommend.py, backend/app/predict/ngram.py"
+    },
+    "rate_limits_per_client_per_60s": {
+      "POST /v2/recommend-next-chords": 60,
+      "GET /v2/graph/neighborhood": 120,
+      "POST /v2/graph/path": 30,
+      "unlimited": ["/v2/analyze", "/v2/graph/node/*", "/v2/graph/explain-edge", "/v2/examples", "v1 routes"],
+      "fail_mode": "open everywhere",
+      "owner": "backend/app/api/*.py"
+    },
+    "request_bounds": {
+      "recommend": "1–128 chords, each ≤80 chars; limit 1–20 (default 10); genre/section ≤80 chars; the predictor ranks top 100 before the mode filter and realization",
+      "graph_neighborhood": "limit 1–200, hops 1–2, min_prob 0–1",
+      "graph_path": "k 1–5, max_len 1–6, ≤50,000 search expansions; cost = -ln(p) (+0.5 for non-TRANSITIONS_TO edges)",
+      "examples": "limit 1–5; exactly one of pattern_id or transition (\"<from>-><to>\")",
+      "recommend_evidence": "≤20 transition pairs per read, ≤2 examples each",
+      "owner": "backend/app/api/*.py, backend/app/graph/service.py, backend/app/db/stores/graph.py"
+    },
+    "jobs": {
+      "lease_s": 90,
+      "heartbeat_s": 30,
+      "reconcile_every_s": 30,
+      "max_attempts_default": 3,
+      "manual_retry": "sets max_attempts = attempt + 3",
+      "idempotency_key": "[A-Za-z0-9._:-]{1,128}; rows expire after 7 days",
+      "statuses": ["queued", "running", "retrying", "completed", "failed", "dead_letter", "cancelled"],
+      "job_types": {"graph_rebuild": "live", "evaluation_run": "live (suite keys|labels, song_limit 1–20,000)", "embedding_rebuild": "409 until F50"},
+      "auth": "X-HCG-Jobs-Token header compared in constant time. Without HCG_JOBS_ADMIN_TOKEN every /v2/jobs route returns 503.",
+      "owner": "backend/app/jobs/*.py, backend/app/api/jobs_v2.py, supabase/migrations/0004_job_reliability.sql"
+    },
+    "storage_gates": {
+      "hcg_schema_bytes_max": "300 MiB",
+      "database_bytes_max": "400 MiB",
+      "min_context_edge_count": "5 (contextual TRANSITIONS_TO below this are not loaded; global edges are always kept)",
+      "enforced": "Inside the load transaction. Over the gate means rollback, and the previous active version stays.",
+      "owner": "backend/pipeline/load.py"
+    },
+    "pipeline_thresholds": {
+      "aggregate_min_context_observations": 2000,
+      "ngrams_and_patterns_min_context_observations": 50000,
+      "patterns_length": "3–8, min support 2000",
+      "examples": "top 50 global transitions, 5 examples per key",
+      "voice_leading": "top 5 targets per source chord",
+      "memory_guard_cap": "min(8192 MB, 50% of RAM), whole process tree; os._exit(1) on breach",
+      "owner": "backend/pipeline/stages/*.py, backend/pipeline/memory_guard.py"
+    },
+    "frontend": {
+      "health_poll_ms": 60000,
+      "keepalive_cron": "0 15 * * * UTC → /api/cron/keepalive (Bearer CRON_SECRET) → /api/hcg/health/db",
+      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts"
+    }
+  },
+
+  "env_vars": {
+    "backend": {
+      "DATABASE_URL": "API + worker. Must be postgresql+psycopg:// for Postgres. The default is a local sqlite file under backend/.tmp.",
+      "DATABASE_URL_LOAD": "Optional direct (non-pooler) URL used by the graph_rebuild job/loader.",
+      "REDIS_URL": "Enables cache L2, rate limits, and queue. Required by the worker.",
+      "HCG_JOBS_ADMIN_TOKEN": "Enables /v2/jobs. Unset means disabled.",
+      "HCG_ARTIFACT_ROOT": "Job loader artifact root (default ../data/artifacts).",
+      "HCG_EVALUATION_SOURCE": "evaluation_run corpus (default ../data/samples/mini_corpus.csv).",
+      "HCG_CORS_ORIGINS": "Comma list; defaults to localhost:3000/3001.",
+      "HCG_CORPUS_VERSION": "Only echoed by GET /health (default 'unversioned'). Not the active DB version.",
+      "HCG_ENABLE_DEMO_FALLBACK": "v1 next-chords/transition-stats fall back to in-code demo transitions.",
+      "HCG_ENV": "Declared, currently read nowhere.",
+      "VERCEL_GIT_COMMIT_SHA": "Echoed by GET /health as `version`.",
+      "CHORDONOMICON_SOURCE_PATH / CHORDONOMICON_METRICS_OUTPUT": "Legacy Phase 1 ingestion scripts only.",
+      "TEST_DATABASE_URL": "Enables `pytest -m pg`."
+    },
+    "frontend": {
+      "HCG_API_ORIGIN": "Read at build time by next.config.ts rewrites (default http://127.0.0.1:8000).",
+      "CRON_SECRET": "Required by /api/cron/keepalive; set by Vercel Cron."
+    },
+    "owner": "backend/app/core/config.py, next.config.ts, app/api/cron/keepalive/route.ts"
+  },
+
+  "change_together": [
+    {
+      "what": "Edge type codes",
+      "files": ["backend/pipeline/load.py EDGE_TYPE_CODES", "edges_compact type_code check constraint (new migration)", "hcg.edges_read view CASE (new migration)"]
+    },
+    {
+      "what": "API contract",
+      "files": ["backend/app/schemas/*.py or route models", "backend/openapi.json (scripts/export_openapi.py)", "lib/api/types.ts (npm run gen:api)", "lib/api/client.ts hand-written types + runtime guards"]
+    },
+    {
+      "what": "N-gram artifact shape",
+      "files": ["backend/pipeline/stages/ngrams.py (writer + constants)", "backend/pipeline/load.py (ngram_histories + ngram_discount_stats)", "backend/app/predict/ngram.py (reader)", "backend/app/db/stores/graph.py NgramStore SQL"]
+    },
+    {
+      "what": "Context key grammar",
+      "files": ["backend/pipeline/stages/_context.py", "backend/app/predict/ngram.py context_chain_keys", "backend/app/db/stores/graph.py context_by_key + PatternStore._example_scope", "backend/pipeline/load.py _context_parts"]
+    },
+    {
+      "what": "Corpus fact ID format",
+      "files": ["backend/pipeline/load.py", "backend/app/services/recommend.py"]
+    },
+    {
+      "what": "Key finder parameters",
+      "files": ["backend/app/theory/keys_params.json (frozen output)", "backend/pipeline/stages/calibrate_keys.py (writer)", "data/gold/keys.jsonl (input)", "docs/eval/keys.md (report)"]
+    },
+    {
+      "what": "Genre/section options offered in the UI",
+      "files": ["components/workbench-v2.tsx <select> options", "contexts actually retained in the active corpus (hcg.contexts)"],
+      "note": "The UI lists classical/electronic/country/r&b without checking that the corpus kept them. Unretained ones silently back off to broader contexts, with a warning."
+    }
+  ]
+}

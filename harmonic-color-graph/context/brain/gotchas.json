@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "purpose": "Recurring traps an agent falls into on this repo. Each entry is a rule plus a quick check. It does not retell history: `see` points to where the full story lives.",
+    "verified_at_commit": "994b648",
+    "verified_on": "2026-09-24",
+    "how_to_use": "Before a task, scan the ids for your area (env, docs, git, db, pipeline, api, frontend, domain). Treat `rule` as binding. If a gotcha no longer matches the code, fix or delete it in the same PR; a stale gotcha is itself a trap.",
+    "how_to_add": "Add an entry only when a mistake happened or nearly happened, and only if the rule is not already stated as a rule in context/, docs/adr/, or feature-specs/. Otherwise point to the existing rule."
+  },
+  "gotchas": [
+    {
+      "id": "env-onedrive",
+      "area": "env",
+      "trap": "The repo lives under OneDrive. Sync locks files mid-write. It leaves orphan `*.pyc.<digits>` temp files in `backend/app/**/__pycache__/`, makes installers and deletes fail with 'file in use', and a recursive `du`/`find` over `node_modules` or `.venv` can run past two minutes.",
+      "rule": "If a delete, rename, or install fails with a lock error, assume OneDrive first. Retry or ask the user to pause sync; never force-kill processes. Never recurse into node_modules/.venv/.next or `.claude/worktrees/*` from a shell.",
+      "check": "Scope file searches to tracked paths (`git ls-files`) or to the specific directory."
+    },
+    {
+      "id": "env-local-coverage",
+      "area": "env",
+      "trap": "A green local `scripts/check.ps1 all` looks like full verification. Locally, Docker is absent and `TEST_DATABASE_URL` is unset, so every `-m pg` test silently skips and the Compose smoke job never runs.",
+      "rule": "Never report Postgres integration or Compose behavior as verified from a local run. Say 'pg/compose covered by CI only' and cite the CI job result.",
+      "check": "The pytest summary shows `N skipped`. Those are the pg tests.",
+      "see": "context/HANDOFF.md (Operational references)"
+    },
+    {
+      "id": "env-versions-past-cutoff",
+      "area": "env",
+      "trap": "The session clock is past the model's training cutoff. Library versions (next 16.3.x, react 19.2, pydantic 2.12, redis-py <7, ruff 0.16) and their APIs may be newer than recalled.",
+      "rule": "Read installed docs and the lockfile, or the registry, before using an API from memory. For Next.js, read node_modules/next/dist/docs/.",
+      "see": "AGENTS.md; docs/adr/ADR-009.md"
+    },
+    {
+      "id": "docs-stale-sections",
+      "area": "docs",
+      "trap": "Several doc sections contradict the code, and agents follow them.",
+      "rule": "The source-of-truth order is: code > context/HANDOFF.md 'Current state' > feature-specs/v2-implementation-plan.md checkboxes > everything else. Do not act on the sections below.",
+      "known_stale": [
+        "context/progress-tracker.md sections 'In Progress', 'Next Up', 'Session Notes' describe the F10 era (F10 uncommitted, phase-one-demo as the app shell, 'no backend exists yet').",
+        "context/code-standards.md 'Use Alembic for schema migrations' contradicts ADR-005. Alembic is retired; see backend/legacy/.",
+        "context/architecture.md says the web proxy is a vercel.json rewrite. It is actually next.config.ts rewrites(). Its System Boundaries section still labels built dirs 'Planned'.",
+        "context/architecture.md mentions a degraded-mode fallback `public/snapshot/graph-core.json`. It does not exist yet (the snapshot stage is an F63 stub).",
+        "docs/adr/ADR-009.md says next.config.ts is empty. It now holds the /api/hcg rewrite.",
+        "Code comments: pipeline/cli.py says only ingest/analyze are implemented; app/predict/ngram.py says F31 does not exist; app/core/redis.py says the cache 'arrives in F28'; the ci.yml backend-pg comment says the engine is created at import time; pipeline/stages/_context.py says every stage uses the same context threshold. All are stale."
+      ]
+    },
+    {
+      "id": "docs-codemap-drift",
+      "area": "docs",
+      "trap": "docs/codemap.html and context/brain/facts.json are snapshots of the code. They rot silently when routes, modules, env vars, or limits change.",
+      "rule": "A PR that adds or removes a route, module, table, env var, stage, or limit updates docs/codemap.html and context/brain/facts.json in the same PR.",
+      "check": "Diff touches backend/app/api, supabase/migrations, pipeline/stages, or app/ → re-read both files."
+    },
+    {
+      "id": "git-worktree-empty-check",
+      "area": "git",
+      "trap": "A worktree is treated as disposable because `git log main..branch` is empty, but it holds uncommitted work.",
+      "rule": "Run `git -C <worktree> status --porcelain` and `git log` before removing anything. `.claude/worktrees/laughing-chaplygin-a67ae8/` at the repo root is an unregistered folder (not in `git worktree list`) left after PR #14. Ask before deleting it.",
+      "see": "context/HANDOFF.md (PR #14 bullet)"
+    },
+    {
+      "id": "git-tracker-conflicts",
+      "area": "git",
+      "trap": "Every PR appends to context/progress-tracker.md and HANDOFF.md, so two open PRs always conflict on rebase.",
+      "rule": "Resolve by keeping both sides' log entries in chronological order. Never take 'ours' or 'theirs' wholesale.",
+      "see": "context/HANDOFF.md (F40/PR #14 bullets)"
+    },
+    {
+      "id": "git-github-writes",
+      "area": "git",
+      "trap": "The GitHub MCP connector can read PRs but returns 403 on PR writes.",
+      "rule": "Use the `gh` CLI (portable install on the user PATH, device-code auth) for PR create, merge, and check watching. Never print the credential.",
+      "see": "context/HANDOFF.md"
+    },
+    {
+      "id": "db-statement-timeout",
+      "area": "db",
+      "trap": "A query that passes on fixtures times out in production. API sessions set `statement_timeout=5000` (5 s) on Supabase, and anything that scans or expands jsonb across the full corpus (~791k edges, ~149k n-gram histories) dies cold.",
+      "rule": "Request-time SQL must be a bounded index lookup. Precompute anything aggregate in the loader and read it by primary key. Measure against the live corpus (Supabase MCP `execute_sql` with EXPLAIN) before merging a new read path.",
+      "check": "New SQL in app/db/stores/ has a `where version = hcg.v() and <indexed key> = :param` shape.",
+      "see": "supabase/migrations/0006_ngram_discount_stats.sql (the precedent)"
+    },
+    {
+      "id": "db-active-version",
+      "area": "db",
+      "trap": "Caching the active corpus version in process, or forgetting the version filter, serves stale or mixed-version data after a loader flip.",
+      "rule": "Every hcg read filters `version = hcg.v()` in the same statement. In-process caches must include the version string in the key (see _ADJACENCY_CACHE, _COUNT_CACHE, and VersionedCache keys).",
+      "see": "backend/app/db/stores/graph.py module docstring"
+    },
+    {
+      "id": "db-edge-type-triple",
+      "area": "db",
+      "trap": "Adding an edge type in one place only. Edge type codes are defined in three places that must agree.",
+      "rule": "A new edge type needs (1) `EDGE_TYPE_CODES` in backend/pipeline/load.py, (2) a new migration that widens `edges_compact_type_code_check`, and (3) a `create or replace view hcg.edges_read` with the new CASE arm. Migration 0007 is the template. Write to `hcg.edges_compact`, never the legacy `hcg.edges` table (kept, empty).",
+      "see": "supabase/migrations/0005_compact_edges.sql, 0007_voice_leading_edges.sql"
+    },
+    {
+      "id": "db-migration-lifecycle",
+      "area": "db",
+      "trap": "Assuming a merged migration is live, or editing an applied one.",
+      "rule": "Merging a migration does not apply it. Applying to Supabase is a separate, recorded step (MCP apply_migration, then get_advisors). Applied migrations 0001–0007 are immutable: add a new numbered file. New hcg tables must `enable row level security` and are never exposed through the Data API.",
+      "see": "docs/runbooks/supabase.md; docs/adr/ADR-005.md"
+    },
+    {
+      "id": "db-size-measurement",
+      "area": "db",
+      "trap": "Reading ~357 MiB from `pg_total_relation_size` over hcg as budget overrun. The load report measured 266.8 MiB with identical row counts.",
+      "rule": "Measure with scripts/db_size.sql after a fresh ANALYZE before concluding growth. Never start deleting data to 'fix' the number.",
+      "see": "context/HANDOFF.md next step 4"
+    },
+    {
+      "id": "pipeline-import-weight",
+      "area": "pipeline",
+      "trap": "The API imports `pipeline.stages.ngrams` for shared constants, and the jobs handlers import pipeline modules lazily. A top-level `import polars` (or pyarrow/psutil/gensim) in a pipeline module crashes the Vercel API, which installs no pipeline extras.",
+      "rule": "Pipeline modules keep heavy imports inside functions. Constants shared with the API stay importable with base dependencies only.",
+      "check": "`python -c \"import app.main\"` in an env with only base deps (no `[pipeline]` extra).",
+      "see": "backend/app/predict/ngram.py import comment"
+    },
+    {
+      "id": "pipeline-context-thresholds",
+      "area": "pipeline",
+      "trap": "Assuming a context valid in the graph also has n-gram data. `aggregate` keeps contexts with ≥2,000 observations, while `ngrams`/`patterns` keep ≥50,000 (105 contexts). Decade contexts exist in the graph but are never part of the predictor backoff chain.",
+      "rule": "A graph context existing (`context_by_key` hit) says nothing about recommendation support. Recommendations back off and emit a `context_backoff` warning; surface that warning rather than treating it as an error.",
+      "see": "backend/pipeline/stages/ngrams.py threshold comment"
+    },
+    {
+      "id": "pipeline-stub-stages",
+      "area": "pipeline",
+      "trap": "Running `pipeline.cli run` through the last stage fails. color (F41), embeddings (F50), snapshot (F63), and export are stubs that raise StageNotImplementedError.",
+      "rule": "Use `--to-stage voice_leading` until F41 lands. Replace a stub in place when implementing it; do not add a parallel stage."
+    },
+    {
+      "id": "api-error-envelope",
+      "area": "api",
+      "trap": "Copying the `/v2/analyze` pattern. It raises HTTPException, which returns `{\"detail\": ...}`, while every other v2 route returns `{\"error\":{\"code\",\"message\",\"details\"}}`.",
+      "rule": "New routes return the error envelope with a stable snake_case `code`. Do not add more HTTPException-style errors."
+    },
+    {
+      "id": "api-contract-regen",
+      "area": "api",
+      "trap": "Changing a Pydantic schema without regenerating contracts fails CI on drift. Even after regenerating, the UI can break silently: lib/api/client.ts hand-writes the Recommend/Examples/NextChords types instead of deriving them from lib/api/types.ts.",
+      "rule": "After any schema change, run `python scripts/export_openapi.py` (from harmonic-color-graph/) and `npm run gen:api`, commit both files, then update or derive the matching hand-written type in client.ts.",
+      "check": "`git diff --exit-code backend/openapi.json lib/api/types.ts` is clean after regenerating."
+    },
+    {
+      "id": "api-rate-limit-reality",
+      "area": "api",
+      "trap": "Believing public rate limits protect production. The limiter keys on `request.client.host`, which behind the Next.js rewrite proxy may be a proxy address shared by all users. It fails open, and it is a no-op when REDIS_URL is unset.",
+      "rule": "Do not cite rate limiting as a safety control in reviews or plans until the client IP source is verified in a deployed environment and Redis is confirmed configured there. Choose `fail_mode` explicitly for every new limit.",
+      "see": "backend/app/core/cache.py RateLimiter; docs/codebase-audit.html finding A-02"
+    },
+    {
+      "id": "api-two-fact-namespaces",
+      "area": "domain",
+      "trap": "Treating every `fact_id` as resolvable in hcg.facts. `/v2/analyze` emits request-local IDs `relationship:<rule>:<index>:<last>` that exist only in that response. Corpus facts use `transition:<from>-><to>:global` and live in hcg.facts per version.",
+      "rule": "Verify only `transition:*` IDs with FactStore.existing_ids. Never persist or cite `relationship:*` IDs outside the response that produced them."
+    },
+    {
+      "id": "frontend-dead-demo",
+      "area": "frontend",
+      "trap": "Editing components/phase-one-demo.tsx (631 lines, the largest component) because it looks like the app. Nothing imports it; app/page.tsx renders WorkbenchV2.",
+      "rule": "UI work goes in components/workbench-v2.tsx and its panels. Treat phase-one-demo.tsx and its v1-only client functions (analyzeProgression, fetchNextChords, explainTransition) as removal candidates, not extension points."
+    },
+    {
+      "id": "frontend-proxy-build-time",
+      "area": "frontend",
+      "trap": "Changing HCG_API_ORIGIN in Vercel and expecting the web app to follow. next.config.ts reads it at build time.",
+      "rule": "Changing the API origin requires a web redeploy. The browser only ever calls same-origin `/api/hcg/*`.",
+      "see": "docs/runbooks/vercel.md"
+    },
+    {
+      "id": "honesty-review-claims",
+      "area": "process",
+      "trap": "Describing gold sets or spot-checks as human-reviewed. The M1 gold sets were reviewed by Claude at the user's request, not by a human.",
+      "rule": "State who actually reviewed or verified something. Say 'verified against local server + live DB' vs 'verified on the Vercel deployment' precisely; they are different claims.",
+      "see": "context/HANDOFF.md (M1 gold sets, F32 production verification gap)"
+    }
+  ]
+}
