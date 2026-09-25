@@ -505,7 +505,7 @@
             <tr><td class="p">patterns</td><td>F22</td><td>sections</td><td class="p">patterns.parquet</td><td><code>patterns</code>, <code>edges_compact</code> type 4</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">examples</td><td>F22/F26</td><td>patterns · transitions · sections</td><td class="p">pattern_examples · transition_examples · song_refs</td><td>same-named tables</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">color</td><td>F41/F43</td><td>sections · ngrams (optional, offline predictor); F43 half also reads functions · transitions · patterns · color.parquet</td><td class="p">color.parquet, color_profiles.parquet</td><td><code>color_norms</code> (migration 0008), <code>color_profiles</code> (migration 0009) — neither applied live yet</td><td><span class="pill done">done</span></td></tr>
-            <tr><td class="p">embeddings</td><td>F50</td><td>sections</td><td class="p">embeddings.parquet</td><td>planned <code>embeddings</code> (pgvector)</td><td><span class="pill stub">stub</span></td></tr>
+            <tr><td class="p">embeddings</td><td>F50</td><td>sections · transitions · patterns</td><td class="p">embeddings.parquet, embedding_projection.parquet</td><td>planned <code>hcg.embeddings</code> (pgvector, F51)</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">snapshot</td><td>F63</td><td>—</td><td class="p">public/snapshot/graph-core.json</td><td>static degraded-mode file</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">export</td><td>stretch S1</td><td>—</td><td>Cypher/Neo4j export</td><td>—</td><td><span class="pill stub">stub</span></td></tr>
           </tbody>
@@ -617,8 +617,8 @@
           <tbody>
             <tr><td><code>Recommendation.color</code> defaults to <code>{}</code> — F42/F43's axes are not yet wired into recommend responses</td><td class="p">app/schemas/recommend_v2.py</td><td>a later recommend-engine integration (not scheduled to a feature number yet)</td></tr>
             <tr><td><code>hcg.color_norms</code> (0008) and <code>hcg.color_profiles</code> (0009) tables exist but have no live rows yet (neither migration applied; no full reload has run <code>color</code> against the real corpus)</td><td class="p">supabase/migrations/0008_color_norms.sql, 0009_color_profiles.sql</td><td>apply live + bundle a full reload once a graph-evidence consumer needs it</td></tr>
-            <tr><td><code>embedding_rebuild</code> job returns 409</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>F50</td></tr>
-            <tr><td><code>embeddings</code> / <code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F50 / F63 / S1</td></tr>
+            <tr><td><code>embedding_rebuild</code> job returns 409 (embeddings themselves are done in F50 — this is a separate admin-triggered rebuild job, still unimplemented)</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>not scheduled to a feature number yet</td></tr>
+            <tr><td><code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F63 / S1</td></tr>
             <tr><td><code>DEFAULT_MIXING_K = 100.0</code> placeholder</td><td class="p">app/predict/ngram.py</td><td>tuning follow-up (docs/eval/prediction-v2.md)</td></tr>
             <tr><td>Services written "shared by HTTP and future tools"</td><td class="p">app/services/recommend.py, app/graph/service.py</td><td>F70 tools, F70.5 MCP (<code>backend/app/mcp/</code> not created yet)</td></tr>
             <tr><td>Structured metric events awaiting an exporter</td><td class="p">app/core/metrics.py</td><td>F75</td></tr>
@@ -709,8 +709,9 @@
             <tr><td class="p">backend/pipeline/synth.py</td><td>Deterministic synthetic mini corpus (safe to commit)</td></tr>
             <tr><td class="p">backend/pipeline/oracle_music21.py</td><td>Dev-only music21 comparisons for the gold sets</td></tr>
             <tr><td class="p">backend/pipeline/stages/_context.py</td><td>context_keys(genre, section, decade) and the aggregate threshold</td></tr>
-            <tr><td class="p">backend/pipeline/stages/{ingest,analyze,aggregate,voice_leading,ngrams,patterns,examples,color}.py</td><td>Implemented stages (see Corpus pipeline)</td></tr>
-            <tr><td class="p">backend/pipeline/stages/{embeddings,snapshot,export}.py</td><td>Stubs raising StageNotImplementedError</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{ingest,analyze,aggregate,voice_leading,ngrams,patterns,examples,color,embeddings}.py</td><td>Implemented stages (see Corpus pipeline)</td></tr>
+            <tr><td class="p">backend/pipeline/stages/{snapshot,export}.py</td><td>Stubs raising StageNotImplementedError</td></tr>
+            <tr><td class="p">backend/pipeline/embedding_eval.py</td><td>F50 40-triplet cosine-similarity intrinsic eval, nearest neighbors, class purity; `pipeline embedding-report --version` renders docs/eval/embeddings.md</td></tr>
             <tr><td class="p">backend/pipeline/stages/calibrate_keys.py</td><td>F11 grid search on the gold dev half → keys_params.json + docs/eval/keys.md</td></tr>
             <tr><td class="p">backend/pipeline/stages/{corpus_report,vocab_report,evaluate_keys_corpus,evaluate_labels_corpus}.py</td><td>Quality and coverage reports; the evaluate_* modules double as job handlers</td></tr>
             <tr class="grp"><td colspan="2">backend · tests &amp; contracts</td></tr>
