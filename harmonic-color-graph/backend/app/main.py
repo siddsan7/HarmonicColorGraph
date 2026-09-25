@@ -14,6 +14,7 @@ from app.api.graph_v2 import router as graph_v2_router
 from app.api.jobs_v2 import router as jobs_v2_router
 from app.api.recommend_v2 import router as recommend_v2_router
 from app.api.similar_v2 import router as similar_v2_router
+from app.api.substitutes_v2 import router as substitutes_v2_router
 from app.core.config import get_settings
 from app.core.redis import ping_redis
 from app.db.session import get_session
@@ -45,6 +46,7 @@ app.include_router(jobs_v2_router)
 app.include_router(recommend_v2_router)
 app.include_router(color_v2_router)
 app.include_router(similar_v2_router)
+app.include_router(substitutes_v2_router)
 
 
 @app.get("/health", tags=["system"])

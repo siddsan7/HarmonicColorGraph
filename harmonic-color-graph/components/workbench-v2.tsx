@@ -1,7 +1,7 @@
 "use client"
 
 import { type FormEvent, useMemo, useRef, useState } from "react"
-import { Activity, ArrowRight, LoaderCircle, RefreshCcw } from "lucide-react"
+import { Activity, ArrowRight, LoaderCircle, RefreshCcw, Volume2, X } from "lucide-react"
 
 import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
 import { EvidencePanel } from "@/components/evidence-panel"
@@ -13,10 +13,13 @@ import { Label } from "@/components/ui/label"
 import {
   analyzeProgressionV2,
   recommendNextChords,
+  findSubstitutes,
   type AnalysisV2,
   type RecommendResponse,
+  type SubstituteResponse,
 } from "@/lib/api/client"
 import { useSystemHealth } from "@/lib/hooks/use-system-health"
+import { playChordSequence } from "@/lib/music/preview"
 
 const samples = [
   { name: "Applied dominant", chords: "D7 - G - C", key: "C major" },
@@ -42,6 +45,11 @@ export function WorkbenchV2() {
   const [next, setNext] = useState<RecommendResponse | null>(null)
   const [recommendationBusy, setRecommendationBusy] = useState(false)
   const [recommendationError, setRecommendationError] = useState<string | null>(null)
+  const [substitutionIndex, setSubstitutionIndex] = useState<number | null>(null)
+  const [substitutes, setSubstitutes] = useState<SubstituteResponse | null>(null)
+  const [substitutionBusy, setSubstitutionBusy] = useState(false)
+  const [substitutionError, setSubstitutionError] = useState<string | null>(null)
+  const substitutionController = useRef<AbortController | null>(null)
   const [genre, setGenre] = useState("")
   const [section, setSection] = useState("")
   const recommendationController = useRef<AbortController | null>(null)
@@ -83,6 +91,9 @@ export function WorkbenchV2() {
     setBusy(true)
     setError(null)
     setNext(null)
+    substitutionController.current?.abort()
+    setSubstitutionIndex(null)
+    setSubstitutes(null)
     try {
       const result = await analyzeProgressionV2({ chords, key: requestedKey.trim() || null, section_markers: false })
       setAnalysis(result)
@@ -104,6 +115,48 @@ export function WorkbenchV2() {
     const chords = [...rawTokens, chord]
     setInput(chords.join(" - "))
     setAnalysis(null)
+    void runAnalysis(chords, key || analysis?.song_key || "")
+  }
+
+  function openSubstitutes(index: number) {
+    if (!analysis) return
+    if (substitutionIndex === index) {
+      substitutionController.current?.abort()
+      setSubstitutionIndex(null)
+      setSubstitutes(null)
+      return
+    }
+    substitutionController.current?.abort()
+    const controller = new AbortController()
+    substitutionController.current = controller
+    setSubstitutionIndex(index)
+    setSubstitutes(null)
+    setSubstitutionError(null)
+    setSubstitutionBusy(true)
+    findSubstitutes({
+      progression: analysis.tokens.map((token) => token.core),
+      index,
+      key: analysis.song_key,
+      k: 8,
+      signal: controller.signal,
+    }).then(setSubstitutes).catch((caught) => {
+      if (!controller.signal.aborted) setSubstitutionError(caught instanceof Error ? caught.message : "Substitutes failed.")
+    }).finally(() => {
+      if (!controller.signal.aborted) setSubstitutionBusy(false)
+    })
+  }
+
+  function previewSubstitute(index: number, replacement: number[]) {
+    if (!analysis) return
+    const sequence = analysis.chords.map((chord, position) =>
+      position === index ? replacement : (chord.pitch_classes ?? [])
+    )
+    void playChordSequence(sequence).catch(() => setSubstitutionError("Audio preview is unavailable in this browser."))
+  }
+
+  function applySubstitute(index: number, chord: string) {
+    const chords = rawTokens.map((item, position) => position === index ? chord : item)
+    setInput(chords.join(" - "))
     void runAnalysis(chords, key || analysis?.song_key || "")
   }
 
@@ -170,15 +223,43 @@ export function WorkbenchV2() {
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   {analysis.tokens.map((token, index) => (
                     <div key={`${index}-${token.figure}`} className="flex items-center gap-2">
-                      <div className="min-w-20 rounded-md border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-center">
+                      <button type="button" onClick={() => openSubstitutes(index)} aria-expanded={substitutionIndex === index} aria-label={`Find substitutes for ${analysis.chords[index]?.raw_symbol}`} className="min-w-20 rounded-md border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-center hover:border-[var(--accent-secondary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-secondary)]">
                         <span className="block font-mono text-lg font-semibold" title={token.applied_to ? `${token.applied_role === "V" ? "Applied dominant" : "Applied function"} of ${token.applied_to}` : undefined}>{token.display_figure ?? token.figure}</span>
                         <span className="mt-1 block text-xs text-[var(--text-muted)]">{analysis.chords[index]?.raw_symbol}</span>
                         <Badge variant="outline" className={`mt-2 text-[10px] ${functionTone(token.function)}`}>{token.function}</Badge>
-                      </div>
+                      </button>
                       {index < analysis.tokens.length - 1 && <ArrowRight className="size-4 text-[var(--text-muted)]" aria-hidden="true" />}
                     </div>
                   ))}
                 </div>
+                {substitutionIndex !== null && (
+                  <div className="mt-4 rounded-lg border border-[var(--accent-secondary)] bg-[var(--bg-subtle)] p-4" aria-live="polite">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-semibold">Substitutes for {analysis.chords[substitutionIndex]?.raw_symbol}</h3>
+                      <button type="button" onClick={() => { substitutionController.current?.abort(); setSubstitutionIndex(null); setSubstitutes(null) }} aria-label="Close substitutes" className="rounded-md p-1 hover:bg-[var(--bg-surface)]"><X className="size-4" /></button>
+                    </div>
+                    {substitutionBusy && <p className="mt-3 text-sm text-[var(--text-muted)]">Finding alternatives…</p>}
+                    {substitutionError && <p role="alert" className="mt-3 text-sm text-[var(--state-error)]">{substitutionError}</p>}
+                    {substitutes && (
+                      <div className="mt-3 space-y-2">
+                        {substitutes.data.substitutes.length === 0 && <p className="text-sm text-[var(--text-muted)]">No supported substitute passed the constraints.</p>}
+                        {substitutes.data.substitutes.map((item) => (
+                          <div key={item.token} className="rounded-md border border-[var(--border-default)] bg-[var(--bg-surface)] p-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div><span className="font-mono font-semibold">{item.chord}</span><span className="ml-2 font-mono text-xs text-[var(--text-muted)]">{item.token}</span></div>
+                              <div className="flex gap-2">
+                                <Button type="button" variant="outline" size="sm" onClick={() => previewSubstitute(substitutionIndex, item.pitch_classes)} aria-label={`Play ${item.chord} in progression`}><Volume2 aria-hidden="true" /> Play</Button>
+                                <Button type="button" size="sm" onClick={() => applySubstitute(substitutionIndex, item.chord)}>Use chord</Button>
+                              </div>
+                            </div>
+                            <p className="mt-2 font-mono text-xs text-[var(--text-secondary)]">{rawTokens.map((chord, position) => position === substitutionIndex ? item.chord : chord).join(" → ")}</p>
+                            <p className="mt-1 text-xs text-[var(--text-muted)]">{item.reasons.join(" ")}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <p className="mt-4 text-xs text-[var(--text-muted)]">T tonic · PD predominant · D dominant. Hover an applied chord for its target.</p>
               </section>
 

@@ -2078,6 +2078,228 @@
         "title": "SongExample",
         "type": "object"
       },
+      "Substitute": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "pitch_classes": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Pitch Classes",
+            "type": "array"
+          },
+          "reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Reasons",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "score_breakdown": {
+            "$ref": "#/components/schemas/SubstituteScore"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "voice_leading_cost": {
+            "minimum": 0.0,
+            "title": "Voice Leading Cost",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "token",
+          "chord",
+          "pitch_classes",
+          "score",
+          "score_breakdown",
+          "voice_leading_cost",
+          "reasons"
+        ],
+        "title": "Substitute",
+        "type": "object"
+      },
+      "SubstituteConstraints": {
+        "additionalProperties": false,
+        "properties": {
+          "keep_function": {
+            "default": false,
+            "title": "Keep Function",
+            "type": "boolean"
+          },
+          "smooth": {
+            "default": false,
+            "title": "Smooth",
+            "type": "boolean"
+          },
+          "surprise": {
+            "default": false,
+            "title": "Surprise",
+            "type": "boolean"
+          }
+        },
+        "title": "SubstituteConstraints",
+        "type": "object"
+      },
+      "SubstituteData": {
+        "additionalProperties": false,
+        "properties": {
+          "index": {
+            "title": "Index",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "original_chord": {
+            "title": "Original Chord",
+            "type": "string"
+          },
+          "substitutes": {
+            "items": {
+              "$ref": "#/components/schemas/Substitute"
+            },
+            "title": "Substitutes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "index",
+          "original_chord",
+          "key",
+          "substitutes"
+        ],
+        "title": "SubstituteData",
+        "type": "object"
+      },
+      "SubstituteRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "constraints": {
+            "$ref": "#/components/schemas/SubstituteConstraints"
+          },
+          "index": {
+            "minimum": 0.0,
+            "title": "Index",
+            "type": "integer"
+          },
+          "k": {
+            "default": 8,
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          },
+          "key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Key"
+          },
+          "progression": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Progression"
+          }
+        },
+        "required": [
+          "progression",
+          "index"
+        ],
+        "title": "SubstituteRequest",
+        "type": "object"
+      },
+      "SubstituteResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SubstituteData"
+          },
+          "meta": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Meta",
+            "type": "object"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "SubstituteResponse",
+        "type": "object"
+      },
+      "SubstituteScore": {
+        "additionalProperties": false,
+        "properties": {
+          "function_bonus": {
+            "title": "Function Bonus",
+            "type": "number"
+          },
+          "left_log_probability": {
+            "title": "Left Log Probability",
+            "type": "number"
+          },
+          "right_log_probability": {
+            "title": "Right Log Probability",
+            "type": "number"
+          },
+          "smoothness": {
+            "title": "Smoothness",
+            "type": "number"
+          },
+          "surprise": {
+            "title": "Surprise",
+            "type": "number"
+          },
+          "total": {
+            "title": "Total",
+            "type": "number"
+          }
+        },
+        "required": [
+          "left_log_probability",
+          "right_log_probability",
+          "function_bonus",
+          "smoothness",
+          "surprise",
+          "total"
+        ],
+        "title": "SubstituteScore",
+        "type": "object"
+      },
       "TransitionCandidate": {
         "additionalProperties": false,
         "properties": {
@@ -3295,6 +3517,47 @@
         "summary": "Examples",
         "tags": [
           "examples-v2"
+        ]
+      }
+    },
+    "/v2/find-substitutes": {
+      "post": {
+        "operationId": "find_substitutes_v2_find_substitutes_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubstituteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubstituteResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Find Substitutes",
+        "tags": [
+          "substitutes-v2"
         ]
       }
     },

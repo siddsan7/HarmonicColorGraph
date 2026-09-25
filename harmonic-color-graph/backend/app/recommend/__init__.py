@@ -1,1 +1,1 @@
-"""Reusable candidate generation and ranking for harmonic recommendations."""
+"""Shared candidate generation, ranking, and substitution scoring services."""
