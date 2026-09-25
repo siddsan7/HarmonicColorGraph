@@ -8,6 +8,18 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-24
 
+**M0–M3 are all merged to `main`.** F00–F09, F10–F14, F20–F29, F30, F31,
+F32 are done (checkboxes in `feature-specs/v2-implementation-plan.md`
+match). The M3 exit gate ("prediction report shows a clear win over v1;
+recommendations are context-sensitive in production") is satisfied. The
+next unstarted work is **M4** (harmonic color & voice leading), starting
+at **F40** — see "Immediate next steps" below for exactly where to pick
+that up; a real, unpushed, uncommitted-to-a-PR start on it already exists
+locally and should not be redone from scratch.
+
+The rest of this section is the detailed PR-by-PR history, oldest first;
+skip to "Immediate next steps" if you just need to know what to do next.
+
 - `main` contains F00–F09, F10–F14, and F20–F29, with remaining F28
   metrics work. PR #1
   ([production readiness foundation](https://github.com/siddsan7/HarmonicColorGraph/pull/1))
@@ -99,9 +111,7 @@ The older Phase 1 plans are historical.
   file and rebases. Claude took F31, Codex took F32 (both depend only on
   F30, not on each other, so they were safe to parallelize). **Codex ran
   out of usage before merging F32 and is out of the picture**; Claude
-  finished and merged it (see below). An independent Codex F40 worktree
-  was also left behind, never merged — it must wait for the M3 exit gate
-  before whoever picks it up merges it.
+  finished and merged it (see below).
 - F31 (leak-free evaluation harness) is **merged**
   ([PR #11](https://github.com/siddsan7/HarmonicColorGraph/pull/11)):
   `backend/tests/eval/{metrics,sampling,baselines,prediction}.py`,
@@ -159,20 +169,52 @@ The older Phase 1 plans are historical.
 
 ## Immediate next steps
 
-1. Verify the deployed API/web production routes after this merge builds
-   on `main` (F32's new `/v2/recommend-next-chords` route in particular —
-   only verified so far via a local server pointed at the live database,
-   not through an actual Vercel deployment). Supabase migrations
-   0001–0006 are applied; advisors had only informational private-schema
-   RLS notices and unused-index findings at the last read.
-2. Continue the plan past M3: F40 (voice-leading engine, independent of
-   everything above) may proceed now that the M3 exit gate's prerequisites
-   (F30–F32) are merged; then F41 onward in order. Tune F30's
-   `DEFAULT_MIXING_K` placeholder on a dev split as a natural early step
-   (F31 quantified why it matters — see the "Current state" bullet above).
-3. The loader uses the direct database URL from gitignored
+1. **Local git worktree cleanup, do this first** — these are leftover
+   from the Claude/Codex parallel session earlier today and live outside
+   the main checkout, so a fresh session won't see them without looking:
+   - `C:/Users/sidds/OneDrive/Documents/GitHub/HCG-F40-voice-leading`
+     (branch `codex/f40-voice-leading`, local-only, never pushed): **has
+     real, usable work** — one commit, "feat(theory): add deterministic
+     voice-leading engine and voicings", adding
+     `backend/app/theory/voice_leading.py` and
+     `backend/tests/unit/test_voice_leading.py` (330 lines total). This
+     is F40's actual spec (see the plan). It branched from `2cbc1f2`
+     (before F30/F31/F32), so it needs rebasing onto current `main`
+     before continuing — read the existing module against F40's spec in
+     the plan first to see how much of the checklist it already covers,
+     then finish, test, and PR it rather than starting over.
+   - `C:/Users/sidds/OneDrive/Documents/GitHub/HCG-F31-eval` (branch
+     `codex/f31-eval`, local-only, never pushed): a duplicate F31 attempt
+     from before the Claude/Codex coordination split. **Superseded** by
+     the real, merged F31 (PR #11) — safe to `git worktree remove` and
+     `git branch -D` without reading it.
+   - `C:/Users/sidds/OneDrive/Documents/GitHub/HCG-handoff` (branch
+     `codex/coordination-handoff`) and
+     `.claude/worktrees/laughing-chaplygin-a67ae8` (branch
+     `claude/laughing-chaplygin-a67ae8`): both have zero commits ahead of
+     `main` — stale, empty checkouts, safe to remove.
+2. Continue the plan at **F40** (voice-leading engine) using the
+   worktree above as a starting point, then F41 onward in order.
+3. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
+   (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
+   it matters (context mixing currently *hurts* MRR at orders 4-5; see
+   the F31 bullet above and `docs/eval/prediction-v2.md`'s Interpretation
+   section). Not blocking, but a cheap, well-motivated win whenever
+   picked up.
+4. Verify the deployed API/web production routes reflect this merge
+   (F32's new `/v2/recommend-next-chords` route in particular — verified
+   so far only via a local server pointed at the live database, never
+   through an actual Vercel deployment). Supabase migrations 0001–0006
+   are applied; advisors had only informational private-schema RLS
+   notices and unused-index findings at the last read. Also worth a
+   glance: `hcg` schema's `pg_total_relation_size` read ~357 MiB at the
+   last check (over the 300 MiB budget) despite identical row counts and
+   zero dead tuples versus the original load report — likely a
+   measurement-method artifact, not real growth, but a fresh `ANALYZE`
+   would confirm.
+5. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-4. Update this file and `context/progress-tracker.md` after each merge,
+6. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 
