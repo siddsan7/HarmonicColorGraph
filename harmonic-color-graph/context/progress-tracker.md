@@ -7,8 +7,10 @@ detail it points to.
 
 ## v2 Plan — Active
 
-- 2026-09-25 F42 (perceptual axes with confidence & source) is done, not
-  yet merged. New `backend/app/color/perceptual.py`
+- 2026-09-25 F42 (perceptual axes with confidence & source) is done and
+  merged ([PR #17](https://github.com/siddsan7/HarmonicColorGraph/pull/17),
+  squash `e3d0420`, all four CI jobs and both Vercel previews passed). New
+  `backend/app/color/perceptual.py`
   (`compute_perceptual_color`, one entry point mirroring F41's
   `compute_chord_color`), `backend/app/color/perceptual_params.json`
   (documented logistic weights, one rationale per weight), and

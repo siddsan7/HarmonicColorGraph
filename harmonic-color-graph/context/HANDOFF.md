@@ -8,7 +8,7 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M3 are merged to `main`; F40, F41, and now F42 (M4) are done.**
+**M0–M3 are merged to `main`; F40, F41, and F42 (M4) are all merged too.**
 F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42 are done
 (checkboxes in `feature-specs/v2-implementation-plan.md` match). The M3
 exit gate ("prediction report shows a clear win over v1; recommendations
@@ -19,16 +19,19 @@ unrelated recovered Next.js security-fix PR
 merged after all CI jobs passed. F40's migration
 (`supabase/migrations/0007_voice_leading_edges.sql`) is now **applied
 live**; advisors showed only the same pre-existing informational
-private-schema RLS notices, no new issues. F41 added
-`backend/app/color/{features,norms}.py`, replaced the `color` pipeline
-stub in place, and wrote (but has **not yet applied live**) migration
-`0008_color_norms.sql` — see the F41 bullet below and
-`context/progress-tracker.md`'s matching entry for full detail. **F42 is
-implemented but not yet on a PR/merged** — new `backend/app/color/
-perceptual.py`, `perceptual_params.json`, and `rules/color_rules.json`
-(pure application code, no pipeline/DB changes); see this file's F42
-bullet below. The next unstarted work is **F43** (color profile storage,
-progression arcs, API) — see "Immediate next steps".
+private-schema RLS notices, no new issues. F41's PR
+([#16](https://github.com/siddsan7/HarmonicColorGraph/pull/16)) merged;
+it added `backend/app/color/{features,norms}.py`, replaced the `color`
+pipeline stub in place, and wrote (but has **not yet applied live**)
+migration `0008_color_norms.sql` — see the F41 bullet below and
+`context/progress-tracker.md`'s matching entry for full detail. F42's PR
+([#17](https://github.com/siddsan7/HarmonicColorGraph/pull/17), squash
+`e3d0420`) merged after all four CI jobs and both Vercel previews passed:
+new `backend/app/color/perceptual.py`, `perceptual_params.json`, and
+`rules/color_rules.json` (pure application code, no pipeline/DB changes);
+see this file's F42 bullet below. The next unstarted work is **F43**
+(color profile storage, progression arcs, API) — see "Immediate next
+steps".
 
 The rest of this section is the detailed PR-by-PR history, oldest first;
 skip to "Immediate next steps" if you just need to know what to do next.
@@ -264,15 +267,15 @@ skip to "Immediate next steps" if you just need to know what to do next.
   skipped) and `ruff check`/`ruff format --check` on the changed files are
   clean; `python -c "import app.main"` still succeeds. Pure, DB-free
   application code — no pipeline or migration changes, same split as F41.
-  **Not yet on a PR or merged to `main`** — see "Immediate next steps".
+  **Merged**: [PR #17](https://github.com/siddsan7/HarmonicColorGraph/pull/17)
+  (branch `codex/f42-perceptual-color`), squash commit `e3d0420`, all four
+  CI jobs and both Vercel previews passed.
 
 ## Immediate next steps
 
-1. Open a PR for F42 (working-tree changes only as of this entry — no
-   `codex/`-style branch created yet). Run the Standard Check Gate,
-   inspect CI, and squash-merge once green, then continue the plan at
-   **F43** (color profile storage, progression arcs, API), then F44.
-   **F43 is not blocked by item 2 below** — same reasoning F41/F42 already
+1. Continue the plan at **F43** (color profile storage, progression arcs,
+   API), then F44. **F43 is not blocked by item 2 below** — same
+   reasoning F41/F42 already
    confirmed: no application code anywhere references `VOICE_LEADS_TO` or
    reads `hcg.color_norms` yet, and F41/F42's axes all compute live
    per-progression through pure functions, not graph/table lookups. F43
