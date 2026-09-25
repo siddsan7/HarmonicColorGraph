@@ -72,6 +72,12 @@ def test_run_twice_yields_identical_manifest_hashes(tmp_path, mini_corpus, monke
 
 
 def test_unimplemented_downstream_stage_raises_clear_error(tmp_path, mini_corpus, monkeypatch):
+    # `snapshot` (F63) is the next real stub, but STAGE_ORDER runs the real
+    # `embeddings` stage (F50, gensim-backed) on the way there; the
+    # `backend (unit)` CI job installs `.[dev,pipeline]` only, not the
+    # optional `[ml]` extra, so this needs the same importorskip every other
+    # ml-dependent pipeline test uses.
+    pytest.importorskip("gensim")
     monkeypatch.setattr(cli, "REPO_ROOT", tmp_path)
     args = _make_args(tmp_path, mini_corpus, "cv-test-a", to_stage="snapshot")
 
