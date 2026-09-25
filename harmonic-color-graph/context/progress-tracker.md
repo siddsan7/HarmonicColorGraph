@@ -7,6 +7,24 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-24, after F32 merged: found three more local-only git
+  worktrees left over from today's Claude/Codex parallel session, none
+  pushed to GitHub, discovered while cleaning up the (by then merged)
+  `codex/f32-recommend` worktree:
+  `C:/Users/sidds/OneDrive/Documents/GitHub/HCG-F40-voice-leading`
+  (branch `codex/f40-voice-leading`) has one real commit implementing
+  F40 (`backend/app/theory/voice_leading.py` +
+  `backend/tests/unit/test_voice_leading.py`, 330 lines, branched from
+  `2cbc1f2` so it needs a rebase onto current `main`) — this is real,
+  usable work and M3 being done now means F40 is next in the plan anyway,
+  so continue it rather than redoing it.
+  `C:/Users/sidds/OneDrive/Documents/GitHub/HCG-F31-eval` (branch
+  `codex/f31-eval`) is a duplicate, now-superseded F31 attempt — safe to
+  delete unread. `HCG-handoff` (`codex/coordination-handoff`) and
+  `.claude/worktrees/laughing-chaplygin-a67ae8`
+  (`claude/laughing-chaplygin-a67ae8`) are both empty (zero commits ahead
+  of `main`) — safe to remove. See `context/HANDOFF.md`'s "Immediate next
+  steps" for the same list with exact paths.
 - 2026-09-24 F31 merged (PR #11, squash `602d96c`): real 50k-position
   held-out evaluation, v2 (order 5 + context) MRR `0.6071` vs. v1 MRR
   `0.5407` (delta `0.0664` >= required `0.05`), passed. Full detail in
