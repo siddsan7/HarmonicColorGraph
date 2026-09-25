@@ -206,16 +206,29 @@ skip to "Immediate next steps" if you just need to know what to do next.
 
 ## Immediate next steps
 
-1. A full pipeline re-run and reload is needed to get F40's voice-leading
+1. Continue the plan at **F41** (measurable color features + norms),
+   then F42 onward in order. **Not blocked by item 2 below** — checked
+   before starting F41: no application code anywhere references
+   `VOICE_LEADS_TO` yet (only the pipeline, migration, and docs do), and
+   F41's `smoothness` feature (`1 − norm(voice-leading total motion from
+   the previous chord)`) is defined to compute live from the two actual
+   progression chords via `app/theory/voice_leading.py`'s
+   `transition_metrics()` — the same tested pure function — not a lookup
+   against the materialized graph edges. Same applies to F42–F44; none of
+   them consume the graph edges either.
+2. A full pipeline re-run and reload is needed to get F40's voice-leading
    edges into the live `cv-2026-09-a` version (the `voice_leading` stage
    only ran against local fixtures and the `eval-train-a` chord
-   vocabulary so far, never the full corpus). Treat this as its own
-   deliberate, higher-risk step — the real corpus load has already
-   failed twice on storage budget/timeout before succeeding (see this
-   file's M2 load history and `docs/eval/corpus-cv-2026-09-a.md`) — not
-   something to fold into a routine PR.
-2. Continue the plan at **F41** (measurable color features + norms),
-   then F42 onward in order.
+   vocabulary so far, never the full corpus) — but only actually matters
+   once something wants to show precomputed voice-leading evidence in a
+   graph UI or API (there is no such consumer yet; see item 1). Treat the
+   reload as its own deliberate, higher-risk step when that need arises —
+   the real corpus load has already failed twice on storage
+   budget/timeout before succeeding (see this file's M2 load history and
+   `docs/eval/corpus-cv-2026-09-a.md`) — not something to fold into a
+   routine PR. Reasonable to bundle with F43/F44 (color profile storage
+   and UI) if/when a graph-evidence consumer is added, rather than doing
+   it standalone.
 3. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
    (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
    it matters (context mixing currently *hurts* MRR at orders 4-5; see

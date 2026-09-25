@@ -1472,6 +1472,20 @@ documentation-only, no functional gap).
   merging. Both worktrees were removed after their branches merged.
   Migration 0007 was then applied live at Siddharth's explicit request
   in a follow-up turn (see the F40 entry above for verification detail).
+- Asked whether the full-corpus reload (needed for live `VOICE_LEADS_TO`
+  graph edges) is unskippable before continuing to F41+. Checked: `grep`
+  across the whole repo for `VOICE_LEADS_TO` outside the pipeline,
+  migration, and docs turns up nothing — no application code reads the
+  materialized edges yet. F41's `smoothness` feature is spec'd as
+  `1 − norm(voice-leading total motion from the previous chord)`,
+  computed live per-progression via `app/theory/voice_leading.py`'s
+  `transition_metrics()` (the same tested pure function F40 shipped), not
+  a graph lookup. Same for F42–F44. Conclusion: the reload is not a
+  blocker for F41 onward; it only matters once something wants to show
+  precomputed voice-leading evidence in a graph UI/API, at which point
+  it's reasonable to bundle with F43/F44 rather than do standalone.
+  `HANDOFF.md`'s "Immediate next steps" reordered to put F41 first with
+  this reasoning inline.
 
 ## In Progress
 
