@@ -66,6 +66,28 @@ def artifact_dir(tmp_path: Path) -> Path:
                 "count": [3],
             }
         ),
+        "voice_leads.parquet": pl.DataFrame(
+            {
+                "from_chord": ["G:maj"],
+                "to_chord": ["C:maj"],
+                "total_motion": [8],
+                "max_voice_motion": [5],
+                "common_tones": [1],
+                "bass_motion": [5],
+                "parallel_perfects": [0],
+                "parsimonious": [None],
+            },
+            schema={
+                "from_chord": pl.Utf8,
+                "to_chord": pl.Utf8,
+                "total_motion": pl.Int64,
+                "max_voice_motion": pl.Int64,
+                "common_tones": pl.Int64,
+                "bass_motion": pl.Int64,
+                "parallel_perfects": pl.Int64,
+                "parsimonious": pl.Utf8,
+            },
+        ),
         "ngrams.parquet": pl.DataFrame(
             {
                 "context": ["global"],
@@ -123,6 +145,7 @@ def artifact_dir(tmp_path: Path) -> Path:
         "transitions_rows": 1,
         "functions_rows": 2,
         "abs_transitions_rows": 1,
+        "voice_leads_rows": 1,
         "ngrams_rows": 1,
         "patterns_rows": 1,
         "pattern_examples_rows": 1,
@@ -156,12 +179,23 @@ def test_catalog_maps_artifact_columns_to_prefixed_graph_ids(artifact_dir: Path)
     assert kinds.count("TRANSITIONS_TO") == 1
     assert kinds.count("FUNCTIONS_AS") == 2
     assert kinds.count("ABS_TRANSITIONS_TO") == 1
+    assert kinds.count("VOICE_LEADS_TO") == 1
     assert kinds.count("PATTERN_CONTAINS") == 2
     assert ("HAS_ROOT" in kinds) and ("HAS_QUALITY" in kinds)
     transition = next(edge for edge in edges if edge[3] == "TRANSITIONS_TO")
     assert transition[1:5] == ("function:M:V", "function:M:I", "TRANSITIONS_TO", 0)
     assert transition[8].obj["fact_ids"] == ["transition:M:V->M:I:global"]
     assert transition[8].obj["example_refs"][0]["position"] == 1
+    voice_leads = next(edge for edge in edges if edge[3] == "VOICE_LEADS_TO")
+    assert voice_leads[1:5] == ("chord:G:maj", "chord:C:maj", "VOICE_LEADS_TO", 0)
+    assert voice_leads[7] == 8  # weight carries total_motion.
+    assert voice_leads[8].obj == {
+        "max_voice_motion": 5,
+        "common_tones": 1,
+        "bass_motion": 5,
+        "parallel_perfects": 0,
+        "parsimonious": None,
+    }
     compact = list(
         _compact_edge_rows(
             artifact_dir,
@@ -176,6 +210,9 @@ def test_catalog_maps_artifact_columns_to_prefixed_graph_ids(artifact_dir: Path)
     assert transition_compact[:1] == (7,)
     assert transition_compact[8] == 1  # Numeric support replaces repeated JSON.
     assert transition_compact[9].obj["fact_ids"] == ["transition:M:V->M:I:global"]
+    voice_leads_compact = next(edge for edge in compact if edge[3] == 7)
+    assert voice_leads_compact[7] == 8  # weight carries total_motion.
+    assert voice_leads_compact[9].obj["common_tones"] == 1
     fact = next(_fact_rows(artifact_dir, manifest.version))
     assert fact[:4] == (
         "transition:M:V->M:I:global",
@@ -251,6 +288,7 @@ def test_loader_activates_once_and_preserves_previous_on_failed_stage(
         assert first.status == "loaded"
         assert first.active_version == version
         assert first.edge_types["TRANSITIONS_TO"] == 1
+        assert first.edge_types["VOICE_LEADS_TO"] == 1
         assert first.table_rows["patterns"] == 1
         second = load_corpus(artifact_dir, db_url)
         assert second.status == "no-op"

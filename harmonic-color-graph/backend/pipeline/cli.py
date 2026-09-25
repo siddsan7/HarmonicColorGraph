@@ -21,6 +21,7 @@ STAGE_ORDER = [
     "ingest",
     "analyze",
     "aggregate",
+    "voice_leading",
     "ngrams",
     "patterns",
     "examples",
@@ -59,6 +60,7 @@ def _run_build(args: argparse.Namespace) -> None:
     from pipeline.stages.ngrams import run_ngrams
     from pipeline.stages.patterns import run_patterns
     from pipeline.stages.snapshot import run_snapshot
+    from pipeline.stages.voice_leading import run_voice_leading
 
     from_stage = args.from_stage or STAGE_ORDER[0]
     to_stage = args.to_stage or STAGE_ORDER[-1]
@@ -134,6 +136,22 @@ def _run_build(args: argparse.Namespace) -> None:
                 f"aggregate: {summary.transitions_rows:,} transitions across "
                 f"{len(summary.contexts_kept)} contexts, {summary.functions_rows:,} functions, "
                 f"{summary.abs_transitions_rows:,} abs transitions "
+                f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
+            )
+        elif stage == "voice_leading":
+            summary = run_voice_leading(
+                artifact_dir / "abs_transitions.parquet", artifact_dir / "voice_leads.parquet"
+            )
+            manifest.row_counts["voice_leads_rows"] = summary.rows_written
+            manifest.budget_estimate_mb["voice_leads"] = summary.budget_estimate_mb
+            _recompute_budget_total(manifest)
+            manifest.output_hashes["voice_leads.parquet"] = content_hash(
+                pl.read_parquet(artifact_dir / "voice_leads.parquet")
+            )
+            print(
+                f"voice_leading: {summary.rows_written:,} VOICE_LEADS_TO edges from "
+                f"{summary.pairs_considered:,} top transitions considered "
+                f"({len(summary.unparseable_chords):,} unparseable chords skipped) "
                 f"(budget estimate so far: {manifest.budget_estimate_mb['total']:.1f} MB)"
             )
         elif stage == "ngrams":

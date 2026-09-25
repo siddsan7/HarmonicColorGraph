@@ -1218,13 +1218,48 @@ steps").
 
 ## M4 — Harmonic color & voice leading
 
-### F40 — Voice-leading engine [M]
-- [ ] `theory/voice_leading.py`: voicing generator (4 voices: bass + 3 upper, close/open/drop-2, range C3–G5, bass E2–D4); minimal-motion transition via exhaustive assignment over ≤ 5 voices; metrics: `total_motion`, `max_voice_motion`, `common_tones`, `bass_motion`, `parallel_perfects`, `parsimonious (P/L/R/…)` for triads.
-- [ ] `voice_lead(progression, strategy="smooth"|"root_position"|"spread") -> [[midi]]` for playback.
-- [ ] Pipeline: materialize `VOICE_LEADS_TO` for top transitions (min cost, common tones).
+### F40 — Voice-leading engine [M] — DONE
+- [x] `theory/voice_leading.py`: voicing generator (4 voices: bass + 3 upper, close/open/drop-2, range C3–G5, bass E2–D4); minimal-motion transition via exhaustive assignment over ≤ 5 voices; metrics: `total_motion`, `max_voice_motion`, `common_tones`, `bass_motion`, `parallel_perfects`, `parsimonious (P/L/R/…)` for triads.
+- [x] `voice_lead(progression, strategy="smooth"|"root_position"|"spread") -> [[midi]]` for playback.
+- [x] Pipeline: materialize `VOICE_LEADS_TO` for top transitions (min cost, common tones).
 
 **Checks:** Tests: C→Am (common tones 2, upper motion 2 semitones), C→Fm (motions include A→Ab), G7→C resolves B→C and F→E in the smooth strategy, parallel-fifth detector catches C→D root-position block chords; property tests: costs ≥ 0 and the smooth strategy is never worse than root position on total motion.
 **Commit:** `feat(theory): voice-leading engine and voicings for playback`
+
+**Completed 2026-09-24.** The pure theory engine (`app/theory/voice_leading.py`,
+17 tests) was an existing checkpoint from an earlier session; this pass
+verified it against the plan's checklist, then added the pipeline half: a new
+`voice_leading` stage (`pipeline/stages/voice_leading.py`, inserted into
+`STAGE_ORDER` right after `aggregate`) reads `abs_transitions.parquet`,
+converts each `root:quality[/bass]` node label to a `normalize_chord`-ready
+symbol, and keeps the top 5 destinations per source chord by count (bounds
+storage the same way F26/F30's "top-N evidence" pattern does — the full
+corpus has ~1,330 distinct chords and ~24.5k pruned abs-transition pairs,
+verified against the real `eval-train-a` artifact). `load.py` gained
+`EDGE_TYPE_CODES["VOICE_LEADS_TO"] = 7` and a `voice_leads.parquet` edge loop
+(weight = `total_motion`; the rest of the metrics ride in `props`). Migration
+`supabase/migrations/0007_voice_leading_edges.sql` widens
+`edges_compact_type_code_check` to `between 1 and 7` and adds the
+`VOICE_LEADS_TO` case to `hcg.edges_read` — written and verified against the
+live schema's actual constraint name, but **not yet applied live** (the
+auto-mode permission classifier blocks `apply_migration` as a "Production
+Deploy" action; needs explicit approval or a manual apply). Getting
+`VOICE_LEADS_TO` edges into the active `cv-2026-09-a` version additionally
+requires a full pipeline re-run and reload, which is its own deliberate,
+higher-risk step (the corpus load has failed on storage-budget/timeout twice
+before succeeding — see the `HANDOFF.md` load history) and was intentionally
+left for a dedicated follow-up rather than bundled into this PR. Local
+verification: 7 new/updated tests in `tests/unit/test_pipeline_voice_leading.py`
+plus updated loader coverage in `tests/unit/test_pipeline_load.py`
+(`kinds.count("VOICE_LEADS_TO") == 1`, compact-row weight/props checks);
+full `pytest -q` and `ruff check`/`ruff format --check` on the changed files
+are clean. The Postgres-gated loader test
+(`test_loader_activates_once_and_preserves_previous_on_failed_stage`) now
+also asserts `edge_types["VOICE_LEADS_TO"] == 1`, but skips locally
+(`TEST_DATABASE_URL` unset, matching every other `@pytest.mark.pg` test in
+this repo) — CI's Postgres job applies `supabase/migrations/*.sql` by glob
+(`scripts/docker-migrate.sh`), so migration 0007 is picked up automatically
+there with no separate wiring.
 
 ### F41 — Measurable color features + norms [M]
 - [ ] `color/features.py`, for a chord in context and for a transition (all raw, then normalized):
