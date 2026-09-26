@@ -6,18 +6,22 @@ from traceback import extract_tb
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-try:
-    from app._real_main import app
-except Exception as exc:
-    failure = {
-        "exception": type(exc).__name__,
-        "frames": [
-            f"{Path(frame.filename).name}:{frame.lineno}:{frame.name}"
-            for frame in extract_tb(exc.__traceback__)[-8:]
-        ],
-    }
-    app = FastAPI()
+app = FastAPI()
 
-    @app.api_route("/{path:path}", methods=["GET", "POST"])
-    async def startup_diagnostic(path: str) -> JSONResponse:
-        return JSONResponse(status_code=503, content=failure)
+
+@app.get("/health", response_model=None)
+def startup_diagnostic() -> dict | JSONResponse:
+    try:
+        from app._real_main import app as real_app
+    except Exception as exc:
+        return JSONResponse(
+            status_code=503,
+            content={
+                "exception": type(exc).__name__,
+                "frames": [
+                    f"{Path(frame.filename).name}:{frame.lineno}:{frame.name}"
+                    for frame in extract_tb(exc.__traceback__)[-8:]
+                ],
+            },
+        )
+    return {"loaded": type(real_app).__name__}
