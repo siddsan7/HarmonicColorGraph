@@ -1,0 +1,50 @@
+{
+  "archive": "../history/v2-implementation-plan-2026-09-26.md",
+  "original_sha256": "dc0daca3b4948fa8d44ee70266ddf98d89ac1feefd7f14475edc316726ac9bd6",
+  "parts": [
+    {
+      "file": "execution-reference.md",
+      "sha256_at_split": "97e592f917e434d13ed5349f33caa47225b09f7d6d2a1bd3eebe8396e1e9d89f"
+    },
+    {
+      "file": "M0.md",
+      "sha256_at_split": "5ac37c973db8226eb56deea1815469f2778ca949bb6daa02d88c1977764df399"
+    },
+    {
+      "file": "M1.md",
+      "sha256_at_split": "2380f6152f5dedc70cb1be255c6743b7aa414f874d4c530324448261a660e1a4"
+    },
+    {
+      "file": "M2.md",
+      "sha256_at_split": "76c6c50f349cbaa04647cecd668e39865d279b3d6f90f8365bf32f938e9ce7f8"
+    },
+    {
+      "file": "M3.md",
+      "sha256_at_split": "feaaf930d4e6096bec0e1d59fa636ed8436a5612057d257cea90824c0a4683c3"
+    },
+    {
+      "file": "M4.md",
+      "sha256_at_split": "8cf21596a605265f6bbad0f354320e6ffaa22c583eab28a8423fd30100f33688"
+    },
+    {
+      "file": "M5.md",
+      "sha256_at_split": "cce4717185634b0cf5616f3f57b61c24fb365bc47583ea0b8c8db5404c517cec"
+    },
+    {
+      "file": "M6.md",
+      "sha256_at_split": "672bae6e50304a50c0ef6b38e2ebaeedb35dc382fee57d20a8838c07b74b0e77"
+    },
+    {
+      "file": "M7.md",
+      "sha256_at_split": "171346ae44222cd80108deb217bdb336745a2c9436ecbc0d735de7d50acf2904"
+    },
+    {
+      "file": "M8.md",
+      "sha256_at_split": "0b5884fe96af9a50e2c01381755502aa41d1d5c157ef2d0a6020ad66bcf90205"
+    },
+    {
+      "file": "appendices.md",
+      "sha256_at_split": "5bd226849cecfe611424380d61554d53302cf4f19f4056f138a41cacefccb5a8"
+    }
+  ]
+}
