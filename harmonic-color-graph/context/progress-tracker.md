@@ -7,9 +7,14 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-25 — **F54 work starts on `codex/f54-intent-recommendations`**
+  from F44 squash `f23a401`. F44 PR #26 is merged and production smoke
+  passed. The next implementation is the existing F32 route's optional
+  F52 intent/preset scoring contract, then product controls and the three
+  Phase 2 §14 scenario tests. No F54 code has landed yet.
 - 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` in
   [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26)
-  (open; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
+  (merged as squash `f23a401`; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
   `ColorProfilePanel` as custom SVG/text components. The Workbench fetches
   a DB-free color profile for the submitted chords after `/v2/analyze`;
   recommendation rows compare their appended candidate on demand through
@@ -47,7 +52,11 @@ detail it points to.
   `scripts/check.ps1 all` passed on rerun (the first run had one transient
   Hypothesis slow-input health check under local build load; the affected
   test and full unit suite passed cleanly afterward). Fresh CI, both
-  deployment statuses, PR merge, and production verification are pending.
+  deployment statuses passed on the final PR head `1f01ec2`. Production
+  API `/health` reports merge SHA `f23a401`; direct color profile and
+  compare calls return 200 with three arc points and six axes. The
+  production web `/api/hcg/health` proxy reaches the same healthy API;
+  both production Vercel statuses passed. F54 is next.
   Vercel connector is unauthenticated; dashboard inspection requires login.
   No DB migration is required for F44.
 - 2026-09-25 F50–F53 (most of M5) are done and merged, picked up from four

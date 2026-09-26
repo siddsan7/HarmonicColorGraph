@@ -1543,7 +1543,9 @@ The remaining startup error was an API import of `pipeline.stages.ngrams`
 despite Vercel excluding `pipeline/**`; both sides now use
 `app/ngram_contract.py`, guarded by an import test with pipeline blocked.
 Direct preview smoke passed for `/health`, profile, and compare at `07e5f04`.
-Fresh CI and deployment statuses are required before merge.
+PR #26 merged as `f23a401` after four CI jobs and both preview statuses
+passed. Production API `/health`, profile, compare, and the web proxy passed;
+both production Vercel statuses passed.
 
 **M4 exit gate:** The color sanity suite is green; color visible in production for analysis and recommendations.
 
@@ -1676,7 +1678,7 @@ four CI jobs passed, squash commit `7f73d44`.
 **Checks:** The three scenario tests pass; manual listening checklist (Siddharth) for the three scenarios noted in the tracker.
 **Commit:** `feat(ui): intent sliders, presets, and compare cards`
 
-**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 is not started**, so the gate is not yet fully closed.
+**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 has a branch, but implementation is pending**, so the gate is not yet fully closed.
 
 ---
 

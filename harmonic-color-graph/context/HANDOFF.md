@@ -8,12 +8,14 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M4 except F44 are merged to `main`; F50–F53 (most of M5) are merged too.**
+**M0–M4 are merged to `main`; F50–F53 (most of M5) are merged too.**
 F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43, F50, F51, F52,
-F53 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
-match). **F44 color UI is implemented in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26), not yet merged;
-F54** (intent-driven recommendations in the product) follows after F44 is
-verified and merged — see "Immediate next steps".
+F53, F44 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
+match). **F44 color UI merged in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26), squash `f23a401`.**
+All four CI jobs and both Vercel preview statuses passed. Production API
+`/health` reports `f23a401`; direct profile and compare calls return 200,
+and the production web proxy reaches the healthy API. Both production Vercel
+statuses passed. **F54** (intent-driven recommendations in the product) is next.
 F50–F53 were picked up from four independent local worktree checkpoints
 (`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
 each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
@@ -390,54 +392,20 @@ skip to "Immediate next steps" if you just need to know what to do next.
 
 ## Immediate next steps
 
-1. Finish **F44** in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26) on branch `codex/f44-color-ui`: the SVG bars, per-axis
-   arc, candidate delta, API wrappers, Workbench wiring, Vitest tests,
-   Playwright screenshot, and axe scan are implemented. The first axe
-   scan found the old muted token below 4.5:1; `--text-muted` is now
-   `#8f98a8`, and the rerun passed. `scripts/check.ps1 all` passed (backend
-   unit tests, ruff, frontend lint/types/Vitest/build, API import; local
-   Postgres integration tests skipped because `TEST_DATABASE_URL` is unset).
-   The full Playwright suite passed 5/5 with the local API running; two
-   pre-existing tests were made deterministic/scoped so this suite is
-   repeatable. Initial PR checks and both Vercel deployment statuses went
-   green, but direct API preview and production `/health` and color calls
-   returned 500 `FUNCTION_INVOCATION_FAILED`. A clean, source-only install
-   imported; a built wheel contained **zero JSON assets** and failed at
-   `app.color.perceptual.load_color_rules()` during import. The PR now
-   includes `[tool.setuptools.package-data]` for all four runtime JSON
-   assets and a wheel-content regression test; an isolated install of the
-   fixed wheel imports the app and loads color rules/scorer weights. The
-   first redeploy still returned 500, so `backend/vercel.json` now
-   explicitly includes all four JSON assets in the Python function bundle;
-   a config regression test covers that list. A temporary diagnostic
-   entrypoint then identified the actual remaining startup failure:
-   `ModuleNotFoundError` in `app/predict/ngram.py`, which imported constants
-   from `pipeline.stages.ngrams` even though Vercel excludes `pipeline/**`.
-   The diagnostic was removed; the pipeline and API now import a small
-   shared `app/ngram_contract.py`. A subprocess test blocks all pipeline
-   imports while loading `app.main`. The resulting API preview at commit
-   `07e5f04` passed direct `/health` (version matches the commit),
-   `POST /v2/color/profile` for `Cmaj7 Em7 Am7`, and
-   `GET /v2/color/compare` for the progression plus `Fmaj7`.
-   The Vercel connector requires reauthentication; the temporary preview
-   diagnostic supplied the startup exception without connector logs.
-   `scripts/check.ps1 all` passed after the fix (one transient Hypothesis
-   slow-input health check on the first run, followed by a clean full rerun).
-   Wait for fresh CI and both Vercel statuses, then squash-merge and verify `main`
-   and production. Record the
-   merge SHA and checks here and in
-   `context/progress-tracker.md` before starting F54. No migration is
-   required for F44; its color endpoints are DB-free.
-2. Then **F54** (intent-driven recommendations in the product): wire
-   F52's `intent{…}`/`preset` into `/v2/recommend-next-chords` (a new
-   route, not yet built — F52 only built the scoring library), add UI
-   intent sliders/preset control/compare cards, and the Phase 2 §14
-   demo-scenario e2e tests. This closes the M5 exit gate.
-3. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
+1. Implement **F54** on `codex/f54-intent-recommendations` (branched from
+   F44 squash `f23a401`). The existing F32 `POST /v2/recommend-next-chords`
+   route needs F52's `intent{…}` and `preset` with unchanged defaults for old
+   callers, followed by UI sliders, preset control, compare cards, and the
+   three Phase 2 §14 scenarios. Read the F54 plan and current F32/F52 code
+   before editing. At the end of the PR, record tests, deployment, and next
+   work in this handoff and `context/progress-tracker.md`; merge only after
+   CI and preview smoke pass. Manual listening by Siddharth remains a
+   separately recorded check.
+2. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
    and `0010_embeddings.sql` live (MCP `apply_migration`, then
    `get_advisors`) whenever convenient — cheap and low-risk (empty
-   tables until the next full load), unlike item 4.
-4. A full pipeline re-run and reload is needed to get F40's voice-leading
+   tables until the next full load), unlike item 3.
+3. A full pipeline re-run and reload is needed to get F40's voice-leading
    edges, F41's color norms, F43's color profiles, AND F50's embeddings
    into the live `cv-2026-09-a` version (the `voice_leading`/`color`/
    `embeddings` stages have only run against local fixtures and small
@@ -446,32 +414,32 @@ skip to "Immediate next steps" if you just need to know what to do next.
    voice-leading evidence, corpus-normalized/precomputed color values,
    or live `hcg.embeddings`-backed similarity in a graph UI or API (the
    `/v2/color/*` and `/v2/similar-*` endpoints don't need it yet — see
-   items 1 and F51's own note above). Treat the reload as its own
+   F44 and F51's own note above). Treat the reload as its own
    deliberate, higher-risk step when that need arises — the real corpus
    load has already failed twice on storage budget/timeout before
    succeeding (see this file's M2 load history and
    `docs/eval/corpus-cv-2026-09-a.md`) — not something to fold into a
    routine PR.
-5. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
+4. Tune F30's `DEFAULT_MIXING_K = 100.0` placeholder
    (`backend/app/predict/ngram.py`) on a dev split — F31 quantified why
    it matters (context mixing currently *hurts* MRR at orders 4-5; see
    the F31 bullet above and `docs/eval/prediction-v2.md`'s Interpretation
    section). Not blocking, but a cheap, well-motivated win whenever
    picked up.
-6. Verify the deployed API/web production routes reflect the F32 merge
+5. Verify the deployed API/web production routes reflect the F32 merge
    (`/v2/recommend-next-chords` in particular — verified so far only via
    a local server pointed at the live database, never through an actual
    Vercel deployment). Supabase migrations 0001–0007 are applied (0008,
-   0009, 0010 written, not yet applied — see item 3); advisors had only
+   0009, 0010 written, not yet applied — see item 2); advisors had only
    informational private-schema RLS notices and unused-index findings at
    the last read. Also worth a glance: `hcg` schema's
    `pg_total_relation_size` read ~357 MiB at the last check (over the
    300 MiB budget) despite identical row counts and zero dead tuples
    versus the original load report — likely a measurement-method
    artifact, not real growth, but a fresh `ANALYZE` would confirm.
-7. The loader uses the direct database URL from gitignored
+6. The loader uses the direct database URL from gitignored
    `backend/.env`; never print or commit credentials.
-8. Update this file and `context/progress-tracker.md` after each merge,
+7. Update this file and `context/progress-tracker.md` after each merge,
    deployment, or discovered blocker. Before any usage limit, record
    the exact branch/PR/merge state and next command or tool action here.
 
