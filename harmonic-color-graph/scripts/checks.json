@@ -1,0 +1,246 @@
+{
+  "root": "..",
+  "scopes": {
+    "docs": [
+      {
+        "name": "documentation integrity",
+        "argv": [
+          "{python}",
+          "scripts/context_check.py"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      }
+    ],
+    "backend": [
+      {
+        "name": "backend lint",
+        "argv": [
+          "{python}",
+          "-m",
+          "ruff",
+          "check",
+          "."
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "backend format",
+        "argv": [
+          "{python}",
+          "-m",
+          "ruff",
+          "format",
+          "--check",
+          "."
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "backend unit",
+        "argv": [
+          "{python}",
+          "-m",
+          "pytest",
+          "-q",
+          "-m",
+          "not pg"
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      }
+    ],
+    "frontend": [
+      {
+        "name": "frontend lint",
+        "argv": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend typecheck",
+        "argv": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend test",
+        "argv": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend build",
+        "argv": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      }
+    ],
+    "ai": [
+      {
+        "name": "deterministic evaluation tests",
+        "argv": [
+          "{python}",
+          "-m",
+          "pytest",
+          "-q",
+          "tests/unit/test_eval_metrics.py",
+          "tests/unit/test_eval_sampling.py",
+          "tests/unit/test_eval_baselines.py",
+          "tests/unit/test_eval_prediction.py"
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      }
+    ],
+    "release": [
+      {
+        "name": "documentation integrity",
+        "argv": [
+          "{python}",
+          "scripts/context_check.py"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "backend lint",
+        "argv": [
+          "{python}",
+          "-m",
+          "ruff",
+          "check",
+          "."
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "backend format",
+        "argv": [
+          "{python}",
+          "-m",
+          "ruff",
+          "format",
+          "--check",
+          "."
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "backend unit",
+        "argv": [
+          "{python}",
+          "-m",
+          "pytest",
+          "-q",
+          "-m",
+          "not pg"
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend lint",
+        "argv": [
+          "npm",
+          "run",
+          "lint"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend typecheck",
+        "argv": [
+          "npm",
+          "run",
+          "typecheck"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend test",
+        "argv": [
+          "npm",
+          "run",
+          "test"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "frontend build",
+        "argv": [
+          "npm",
+          "run",
+          "build"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "Postgres integration",
+        "argv": [
+          "{python}",
+          "scripts/require_integration.py"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "Postgres tests",
+        "argv": [
+          "{python}",
+          "-m",
+          "pytest",
+          "-q",
+          "-m",
+          "pg"
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "API import",
+        "argv": [
+          "{python}",
+          "-c",
+          "import app.main"
+        ],
+        "cwd": "backend",
+        "timeout_seconds": 600
+      },
+      {
+        "name": "browser scenarios",
+        "argv": [
+          "npm",
+          "run",
+          "test:e2e"
+        ],
+        "cwd": ".",
+        "timeout_seconds": 900
+      }
+    ]
+  }
+}

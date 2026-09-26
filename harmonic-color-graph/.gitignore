@@ -66,3 +66,6 @@ __pycache__/
 *.egg-info/
 *.db
 *.db-journal
+
+# Local verification output
+.agent-logs/
