@@ -3,6 +3,7 @@
   "functions": {
     "app/main.py": {
       "maxDuration": 30,
+      "includeFiles": "{app/color/perceptual_params.json,app/color/rules/color_rules.json,app/recommend/weights/plausibility_v1.json,app/theory/keys_params.json}",
       "excludeFiles": "{tests/**,pipeline/**,legacy/**,**/*.parquet}"
     }
   }

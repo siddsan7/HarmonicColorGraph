@@ -1,5 +1,6 @@
 """The deployed wheel must include files read by path at runtime."""
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -42,3 +43,16 @@ def test_runtime_json_files_are_in_wheel(tmp_path: Path) -> None:
         "app/recommend/weights/plausibility_v1.json",
         "app/theory/keys_params.json",
     } <= names
+
+
+def test_vercel_function_explicitly_bundles_runtime_json() -> None:
+    backend = Path(__file__).resolve().parents[2]
+    config = json.loads((backend / "vercel.json").read_text(encoding="utf-8"))
+    include = config["functions"]["app/main.py"]["includeFiles"]
+    for asset in (
+        "app/color/perceptual_params.json",
+        "app/color/rules/color_rules.json",
+        "app/recommend/weights/plausibility_v1.json",
+        "app/theory/keys_params.json",
+    ):
+        assert asset in include

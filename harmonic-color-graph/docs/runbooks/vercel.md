@@ -66,6 +66,9 @@ at `app.color.perceptual` loading `rules/color_rules.json`. Editable source
 installs and `python -c "import app.main"` from the repo hide this defect.
 The F44 PR adds `[tool.setuptools.package-data]` for the four app JSON assets
 and `test_distribution_assets.py`, which inspects a real wheel. Verify the
+`backend/vercel.json` `includeFiles` glob also names these assets, with a
+regression test, because the first deploy with wheel metadata alone still
+returned 500. Verify the
 API preview `/health` and `/v2/color/profile` directly after redeploy, not
 only Vercel's `READY` status.
 

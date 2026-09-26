@@ -33,7 +33,9 @@ detail it points to.
   so `app.color.perceptual` raised `FileNotFoundError` for
   `color_rules.json` at import. Added explicit package data for four runtime
   assets plus a wheel-content regression test; a fixed-wheel install now
-  imports `app.main` and loads color rules and recommender weights. Fresh
+  imports `app.main` and loads color rules and recommender weights. The
+  first redeploy remained 500, so `backend/vercel.json` now has an explicit
+  `includeFiles` glob for those four assets, with a config regression test. Fresh
   `scripts/check.ps1 all` passed on rerun (the first run had one transient
   Hypothesis slow-input health check under local build load; the affected
   test and full unit suite passed cleanly afterward). Fresh CI, preview
