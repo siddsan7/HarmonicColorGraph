@@ -1678,7 +1678,13 @@ four CI jobs passed, squash commit `7f73d44`.
 **Checks:** The three scenario tests pass; manual listening checklist (Siddharth) for the three scenarios noted in the tracker.
 **Commit:** `feat(ui): intent sliders, presets, and compare cards`
 
-**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 has a branch, but implementation is pending**, so the gate is not yet fully closed.
+**In progress (2026-09-26):** Local `codex/f54-intent-recommendations`
+checkpoint `43a8f61` has the optional API ranking path and UI controls
+wired. `scripts/check.ps1 all` passes locally; browser verification and
+scenarios 2–3 are pending. See `context/HANDOFF.md` for exact fixture
+rankings. No PR yet.
+
+**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 is in progress**, so the gate is not yet fully closed.
 
 ---
 

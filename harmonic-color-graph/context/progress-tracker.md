@@ -7,11 +7,18 @@ detail it points to.
 
 ## v2 Plan — Active
 
-- 2026-09-25 — **F54 work starts on `codex/f54-intent-recommendations`**
+- 2026-09-26 — **F54 work starts on `codex/f54-intent-recommendations`**
   from F44 squash `f23a401`. F44 PR #26 is merged and production smoke
-  passed. The next implementation is the existing F32 route's optional
-  F52 intent/preset scoring contract, then product controls and the three
-  Phase 2 §14 scenario tests. No F54 code has landed yet.
+  passed. Local checkpoint `43a8f61` adds the existing F32 route's optional
+  F52 intent/preset scoring contract, explicit ranking mode and candidate
+  pitch classes, OpenAPI/types regeneration, intent sliders/presets, raw
+  color compare rows, and candidate playback. Old requests still use the
+  statistical ranking. `scripts/check.ps1 all` passes locally (Postgres
+  integration skipped without `TEST_DATABASE_URL`). Browser flow and
+  scenario tests remain. Fixture ranking:
+  nostalgic `Fm` 5th (passes); dreamy `Abmaj7` 23rd (fails); jazz `G7` 4th
+  (fails). Tune without special-casing input progressions, then test and
+  open the F54 PR. The branch has not been pushed; no F54 PR or merge exists yet.
 - 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` in
   [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26)
   (merged as squash `f23a401`; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
