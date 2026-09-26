@@ -1317,7 +1317,7 @@ post-load `analyze` loop. Migration `0008_color_norms.sql` creates
 `hcg.color_norms(version, axis, subject_type, count, p05, p25, p50, p75, p95,
 mean, std)` with RLS enabled, following the same
 `version references hcg.corpus_versions ... on delete cascade` shape as every
-other versioned table — **not yet applied live** (the loader now requires
+other versioned table — applied live on 2026-09-26 (the loader now requires
 `color.parquet` for every future load, so it only matters once a full
 pipeline reload happens; see `HANDOFF.md`'s next steps).
 
@@ -1340,7 +1340,7 @@ skipped — the `pg`-marked tests, matching the `env-local-coverage` gotcha),
 `ruff check .`, and `ruff format --check .` are clean;
 `python -c "import app.main"` still succeeds (the `pipeline-import-weight`
 gotcha check — `app/color/features.py` imports no pipeline/polars modules).
-Not yet done: applying migration 0008 live, and the full corpus reload that
+Still pending after the 2026-09-26 migration: the full corpus reload that
 would populate `hcg.color_norms` for the active `cv-2026-09-a` version (same
 "deliberate, higher-risk, bundle-with-a-real-consumer" reasoning as F40's
 `VOICE_LEADS_TO` edges — F42–F44 don't need it either; F41's own sanity
@@ -1459,9 +1459,8 @@ runs both halves (`run_color` for norms, then `run_color_profiles`);
 artifact and `hcg.color_profiles` table. Migration
 `supabase/migrations/0009_color_profiles.sql` (`version, subject_type,
 subject_id` primary key; `axes jsonb` holding `{raw, raw_normalized,
-perceptual}`) is written but **not yet applied live** -- same "deliberate,
-higher-risk, bundle-with-a-real-consumer" reasoning as F40/F41's unapplied
-migrations; no application code reads `hcg.color_profiles` yet (the new API
+perceptual}`) was applied live on 2026-09-26; the higher-risk full corpus
+reload remains deferred until a consumer needs these precomputed rows. No application code reads `hcg.color_profiles` yet (the new API
 endpoints are DB-free, analyzing a submitted progression on the fly, not
 reading corpus-precomputed profiles).
 
@@ -1678,18 +1677,23 @@ four CI jobs passed, squash commit `7f73d44`.
 **Checks:** The three scenario tests pass; manual listening checklist (Siddharth) for the three scenarios noted in the tracker.
 **Commit:** `feat(ui): intent sliders, presets, and compare cards`
 
-**PR [#27](https://github.com/siddsan7/HarmonicColorGraph/pull/27) (2026-09-26):** `codex/f54-intent-recommendations` now has the
+**Completed (2026-09-26):** [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27), squash `fbc7c65`. `codex/f54-intent-recommendations` added the
 optional API ranking path, seven intent axes (including derived dreaminess),
 UI controls, and an HTTP scenario fixture captured from production's F32
 statistical response. The three offline scenario ranks are 2/4/1, within
 their 5/5/3 targets; the Playwright control flow and full local browser suite
 pass. The live Playwright suite passed all three scenarios against the web
 preview routed to the API preview on corpus `cv-2026-09-a`; direct API ranks
-were 2/1/1. F60's `… F Fm C` generation check remains with F60. CI,
-merge, and production verification remain before the M5 exit gate closes.
-Manual listening by Siddharth is recorded separately.
+were 2/1/1. All four CI jobs and both Vercel previews passed. Production
+API and web proxy report `fbc7c65`; the live browser suite passed 3/3 in
+production, with direct API ranks 2/1/1 on `cv-2026-09-a` and the old
+no-intent ranking unchanged. F60's `… F Fm C` generation check remains with
+F60. Manual listening by Siddharth remains a separate subjective check.
 
-**M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 is in progress**, so the gate is not yet fully closed.
+**M5 exit gate: passed (2026-09-26).** The recommender report is committed and
+all three Phase 2 demo recommendation scenarios work in production. F50–F54
+are merged. Migrations 0008–0010 are applied live; their new tables remain
+empty until a deliberate full-corpus reload. Manual listening is still open.
 
 ---
 

@@ -2,8 +2,8 @@
   "_meta": {
     "purpose": "Code-verified identifiers, limits, and change-together sets that no context doc enumerates. Every value cites the file that owns it. The code wins if they disagree; update this file in that case.",
     "not_here_on_purpose": "Stack, ADRs, corpus row counts, eval scores, milestones, and feature status live in context/architecture.md, docs/adr/, docs/eval/, context/HANDOFF.md, and feature-specs/v2-implementation-plan.md. Structure (modules, routes, flows) lives in docs/codemap.html.",
-    "verified_at_commit": "ecfe566",
-    "verified_on": "2026-09-25"
+    "verified_at_commit": "fbc7c65",
+    "verified_on": "2026-09-26"
   },
 
   "identifiers": {

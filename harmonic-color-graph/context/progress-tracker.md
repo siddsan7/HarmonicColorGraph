@@ -7,6 +7,28 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-26 — **M5 exit gate closed.** F54 [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27)
+  passed all four CI jobs and both Vercel previews, then squash-merged to
+  `main` at `fbc7c65`. Production API `/health` and the web proxy both
+  report that SHA; `/health/db` is connected. The live Playwright scenario
+  suite passed 3/3 against production web and API. Direct API ranks on
+  `cv-2026-09-a`: `Fm` 2/5, `Abmaj7` 1/5, `G7` 1/3. The no-intent F32
+  statistical path still returns `M:I` 0.792, `M:V` 0.1373, `M:vi` 0.0258
+  for `C G Am F`. The F52 recommender report is committed, satisfying the
+  other M5 gate condition. Supabase project `avnxcyulznofylsnydfg` is
+  `ACTIVE_HEALTHY`; migrations 0008 color norms, 0009 color profiles, and
+  0010 embeddings were applied in order and verified by migration history,
+  table lookup, and vector extension 0.8.2. The new tables have zero rows
+  pending a deliberate full-corpus reload. Advisors reported only INFO
+  notices: private-schema RLS with no policies
+  ([explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy)),
+  existing unindexed foreign keys/no primary key, and unused indexes
+  ([index explanation](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index));
+  no new security or performance warning/error. Manual listening remains
+  Siddharth's subjective follow-up:
+  - [ ] Play `C G Am F Fm C` and judge nostalgia/resolution; compare with `C G Am F C`.
+  - [ ] Play `Cmaj7 Em7 Am7 Abmaj7` and judge dreamy/low-tension fit; compare with `Cmaj7 Em7 Am7 Fmaj7`.
+  - [ ] Play `C Am Dm G7 C` and judge dominant resolution; compare with `C Am Dm G C`.
 - 2026-09-26 — **F54 [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27)
   opened and preview verified.** Both Vercel preview statuses passed; the API
   preview `/health` reports `e6bf221`. The web preview's default proxy points

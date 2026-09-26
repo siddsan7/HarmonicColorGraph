@@ -42,6 +42,17 @@ is retired to `backend/legacy/`). Apply new migrations with the Supabase
 MCP `apply_migration` tool (or the CLI), in filename order. `list_migrations`
 should always equal the files in `supabase/migrations/`.
 
+As of 2026-09-26, migrations 0001–0010 are applied to the live project.
+MCP migration history records `color_norms` (`20260926182946`),
+`color_profiles` (`20260926182949`), and `embeddings` (`20260926182953`)
+after 0007. Read-only verification found all three `hcg` tables and pgvector
+0.8.2. They each have zero rows until a deliberate full-corpus reload. The
+post-migration security advisor reported only INFO-level private-schema RLS
+notices ([explanation](https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy));
+the performance advisor reported only INFO-level existing foreign-key/primary
+key notices and unused indexes, including the two empty-table HNSW indexes
+([index explanation](https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index)).
+
 All tables live in the private `hcg` schema — never add `hcg` to the Data
 API's exposed schemas (Project Settings → API → Exposed schemas should stay
 at its default, `public` only). RLS is enabled on every `hcg` table; since
