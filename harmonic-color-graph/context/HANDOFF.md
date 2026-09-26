@@ -11,7 +11,7 @@ The older Phase 1 plans are historical.
 **M0–M4 except F44 are merged to `main`; F50–F53 (most of M5) are merged too.**
 F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43, F50, F51, F52,
 F53 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
-match). **F44 color UI is implemented on `codex/f44-color-ui`, not yet merged;
+match). **F44 color UI is implemented in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26), not yet merged;
 F54** (intent-driven recommendations in the product) follows after F44 is
 verified and merged — see "Immediate next steps".
 F50–F53 were picked up from four independent local worktree checkpoints
@@ -390,7 +390,7 @@ skip to "Immediate next steps" if you just need to know what to do next.
 
 ## Immediate next steps
 
-1. Finish **F44** on branch `codex/f44-color-ui`: the SVG bars, per-axis
+1. Finish **F44** in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26) on branch `codex/f44-color-ui`: the SVG bars, per-axis
    arc, candidate delta, API wrappers, Workbench wiring, Vitest tests,
    Playwright screenshot, and axe scan are implemented. The first axe
    scan found the old muted token below 4.5:1; `--text-muted` is now
@@ -399,9 +399,9 @@ skip to "Immediate next steps" if you just need to know what to do next.
    Postgres integration tests skipped because `TEST_DATABASE_URL` is unset).
    The full Playwright suite passed 5/5 with the local API running; two
    pre-existing tests were made deterministic/scoped so this suite is
-   repeatable. Inspect the diff, commit/push, open a reviewable PR,
-   wait for all CI and previews, squash-merge, then verify `main` and
-   production. Record the PR number, merge SHA, and checks here and in
+   repeatable. The PR is open at commit `44817ba`. Wait for all CI and
+   previews, squash-merge, then verify `main` and production. Record the
+   merge SHA and checks here and in
    `context/progress-tracker.md` before starting F54. No migration is
    required for F44; its color endpoints are DB-free.
 2. Then **F54** (intent-driven recommendations in the product): wire

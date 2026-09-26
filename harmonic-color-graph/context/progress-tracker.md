@@ -7,8 +7,9 @@ detail it points to.
 
 ## v2 Plan — Active
 
-- 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` (PR
-  pending).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
+- 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` in
+  [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26)
+  (open; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
   `ColorProfilePanel` as custom SVG/text components. The Workbench fetches
   a DB-free color profile for the submitted chords after `/v2/analyze`;
   recommendation rows compare their appended candidate on demand through
