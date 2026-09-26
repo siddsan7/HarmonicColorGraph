@@ -40,11 +40,14 @@ detail it points to.
   `app/predict/ngram.py` importing `pipeline.stages.ngrams`; Vercel excludes
   `pipeline/**`. The diagnostic was removed. Both producer and API now
   import the constants from `app/ngram_contract.py`, and a subprocess
-  regression test blocks pipeline imports while loading `app.main`. Fresh
+  regression test blocks pipeline imports while loading `app.main`. At
+  `07e5f04`, direct API preview `/health` reports that SHA, and both color
+  profile and compare requests return 200 with the expected arc lengths
+  and six delta axes. Fresh
   `scripts/check.ps1 all` passed on rerun (the first run had one transient
   Hypothesis slow-input health check under local build load; the affected
-  test and full unit suite passed cleanly afterward). Fresh CI, preview
-  runtime, PR merge, and production verification are pending.
+  test and full unit suite passed cleanly afterward). Fresh CI, both
+  deployment statuses, PR merge, and production verification are pending.
   Vercel connector is unauthenticated; dashboard inspection requires login.
   No DB migration is required for F44.
 - 2026-09-25 F50–F53 (most of M5) are done and merged, picked up from four
