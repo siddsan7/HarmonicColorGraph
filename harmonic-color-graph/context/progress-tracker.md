@@ -7,6 +7,49 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` in
+  [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26)
+  (open; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
+  `ColorProfilePanel` as custom SVG/text components. The Workbench fetches
+  a DB-free color profile for the submitted chords after `/v2/analyze`;
+  recommendation rows compare their appended candidate on demand through
+  `/v2/color/compare` so a ten-item result does not trigger ten extra
+  requests. The wrapper uses F43's generated OpenAPI types and validates
+  the response shape. Values, confidence, derived-source markers, arc
+  points, deltas, and driver weights are explained in text. Vitest: 14
+  passed; `npm run lint`, `npm run typecheck`, `npm run build` passed;
+  Playwright color screenshot/flow and axe WCAG 2/2.1 A/AA serious/critical
+  scan passed. The first axe scan found the existing `--text-muted` at
+  4.19:1 on subtle panels; raised the token to `#8f98a8` and reran to
+  green. `test-results/color-workbench.png` is gitignored. Full
+  `scripts/check.ps1 all` passes (local `-m pg` skips 13 tests for lack
+  of `TEST_DATABASE_URL`; CI must cover Postgres/Compose). Full
+  Playwright suite passes 5/5 with local API: the old degraded-mode test
+  now mocks a 503 health response, and the old smoke attribution assertion
+  is scoped to the footer. The first PR #26 commit (`1b301cc`, docs) passed
+  all four CI jobs and both Vercel deployment statuses, but direct API
+  preview and production smoke returned 500 even for `/health`. Isolated
+  wheel reproduction found the cause: setuptools packaged no JSON files,
+  so `app.color.perceptual` raised `FileNotFoundError` for
+  `color_rules.json` at import. Added explicit package data for four runtime
+  assets plus a wheel-content regression test; a fixed-wheel install now
+  imports `app.main` and loads color rules and recommender weights. The
+  first redeploy remained 500, so `backend/vercel.json` now has an explicit
+  `includeFiles` glob for those four assets, with a config regression test.
+  A temporary diagnostic entrypoint revealed `ModuleNotFoundError` at
+  `app/predict/ngram.py` importing `pipeline.stages.ngrams`; Vercel excludes
+  `pipeline/**`. The diagnostic was removed. Both producer and API now
+  import the constants from `app/ngram_contract.py`, and a subprocess
+  regression test blocks pipeline imports while loading `app.main`. At
+  `07e5f04`, direct API preview `/health` reports that SHA, and both color
+  profile and compare requests return 200 with the expected arc lengths
+  and six delta axes. Fresh
+  `scripts/check.ps1 all` passed on rerun (the first run had one transient
+  Hypothesis slow-input health check under local build load; the affected
+  test and full unit suite passed cleanly afterward). Fresh CI, both
+  deployment statuses, PR merge, and production verification are pending.
+  Vercel connector is unauthenticated; dashboard inspection requires login.
+  No DB migration is required for F44.
 - 2026-09-25 F50–F53 (most of M5) are done and merged, picked up from four
   independent local worktree checkpoints (`../HarmonicColorGraph-f50`
   through `-f53`) at Siddharth's explicit request to finish, verify, and

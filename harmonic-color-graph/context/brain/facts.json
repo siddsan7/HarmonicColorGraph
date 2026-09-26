@@ -114,7 +114,8 @@
     "frontend": {
       "health_poll_ms": 60000,
       "keepalive_cron": "0 15 * * * UTC → /api/cron/keepalive (Bearer CRON_SECRET) → /api/hcg/health/db",
-      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts"
+      "color_profile": "POST /v2/color/profile after analysis uses submitted chord symbols and detected key; GET /v2/color/compare is on demand per recommendation and appends the candidate chord. Both are DB-free. The six displayed axes are nostalgia, dreaminess, melancholy, warmth, openness, cinematic; derived axes show (est.) and confidence opacity.",
+      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts, components/workbench-v2.tsx, components/color-profile.tsx, components/recommendations-panel.tsx, lib/api/client.ts"
     }
   },
 
@@ -143,6 +144,11 @@
 
   "change_together": [
     {
+      "what": "Runtime JSON assets in the deployed Python wheel",
+      "files": ["backend/app/color/perceptual_params.json", "backend/app/color/rules/color_rules.json", "backend/app/theory/keys_params.json", "backend/app/recommend/weights/plausibility_v1.json", "backend/pyproject.toml [tool.setuptools.package-data]", "backend/vercel.json includeFiles", "backend/tests/unit/test_distribution_assets.py"],
+      "rule": "Every app asset read by path must be included in the built wheel and Vercel Python function bundle. Importing from an editable source checkout does not verify deployment packaging."
+    },
+    {
       "what": "Edge type codes",
       "files": ["backend/pipeline/load.py EDGE_TYPE_CODES", "edges_compact type_code check constraint (new migration)", "hcg.edges_read view CASE (new migration)"]
     },
@@ -152,7 +158,7 @@
     },
     {
       "what": "N-gram artifact shape",
-      "files": ["backend/pipeline/stages/ngrams.py (writer + constants)", "backend/pipeline/load.py (ngram_histories + ngram_discount_stats)", "backend/app/predict/ngram.py (reader)", "backend/app/db/stores/graph.py NgramStore SQL"]
+      "files": ["backend/app/ngram_contract.py (shared constants)", "backend/pipeline/stages/ngrams.py (writer)", "backend/pipeline/load.py (ngram_histories + ngram_discount_stats)", "backend/app/predict/ngram.py (reader)", "backend/app/db/stores/graph.py NgramStore SQL"]
     },
     {
       "what": "Context key grammar",

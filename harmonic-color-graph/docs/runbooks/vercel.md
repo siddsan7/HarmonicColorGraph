@@ -57,6 +57,28 @@ in this environment — Claude Code's auto-mode classifier blocks it as a
 "Production Deploy" action even with a valid tool call. Ask before calling
 `create_deployment` with `target: "production"`.
 
+## Python wheel runtime assets (F44)
+
+The API preview and production `/health` returned 500 after F42 even though
+Vercel marked builds ready. A built wheel from `backend/pyproject.toml`
+contained no JSON package data; importing `app.main` from that wheel fails
+at `app.color.perceptual` loading `rules/color_rules.json`. Editable source
+installs and `python -c "import app.main"` from the repo hide this defect.
+The F44 PR adds `[tool.setuptools.package-data]` for the four app JSON assets
+and `test_distribution_assets.py`, which inspects a real wheel. Verify the
+`backend/vercel.json` `includeFiles` glob also names these assets, with a
+regression test, because the first deploy with wheel metadata alone still
+returned 500. Verify the
+API preview `/health` and `/v2/color/profile` directly after redeploy, not
+only Vercel's `READY` status.
+
+The API import graph also must not eagerly depend on `pipeline/**`, which
+this Vercel function excludes. A temporary preview diagnostic traced a
+startup `ModuleNotFoundError` to `app/predict/ngram.py` importing three
+constants from `pipeline.stages.ngrams`. Both now import
+`app/ngram_contract.py`; the diagnostic was removed. The regression test
+loads `app.main` with all `pipeline` imports blocked.
+
 ## Known tooling gap: log/event endpoints return 403
 
 `get_runtime_logs`, `list_deployment_events` (build logs), and
@@ -78,6 +100,11 @@ cost-confirmation gap from F05. If build-log or runtime-log inspection is
 needed later, check the deployment in the Vercel dashboard directly, or
 ask Siddharth to re-authenticate the Vercel MCP connection with broader
 scope.
+
+As of F44 (2026-09-25), the Vercel connector instead says the whole app
+connection requires reauthentication. The in-app browser dashboard also
+redirects to login. GitHub deployment statuses and direct preview URL
+requests remain available without that connector.
 
 F06 verified deployment health without these tools: direct `curl` smoke
 tests against 5 endpoints (`/health`, `/health/db`,

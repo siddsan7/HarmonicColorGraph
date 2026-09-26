@@ -8,11 +8,12 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M4 are merged to `main`; F50–F53 (most of M5) are merged too.**
+**M0–M4 except F44 are merged to `main`; F50–F53 (most of M5) are merged too.**
 F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43, F50, F51, F52,
-F53 are done (checkboxes in `feature-specs/v2-implementation-plan.md`
-match). **F44** (color UI) and **F54** (intent-driven recommendations in the
-product) are the two remaining M4/M5 features — see "Immediate next steps".
+F53 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
+match). **F44 color UI is implemented in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26), not yet merged;
+F54** (intent-driven recommendations in the product) follows after F44 is
+verified and merged — see "Immediate next steps".
 F50–F53 were picked up from four independent local worktree checkpoints
 (`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
 each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
@@ -389,16 +390,44 @@ skip to "Immediate next steps" if you just need to know what to do next.
 
 ## Immediate next steps
 
-1. Continue the plan at **F44** (color UI) — the real, merged
-   `{arc[], summary{}, drivers[]}` shape from F43's
-   `POST /v2/color/profile` (and the deltas shape from
-   `GET /v2/color/compare`) is on `main` in `backend/openapi.json` /
-   `lib/api/types.ts`, so F44 can build against the actual generated
-   types rather than guessing — build the `ColorBars`/`ColorArc`/
-   `ColorDelta` SVG components, wire them to these endpoints (a new
-   hand-written `lib/api/client.ts` wrapper will be needed, per the
-   `api-contract-regen` gotcha), and run the Playwright/axe checks the
-   plan's F44 section specifies.
+1. Finish **F44** in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26) on branch `codex/f44-color-ui`: the SVG bars, per-axis
+   arc, candidate delta, API wrappers, Workbench wiring, Vitest tests,
+   Playwright screenshot, and axe scan are implemented. The first axe
+   scan found the old muted token below 4.5:1; `--text-muted` is now
+   `#8f98a8`, and the rerun passed. `scripts/check.ps1 all` passed (backend
+   unit tests, ruff, frontend lint/types/Vitest/build, API import; local
+   Postgres integration tests skipped because `TEST_DATABASE_URL` is unset).
+   The full Playwright suite passed 5/5 with the local API running; two
+   pre-existing tests were made deterministic/scoped so this suite is
+   repeatable. Initial PR checks and both Vercel deployment statuses went
+   green, but direct API preview and production `/health` and color calls
+   returned 500 `FUNCTION_INVOCATION_FAILED`. A clean, source-only install
+   imported; a built wheel contained **zero JSON assets** and failed at
+   `app.color.perceptual.load_color_rules()` during import. The PR now
+   includes `[tool.setuptools.package-data]` for all four runtime JSON
+   assets and a wheel-content regression test; an isolated install of the
+   fixed wheel imports the app and loads color rules/scorer weights. The
+   first redeploy still returned 500, so `backend/vercel.json` now
+   explicitly includes all four JSON assets in the Python function bundle;
+   a config regression test covers that list. A temporary diagnostic
+   entrypoint then identified the actual remaining startup failure:
+   `ModuleNotFoundError` in `app/predict/ngram.py`, which imported constants
+   from `pipeline.stages.ngrams` even though Vercel excludes `pipeline/**`.
+   The diagnostic was removed; the pipeline and API now import a small
+   shared `app/ngram_contract.py`. A subprocess test blocks all pipeline
+   imports while loading `app.main`. The resulting API preview at commit
+   `07e5f04` passed direct `/health` (version matches the commit),
+   `POST /v2/color/profile` for `Cmaj7 Em7 Am7`, and
+   `GET /v2/color/compare` for the progression plus `Fmaj7`.
+   The Vercel connector requires reauthentication; the temporary preview
+   diagnostic supplied the startup exception without connector logs.
+   `scripts/check.ps1 all` passed after the fix (one transient Hypothesis
+   slow-input health check on the first run, followed by a clean full rerun).
+   Wait for fresh CI and both Vercel statuses, then squash-merge and verify `main`
+   and production. Record the
+   merge SHA and checks here and in
+   `context/progress-tracker.md` before starting F54. No migration is
+   required for F44; its color endpoints are DB-free.
 2. Then **F54** (intent-driven recommendations in the product): wire
    F52's `intent{…}`/`preset` into `/v2/recommend-next-chords` (a new
    route, not yet built — F52 only built the scoring library), add UI

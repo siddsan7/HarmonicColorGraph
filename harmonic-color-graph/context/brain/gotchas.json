@@ -150,6 +150,13 @@
       "check": "`git diff --exit-code backend/openapi.json lib/api/types.ts` is clean after regenerating."
     },
     {
+      "id": "deploy-wheel-assets",
+      "area": "api",
+      "trap": "A local editable install imports app.main, and Vercel marks the deployment ready, but the deployed wheel omits JSON read at import time and every API route returns FUNCTION_INVOCATION_FAILED.",
+      "rule": "When app code reads a package file by path, include it in backend/pyproject.toml [tool.setuptools.package-data] and verify a built wheel contains it. Smoke /health on the actual preview, not only the Vercel deployment status.",
+      "see": "backend/tests/unit/test_distribution_assets.py; docs/runbooks/vercel.md (Python wheel runtime assets)"
+    },
+    {
       "id": "api-rate-limit-reality",
       "area": "api",
       "trap": "Believing public rate limits protect production. The limiter keys on `request.client.host`, which behind the Next.js rewrite proxy may be a proxy address shared by all users. It fails open, and it is a no-op when REDIS_URL is unset.",
