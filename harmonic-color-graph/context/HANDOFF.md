@@ -16,9 +16,11 @@ All four CI jobs and both Vercel preview statuses passed. Production API
 `/health` reports `f23a401`; direct profile and compare calls return 200,
 and the production web proxy reaches the healthy API. Both production Vercel
 statuses passed. **F54** (intent-driven recommendations in the product) is
-in progress on `codex/f54-intent-recommendations`. Its seven-axis intent
-scorer, UI, offline scenario tests, and live Playwright scenario suite are
-implemented; PR and production verification are next.
+in [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27) on
+`codex/f54-intent-recommendations`. Its seven-axis intent scorer, UI, offline
+scenario tests, and live Playwright scenario suite are implemented. The paired
+Vercel previews passed all three scenarios; CI, merge, and production
+verification are next.
 F50–F53 were picked up from four independent local worktree checkpoints
 (`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
 each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
@@ -409,12 +411,13 @@ skip to "Immediate next steps" if you just need to know what to do next.
    `tests/e2e/intent-scenarios.spec.ts`; run with
    `HCG_LIVE_RECOMMEND=1` against the Vercel preview (it skips locally).
    Local Postgres tests skip without `TEST_DATABASE_URL`; CI must cover them.
-   `scripts/check.ps1 all` passes (local pg tests skip). Next: open the F54 PR, wait for four CI
-   jobs and both previews, run the live scenarios and smoke, merge, and
-   verify production. Manual listening by Siddharth remains a separate
-   subjective check. The branch checkpoint before this continuation was
-   pushed to `origin/codex/f54-intent-recommendations`; new changes are
-   uncommitted until the PR push.
+   `scripts/check.ps1 all` passes (local pg tests skip). PR #27 is open; both
+   Vercel preview statuses passed. The live Playwright suite passed 3/3 on
+   the paired web/API previews; direct API preview ranks were 2/1/1 on
+   `cv-2026-09-a`. The default web preview proxy points to production, so
+   the live suite set `HCG_API_PREVIEW_URL` to route to the API preview.
+   Next: wait for four CI jobs, merge, and verify production. Manual
+   listening by Siddharth remains a separate subjective check.
 2. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
    and `0010_embeddings.sql` live (MCP `apply_migration`, then
    `get_advisors`) whenever convenient — cheap and low-risk (empty

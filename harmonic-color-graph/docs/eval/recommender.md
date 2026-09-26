@@ -118,6 +118,9 @@ F54 corrected borrowed/mediant flags on extended chords after the F52
 held-out report was generated. The original F52 aggregate metrics above have
 not been rerun against that correction; the scenario ranks in this section
 use the current implementation.
-These ranks validate the offline snapshot only. `tests/e2e/intent-scenarios.spec.ts`
-checks the same scenarios through the deployed workbench and live corpus when
-`HCG_LIVE_RECOMMEND=1` is set; record that result separately after deployment.
+`tests/e2e/intent-scenarios.spec.ts` also passed all three scenarios through
+the Vercel web preview routed to the API preview on active corpus
+`cv-2026-09-a` (PR #27). Direct API preview ranks were `Fm` 2, `Abmaj7` 1,
+and `G7` 1. The web preview's default rewrite still points to the production
+API, so the browser test used `HCG_API_PREVIEW_URL` to route its requests to
+the API preview. Production needs a separate check after merge.

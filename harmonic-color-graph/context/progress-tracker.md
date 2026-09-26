@@ -7,6 +7,15 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-26 — **F54 [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27)
+  opened and preview verified.** Both Vercel preview statuses passed; the API
+  preview `/health` reports `e6bf221`. The web preview's default proxy points
+  to production API, so the live Playwright scenario suite routed workbench
+  requests to the API preview with `HCG_API_PREVIEW_URL`. All three tests
+  passed (3/3) on the active `cv-2026-09-a` corpus. Direct API preview ranks:
+  `Fm` 2/5, `Abmaj7` 1/5, `G7` 1/3; latency was 1.3–2.4 s. A committed test
+  option now reproduces this paired-preview route. CI jobs are pending;
+  merge and production smoke remain before closing M5.
 - 2026-09-26 — **F54 scoring and scenario implementation completed locally**
   on `codex/f54-intent-recommendations`. Fixed borrowed/chromatic-mediant
   feature detection for extended chords; added a seventh, derived dreamy
