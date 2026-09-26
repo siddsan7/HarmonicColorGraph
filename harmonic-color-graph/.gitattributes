@@ -1,3 +1,8 @@
 *.sh text eol=lf
 Dockerfile text eol=lf
 backend/Dockerfile text eol=lf
+
+# Preserve the source snapshot bytes used by the plan split checksum.
+context/history/** -text whitespace=-trailing-space,-blank-at-eof
+feature-specs/history/** -text whitespace=-trailing-space,-blank-at-eof
+feature-specs/v2/*.md -text whitespace=cr-at-eol,-blank-at-eof
