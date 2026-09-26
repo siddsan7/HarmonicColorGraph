@@ -12,6 +12,7 @@ const axes: Array<{ key: IntentAxis; left: string; right: string }> = [
   { key: "simple_complex", left: "Simple", right: "Complex" },
   { key: "resolved_open", left: "Resolved", right: "Open" },
   { key: "smooth", left: "Rougher", right: "Smoother" },
+  { key: "dreamy", left: "Grounded", right: "Dreamy" },
 ]
 
 const presetOptions = ["statistical", "plausible", "balanced", "adventurous"] as const

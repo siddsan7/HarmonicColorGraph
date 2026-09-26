@@ -138,7 +138,7 @@ export type RecommendResponse = {
   warnings: Array<{ code: string; message: string }>
 }
 
-export type IntentAxis = "darker_brighter" | "tense_relaxed" | "common_surprising" | "simple_complex" | "resolved_open" | "smooth"
+export type IntentAxis = "darker_brighter" | "tense_relaxed" | "common_surprising" | "simple_complex" | "resolved_open" | "smooth" | "dreamy"
 export type IntentPreset = "plausible" | "balanced" | "adventurous"
 
 export type SubstituteResponse = {

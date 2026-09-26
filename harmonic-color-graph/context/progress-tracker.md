@@ -7,6 +7,22 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-26 — **F54 scoring and scenario implementation completed locally**
+  on `codex/f54-intent-recommendations`. Fixed borrowed/chromatic-mediant
+  feature detection for extended chords; added a seventh, derived dreamy
+  direction and modal-mixture darkness adjustment without changing the
+  measurable brightness value shown to users. The candidate pool keeps
+  `bVImaj7` and `V7` within the 64 scored options. A frozen snapshot of the
+  production F32 statistical distribution drives three route-level HTTP
+  scenario tests: `Fm` rank 2/5, `Abmaj7` rank 4/5, `G7` rank 1/3. A browser
+  test verifies sliders, preset, intent payload, reset to corpus ranking,
+  color delta, and playback availability. Full Playwright suite: 5/5 passed
+  with local Next.js and API running. `scripts/check.ps1 all` passes: ruff,
+  lint, typecheck, pytest, Vitest, Next.js build, and API import. Local pg
+  tests skip without `TEST_DATABASE_URL`. Live scenario
+  Playwright tests were added behind `HCG_LIVE_RECOMMEND=1`; run them against
+  a deployed preview before closing the M5 gate. Manual listening by
+  Siddharth remains a separate subjective check.
 - 2026-09-26 — **F54 work starts on `codex/f54-intent-recommendations`**
   from F44 squash `f23a401`. F44 PR #26 is merged and production smoke
   passed. Local checkpoint `43a8f61` adds the existing F32 route's optional

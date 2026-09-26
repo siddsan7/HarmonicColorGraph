@@ -6,7 +6,7 @@ const cores = ["M:I", "M:V", "M:vi"]
 
 function candidate(chord: string, figure: string, score: number) {
   return {
-    token: `M:${figure}`, figure, chord, score,
+    token: `M:${figure}`, figure, chord, pitch_classes: [0, 4, 7], score,
     score_breakdown: { ngram: score, context: score / 2, backoff: score / 2 },
     labels: ["Context supported"],
     fact_ids: [`transition:M:vi->M:${figure}:global`],
@@ -16,7 +16,7 @@ function candidate(chord: string, figure: string, score: number) {
 }
 
 test("workbench shows context-aware recommendations and appends a selected chord", async ({ page }) => {
-  const requests: Array<{ genre?: string; section?: string }> = []
+  const requests: Array<{ genre?: string; section?: string; intent?: { dreamy?: number }; preset?: string }> = []
   await page.route("**/api/hcg/v2/analyze", async (route) => {
     const body = route.request().postDataJSON() as { chords: string[] }
     await route.fulfill({ json: {
@@ -27,14 +27,16 @@ test("workbench shows context-aware recommendations and appends a selected chord
     } })
   })
   await page.route("**/api/hcg/v2/recommend-next-chords", async (route) => {
-    const request = route.request().postDataJSON() as { genre?: string; section?: string }
+    const request = route.request().postDataJSON() as { genre?: string; section?: string; intent?: { dreamy?: number }; preset?: string }
     requests.push(request)
-    const ranked = request.genre === "rock"
+    const ranked = request.intent
+      ? [{ ...candidate("Fm", "iv", 0.58), color: { brightness: -0.46, smoothness: 0.96 }, labels: ["Intent match", "Theory option"], evidence: { count: 0, contexts: [], example_refs: [] } }]
+      : request.genre === "rock"
       ? [candidate("G", "V", 0.48), candidate("F", "IV", 0.35)]
       : [candidate("F", "IV", 0.52), candidate("G", "V", 0.30)]
     await route.fulfill({ json: {
       data: { input_tokens: cores, key: "C major", recommendations: ranked },
-      meta: { corpus_version: "cv-test", model_versions: { predictor: "interpolated-kn-v2" }, latency_ms: 8,
+      meta: { corpus_version: "cv-test", model_versions: { predictor: "interpolated-kn-v2" }, latency_ms: 8, ranking_mode: request.intent ? "intent" : "statistical",
         context_used: { genre: request.genre ?? null, section: request.section ?? null, backoff: ["genre:pop", "global"] } },
       warnings: [],
     } })
@@ -56,6 +58,19 @@ test("workbench shows context-aware recommendations and appends a selected chord
   await page.getByLabel("Genre").selectOption("rock")
   await expect(panel.getByRole("button", { name: "Append G" })).toBeVisible()
   expect(requests.at(-1)).toMatchObject({ genre: "rock", section: "chorus" })
+
+  await page.locator("#intent-dreamy").focus()
+  await page.keyboard.press("End")
+  await panel.getByRole("button", { name: "Update suggestions" }).click()
+  await expect(panel.getByRole("button", { name: "Append Fm" })).toBeVisible()
+  expect(requests.at(-1)).toMatchObject({ preset: "balanced", intent: { dreamy: 1 } })
+  await expect(panel.getByText(/Color change: brightness -0.46/)).toBeVisible()
+  await expect(panel.getByRole("button", { name: "Play progression ending with Fm" })).toBeEnabled()
+
+  await panel.getByRole("button", { name: "Corpus" }).click()
+  await panel.getByRole("button", { name: "Update suggestions" }).click()
+  await expect(panel.getByRole("button", { name: "Append G" })).toBeVisible()
+  expect(requests.at(-1)?.intent).toBeUndefined()
 
   await panel.getByRole("button", { name: "Append F" }).click()
   await expect(page.getByLabel("Chord progression")).toHaveValue("C - G - Am - F")

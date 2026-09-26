@@ -1,0 +1,362 @@
+{
+  "source": "Production statistical recommendations (F32) snapshot, 2026-09-26; tests never call the network.",
+  "scenarios": [
+    {
+      "name": "nostalgic_resolution",
+      "progression": [
+        "C",
+        "G",
+        "Am",
+        "F"
+      ],
+      "key": "C major",
+      "intent": {
+        "darker_brighter": -1,
+        "resolved_open": -1
+      },
+      "preset": "balanced",
+      "target": "M:iv",
+      "max_rank": 5,
+      "baseline": [
+        {
+          "token": "M:I",
+          "probability": 0.7920487506093326,
+          "support": 251296
+        },
+        {
+          "token": "M:V",
+          "probability": 0.13729434051105607,
+          "support": 43554
+        },
+        {
+          "token": "M:vi",
+          "probability": 0.02578537047114958,
+          "support": 8181
+        },
+        {
+          "token": "M:ii",
+          "probability": 0.018324567239171616,
+          "support": 5814
+        },
+        {
+          "token": "M:iii",
+          "probability": 0.006334272149421338,
+          "support": 2010
+        },
+        {
+          "token": "M:iv",
+          "probability": 0.004392170623401037,
+          "support": 1394
+        },
+        {
+          "token": "M:II",
+          "probability": 0.0016878822687469578,
+          "support": 536
+        },
+        {
+          "token": "M:Vsus4",
+          "probability": 0.0014137689553569161,
+          "support": 449
+        },
+        {
+          "token": "M:IV",
+          "probability": 0.0013538046169323783,
+          "support": 430
+        },
+        {
+          "token": "M:V7",
+          "probability": 0.001334851933066046,
+          "support": 424
+        },
+        {
+          "token": "M:bVII",
+          "probability": 0.00113313012281353,
+          "support": 360
+        },
+        {
+          "token": "M:III",
+          "probability": 0.0011237053584339368,
+          "support": 357
+        },
+        {
+          "token": "M:ii7",
+          "probability": 0.0011016593583386373,
+          "support": 350
+        },
+        {
+          "token": "M:V/V",
+          "probability": 0.000802224475508812,
+          "support": 255
+        },
+        {
+          "token": "M:bVI",
+          "probability": 0.0006414201865090186,
+          "support": 204
+        },
+        {
+          "token": "M:V/vi",
+          "probability": 0.0006257014410265719,
+          "support": 199
+        },
+        {
+          "token": "M:V7/vi",
+          "probability": 0.00045233222054754134,
+          "support": 144
+        },
+        {
+          "token": "M:V7/V",
+          "probability": 0.0003766795734579899,
+          "support": 120
+        },
+        {
+          "token": "M:IVmaj7",
+          "probability": 0.0003167820708267366,
+          "support": 101
+        },
+        {
+          "token": "M:IVsus2",
+          "probability": 0.00030732345954882307,
+          "support": 98
+        }
+      ]
+    },
+    {
+      "name": "dark_dreamy_relaxed",
+      "progression": [
+        "Cmaj7",
+        "Em7",
+        "Am7"
+      ],
+      "key": "C major",
+      "intent": {
+        "darker_brighter": -1,
+        "tense_relaxed": 1,
+        "smooth": 1,
+        "dreamy": 1
+      },
+      "preset": "adventurous",
+      "target": "M:bVImaj7",
+      "max_rank": 5,
+      "baseline": [
+        {
+          "token": "M:Imaj7",
+          "probability": 0.25994136227599646,
+          "support": 191
+        },
+        {
+          "token": "M:ii7",
+          "probability": 0.14746311027118564,
+          "support": 103
+        },
+        {
+          "token": "M:vii7",
+          "probability": 0.11021192600131231,
+          "support": 81
+        },
+        {
+          "token": "M:iii7",
+          "probability": 0.10306437433167506,
+          "support": 74
+        },
+        {
+          "token": "M:IVmaj7",
+          "probability": 0.08382075350846613,
+          "support": 61
+        },
+        {
+          "token": "M:I",
+          "probability": 0.026858984022936634,
+          "support": 19
+        },
+        {
+          "token": "M:IIsus2",
+          "probability": 0.02522251278615753,
+          "support": 19
+        },
+        {
+          "token": "M:V7",
+          "probability": 0.0240478765827443,
+          "support": 18
+        },
+        {
+          "token": "M:II",
+          "probability": 0.02141442145964296,
+          "support": 16
+        },
+        {
+          "token": "M:IV",
+          "probability": 0.01973311659578093,
+          "support": 13
+        },
+        {
+          "token": "M:iv",
+          "probability": 0.017117445140784227,
+          "support": 13
+        },
+        {
+          "token": "M:V7/V",
+          "probability": 0.016532300943920355,
+          "support": 12
+        },
+        {
+          "token": "M:v7",
+          "probability": 0.01613096127537235,
+          "support": 12
+        },
+        {
+          "token": "M:V",
+          "probability": 0.013476213419507267,
+          "support": 9
+        },
+        {
+          "token": "M:bvi7",
+          "probability": 0.013067594125040279,
+          "support": 10
+        },
+        {
+          "token": "M:Vmaj7",
+          "probability": 0.011711418159066185,
+          "support": 9
+        },
+        {
+          "token": "M:iv7",
+          "probability": 0.008987277578284724,
+          "support": 7
+        },
+        {
+          "token": "M:V7/iii",
+          "probability": 0.008931987238407138,
+          "support": 7
+        },
+        {
+          "token": "M:vi7",
+          "probability": 0.007814245888101593,
+          "support": 6
+        },
+        {
+          "token": "M:IIsus4",
+          "probability": 0.007725265039271426,
+          "support": 6
+        }
+      ]
+    },
+    {
+      "name": "jazz_resolution",
+      "progression": [
+        "C",
+        "Am",
+        "Dm"
+      ],
+      "key": "C major",
+      "intent": {
+        "simple_complex": 1,
+        "resolved_open": -1
+      },
+      "preset": "balanced",
+      "target": "M:V7",
+      "max_rank": 3,
+      "baseline": [
+        {
+          "token": "M:V",
+          "probability": 0.5886247789204276,
+          "support": 49469
+        },
+        {
+          "token": "M:IV",
+          "probability": 0.1125685414618236,
+          "support": 9459
+        },
+        {
+          "token": "M:V7",
+          "probability": 0.09776056115054124,
+          "support": 8217
+        },
+        {
+          "token": "M:I",
+          "probability": 0.08355308390648657,
+          "support": 7019
+        },
+        {
+          "token": "M:vi",
+          "probability": 0.02280085046121323,
+          "support": 1914
+        },
+        {
+          "token": "M:iii",
+          "probability": 0.01852305437741617,
+          "support": 1556
+        },
+        {
+          "token": "M:iv",
+          "probability": 0.013238071410167935,
+          "support": 1113
+        },
+        {
+          "token": "M:v",
+          "probability": 0.011655889057544845,
+          "support": 980
+        },
+        {
+          "token": "M:bVII",
+          "probability": 0.010907400325430201,
+          "support": 917
+        },
+        {
+          "token": "M:Vsus4",
+          "probability": 0.005813512762338734,
+          "support": 489
+        },
+        {
+          "token": "M:ii7",
+          "probability": 0.004243308978333588,
+          "support": 357
+        },
+        {
+          "token": "M:V7/vi",
+          "probability": 0.0035051823064650035,
+          "support": 295
+        },
+        {
+          "token": "M:III",
+          "probability": 0.002922479558499128,
+          "support": 246
+        },
+        {
+          "token": "M:V/vi",
+          "probability": 0.002672745007242659,
+          "support": 225
+        },
+        {
+          "token": "M:ii",
+          "probability": 0.002434885307522307,
+          "support": 205
+        },
+        {
+          "token": "M:V/V",
+          "probability": 0.0020409795171151364,
+          "support": 172
+        },
+        {
+          "token": "M:V7/V",
+          "probability": 0.0016246690144878888,
+          "support": 137
+        },
+        {
+          "token": "M:bVI",
+          "probability": 0.00116041279496898,
+          "support": 98
+        },
+        {
+          "token": "M:II",
+          "probability": 0.001089179761942278,
+          "support": 92
+        },
+        {
+          "token": "M:bIII",
+          "probability": 0.001065132192771107,
+          "support": 90
+        }
+      ]
+    }
+  ]
+}

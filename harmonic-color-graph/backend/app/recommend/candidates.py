@@ -103,7 +103,7 @@ def generate_candidates(
     for token, similarity in list(embedding_neighbors)[:50]:
         add(token, "embedding", similarity)
     ranked = sorted(merged.items(), key=lambda item: (-item[1]["ngram_probability"], item[0]))
-    priority = {f"{mode}:{figure}" for figure in ("ii", "iv", "vi", "bVII")}
+    priority = {f"{mode}:{figure}" for figure in ("ii", "iv", "vi", "bVII", "bVImaj7", "V7")}
     first = ranked[:16]
     priority_rows = [row for row in ranked[16:] if row[0] in priority]
     rest = [row for row in ranked[16:] if row[0] not in priority]

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import math
+import re
 from collections.abc import Mapping, Sequence
 from dataclasses import asdict, dataclass
 
@@ -37,6 +38,8 @@ FEATURE_NAMES = (
     "delta_smoothness",
 )
 COLOR_AXES = ("brightness", "tension", "surprise", "complexity", "resolution", "smoothness")
+_FIGURE_BASE = re.compile(r"^(?:b|#)?(?:VII|VI|IV|III|II|I|V|vii|vi|iv|iii|ii|i|v)")
+_BORROWED_BY_MODE = {"M": {"iv", "bVI", "bVII", "bIII", "i"}, "m": {"IV", "V", "I", "II"}}
 
 
 @dataclass(frozen=True)
@@ -103,11 +106,13 @@ def extract_features(
     delta = {axis: _clip(new_color[axis] - old_color[axis]) for axis in COLOR_AXES}
     overlap = len(set(previous.pitch_classes) & set(current.pitch_classes))
     root_fifths = abs(lof(previous.root) - lof(current.root))
-    figure = candidate.token.split(":", 1)[1]
+    mode, figure = candidate.token.split(":", 1)
+    match = _FIGURE_BASE.match(figure)
+    base_figure = match.group(0) if match else figure
     is_applied = "/" in figure
     is_sub = figure.startswith("subV")
-    is_borrowed = figure in {"iv", "bVI", "bVII", "bIII", "i", "IV", "I"}
-    is_mediant = figure in {"bIII", "bVI", "III", "VI"}
+    is_borrowed = not is_applied and base_figure in _BORROWED_BY_MODE[mode]
+    is_mediant = not is_applied and base_figure in {"bIII", "bVI", "III", "VI"}
     # Color smoothness uses the F40 voicing engine and is therefore the
     # authoritative motion measurement; no second voice-leading search.
     vl_cost = 1.0 - new_color["smoothness"]

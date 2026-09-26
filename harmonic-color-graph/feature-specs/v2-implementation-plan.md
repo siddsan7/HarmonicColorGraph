@@ -1671,18 +1671,21 @@ type was checked field-for-field against the actual Pydantic
 four CI jobs passed, squash commit `7f73d44`.
 
 ### F54 — Intent-driven recommendations in the product [M]
-- [ ] `/v2/recommend-next-chords` gains `intent{…}` and `preset`; defaults are unchanged for old clients.
-- [ ] UI: intent sliders (labelled both ends, numeric value), preset segmented control, compare cards (current vs. each candidate: color delta + play).
+- [x] `/v2/recommend-next-chords` gains `intent{…}` and `preset`; defaults are unchanged for old clients.
+- [x] UI: intent sliders (labelled both ends, numeric value), preset segmented control, compare cards (current vs. each candidate: color delta + play).
 - [ ] Phase 2 §14 demo scenarios as e2e tests: (1) `C G Am F` + more nostalgic/resolved → `Fm` (borrowed `iv`) in the top 5 next chords, and generation (F60, once built) can produce `… F Fm C`; (2) `Cmaj7 Em7 Am7` + darker/dreamy/low tension → a `bVImaj7`-type candidate in the top 5; (3) `C Am Dm` + jazzier/stronger resolution → `G7` family (`V7`) top 3.
 
 **Checks:** The three scenario tests pass; manual listening checklist (Siddharth) for the three scenarios noted in the tracker.
 **Commit:** `feat(ui): intent sliders, presets, and compare cards`
 
-**In progress (2026-09-26):** Local `codex/f54-intent-recommendations`
-checkpoint `43a8f61` has the optional API ranking path and UI controls
-wired. `scripts/check.ps1 all` passes locally; browser verification and
-scenarios 2–3 are pending. See `context/HANDOFF.md` for exact fixture
-rankings. No PR yet.
+**In progress (2026-09-26):** `codex/f54-intent-recommendations` now has the
+optional API ranking path, seven intent axes (including derived dreaminess),
+UI controls, and an HTTP scenario fixture captured from production's F32
+statistical response. The three offline scenario ranks are 2/4/1, within
+their 5/5/3 targets; the Playwright control flow and full local browser suite
+pass. The live Playwright scenario suite is ready for a deployed preview and
+must pass before the third checkbox and M5 exit gate are closed. Manual
+listening by Siddharth is recorded separately.
 
 **M5 exit gate:** Recommender report committed; the Phase 2 demo scenarios work in production. F50–F53 are done (recommender report committed); **F54 is in progress**, so the gate is not yet fully closed.
 

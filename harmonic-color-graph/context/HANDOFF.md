@@ -16,7 +16,9 @@ All four CI jobs and both Vercel preview statuses passed. Production API
 `/health` reports `f23a401`; direct profile and compare calls return 200,
 and the production web proxy reaches the healthy API. Both production Vercel
 statuses passed. **F54** (intent-driven recommendations in the product) is
-in progress on `codex/f54-intent-recommendations`; no PR has been opened yet.
+in progress on `codex/f54-intent-recommendations`. Its seven-axis intent
+scorer, UI, offline scenario tests, and live Playwright scenario suite are
+implemented; PR and production verification are next.
 F50–F53 were picked up from four independent local worktree checkpoints
 (`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
 each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
@@ -394,35 +396,25 @@ skip to "Immediate next steps" if you just need to know what to do next.
 ## Immediate next steps
 
 1. Finish **F54** on `codex/f54-intent-recommendations` (branched from F44
-   squash `f23a401`). Local work adds optional `intent`/`preset` to the
-   existing F32 route, keeping its old ranking when both are omitted. It
-   uses F52 candidate generation/features/scoring, adds honest evidence
-   labels for theory options, returns pitch classes for playback and a
-   ranking mode, and regenerates OpenAPI/types. The Workbench now offers
-   six labelled numeric sliders, preset buttons, an apply action, compare
-   rows with raw color deltas, and a play action. The code is committed at
-   `43a8f61`, and `scripts/check.ps1 all` passes (local Postgres tests skip
-   without `TEST_DATABASE_URL`; CI will cover them). **No PR yet; Playwright
-   and the three Phase 2 §14 scenario tests remain.** The local corpus fixture ranks
-   `Fm` fifth for `C G Am F` + nostalgic/resolved, `Abmaj7` twenty-third
-   for `Cmaj7 Em7 Am7` + darker/relaxed (scenario 2 fails), and `G7`
-   fourth for `C Am Dm` + complex/resolved (scenario 3 fails). The next
-   task is domain-informed scoring/intent tuning, with tests, without
-   altering the old no-intent default. Scenario 2 likely needs an explicit
-   dreamy perceptual direction or better treatment of seventh chromatic
-   mediants; F52 raw brightness calls `Abmaj7` brighter and currently
-   penalizes it for a darker request. Scenario 3 needs stronger dominant
-   seventh resolution ranking. Then open a PR, record verification and
-   deployment here and in `context/progress-tracker.md`, wait green CI,
-   smoke preview, and merge. Manual listening by Siddharth remains a
-   separately recorded check.
-   This branch is pushed to `origin/codex/f54-intent-recommendations`.
-   The current Codex usage window was
-   near its limit during this checkpoint; a request to redeem one available
-   reset credit was sent to Siddharth, but no reply/authorization was received.
-   Do not redeem without explicit confirmation. If resuming, start with
-   `git switch codex/f54-intent-recommendations`, inspect `43a8f61`, and
-   continue scenario tuning. The working tree should be clean.
+   squash `f23a401`). The optional `intent`/`preset` route keeps the old
+   ranking when both are omitted. The Workbench has seven labelled numeric
+   sliders, including a derived dreamy direction, preset buttons, candidate
+   color deltas, on-demand full color comparison, and playback. Extended
+   borrowed mediants are now detected correctly in F52 features; F54 uses
+   modal mixture for perceived darkness while leaving the raw brightness
+   value unchanged. A frozen snapshot of the production F32 statistical
+   distributions powers HTTP route-level scenario tests: `Fm` rank 2/5,
+   `Abmaj7` rank 4/5, `G7` rank 1/3. The full local Playwright suite passes
+   5/5 with both servers running. A live Playwright scenario suite exists at
+   `tests/e2e/intent-scenarios.spec.ts`; run with
+   `HCG_LIVE_RECOMMEND=1` against the Vercel preview (it skips locally).
+   Local Postgres tests skip without `TEST_DATABASE_URL`; CI must cover them.
+   `scripts/check.ps1 all` passes (local pg tests skip). Next: open the F54 PR, wait for four CI
+   jobs and both previews, run the live scenarios and smoke, merge, and
+   verify production. Manual listening by Siddharth remains a separate
+   subjective check. The branch checkpoint before this continuation was
+   pushed to `origin/codex/f54-intent-recommendations`; new changes are
+   uncommitted until the PR push.
 2. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
    and `0010_embeddings.sql` live (MCP `apply_migration`, then
    `get_advisors`) whenever convenient — cheap and low-risk (empty

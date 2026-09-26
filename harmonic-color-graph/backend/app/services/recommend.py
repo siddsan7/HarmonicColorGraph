@@ -223,7 +223,14 @@ class RecommendationService:
                 )
                 explanation = (
                     f"{item.chord} is ranked for the selected color direction and "
-                    f"{request.preset or 'balanced'} preset. {origin}"
+                    f"{request.preset or 'balanced'} preset. "
+                    + (
+                        "Dreaminess is estimated from modal mixture, major-seventh color, "
+                        "and smooth motion. "
+                        if request.intent and "dreamy" in request.intent
+                        else ""
+                    )
+                    + origin
                 )
             result.append(
                 item.model_copy(
