@@ -106,3 +106,42 @@ def test_http_envelope_validation_and_fallback():
         assert missing_key.status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+def test_intent_ranking_is_opt_in_and_keeps_corpus_evidence():
+    service = _service()
+    legacy = service.recommend(RecommendRequest(progression=["C", "G", "Am"], key="C major"))
+    assert legacy.meta.ranking_mode == "statistical"
+    assert legacy.data.recommendations[0].chord == "F"
+    ranked = service.recommend(
+        RecommendRequest(
+            progression=["C", "G", "Am"],
+            key="C major",
+            intent={"darker_brighter": -1.0},
+            preset="adventurous",
+            limit=5,
+        )
+    )
+    assert ranked.meta.ranking_mode == "intent"
+    assert len(ranked.data.recommendations) == 5
+    assert all(0 <= item.score <= 1 and item.color for item in ranked.data.recommendations)
+    assert any("Theory option" in item.labels for item in ranked.data.recommendations)
+    assert all(
+        ("Theory option" in item.labels) == (item.evidence.count == 0)
+        for item in ranked.data.recommendations
+    )
+    assert RecommendResponse.model_validate(ranked.model_dump()) == ranked
+
+
+def test_intent_contract_rejects_unknown_and_out_of_range_axes():
+    app.dependency_overrides[recommendation_service] = _service
+    try:
+        client = TestClient(app)
+        base = {"progression": ["C", "G", "Am"], "key": "C major"}
+        for intent in ({"invented": 0.5}, {"smooth": 1.1}):
+            response = client.post("/v2/recommend-next-chords", json={**base, "intent": intent})
+            assert response.status_code == 422
+        response = client.post("/v2/recommend-next-chords", json={**base, "preset": "wild"})
+        assert response.status_code == 422
+    finally:
+        app.dependency_overrides.clear()

@@ -106,6 +106,7 @@ export type Recommendation = {
   token: string
   figure: string
   chord: string
+  pitch_classes: number[]
   score: number
   score_breakdown: { ngram: number; context: number; backoff: number }
   labels: string[]
@@ -132,9 +133,13 @@ export type RecommendResponse = {
     model_versions: Record<string, string>
     latency_ms: number
     context_used: { genre: string | null; section: string | null; backoff: string[] }
+    ranking_mode: "statistical" | "intent"
   }
   warnings: Array<{ code: string; message: string }>
 }
+
+export type IntentAxis = "darker_brighter" | "tense_relaxed" | "common_surprising" | "simple_complex" | "resolved_open" | "smooth"
+export type IntentPreset = "plausible" | "balanced" | "adventurous"
 
 export type SubstituteResponse = {
   data: {
@@ -196,6 +201,8 @@ export async function recommendNextChords(request: {
   section?: string
   limit?: number
   include_explanations?: boolean
+  intent?: Partial<Record<IntentAxis, number>>
+  preset?: IntentPreset
   signal?: AbortSignal
 }): Promise<RecommendResponse> {
   const { signal, ...body } = request
@@ -209,11 +216,23 @@ export async function recommendNextChords(request: {
   const response = payload as Record<string, unknown>
   const data = response.data as Record<string, unknown> | null
   const meta = response.meta as Record<string, unknown> | null
+  // During a paired web/API rollout, the older statistical API may still
+  // answer briefly. Its omitted fields have safe display defaults.
+  if (meta && meta.ranking_mode === undefined) meta.ranking_mode = "statistical"
+  if (data && Array.isArray(data.recommendations)) {
+    for (const item of data.recommendations) {
+      if (item && typeof item === "object" && !("pitch_classes" in item)) {
+        (item as Record<string, unknown>).pitch_classes = []
+      }
+    }
+  }
   if (!data || !meta || !Array.isArray(data.recommendations) ||
       typeof data.key !== "string" || typeof meta.corpus_version !== "string" ||
+      !["statistical", "intent"].includes(String(meta.ranking_mode)) ||
       !data.recommendations.every((item) =>
         typeof item === "object" && item !== null &&
         typeof (item as Recommendation).chord === "string" &&
+        Array.isArray((item as Recommendation).pitch_classes) &&
         typeof (item as Recommendation).score === "number")) {
     throw new Error("Invalid recommendation response.")
   }

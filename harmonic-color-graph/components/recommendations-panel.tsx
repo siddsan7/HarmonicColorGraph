@@ -1,16 +1,19 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { ArrowUpRight, Plus } from "lucide-react"
+import { ArrowUpRight, Plus, Volume2 } from "lucide-react"
 
 import { ColorDelta } from "@/components/color-profile"
+import { IntentControls } from "@/components/intent-controls"
 import { Button } from "@/components/ui/button"
-import { compareColor, type ColorComparison, type RecommendResponse, type Recommendation } from "@/lib/api/client"
+import { compareColor, type ColorComparison, type IntentAxis, type IntentPreset, type RecommendResponse, type Recommendation } from "@/lib/api/client"
+import { playChordSequence } from "@/lib/music/preview"
 
-function RecommendationRow({ item, onAppend, progression, keySignature }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature: string }) {
+function RecommendationRow({ item, onAppend, progression, keySignature, pitchClasses, rankingMode }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature: string; pitchClasses: number[][]; rankingMode: "statistical" | "intent" }) {
   const [comparison, setComparison] = useState<ColorComparison | null>(null)
   const [compareBusy, setCompareBusy] = useState(false)
   const [compareError, setCompareError] = useState<string | null>(null)
+  const [audioError, setAudioError] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
   useEffect(() => () => controller.current?.abort(), [])
 
@@ -31,15 +34,19 @@ function RecommendationRow({ item, onAppend, progression, keySignature }: { item
         <span className="font-mono text-base font-semibold">{item.chord}</span>
         <span className="ml-2 font-mono text-sm text-[var(--text-secondary)]">{item.figure}</span>
       </div>
-      <Button type="button" size="sm" variant="outline" onClick={() => onAppend(item.chord)} aria-label={`Append ${item.chord}`}>
-        <Plus aria-hidden="true" /> Add
-      </Button>
+      <div className="flex gap-1">
+        <Button type="button" size="sm" variant="outline" disabled={!item.pitch_classes.length} onClick={() => { setAudioError(null); void playChordSequence([...pitchClasses, item.pitch_classes]).catch(() => setAudioError("Audio preview is unavailable in this browser.")) }} aria-label={`Play progression ending with ${item.chord}`}><Volume2 aria-hidden="true" /> Play</Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => onAppend(item.chord)} aria-label={`Append ${item.chord}`}><Plus aria-hidden="true" /> Add</Button>
+      </div>
     </div>
+    <p className="mt-2 font-mono text-xs text-[var(--text-secondary)]">{progression.join(" → ")} → <strong>{item.chord}</strong></p>
+    {rankingMode === "intent" && Object.keys(item.color).length > 0 && <p className="mt-2 text-xs text-[var(--text-secondary)]">Color change: {Object.entries(item.color).map(([axis, value]) => `${axis} ${value >= 0 ? "+" : ""}${value.toFixed(2)}`).join(" · ")}</p>}
+    {audioError && <p role="alert" className="mt-2 text-xs text-[var(--state-error)]">{audioError}</p>}
     <div className="mt-3 flex justify-between text-xs text-[var(--text-secondary)]">
       <span>{item.labels.join(" · ")} · {item.evidence.count} observed</span>
-      <span>{Math.round(item.score * 100)}%</span>
+      <span>{Math.round(item.score * 100)}% {rankingMode === "intent" ? "of shown fit" : "probability"}</span>
     </div>
-    <div className="mt-1 h-2 overflow-hidden rounded-sm bg-[var(--bg-surface)]" role="meter" aria-label={`${item.chord} probability`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.score * 100)}>
+    <div className="mt-1 h-2 overflow-hidden rounded-sm bg-[var(--bg-surface)]" role="meter" aria-label={`${item.chord} ${rankingMode === "intent" ? "share of shown fit" : "probability"}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.score * 100)}>
       <div className="h-full rounded-sm bg-[var(--accent-primary)]" style={{ width: `${Math.min(100, item.score * 100)}%` }} />
     </div>
     <div className="mt-3">
@@ -64,23 +71,26 @@ function RecommendationRow({ item, onAppend, progression, keySignature }: { item
   </li>
 }
 
-export function RecommendationsPanel({ result, busy, error, onAppend, progression, keySignature }: {
+export function RecommendationsPanel({ result, busy, error, onAppend, progression, keySignature, pitchClasses, onPreferencesChange }: {
   result: RecommendResponse | null
   busy: boolean
   error: string | null
   onAppend: (chord: string) => void
   progression: string[]
   keySignature: string
+  pitchClasses: number[][]
+  onPreferencesChange: (intent: Partial<Record<IntentAxis, number>>, preset: IntentPreset | null) => void
 }) {
   return <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5" aria-busy={busy}>
     <h2 className="text-base font-semibold">Possible next chords</h2>
-    <p className="mt-1 text-xs text-[var(--text-secondary)]">Statistical suggestions from the full progression.</p>
+    <p className="mt-1 text-xs text-[var(--text-secondary)]">Suggestions from the full progression, with optional color intent.</p>
+    <IntentControls onApply={onPreferencesChange} busy={busy} />
     {busy && <p className="mt-4 text-sm text-[var(--text-muted)]">Finding next chords…</p>}
     {error && <p role="alert" className="mt-4 text-sm text-[var(--state-error)]">{error}</p>}
     {!busy && !error && result && <>
       <p className="mt-3 text-xs text-[var(--text-muted)]">Used: {result.meta.context_used.backoff.join(" → ") || "unknown"}</p>
       {result.warnings.map((warning) => <p key={`${warning.code}-${warning.message}`} className="mt-2 text-xs text-[var(--state-warning)]">{warning.message}</p>)}
-      <ol className="mt-4 space-y-2">{result.data.recommendations.map((item) => <RecommendationRow key={item.token} item={item} onAppend={onAppend} progression={progression} keySignature={keySignature} />)}</ol>
+      <ol className="mt-4 space-y-2">{result.data.recommendations.map((item) => <RecommendationRow key={item.token} item={item} onAppend={onAppend} progression={progression} keySignature={keySignature} pitchClasses={pitchClasses} rankingMode={result.meta.ranking_mode} />)}</ol>
       {!result.data.recommendations.length && <p className="mt-3 text-sm text-[var(--text-muted)]">No corpus candidates are available for this context.</p>}
     </>}
   </section>

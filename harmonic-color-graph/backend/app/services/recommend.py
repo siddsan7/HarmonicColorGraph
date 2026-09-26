@@ -5,14 +5,18 @@ from __future__ import annotations
 import re
 import time
 from collections import OrderedDict
+from math import exp
 from threading import Lock
 from typing import Any, Protocol
 
 from sqlalchemy.orm import Session
 
 from app.db.stores.graph import FactStore, NgramStore, PatternStore
-from app.predict.ngram import KNPredictor, NgramHistory, PredictionResult
+from app.predict.ngram import KNPredictor, NgramHistory, PredictionResult, TokenPrediction
 from app.predict.realize import realize
+from app.recommend.candidates import generate_candidates
+from app.recommend.features import extract_features
+from app.recommend.scorer import score_candidates
 from app.schemas.recommend_v2 import (
     ContextUsed,
     Evidence,
@@ -116,8 +120,11 @@ class RecommendationService:
         genre = _context_value(request.genre)
         section = _context_value(request.section)
         prediction = self.predictor.predict(tokens, genre=genre, section=section, top_n=100)
-        recommendations = self._items(
-            prediction, tokens, key, request.limit, request.include_explanations
+        intent_mode = request.intent is not None or request.preset is not None
+        recommendations = (
+            self._intent_items(prediction, tokens, key, request)
+            if intent_mode
+            else self._items(prediction, tokens, key, request.limit, request.include_explanations)
         )
         if not recommendations:
             warnings.append(
@@ -160,9 +167,75 @@ class RecommendationService:
                 context_used=ContextUsed(
                     genre=genre, section=section, backoff=list(prediction.context_chain)
                 ),
+                ranking_mode="intent" if intent_mode else "statistical",
             ),
             warnings=warnings,
         )
+
+    def _intent_items(
+        self, prediction: PredictionResult, history: list[str], key: str, request: RecommendRequest
+    ) -> list[Recommendation]:
+        pool = generate_candidates(history, key, prediction)
+        features = [extract_features(candidate, history, key) for candidate in pool[:64]]
+        scored = score_candidates(
+            features,
+            intent=request.intent,
+            preset=request.preset or "balanced",
+            limit=request.limit,
+        )
+        if not scored:
+            return []
+        original = {item.token: item for item in prediction.predictions}
+        ranked_prediction = PredictionResult(
+            history=prediction.history,
+            context_chain=prediction.context_chain,
+            predictions=tuple(
+                original.get(item.token, TokenPrediction(item.token, 0.0, 0, ())) for item in scored
+            ),
+            backoff_path=prediction.backoff_path,
+        )
+        base = self._items(
+            ranked_prediction, history, key, request.limit, request.include_explanations
+        )
+        # Rank scores are arbitrary signed utility values. Normalize only
+        # the displayed top set, retaining the original n-gram probability
+        # in score_breakdown and evidence.
+        maximum = max(item.score for item in scored)
+        weights = {item.token: exp(item.score - maximum) for item in scored}
+        total = sum(weights.values())
+        by_token = {item.token: item for item in scored}
+        result = []
+        for item in base:
+            row = by_token[item.token]
+            supported = item.evidence.count > 0
+            labels = (["Intent match"] if request.intent else ["Preset ranked"]) + [
+                "Corpus supported" if supported else "Theory option"
+            ]
+            explanation = None
+            if request.include_explanations:
+                origin = (
+                    f"{item.evidence.count} observed continuations support this option."
+                    if supported
+                    else (
+                        "This option comes from the theory candidate set; "
+                        "no exact corpus continuation is claimed."
+                    )
+                )
+                explanation = (
+                    f"{item.chord} is ranked for the selected color direction and "
+                    f"{request.preset or 'balanced'} preset. {origin}"
+                )
+            result.append(
+                item.model_copy(
+                    update={
+                        "score": weights[item.token] / total,
+                        "labels": labels,
+                        "color": row.features.color_delta,
+                        "explanation": explanation,
+                    }
+                )
+            )
+        return result
 
     def _items(
         self, prediction: PredictionResult, history: list[str], key: str, limit: int, explain: bool
@@ -225,6 +298,7 @@ class RecommendationService:
                     token=item.token,
                     figure=item.token.partition(":")[2],
                     chord=realized.chord.raw_symbol,
+                    pitch_classes=list(realized.chord.pitch_classes),
                     score=item.probability,
                     score_breakdown=ScoreBreakdown(
                         ngram=item.probability,
