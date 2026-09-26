@@ -18,7 +18,7 @@ detail it points to.
   scenario tests remain. Fixture ranking:
   nostalgic `Fm` 5th (passes); dreamy `Abmaj7` 23rd (fails); jazz `G7` 4th
   (fails). Tune without special-casing input progressions, then test and
-  open the F54 PR. The branch has not been pushed; no F54 PR or merge exists yet.
+  open the F54 PR. The checkpoint branch is pushed; no F54 PR or merge exists yet.
 - 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` in
   [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26)
   (merged as squash `f23a401`; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and

@@ -416,13 +416,13 @@ skip to "Immediate next steps" if you just need to know what to do next.
    deployment here and in `context/progress-tracker.md`, wait green CI,
    smoke preview, and merge. Manual listening by Siddharth remains a
    separately recorded check.
-   This branch has not yet been pushed. The current Codex usage window was
+   This branch is pushed to `origin/codex/f54-intent-recommendations`.
+   The current Codex usage window was
    near its limit during this checkpoint; a request to redeem one available
    reset credit was sent to Siddharth, but no reply/authorization was received.
    Do not redeem without explicit confirmation. If resuming, start with
    `git switch codex/f54-intent-recommendations`, inspect `43a8f61`, and
-   continue scenario tuning. The working tree should be clean after the
-   context update commit below.
+   continue scenario tuning. The working tree should be clean.
 2. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
    and `0010_embeddings.sql` live (MCP `apply_migration`, then
    `get_advisors`) whenever convenient — cheap and low-risk (empty
