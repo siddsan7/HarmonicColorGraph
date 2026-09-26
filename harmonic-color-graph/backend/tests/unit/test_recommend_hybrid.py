@@ -43,6 +43,20 @@ def test_feature_vector_and_intent_are_complete_and_bounded():
     assert intent_score(features.color_delta, {"darker_brighter": -1}) > 0
 
 
+def test_extended_borrowed_mediant_has_dreamy_fit_without_changing_raw_brightness():
+    prior = ["M:Imaj7", "M:iii7", "M:vi7"]
+    borrowed = extract_features(Candidate("M:bVImaj7", frozenset({"theory"})), prior, "C major")
+    diatonic = extract_features(Candidate("M:IVmaj7", frozenset({"theory"})), prior, "C major")
+    assert borrowed.values["borrowed"] == 1
+    assert borrowed.values["chromatic_mediant"] == 1
+    assert diatonic.values["borrowed"] == 0
+    assert borrowed.color_delta["brightness"] > 0
+    request = {"darker_brighter": -1, "tense_relaxed": 1, "smooth": 1, "dreamy": 1}
+    assert intent_score(borrowed.color_delta, request, borrowed) > intent_score(
+        diatonic.color_delta, request, diatonic
+    )
+
+
 def test_softmax_plausibility_floor_and_transparent_breakdown():
     weights = load_weights()
     rows = []

@@ -388,7 +388,7 @@
           <tbody>
             <tr class="grp"><td colspan="6">v2 · public</td></tr>
             <tr><td><span class="m post">POST</span></td><td class="p">/v2/analyze</td><td>analysis_v2 → <code>theory.roman.analyze_v2</code></td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
-            <tr><td><span class="m post">POST</span></td><td class="p">/v2/recommend-next-chords</td><td>recommend_v2 → <code>RecommendationService</code> → <code>KNPredictor</code>, <code>PatternStore</code>, <code>FactStore</code></td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>count-of-counts (in-proc, per version)</td></tr>
+            <tr><td><span class="m post">POST</span></td><td class="p">/v2/recommend-next-chords</td><td>recommend_v2 → <code>RecommendationService</code> → <code>KNPredictor</code>, <code>PatternStore</code>, <code>FactStore</code>; optional intent uses F52 candidate generation and scorer</td><td><span class="pill db">db</span> <span class="pill redis">redis?</span></td><td>60</td><td>count-of-counts (in-proc, per version)</td></tr>
             <tr><td><span class="m post">POST</span></td><td class="p">/v2/color/profile</td><td>color_v2 → <code>services.color_profile.compute_color_profile</code> → F41 <code>compute_chord_color</code> + F42 <code>compute_perceptual_color</code> (prefix-based arc; weighted raw summary)</td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/color/compare</td><td>color_v2 → <code>services.color_profile.compute_color_compare</code> (two profiles, b − a deltas)</td><td><span class="pill pure">pure</span></td><td>none</td><td>—</td></tr>
             <tr><td><span class="m get">GET</span></td><td class="p">/v2/graph/node/{id}</td><td>graph_v2 → <code>GraphService.get_node</code></td><td><span class="pill db">db</span></td><td>none</td><td>—</td></tr>
@@ -586,9 +586,10 @@
           <tbody>
             <tr><td class="p">app/layout.tsx</td><td>Root layout, Geist fonts, metadata, <code>.dark</code> tokens from <code>app/globals.css</code></td></tr>
             <tr><td class="p">app/page.tsx</td><td>Server component that renders <code>&lt;WorkbenchV2 /&gt;</code></td></tr>
-            <tr><td class="p">components/workbench-v2.tsx</td><td>Client state: input, key, genre/section. Orchestrates analyze → color profile + recommend; aborts stale requests</td></tr>
+            <tr><td class="p">components/workbench-v2.tsx</td><td>Client state: input, key, genre/section, intent and preset. Orchestrates analyze → color profile + recommend; aborts stale requests</td></tr>
             <tr><td class="p">components/color-profile.tsx</td><td>Custom SVG color bars and per-axis arcs; textual values, confidence, summary drivers, and candidate deltas</td></tr>
-            <tr><td class="p">components/recommendations-panel.tsx</td><td>Renders <code>RecommendResponse</code>: scores, evidence, warnings, "append chord", on-demand color comparison</td></tr>
+            <tr><td class="p">components/intent-controls.tsx</td><td>Seven labelled intent sliders, including dreamy, and corpus/plausible/balanced/adventurous preset controls</td></tr>
+            <tr><td class="p">components/recommendations-panel.tsx</td><td>Renders <code>RecommendResponse</code>: scores, evidence, warnings, color deltas, candidate playback, append chord, on-demand color comparison</td></tr>
             <tr><td class="p">components/evidence-panel.tsx</td><td>Fetches <code>/v2/examples</code> per transition and shows Spotify-linked songs</td></tr>
             <tr><td class="p">components/system-status.tsx</td><td>API/DB/corpus badges plus the degraded-mode banner</td></tr>
             <tr><td class="p">lib/hooks/use-system-health.ts</td><td>Polls <code>/health</code> then <code>/health/db</code> every 60 s; distinguishes <code>unavailable</code> (503) from <code>down</code></td></tr>
@@ -622,7 +623,7 @@
         <table>
           <thead><tr><th>Seam</th><th>Where</th><th>Next owner</th></tr></thead>
           <tbody>
-            <tr><td><code>Recommendation.color</code> defaults to <code>{}</code> — F42/F43's axes are not yet wired into recommend responses</td><td class="p">app/schemas/recommend_v2.py</td><td>a later recommend-engine integration (not scheduled to a feature number yet)</td></tr>
+            <tr><td><code>Recommendation.color</code> contains measurable deltas for intent-ranked results and defaults to <code>{}</code> for statistical results; on-demand comparison supplies the full progression profile</td><td class="p">app/services/recommend.py, components/recommendations-panel.tsx</td><td>F54</td></tr>
             <tr><td><code>hcg.color_norms</code> (0008) and <code>hcg.color_profiles</code> (0009) tables exist but have no live rows yet (neither migration applied; no full reload has run <code>color</code> against the real corpus)</td><td class="p">supabase/migrations/0008_color_norms.sql, 0009_color_profiles.sql</td><td>apply live + bundle a full reload once a graph-evidence consumer needs it</td></tr>
             <tr><td><code>embedding_rebuild</code> job returns 409 (embeddings themselves are done in F50 — this is a separate admin-triggered rebuild job, still unimplemented)</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>not scheduled to a feature number yet</td></tr>
             <tr><td><code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F63 / S1</td></tr>
@@ -666,12 +667,12 @@
             <tr><td class="p">backend/app/api/substitutes_v2.py</td><td>F53 POST /v2/find-substitutes → SubstitutionService; error envelope</td></tr>
             <tr><td class="p">backend/app/api/phase1.py</td><td>Frozen v1 routes, including the in-code DEMO_TRANSITIONS fallback</td></tr>
             <tr class="grp"><td colspan="2">backend/app · domain</td></tr>
-            <tr><td class="p">backend/app/services/recommend.py</td><td>RecommendationService, SessionNgramReader (+ version-keyed count cache), input parsing, explanations</td></tr>
+            <tr><td class="p">backend/app/services/recommend.py</td><td>RecommendationService, SessionNgramReader (+ version-keyed count cache), input parsing, optional intent ranking, explanations</td></tr>
             <tr><td class="p">backend/app/services/color_profile.py</td><td>F43 build_arc (prefix-based per-position color), build_summary_and_drivers (final-cadence/borrowed-chord weighted raw summary), compute_color_profile/compare</td></tr>
             <tr><td class="p">backend/app/services/similarity.py</td><td>F51 SimilarityService: functions/chords/progressions ranking; structural-vs-surface mode, rotation flagging, color filter</td></tr>
             <tr><td class="p">backend/app/recommend/candidates.py</td><td>F52 generate_candidates: F30 top-30 + graph neighbors + theory expansions (every token realize()-verified) + injected embedding neighbors, tagged by generator</td></tr>
             <tr><td class="p">backend/app/recommend/features.py</td><td>F52 extract_features: 21 deterministic ranking features per candidate, reusing F41 compute_chord_color for vl_cost/color deltas</td></tr>
-            <tr><td class="p">backend/app/recommend/scorer.py</td><td>F52 score_candidates: offline-trained plausibility softmax (bottom-5th-percentile floor), bounded 6-axis intent term, diversity, plausible/balanced/adventurous presets, transparent score_breakdown</td></tr>
+            <tr><td class="p">backend/app/recommend/scorer.py</td><td>F52/F54 score_candidates: offline-trained plausibility softmax (bottom-5th-percentile floor), bounded 7-axis intent term including derived dreaminess, diversity, plausible/balanced/adventurous presets, transparent score_breakdown</td></tr>
             <tr><td class="p">backend/app/recommend/substitutes.py</td><td>F53 SubstitutionService: bidirectional-KN substitution scoring + functional-equivalence bonus + voice-leading smoothness, smooth-constraint</td></tr>
             <tr><td class="p">backend/app/graph/service.py</td><td>GraphService: neighborhood BFS, explain_edge, k-shortest-ish paths, adjacency cache</td></tr>
             <tr><td class="p">backend/app/predict/ngram.py</td><td>KNPredictor: interpolated Kneser-Ney + context mixing; InMemoryNgramStore for tests/eval</td></tr>
@@ -706,7 +707,7 @@
             <tr><td class="p">backend/app/db/repositories.py</td><td>v1 HarmonicRepository (SQLAlchemy ORM over Phase 1 tables)</td></tr>
             <tr><td class="p">backend/app/db/base.py, models/harmony.py</td><td>v1 DeclarativeBase + ORM models</td></tr>
             <tr><td class="p">backend/app/schemas/analysis_v2.py</td><td>AnalyzeV2Request, AnalysisV2, RomanToken, RelationshipFact, KeyProbability</td></tr>
-            <tr><td class="p">backend/app/schemas/recommend_v2.py</td><td>RecommendRequest/Response, ScoreBreakdown, Evidence</td></tr>
+            <tr><td class="p">backend/app/schemas/recommend_v2.py</td><td>RecommendRequest/Response, ScoreBreakdown, Evidence; optional intent/preset and ranking mode</td></tr>
             <tr><td class="p">backend/app/schemas/color_v2.py</td><td>F43 ColorProfileRequest/Response, ArcPoint, ColorSummary, Driver, PerceptualAxisOut, ColorCompareResponse</td></tr>
             <tr><td class="p">backend/app/schemas/similar_v2.py</td><td>F51 SimilarFunctionRequest/SimilarChordRequest/SimilarProgressionRequest, ColorFilter, SimilarItem, SimilarResponse</td></tr>
             <tr><td class="p">backend/app/schemas/substitutes_v2.py</td><td>F53 SubstituteRequest/Response, SubstituteConstraints, Substitute, SubstituteScore</td></tr>
@@ -732,7 +733,8 @@
             <tr><td class="p">backend/pipeline/stages/calibrate_keys.py</td><td>F11 grid search on the gold dev half → keys_params.json + docs/eval/keys.md</td></tr>
             <tr><td class="p">backend/pipeline/stages/{corpus_report,vocab_report,evaluate_keys_corpus,evaluate_labels_corpus}.py</td><td>Quality and coverage reports; the evaluate_* modules double as job handlers</td></tr>
             <tr class="grp"><td colspan="2">backend · tests &amp; contracts</td></tr>
-            <tr><td class="p">backend/tests/unit/</td><td>v2 unit tests: theory, predictor, pipeline stages, loader, cache, APIs, jobs policy</td></tr>
+            <tr><td class="p">backend/tests/unit/</td><td>v2 unit tests: theory, predictor, pipeline stages, loader, cache, APIs, jobs policy, F54 HTTP scenarios</td></tr>
+            <tr><td class="p">backend/tests/fixtures/f54_recommend_scenarios.json</td><td>Frozen production statistical distributions for the three F54 intent scenarios</td></tr>
             <tr><td class="p">backend/tests/integration/</td><td>@pg tests (CI only): session, graph store, predictor, jobs, /health/db</td></tr>
             <tr><td class="p">backend/tests/test_*.py</td><td>v1 test suite (Phase 1 behavior)</td></tr>
             <tr><td class="p">backend/tests/golden/</td><td>v1 golden outputs + capture script (regression lock)</td></tr>
@@ -745,7 +747,7 @@
             <tr><td class="p">app/layout.tsx, app/page.tsx, app/globals.css</td><td>Shell, page, design tokens</td></tr>
             <tr><td class="p">app/api/cron/keepalive/route.ts</td><td>Cron-secret-guarded Supabase keepalive (+ test)</td></tr>
             <tr><td class="p">components/workbench-v2.tsx</td><td>The live UI</td></tr>
-            <tr><td class="p">components/{color-profile,recommendations-panel,evidence-panel,system-status}.tsx</td><td>Workbench panels</td></tr>
+            <tr><td class="p">components/{color-profile,intent-controls,recommendations-panel,evidence-panel,system-status}.tsx</td><td>Workbench panels and intent controls</td></tr>
             <tr><td class="p">components/phase-one-demo.tsx</td><td>Dead v1 UI (not imported)</td></tr>
             <tr><td class="p">components/ui/</td><td>shadcn primitives</td></tr>
             <tr><td class="p">lib/api/client.ts, lib/api/types.ts</td><td>Network client / generated types</td></tr>

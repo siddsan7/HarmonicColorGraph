@@ -7,9 +7,46 @@ detail it points to.
 
 ## v2 Plan — Active
 
+- 2026-09-26 — **F54 [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27)
+  opened and preview verified.** Both Vercel preview statuses passed; the API
+  preview `/health` reports `e6bf221`. The web preview's default proxy points
+  to production API, so the live Playwright scenario suite routed workbench
+  requests to the API preview with `HCG_API_PREVIEW_URL`. All three tests
+  passed (3/3) on the active `cv-2026-09-a` corpus. Direct API preview ranks:
+  `Fm` 2/5, `Abmaj7` 1/5, `G7` 1/3; latency was 1.3–2.4 s. A committed test
+  option now reproduces this paired-preview route. CI jobs are pending;
+  merge and production smoke remain before closing M5.
+- 2026-09-26 — **F54 scoring and scenario implementation completed locally**
+  on `codex/f54-intent-recommendations`. Fixed borrowed/chromatic-mediant
+  feature detection for extended chords; added a seventh, derived dreamy
+  direction and modal-mixture darkness adjustment without changing the
+  measurable brightness value shown to users. The candidate pool keeps
+  `bVImaj7` and `V7` within the 64 scored options. A frozen snapshot of the
+  production F32 statistical distribution drives three route-level HTTP
+  scenario tests: `Fm` rank 2/5, `Abmaj7` rank 4/5, `G7` rank 1/3. A browser
+  test verifies sliders, preset, intent payload, reset to corpus ranking,
+  color delta, and playback availability. Full Playwright suite: 5/5 passed
+  with local Next.js and API running. `scripts/check.ps1 all` passes: ruff,
+  lint, typecheck, pytest, Vitest, Next.js build, and API import. Local pg
+  tests skip without `TEST_DATABASE_URL`. Live scenario
+  Playwright tests were added behind `HCG_LIVE_RECOMMEND=1`; run them against
+  a deployed preview before closing the M5 gate. Manual listening by
+  Siddharth remains a separate subjective check.
+- 2026-09-26 — **F54 work starts on `codex/f54-intent-recommendations`**
+  from F44 squash `f23a401`. F44 PR #26 is merged and production smoke
+  passed. Local checkpoint `43a8f61` adds the existing F32 route's optional
+  F52 intent/preset scoring contract, explicit ranking mode and candidate
+  pitch classes, OpenAPI/types regeneration, intent sliders/presets, raw
+  color compare rows, and candidate playback. Old requests still use the
+  statistical ranking. `scripts/check.ps1 all` passes locally (Postgres
+  integration skipped without `TEST_DATABASE_URL`). Browser flow and
+  scenario tests remain. Fixture ranking:
+  nostalgic `Fm` 5th (passes); dreamy `Abmaj7` 23rd (fails); jazz `G7` 4th
+  (fails). Tune without special-casing input progressions, then test and
+  open the F54 PR. The checkpoint branch is pushed; no F54 PR or merge exists yet.
 - 2026-09-25 — **F44 color UI implemented on `codex/f44-color-ui` in
   [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26)
-  (open; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
+  (merged as squash `f23a401`; initial commit `44817ba`).** Added `ColorBars`, `ColorArc`, `ColorDelta`, and
   `ColorProfilePanel` as custom SVG/text components. The Workbench fetches
   a DB-free color profile for the submitted chords after `/v2/analyze`;
   recommendation rows compare their appended candidate on demand through
@@ -47,7 +84,11 @@ detail it points to.
   `scripts/check.ps1 all` passed on rerun (the first run had one transient
   Hypothesis slow-input health check under local build load; the affected
   test and full unit suite passed cleanly afterward). Fresh CI, both
-  deployment statuses, PR merge, and production verification are pending.
+  deployment statuses passed on the final PR head `1f01ec2`. Production
+  API `/health` reports merge SHA `f23a401`; direct color profile and
+  compare calls return 200 with three arc points and six axes. The
+  production web `/api/hcg/health` proxy reaches the same healthy API;
+  both production Vercel statuses passed. F54 is next.
   Vercel connector is unauthenticated; dashboard inspection requires login.
   No DB migration is required for F44.
 - 2026-09-25 F50–F53 (most of M5) are done and merged, picked up from four

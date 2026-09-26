@@ -18,6 +18,8 @@ import {
   findSubstitutes,
   type AnalysisV2,
   type ColorProfile,
+  type IntentAxis,
+  type IntentPreset,
   type RecommendResponse,
   type SubstituteResponse,
 } from "@/lib/api/client"
@@ -59,6 +61,8 @@ export function WorkbenchV2() {
   const substitutionController = useRef<AbortController | null>(null)
   const [genre, setGenre] = useState("")
   const [section, setSection] = useState("")
+  const [intent, setIntent] = useState<Partial<Record<IntentAxis, number>>>({})
+  const [preset, setPreset] = useState<IntentPreset | null>(null)
   const recommendationController = useRef<AbortController | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -68,7 +72,7 @@ export function WorkbenchV2() {
     (token, index) => `${token.core}->${analysis.tokens[index + 1].core}`
   ))] : []
 
-  function loadRecommendations(result: AnalysisV2, requestedGenre: string, requestedSection: string) {
+  function loadRecommendations(result: AnalysisV2, requestedGenre: string, requestedSection: string, requestedIntent = intent, requestedPreset = preset) {
     recommendationController.current?.abort()
     const controller = new AbortController()
     recommendationController.current = controller
@@ -80,6 +84,8 @@ export function WorkbenchV2() {
       key: result.song_key,
       ...(requestedGenre ? { genre: requestedGenre } : {}),
       ...(requestedSection ? { section: requestedSection } : {}),
+      ...(Object.keys(requestedIntent).length ? { intent: requestedIntent } : {}),
+      ...(requestedPreset ? { preset: requestedPreset } : {}),
       limit: 10,
       signal: controller.signal,
     }).then(setNext).catch((caught) => {
@@ -326,7 +332,7 @@ export function WorkbenchV2() {
                 {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.modulations?.length} local modulation{analysis.modulations?.length === 1 ? "" : "s"} detected.</p>}
               </section>
 
-              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={rawTokens} keySignature={analysis.song_key} />
+              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={rawTokens} keySignature={analysis.song_key} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} />
 
               {(analysis.warnings?.length ?? 0) > 0 && <section className="rounded-lg border border-[var(--state-warning)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Parse warnings</h2>

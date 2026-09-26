@@ -76,7 +76,7 @@
       "owner": "backend/app/api/*.py"
     },
     "request_bounds": {
-      "recommend": "1–128 chords, each ≤80 chars; limit 1–20 (default 10); genre/section ≤80 chars; the predictor ranks top 100 before the mode filter and realization",
+      "recommend": "1–128 chords, each ≤80 chars; limit 1–20 (default 10); genre/section ≤80 chars; the predictor ranks top 100 before the mode filter and realization. Optional intent accepts seven axes in [-1,1]: darker_brighter, tense_relaxed, common_surprising, simple_complex, resolved_open, smooth, dreamy; optional preset is plausible, balanced, or adventurous. Intent ranking scores at most 64 generated candidates.",
       "graph_neighborhood": "limit 1–200, hops 1–2, min_prob 0–1",
       "graph_path": "k 1–5, max_len 1–6, ≤50,000 search expansions; cost = -ln(p) (+0.5 for non-TRANSITIONS_TO edges)",
       "examples": "limit 1–5; exactly one of pattern_id or transition (\"<from>-><to>\")",
@@ -115,7 +115,8 @@
       "health_poll_ms": 60000,
       "keepalive_cron": "0 15 * * * UTC → /api/cron/keepalive (Bearer CRON_SECRET) → /api/hcg/health/db",
       "color_profile": "POST /v2/color/profile after analysis uses submitted chord symbols and detected key; GET /v2/color/compare is on demand per recommendation and appends the candidate chord. Both are DB-free. The six displayed axes are nostalgia, dreaminess, melancholy, warmth, openness, cinematic; derived axes show (est.) and confidence opacity.",
-      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts, components/workbench-v2.tsx, components/color-profile.tsx, components/recommendations-panel.tsx, lib/api/client.ts"
+      "intent_controls": "Seven numeric sliders, corpus/plausible/balanced/adventurous preset control, and explicit Update suggestions action; candidate rows expose raw color deltas and pitch-class playback.",
+      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts, components/workbench-v2.tsx, components/color-profile.tsx, components/intent-controls.tsx, components/recommendations-panel.tsx, lib/api/client.ts"
     }
   },
 

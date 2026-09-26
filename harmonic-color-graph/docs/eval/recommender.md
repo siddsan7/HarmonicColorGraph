@@ -95,3 +95,32 @@ All four clear the plan's `>= 80%` bar — **PASSED**.
   report with real margin. Re-running against the full `cv-2026-09-a` test
   split once it/an equivalent is available locally would only tighten the
   confidence interval, not change the qualitative conclusion.
+
+## F54 product scenario check (2026-09-26)
+
+`backend/tests/fixtures/f54_recommend_scenarios.json` freezes the first 20
+statistical recommendations returned by the production F32 route for each
+scenario. The F54 HTTP tests run those distributions through candidate
+expansion, feature extraction, intent scoring, realization, and response
+serialization without a network call. The baseline rows are corpus
+probabilities; theory candidates added by F52 carry no invented corpus count.
+
+| Progression and intent | Target | Frozen-distribution rank | Required rank |
+|---|---|---:|---:|
+| `C G Am F`, darker + resolved, balanced | `Fm` / `iv` | 2 | ≤5 |
+| `Cmaj7 Em7 Am7`, darker + relaxed + smooth + dreamy, adventurous | `Abmaj7` / `bVImaj7` | 4 | ≤5 |
+| `C Am Dm`, complex + resolved, balanced | `G7` / `V7` | 1 | ≤3 |
+
+The dreamy direction is a bounded, theory-derived fit for smooth borrowed
+major-seventh mediants. Modal mixture also contributes to perceived darkness;
+the measurable brightness delta itself remains unchanged in the API response.
+F54 corrected borrowed/mediant flags on extended chords after the F52
+held-out report was generated. The original F52 aggregate metrics above have
+not been rerun against that correction; the scenario ranks in this section
+use the current implementation.
+`tests/e2e/intent-scenarios.spec.ts` also passed all three scenarios through
+the Vercel web preview routed to the API preview on active corpus
+`cv-2026-09-a` (PR #27). Direct API preview ranks were `Fm` 2, `Abmaj7` 1,
+and `G7` 1. The web preview's default rewrite still points to the production
+API, so the browser test used `HCG_API_PREVIEW_URL` to route its requests to
+the API preview. Production needs a separate check after merge.

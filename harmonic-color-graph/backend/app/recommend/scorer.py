@@ -25,6 +25,7 @@ INTENT_AXES = (
     "simple_complex",
     "resolved_open",
     "smooth",
+    "dreamy",
 )
 
 
@@ -45,8 +46,19 @@ def load_weights(path: Path = WEIGHTS_FILE) -> dict[str, float]:
     return {name: float(weights[name]) for name in FEATURE_NAMES}
 
 
-def intent_score(color_delta: dict[str, float], intent: dict[str, float] | None) -> float:
-    """Orient every slider so positive values mean its right-hand label."""
+def intent_score(
+    color_delta: dict[str, float],
+    intent: dict[str, float] | None,
+    candidate: CandidateFeatures | None = None,
+) -> float:
+    """Orient sliders toward their right-hand labels.
+
+    The optional dreamy direction uses a transparent theory/perceptual
+    heuristic: a smooth borrowed major-seventh mediant tends to sound more
+    dreamlike than an equally smooth diatonic triad. Modal mixture also
+    informs perceived darkness; raw line-of-fifths brightness remains intact
+    in the returned color deltas.
+    """
     if not intent:
         return 0.0
     unknown = set(intent) - set(INTENT_AXES)
@@ -54,13 +66,26 @@ def intent_score(color_delta: dict[str, float], intent: dict[str, float] | None)
         not -1 <= value <= 1 or not math.isfinite(value) for value in intent.values()
     ):
         raise ValueError("Intent axes must be known and lie in [-1, 1]")
+    borrowed = candidate.values["borrowed"] if candidate else 0.0
+    mediant = candidate.values["chromatic_mediant"] if candidate else 0.0
+    major_seventh = (
+        float(candidate.token.partition(":")[2].split("/", 1)[0].endswith("maj7"))
+        if candidate
+        else 0.0
+    )
+    dreamy = (
+        0.75 * borrowed * mediant * major_seventh
+        + 0.15 * max(0.0, color_delta["smoothness"])
+        + 0.10 * max(0.0, -color_delta["tension"])
+    )
     oriented = {
-        "darker_brighter": color_delta["brightness"],
+        "darker_brighter": color_delta["brightness"] - 0.4 * borrowed * (1.0 + mediant),
         "tense_relaxed": -color_delta["tension"],
         "common_surprising": color_delta["surprise"],
         "simple_complex": color_delta["complexity"],
         "resolved_open": -color_delta["resolution"],
         "smooth": color_delta["smoothness"],
+        "dreamy": dreamy,
     }
     magnitude = sum(abs(value) for value in intent.values())
     if magnitude == 0:
@@ -102,7 +127,7 @@ def score_candidates(
         if probability < floor:
             continue
         parts = {name: coefficients[name] * item.values[name] for name in FEATURE_NAMES}
-        intent_value = intent_score(item.color_delta, intent)
+        intent_value = intent_score(item.color_delta, intent, item)
         diversity = (1.0 - item.values["common_tones"]) * 0.5 + item.values["tonal_distance"] * 0.5
         plaus_term = w_p * (logit - average) / spread
         # Color deltas are bounded by one while candidate-set z-scores span

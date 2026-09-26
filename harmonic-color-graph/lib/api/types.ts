@@ -940,6 +940,12 @@ export interface components {
             model_versions: {
                 [key: string]: string;
             };
+            /**
+             * Ranking Mode
+             * @default statistical
+             * @enum {string}
+             */
+            ranking_mode: "statistical" | "intent";
         };
         /** RecommendRequest */
         RecommendRequest: {
@@ -950,6 +956,10 @@ export interface components {
              * @default true
              */
             include_explanations: boolean;
+            /** Intent */
+            intent?: {
+                [key: string]: number;
+            } | null;
             /** Key */
             key?: string | null;
             /**
@@ -957,6 +967,8 @@ export interface components {
              * @default 10
              */
             limit: number;
+            /** Preset */
+            preset?: ("plausible" | "balanced" | "adventurous") | null;
             /** Progression */
             progression: string | string[];
             /** Section */
@@ -993,6 +1005,8 @@ export interface components {
             figure: string;
             /** Labels */
             labels: string[];
+            /** Pitch Classes */
+            pitch_classes?: number[];
             /** Score */
             score: number;
             score_breakdown: components["schemas"]["ScoreBreakdown"];
