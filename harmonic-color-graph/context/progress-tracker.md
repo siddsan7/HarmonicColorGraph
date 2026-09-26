@@ -35,7 +35,12 @@ detail it points to.
   assets plus a wheel-content regression test; a fixed-wheel install now
   imports `app.main` and loads color rules and recommender weights. The
   first redeploy remained 500, so `backend/vercel.json` now has an explicit
-  `includeFiles` glob for those four assets, with a config regression test. Fresh
+  `includeFiles` glob for those four assets, with a config regression test.
+  A temporary diagnostic entrypoint revealed `ModuleNotFoundError` at
+  `app/predict/ngram.py` importing `pipeline.stages.ngrams`; Vercel excludes
+  `pipeline/**`. The diagnostic was removed. Both producer and API now
+  import the constants from `app/ngram_contract.py`, and a subprocess
+  regression test blocks pipeline imports while loading `app.main`. Fresh
   `scripts/check.ps1 all` passed on rerun (the first run had one transient
   Hypothesis slow-input health check under local build load; the affected
   test and full unit suite passed cleanly afterward). Fresh CI, preview

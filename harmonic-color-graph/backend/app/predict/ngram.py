@@ -21,12 +21,9 @@ from dataclasses import dataclass, field
 from threading import Lock
 from typing import Any, Protocol
 
-# Reused, not duplicated: these constants and the history-string join
-# convention are the pipeline's, and this module must read exactly what
-# that pipeline wrote. Importing the module only pulls in these top-level
-# constants -- `run_ngrams` itself lazy-imports polars, so this import does
-# not pull polars into the FastAPI runtime.
-from pipeline.stages.ngrams import HISTORY_SEP, MAX_ORDER_GLOBAL, MAX_ORDER_OTHER
+# The pipeline package is excluded from the deployed API function. Both
+# producer and consumer import this small shared contract instead.
+from app.ngram_contract import HISTORY_SEP, MAX_ORDER_GLOBAL, MAX_ORDER_OTHER
 
 # F30 plan: "K is tuned on the dev split." F31 (the leak-free evaluation
 # harness) doesn't exist yet, so there is no dev split to tune against.

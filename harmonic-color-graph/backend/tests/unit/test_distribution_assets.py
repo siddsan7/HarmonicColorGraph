@@ -1,6 +1,7 @@
 """The deployed wheel must include files read by path at runtime."""
 
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -56,3 +57,33 @@ def test_vercel_function_explicitly_bundles_runtime_json() -> None:
         "app/theory/keys_params.json",
     ):
         assert asset in include
+
+
+def test_api_import_does_not_require_excluded_pipeline(tmp_path: Path) -> None:
+    backend = Path(__file__).resolve().parents[2]
+    script = """
+import sys
+from importlib.abc import MetaPathFinder
+
+class BlockPipeline(MetaPathFinder):
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname == "pipeline" or fullname.startswith("pipeline."):
+            raise ModuleNotFoundError(f"API imported excluded {fullname}")
+        return None
+
+sys.meta_path.insert(0, BlockPipeline())
+from app.main import app
+assert app is not None
+"""
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.pathsep.join(filter(None, [str(backend), env.get("PYTHONPATH")]))
+    completed = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=tmp_path,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    assert completed.returncode == 0, completed.stdout + completed.stderr

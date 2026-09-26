@@ -409,12 +409,18 @@ skip to "Immediate next steps" if you just need to know what to do next.
    fixed wheel imports the app and loads color rules/scorer weights. The
    first redeploy still returned 500, so `backend/vercel.json` now
    explicitly includes all four JSON assets in the Python function bundle;
-   a config regression test covers that list. Recheck the new preview.
+   a config regression test covers that list. A temporary diagnostic
+   entrypoint then identified the actual remaining startup failure:
+   `ModuleNotFoundError` in `app/predict/ngram.py`, which imported constants
+   from `pipeline.stages.ngrams` even though Vercel excludes `pipeline/**`.
+   The diagnostic was removed; the pipeline and API now import a small
+   shared `app/ngram_contract.py`. A subprocess test blocks all pipeline
+   imports while loading `app.main`. The next preview must be smoked.
    The Vercel connector requires reauthentication, and its dashboard is login
    protected, so the traceback was reproduced from the wheel locally.
    `scripts/check.ps1 all` passed after the fix (one transient Hypothesis
    slow-input health check on the first run, followed by a clean full rerun).
-   Push the Vercel inclusion fix, wait for fresh CI and
+   Push the shared-contract fix, wait for fresh CI and
    previews, smoke the API preview, then squash-merge and verify `main`
    and production. Record the
    merge SHA and checks here and in

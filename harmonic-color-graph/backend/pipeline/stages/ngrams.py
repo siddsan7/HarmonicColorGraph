@@ -15,12 +15,9 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from app.ngram_contract import HISTORY_SEP, MAX_ORDER_GLOBAL, MAX_ORDER_OTHER
 from pipeline.manifest import measured_table_mb
 from pipeline.stages._context import context_keys
-
-MAX_ORDER_GLOBAL = 5
-MAX_ORDER_OTHER = 3
-HISTORY_SEP = " "
 
 # Minimum `total` to keep a (context, order, history) row, by order.
 # Orders 1-2 are never pruned (they're the KN backoff floor). The plan's

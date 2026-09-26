@@ -372,8 +372,8 @@
       </div>
       <ul class="rules">
         <li><b>Store owns SQL, service owns logic.</b> <code>GraphStore</code>→<code>GraphService</code> and <code>NgramStore</code>→<code>KNPredictor</code>. Services depend on a <code>Protocol</code>, so tests pass <code>InMemoryNgramStore</code> or fakes.</li>
-        <li><b>One sanctioned cross-import:</b> <code>predict/ngram.py</code> imports <code>HISTORY_SEP</code>/<code>MAX_ORDER_*</code> from <code>pipeline/stages/ngrams.py</code>, so the runtime reads exactly what the pipeline wrote. That pipeline module must keep <code>polars</code> imports inside functions.</li>
-        <li><b>The pipeline imports app theory</b> (<code>analyze</code> stage → <code>theory/roman.py</code>), so corpus analysis and live analysis are the same code. The app never imports pipeline stages except that constant module and lazy imports in <code>jobs/handlers.py</code>.</li>
+        <li><b>Shared n-gram contract:</b> both <code>predict/ngram.py</code> and <code>pipeline/stages/ngrams.py</code> import <code>HISTORY_SEP</code>/<code>MAX_ORDER_*</code> from <code>app/ngram_contract.py</code>. The API can start with <code>pipeline/**</code> excluded from its Vercel function.</li>
+        <li><b>The pipeline imports app theory</b> (<code>analyze</code> stage → <code>theory/roman.py</code>), so corpus analysis and live analysis are the same code. The app imports pipeline stages only lazily in <code>jobs/handlers.py</code>.</li>
         <li><b>The v1 stack</b> (<code>phase1.py</code> → <code>services/analysis|transition_*</code> → <code>theory/roman_analysis|relationships</code> → <code>db/repositories</code> + <code>models/</code>) is frozen and served at <code>/v1/*</code> and the unprefixed paths.</li>
       </ul>
     </section>
@@ -675,6 +675,7 @@
             <tr><td class="p">backend/app/recommend/substitutes.py</td><td>F53 SubstitutionService: bidirectional-KN substitution scoring + functional-equivalence bonus + voice-leading smoothness, smooth-constraint</td></tr>
             <tr><td class="p">backend/app/graph/service.py</td><td>GraphService: neighborhood BFS, explain_edge, k-shortest-ish paths, adjacency cache</td></tr>
             <tr><td class="p">backend/app/predict/ngram.py</td><td>KNPredictor: interpolated Kneser-Ney + context mixing; InMemoryNgramStore for tests/eval</td></tr>
+            <tr><td class="p">backend/app/ngram_contract.py</td><td>Shared n-gram order/history constants used by pipeline writer and API reader without a runtime pipeline import</td></tr>
             <tr><td class="p">backend/app/predict/realize.py</td><td>realize(core_token, key) → chord symbol (inverse of romanize .core)</td></tr>
             <tr><td class="p">backend/app/services/analysis.py</td><td>v1 analyze_progression_service</td></tr>
             <tr><td class="p">backend/app/services/transition_graph.py</td><td>v1 transition extraction and aggregation by context bucket</td></tr>

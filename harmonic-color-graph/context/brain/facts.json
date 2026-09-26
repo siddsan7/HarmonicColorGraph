@@ -158,7 +158,7 @@
     },
     {
       "what": "N-gram artifact shape",
-      "files": ["backend/pipeline/stages/ngrams.py (writer + constants)", "backend/pipeline/load.py (ngram_histories + ngram_discount_stats)", "backend/app/predict/ngram.py (reader)", "backend/app/db/stores/graph.py NgramStore SQL"]
+      "files": ["backend/app/ngram_contract.py (shared constants)", "backend/pipeline/stages/ngrams.py (writer)", "backend/pipeline/load.py (ngram_histories + ngram_discount_stats)", "backend/app/predict/ngram.py (reader)", "backend/app/db/stores/graph.py NgramStore SQL"]
     },
     {
       "what": "Context key grammar",

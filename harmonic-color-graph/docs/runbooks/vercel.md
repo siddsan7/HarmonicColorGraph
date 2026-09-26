@@ -72,6 +72,13 @@ returned 500. Verify the
 API preview `/health` and `/v2/color/profile` directly after redeploy, not
 only Vercel's `READY` status.
 
+The API import graph also must not eagerly depend on `pipeline/**`, which
+this Vercel function excludes. A temporary preview diagnostic traced a
+startup `ModuleNotFoundError` to `app/predict/ngram.py` importing three
+constants from `pipeline.stages.ngrams`. Both now import
+`app/ngram_contract.py`; the diagnostic was removed. The regression test
+loads `app.main` with all `pipeline` imports blocked.
+
 ## Known tooling gap: log/event endpoints return 403
 
 `get_runtime_logs`, `list_deployment_events` (build logs), and

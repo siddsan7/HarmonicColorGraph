@@ -1539,6 +1539,9 @@ including import-time color rules. PR #26 includes the package-data fix and
 a test that inspects the built wheel; an isolated fixed-wheel import passes.
 The initial redeploy still returned 500, so `backend/vercel.json` explicitly
 includes the same four assets in the Python function bundle.
+The remaining startup error was an API import of `pipeline.stages.ngrams`
+despite Vercel excluding `pipeline/**`; both sides now use
+`app/ngram_contract.py`, guarded by an import test with pipeline blocked.
 Fresh CI and preview runtime smoke are required before merge.
 
 **M4 exit gate:** The color sanity suite is green; color visible in production for analysis and recommendations.
