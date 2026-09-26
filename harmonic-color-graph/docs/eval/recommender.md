@@ -124,3 +124,12 @@ the Vercel web preview routed to the API preview on active corpus
 and `G7` 1. The web preview's default rewrite still points to the production
 API, so the browser test used `HCG_API_PREVIEW_URL` to route its requests to
 the API preview. Production needs a separate check after merge.
+
+After PR #27 merged as `fbc7c65`, production API and web proxy both reported
+that SHA, `/health/db` was connected, and the live Playwright suite passed
+3/3 against production web and API. Direct production API ranks on
+`cv-2026-09-a` were `Fm` 2/5, `Abmaj7` 1/5, and `G7` 1/3. The no-intent
+request retained the earlier statistical top three and probabilities for
+`C G Am F` (`M:I` 0.792, `M:V` 0.1373, `M:vi` 0.0258). This closes the
+automated M5 scenario gate. Manual listening remains for Siddharth; see
+`context/progress-tracker.md` for the three comparison prompts.

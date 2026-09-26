@@ -208,11 +208,11 @@
       <h1>How the system is actually built</h1>
       <p class="lede">A map of the code as it exists, not as planned: what runs where, which module may call which, the path every request takes, and what each file is for. For intent and target architecture, read <code>context/architecture.md</code> and <code>docs/roadmap-v2.md</code>. For values and limits, read <code>context/brain/facts.json</code>.</p>
       <div class="scope">
-        <span>commit <b>ecfe566</b></span>
-        <span>mapped <b>2026-09-25</b></span>
-        <span>shipped <b>M0–M4 + F50–F53</b></span>
+        <span>commit <b>fbc7c65</b></span>
+        <span>mapped <b>2026-09-26</b></span>
+        <span>shipped <b>M0–M5</b></span>
         <span>active corpus <b>cv-2026-09-a</b></span>
-        <span>migrations live <b>0001–0007</b> (0008 written, not applied)</span>
+        <span>migrations live <b>0001–0010</b> (color and embedding tables await reload)</span>
       </div>
     </header>
 
@@ -508,8 +508,8 @@
             <tr><td class="p">ngrams</td><td>F22</td><td>sections</td><td class="p">ngrams.parquet</td><td><code>ngram_histories</code>, <code>ngram_discount_stats</code></td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">patterns</td><td>F22</td><td>sections</td><td class="p">patterns.parquet</td><td><code>patterns</code>, <code>edges_compact</code> type 4</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">examples</td><td>F22/F26</td><td>patterns · transitions · sections</td><td class="p">pattern_examples · transition_examples · song_refs</td><td>same-named tables</td><td><span class="pill done">done</span></td></tr>
-            <tr><td class="p">color</td><td>F41/F43</td><td>sections · ngrams (optional, offline predictor); F43 half also reads functions · transitions · patterns · color.parquet</td><td class="p">color.parquet, color_profiles.parquet</td><td><code>color_norms</code> (migration 0008), <code>color_profiles</code> (migration 0009) — neither applied live yet</td><td><span class="pill done">done</span></td></tr>
-            <tr><td class="p">embeddings</td><td>F50</td><td>sections · transitions · patterns</td><td class="p">embeddings.parquet, embedding_projection.parquet</td><td><code>hcg.embeddings</code> (pgvector, migration 0010, F51 — not applied live yet)</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">color</td><td>F41/F43</td><td>sections · ngrams (optional, offline predictor); F43 half also reads functions · transitions · patterns · color.parquet</td><td class="p">color.parquet, color_profiles.parquet</td><td><code>color_norms</code> (migration 0008), <code>color_profiles</code> (migration 0009) — tables live, rows await reload</td><td><span class="pill done">done</span></td></tr>
+            <tr><td class="p">embeddings</td><td>F50</td><td>sections · transitions · patterns</td><td class="p">embeddings.parquet, embedding_projection.parquet</td><td><code>hcg.embeddings</code> (pgvector, migration 0010) — table live, rows await reload</td><td><span class="pill done">done</span></td></tr>
             <tr><td class="p">snapshot</td><td>F63</td><td>—</td><td class="p">public/snapshot/graph-core.json</td><td>static degraded-mode file</td><td><span class="pill stub">stub</span></td></tr>
             <tr><td class="p">export</td><td>stretch S1</td><td>—</td><td>Cypher/Neo4j export</td><td>—</td><td><span class="pill stub">stub</span></td></tr>
           </tbody>
@@ -527,7 +527,7 @@
     <!-- 6. schema -->
     <section class="part" id="schema" aria-labelledby="schema-h">
       <h2 id="schema-h">Database (<code>hcg</code> schema)</h2>
-      <p class="sub">Source of truth: <code>supabase/migrations/*.sql</code>. 0001–0007 are applied live; 0008 is written but not yet applied (see the schema note below). Corpus tables carry a <code>version</code> column (edges carry <code>version_key</code>), and reads resolve the active one through <code>hcg.v()</code>.</p>
+      <p class="sub">Source of truth: <code>supabase/migrations/*.sql</code>. 0001–0010 are applied live. Corpus tables carry a <code>version</code> column (edges carry <code>version_key</code>), and reads resolve the active one through <code>hcg.v()</code>. Color and embedding tables are empty until a full reload.</p>
       <div class="schema">
         <div class="sgroup"><h3>Versioning <span>0002 · 0005</span></h3><ul>
           <li><code>corpus_versions</code> version, manifest, active (≤1 true), <code>version_key</code> identity<span class="mig">0005</span></li>
@@ -535,10 +535,10 @@
           <li><code>hcg.v()</code> SQL function → active version text</li>
           <li><code>active_version</code> view</li>
         </ul></div>
-        <div class="sgroup"><h3>Harmonic graph <span>0002 · 0005 · 0007</span></h3><ul>
+        <div class="sgroup"><h3>Harmonic graph <span>0002 · 0005 · 0007 · 0010</span></h3><ul>
           <li><code>nodes</code> (version, id) PK, type, label, props; <code>node_key</code> identity<span class="mig">0005</span></li>
-          <li><code>edges_compact</code> version_key, src_key, dst_key, type_code 1–7, context_id, count, prob, weight (PMI), support, props<span class="mig">0005/0007</span></li>
-          <li><code>edges_read</code> view: decodes keys to text IDs and type names, and merges pmi/support into props<span class="mig">0007</span></li>
+          <li><code>edges_compact</code> version_key, src_key, dst_key, type_code 1–8, context_id, count, prob, weight (PMI), support, props<span class="mig">0005/0007/0010</span></li>
+          <li><code>edges_read</code> view: decodes keys to text IDs and type names (including SIMILAR_TO), and merges pmi/support into props<span class="mig">0010</span></li>
           <li><code>edges</code>: original text-keyed table, kept empty<span class="mig">0002</span></li>
         </ul></div>
         <div class="sgroup"><h3>Prediction <span>0002 · 0006</span></h3><ul>
@@ -552,11 +552,11 @@
           <li><code>facts</code> (fact_id, version), kind, subject, template, params</li>
           <li><code>relationship_types</code> catalog</li>
         </ul></div>
-        <div class="sgroup"><h3>Color <span>0008 · 0009 (both written, not applied)</span></h3><ul>
+        <div class="sgroup"><h3>Color <span>0008 · 0009 (applied, awaiting reload)</span></h3><ul>
           <li><code>color_norms</code> (version, axis, subject_type) → count, p05/p25/p50/p75/p95, mean, std. Loader-populated from <code>color.parquet</code>; no rows exist against any live version yet<span class="mig">0008</span></li>
           <li><code>color_profiles</code> (version, subject_type, subject_id) → mode, support, axes jsonb ({raw, raw_normalized, perceptual}). One row per Function (a core token), global Transition (<code>from_token&gt;to_token</code>), or frequent Pattern. Loader-populated from <code>color_profiles.parquet</code>, computed by <code>app/color/profile.py</code>'s <code>compute_color_profile</code> (reconstructs a real chord sequence from core-token labels via F30's <code>realize()</code>); no rows exist against any live version yet<span class="mig">0009</span></li>
         </ul></div>
-        <div class="sgroup"><h3>Embeddings <span>0010 (written, not applied)</span></h3><ul>
+        <div class="sgroup"><h3>Embeddings <span>0010 (applied, awaiting reload)</span></h3><ul>
           <li><code>embeddings</code> (version, subject_type, model, subject_id) → vec extensions.vector(64), created_at. Per-subject-type HNSW cosine index. Loader-populated from <code>embeddings.parquet</code> (validated: 64-dim, finite, L2-normalized, has a graph node); no rows exist against any live version yet<span class="mig">0010</span></li>
         </ul></div>
         <div class="sgroup"><h3>Jobs <span>0003 · 0004</span></h3><ul>
@@ -623,8 +623,7 @@
         <table>
           <thead><tr><th>Seam</th><th>Where</th><th>Next owner</th></tr></thead>
           <tbody>
-            <tr><td><code>Recommendation.color</code> contains measurable deltas for intent-ranked results and defaults to <code>{}</code> for statistical results; on-demand comparison supplies the full progression profile</td><td class="p">app/services/recommend.py, components/recommendations-panel.tsx</td><td>F54</td></tr>
-            <tr><td><code>hcg.color_norms</code> (0008) and <code>hcg.color_profiles</code> (0009) tables exist but have no live rows yet (neither migration applied; no full reload has run <code>color</code> against the real corpus)</td><td class="p">supabase/migrations/0008_color_norms.sql, 0009_color_profiles.sql</td><td>apply live + bundle a full reload once a graph-evidence consumer needs it</td></tr>
+            <tr><td><code>hcg.color_norms</code> (0008), <code>hcg.color_profiles</code> (0009), and <code>hcg.embeddings</code> (0010) are live but empty; no full reload has run color/embeddings against the real corpus</td><td class="p">supabase/migrations/0008_color_norms.sql through 0010_embeddings.sql</td><td>plan a deliberate full reload when precomputed graph/color/vector evidence needs these rows</td></tr>
             <tr><td><code>embedding_rebuild</code> job returns 409 (embeddings themselves are done in F50 — this is a separate admin-triggered rebuild job, still unimplemented)</td><td class="p">app/api/jobs_v2.py, app/jobs/handlers.py</td><td>not scheduled to a feature number yet</td></tr>
             <tr><td><code>snapshot</code> / <code>export</code> stages</td><td class="p">pipeline/stages/*.py</td><td>F63 / S1</td></tr>
             <tr><td><code>DEFAULT_MIXING_K = 100.0</code> placeholder</td><td class="p">app/predict/ngram.py</td><td>tuning follow-up (docs/eval/prediction-v2.md)</td></tr>
@@ -755,7 +754,7 @@
             <tr><td class="p">next.config.ts, vercel.json</td><td>/api/hcg rewrite / daily cron</td></tr>
             <tr><td class="p">tests/e2e/, playwright.config.ts, vitest.*</td><td>Playwright specs, test runners</td></tr>
             <tr class="grp"><td colspan="2">infrastructure, data &amp; docs</td></tr>
-            <tr><td class="p">supabase/migrations/0001–0007</td><td>Schema source of truth (ADR-005)</td></tr>
+            <tr><td class="p">supabase/migrations/0001–0010</td><td>Schema source of truth (ADR-005); all applied live</td></tr>
             <tr><td class="p">compose.yaml, Dockerfile, .env.docker.example</td><td>Local production stack</td></tr>
             <tr><td class="p">scripts/check.{ps1,sh}</td><td>Standard check gate (ruff, pytest, lint, typecheck, vitest, build)</td></tr>
             <tr><td class="p">scripts/dev-{up,down}.*, docker-migrate.sh</td><td>Compose lifecycle and migration runner</td></tr>

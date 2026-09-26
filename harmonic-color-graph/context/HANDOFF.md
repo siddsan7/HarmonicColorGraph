@@ -8,19 +8,19 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-26
 
-**M0–M4 are merged to `main`; F50–F53 (most of M5) are merged too.**
+**M0–M5 are merged to `main`; M5's automated exit gate is closed.**
 F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43, F50, F51, F52,
-F53, F44 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
+F53, F44, F54 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
 match). **F44 color UI merged in [PR #26](https://github.com/siddsan7/HarmonicColorGraph/pull/26), squash `f23a401`.**
-All four CI jobs and both Vercel preview statuses passed. Production API
-`/health` reports `f23a401`; direct profile and compare calls return 200,
-and the production web proxy reaches the healthy API. Both production Vercel
-statuses passed. **F54** (intent-driven recommendations in the product) is
-in [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27) on
-`codex/f54-intent-recommendations`. Its seven-axis intent scorer, UI, offline
-scenario tests, and live Playwright scenario suite are implemented. The paired
-Vercel previews passed all three scenarios; CI, merge, and production
-verification are next.
+**F54** merged in [PR #27](https://github.com/siddsan7/HarmonicColorGraph/pull/27),
+squash `fbc7c65`, after all four CI jobs and both Vercel previews passed.
+Production API `/health` and web proxy both report that SHA; `/health/db` is
+connected. The live Playwright suite passed all three Phase 2 scenarios in
+production. Direct ranks on `cv-2026-09-a`: `Fm` 2/5, `Abmaj7` 1/5, `G7`
+1/3. The old no-intent statistical ranking remains unchanged. Migrations
+0008–0010 are applied live, though their new tables have no rows until a
+deliberate full-corpus reload. Manual listening by Siddharth is a separate
+subjective check recorded in `context/progress-tracker.md`.
 F50–F53 were picked up from four independent local worktree checkpoints
 (`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
 each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
@@ -45,7 +45,7 @@ live**; advisors showed only the same pre-existing informational
 private-schema RLS notices, no new issues. F41's PR
 ([#16](https://github.com/siddsan7/HarmonicColorGraph/pull/16)) merged;
 it added `backend/app/color/{features,norms}.py`, replaced the `color`
-pipeline stub in place, and wrote (but has **not yet applied live**)
+pipeline stub in place, and wrote (applied live later)
 migration `0008_color_norms.sql` — see the F41 bullet below and
 `context/progress-tracker.md`'s matching entry for full detail. F42's PR
 ([#17](https://github.com/siddsan7/HarmonicColorGraph/pull/17), squash
@@ -60,9 +60,7 @@ new `backend/app/color/profile.py`, `backend/app/services/color_profile.py`,
 `color` pipeline stage, `pipeline/load.py` wiring, and migration
 `0009_color_profiles.sql`; `backend/openapi.json`/`lib/api/types.ts`
 regenerated; `docs/codemap.html`/`context/brain/facts.json` updated; see
-this file's F43 bullet below. Per the user's explicit instruction this
-session, work stopped here — **F44 is next**, but was deliberately not
-started yet (see "Immediate next steps").
+this file's F43 bullet below.
 
 The rest of this section is the detailed PR-by-PR history, oldest first;
 skip to "Immediate next steps" if you just need to know what to do next.
@@ -261,7 +259,7 @@ skip to "Immediate next steps" if you just need to know what to do next.
   from `ngrams.parquet` when present (no database). `pipeline/load.py`
   and `pipeline/cli.py` gained matching wiring for the new
   `color.parquet` artifact and `hcg.color_norms` table. Migration
-  `0008_color_norms.sql` is written but **not yet applied live**.
+  `0008_color_norms.sql` was written then and applied live on 2026-09-26.
   22 new tests; full `pytest -q` (803 passed, 13 skipped), `ruff check`/
   `ruff format --check` clean. Full detail in
   `context/progress-tracker.md`'s F41 entry and
@@ -317,7 +315,7 @@ skip to "Immediate next steps" if you just need to know what to do next.
   `pipeline/cli.py`/`pipeline/load.py` gained matching wiring; migration
   `supabase/migrations/0009_color_profiles.sql` (`hcg.color_profiles`,
   `version/subject_type/subject_id` primary key, `axes jsonb`) is written
-  but **not yet applied live** — no application code reads it yet (see
+  and was applied live on 2026-09-26 — no application code reads it yet (see
   below). New `backend/app/services/color_profile.py` builds the API's
   progression arc: prefix-based (position `i`'s perceptual axes are F42's
   read of `chords[:i+1]`, so the final position's perceptual axes are
@@ -397,31 +395,12 @@ skip to "Immediate next steps" if you just need to know what to do next.
 
 ## Immediate next steps
 
-1. Finish **F54** on `codex/f54-intent-recommendations` (branched from F44
-   squash `f23a401`). The optional `intent`/`preset` route keeps the old
-   ranking when both are omitted. The Workbench has seven labelled numeric
-   sliders, including a derived dreamy direction, preset buttons, candidate
-   color deltas, on-demand full color comparison, and playback. Extended
-   borrowed mediants are now detected correctly in F52 features; F54 uses
-   modal mixture for perceived darkness while leaving the raw brightness
-   value unchanged. A frozen snapshot of the production F32 statistical
-   distributions powers HTTP route-level scenario tests: `Fm` rank 2/5,
-   `Abmaj7` rank 4/5, `G7` rank 1/3. The full local Playwright suite passes
-   5/5 with both servers running. A live Playwright scenario suite exists at
-   `tests/e2e/intent-scenarios.spec.ts`; run with
-   `HCG_LIVE_RECOMMEND=1` against the Vercel preview (it skips locally).
-   Local Postgres tests skip without `TEST_DATABASE_URL`; CI must cover them.
-   `scripts/check.ps1 all` passes (local pg tests skip). PR #27 is open; both
-   Vercel preview statuses passed. The live Playwright suite passed 3/3 on
-   the paired web/API previews; direct API preview ranks were 2/1/1 on
-   `cv-2026-09-a`. The default web preview proxy points to production, so
-   the live suite set `HCG_API_PREVIEW_URL` to route to the API preview.
-   Next: wait for four CI jobs, merge, and verify production. Manual
-   listening by Siddharth remains a separate subjective check.
-2. Apply migrations `0008_color_norms.sql`, `0009_color_profiles.sql`,
-   and `0010_embeddings.sql` live (MCP `apply_migration`, then
-   `get_advisors`) whenever convenient — cheap and low-risk (empty
-   tables until the next full load), unlike item 3.
+1. Start **M6 / F60** (constrained progression generator) from the merged
+   `main` state. Follow `feature-specs/v2-implementation-plan.md` in
+   dependency order. F60 owns the deferred `… F Fm C` generation check.
+2. Siddharth's three manual listening comparisons remain open in
+   `context/progress-tracker.md`; record the result without changing the
+   automated M5 gate status.
 3. A full pipeline re-run and reload is needed to get F40's voice-leading
    edges, F41's color norms, F43's color profiles, AND F50's embeddings
    into the live `cv-2026-09-a` version (the `voice_leading`/`color`/
@@ -443,13 +422,10 @@ skip to "Immediate next steps" if you just need to know what to do next.
    the F31 bullet above and `docs/eval/prediction-v2.md`'s Interpretation
    section). Not blocking, but a cheap, well-motivated win whenever
    picked up.
-5. Verify the deployed API/web production routes reflect the F32 merge
-   (`/v2/recommend-next-chords` in particular — verified so far only via
-   a local server pointed at the live database, never through an actual
-   Vercel deployment). Supabase migrations 0001–0007 are applied (0008,
-   0009, 0010 written, not yet applied — see item 2); advisors had only
-   informational private-schema RLS notices and unused-index findings at
-   the last read. Also worth a glance: `hcg` schema's
+5. Supabase migrations 0001–0010 are applied. Post-migration advisors had
+   only INFO notices for private-schema RLS with no policies, existing
+   unindexed foreign keys/no primary key, and unused indexes. Also worth
+   a glance: `hcg` schema's
    `pg_total_relation_size` read ~357 MiB at the last check (over the
    300 MiB budget) despite identical row counts and zero dead tuples
    versus the original load report — likely a measurement-method
