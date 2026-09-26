@@ -10,6 +10,55 @@ import type { components } from "@/lib/api/types"
 
 export type AnalysisV2 = components["schemas"]["AnalysisV2"]
 export type AnalyzeV2Request = components["schemas"]["AnalyzeV2Request"]
+export type ColorProfile = components["schemas"]["ColorProfileResponse"]
+export type ColorComparison = components["schemas"]["ColorCompareResponse"]
+
+function isColorProfile(value: unknown): value is ColorProfile {
+  if (typeof value !== "object" || value === null) return false
+  const profile = value as Record<string, unknown>
+  if (!Array.isArray(profile.arc) || typeof profile.key !== "string") return false
+  if (typeof profile.summary !== "object" || profile.summary === null) return false
+  const summary = profile.summary as Record<string, unknown>
+  return typeof summary.raw === "object" && summary.raw !== null &&
+    typeof summary.perceptual === "object" && summary.perceptual !== null &&
+    Array.isArray(profile.drivers)
+}
+
+export async function fetchColorProfile(request: {
+  progression: string[]
+  key?: string | null
+  signal?: AbortSignal
+}): Promise<ColorProfile> {
+  const { signal, ...body } = request
+  const payload: unknown = await apiFetch<unknown>("/v2/color/profile", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body), signal,
+  })
+  if (!isColorProfile(payload)) throw new Error("Invalid color profile response.")
+  return payload
+}
+
+export async function compareColor(request: {
+  a: string[]
+  b: string[]
+  key?: string | null
+  signal?: AbortSignal
+}): Promise<ColorComparison> {
+  const params = new URLSearchParams({ a: request.a.join(" "), b: request.b.join(" ") })
+  if (request.key) {
+    params.set("key_a", request.key)
+    params.set("key_b", request.key)
+  }
+  const payload: unknown = await apiFetch<unknown>(`/v2/color/compare?${params}`, { signal: request.signal })
+  if (typeof payload !== "object" || payload === null) throw new Error("Invalid color comparison response.")
+  const comparison = payload as Record<string, unknown>
+  if (!isColorProfile(comparison.a) || !isColorProfile(comparison.b) ||
+    typeof comparison.raw_deltas !== "object" || comparison.raw_deltas === null ||
+    typeof comparison.perceptual_deltas !== "object" || comparison.perceptual_deltas === null) {
+    throw new Error("Invalid color comparison response.")
+  }
+  return payload as ColorComparison
+}
 
 export type ModeContext = "major" | "minor" | "unknown"
 

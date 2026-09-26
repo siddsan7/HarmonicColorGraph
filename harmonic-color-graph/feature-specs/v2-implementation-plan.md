@@ -1517,11 +1517,22 @@ lint`/`typecheck`/`test` all pass; `npm run build` was not run for this
 PR (backend + generated-types-only change, no UI consumer yet -- same
 reasoning F41 used for a backend-only feature).
 
-### F44 — Color UI [S]
-- [ ] Custom SVG components (no chart library): `ColorBars` (axes with numeric labels), `ColorArc` (sparkline per axis across the progression), `ColorDelta` (candidate versus current), legend with text labels (never color alone), confidence shown as opacity plus "(est.)" text for derived values.
+### F44 — Color UI [S] — DONE
+- [x] Custom SVG components (no chart library): `ColorBars` (axes with numeric labels), `ColorArc` (sparkline per axis across the progression), `ColorDelta` (candidate versus current), legend with text labels (never color alone), confidence shown as opacity plus "(est.)" text for derived values.
 
 **Checks:** Vitest render tests; Playwright screenshot of the workbench after analyzing `Cmaj7 Em7 Am7`; axe accessibility scan on the page has no serious violations.
 **Commit:** `feat(ui): color bars, arc, and deltas`
+
+**Completed (2026-09-25):** `components/color-profile.tsx` renders the six
+perceptual axes with values, confidence, source, per-chord sparklines, and
+weighted summary drivers. The Workbench fetches `POST /v2/color/profile`
+after analysis; recommendation rows fetch `GET /v2/color/compare` on demand
+for a candidate appended to the input. Both calls use typed, guarded
+same-origin wrappers in `lib/api/client.ts`. Vitest render/client tests,
+Playwright screenshot (`test-results/color-workbench.png`, gitignored), and
+axe WCAG 2/2.1 A/AA scan pass. The scan caught the pre-existing muted-text
+contrast failure; `--text-muted` was raised to `#8f98a8` and documented in
+`context/ui-context.md`. No migration or API contract change.
 
 **M4 exit gate:** The color sanity suite is green; color visible in production for analysis and recommendations.
 

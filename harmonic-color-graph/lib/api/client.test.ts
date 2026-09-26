@@ -2,6 +2,8 @@ import { afterEach, describe, expect, it, vi } from "vitest"
 
 import {
   API_BASE_PATH,
+  compareColor,
+  fetchColorProfile,
   analyzeProgression,
   explainTransition,
   fetchExamples,
@@ -18,6 +20,21 @@ function jsonResponse(body: unknown, status = 200) {
 describe("api client", () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+  })
+
+  it("sends color requests to the same-origin proxy with the progression and key", async () => {
+    const profile = { key: "C major", arc: [], summary: { raw: {}, perceptual: {} }, drivers: [] }
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(jsonResponse(profile))
+      .mockResolvedValueOnce(jsonResponse({ a: profile, b: profile, raw_deltas: {}, perceptual_deltas: {} }))
+    vi.stubGlobal("fetch", fetchMock)
+
+    await fetchColorProfile({ progression: ["Cmaj7", "Em7", "Am7"], key: "C major" })
+    expect(fetchMock.mock.calls[0][0]).toBe(`${API_BASE_PATH}/v2/color/profile`)
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body as string)).toEqual({ progression: ["Cmaj7", "Em7", "Am7"], key: "C major" })
+
+    await compareColor({ a: ["Cmaj7", "Em7"], b: ["Cmaj7", "Em7", "Am7"], key: "C major" })
+    expect(fetchMock.mock.calls[1][0]).toBe(`${API_BASE_PATH}/v2/color/compare?a=Cmaj7+Em7&b=Cmaj7+Em7+Am7&key_a=C+major&key_b=C+major`)
   })
 
   it("posts analyzeProgression to the same-origin proxy path", async () => {

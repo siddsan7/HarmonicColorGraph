@@ -114,7 +114,8 @@
     "frontend": {
       "health_poll_ms": 60000,
       "keepalive_cron": "0 15 * * * UTC → /api/cron/keepalive (Bearer CRON_SECRET) → /api/hcg/health/db",
-      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts"
+      "color_profile": "POST /v2/color/profile after analysis uses submitted chord symbols and detected key; GET /v2/color/compare is on demand per recommendation and appends the candidate chord. Both are DB-free. The six displayed axes are nostalgia, dreaminess, melancholy, warmth, openness, cinematic; derived axes show (est.) and confidence opacity.",
+      "owner": "lib/hooks/use-system-health.ts, vercel.json, app/api/cron/keepalive/route.ts, components/workbench-v2.tsx, components/color-profile.tsx, components/recommendations-panel.tsx, lib/api/client.ts"
     }
   },
 

@@ -28,7 +28,7 @@ The M1 workbench defines them on `.dark` in `app/globals.css`.
 | Subtle surface       | `--bg-subtle`         | `#191d24` |
 | Primary text         | `--text-primary`      | `#f4f1e8` |
 | Secondary text       | `--text-secondary`    | `#b7bdc8` |
-| Muted text           | `--text-muted`        | `#777f8f` |
+| Muted text           | `--text-muted`        | `#8f98a8` |
 | Primary accent       | `--accent-primary`    | `#42e8b4` |
 | Secondary accent     | `--accent-secondary`  | `#7aa7ff` |
 | Warm color accent    | `--accent-warm`       | `#f2c86b` |

@@ -8,11 +8,12 @@ The older Phase 1 plans are historical.
 
 ## Current state — 2026-09-25
 
-**M0–M4 are merged to `main`; F50–F53 (most of M5) are merged too.**
+**M0–M4 except F44 are merged to `main`; F50–F53 (most of M5) are merged too.**
 F00–F09, F10–F14, F20–F29, F30, F31, F32, F40, F41, F42, F43, F50, F51, F52,
-F53 are done (checkboxes in `feature-specs/v2-implementation-plan.md`
-match). **F44** (color UI) and **F54** (intent-driven recommendations in the
-product) are the two remaining M4/M5 features — see "Immediate next steps".
+F53 are merged (checkboxes in `feature-specs/v2-implementation-plan.md`
+match). **F44 color UI is implemented on `codex/f44-color-ui`, not yet merged;
+F54** (intent-driven recommendations in the product) follows after F44 is
+verified and merged — see "Immediate next steps".
 F50–F53 were picked up from four independent local worktree checkpoints
 (`../HarmonicColorGraph-f50` through `-f53`, one Codex-authored feature
 each, all uncommitted and based on a pre-F43 `main`) at Siddharth's explicit
@@ -389,16 +390,20 @@ skip to "Immediate next steps" if you just need to know what to do next.
 
 ## Immediate next steps
 
-1. Continue the plan at **F44** (color UI) — the real, merged
-   `{arc[], summary{}, drivers[]}` shape from F43's
-   `POST /v2/color/profile` (and the deltas shape from
-   `GET /v2/color/compare`) is on `main` in `backend/openapi.json` /
-   `lib/api/types.ts`, so F44 can build against the actual generated
-   types rather than guessing — build the `ColorBars`/`ColorArc`/
-   `ColorDelta` SVG components, wire them to these endpoints (a new
-   hand-written `lib/api/client.ts` wrapper will be needed, per the
-   `api-contract-regen` gotcha), and run the Playwright/axe checks the
-   plan's F44 section specifies.
+1. Finish **F44** on branch `codex/f44-color-ui`: the SVG bars, per-axis
+   arc, candidate delta, API wrappers, Workbench wiring, Vitest tests,
+   Playwright screenshot, and axe scan are implemented. The first axe
+   scan found the old muted token below 4.5:1; `--text-muted` is now
+   `#8f98a8`, and the rerun passed. `scripts/check.ps1 all` passed (backend
+   unit tests, ruff, frontend lint/types/Vitest/build, API import; local
+   Postgres integration tests skipped because `TEST_DATABASE_URL` is unset).
+   The full Playwright suite passed 5/5 with the local API running; two
+   pre-existing tests were made deterministic/scoped so this suite is
+   repeatable. Inspect the diff, commit/push, open a reviewable PR,
+   wait for all CI and previews, squash-merge, then verify `main` and
+   production. Record the PR number, merge SHA, and checks here and in
+   `context/progress-tracker.md` before starting F54. No migration is
+   required for F44; its color endpoints are DB-free.
 2. Then **F54** (intent-driven recommendations in the product): wire
    F52's `intent{…}`/`preset` into `/v2/recommend-next-chords` (a new
    route, not yet built — F52 only built the scoring library), add UI

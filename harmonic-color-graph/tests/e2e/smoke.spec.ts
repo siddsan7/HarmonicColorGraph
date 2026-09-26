@@ -17,7 +17,7 @@ test("applied dominant analysis works end to end", async ({ page }) => {
   await expect(page.getByText("V7/V", { exact: true })).toBeVisible()
   await expect(page.getByText("secondary dominant", { exact: true })).toBeVisible()
   await expect(page.getByText("C major", { exact: false }).first()).toBeVisible()
-  await expect(page.getByText(/Chordonomicon.*CC BY-NC 4\.0/)).toBeVisible()
+  await expect(page.locator("footer").getByText(/Chordonomicon.*CC BY-NC 4\.0/)).toBeVisible()
 
   const corsErrors = consoleErrors.filter((text) => /cors/i.test(text))
   expect(corsErrors).toEqual([])

@@ -6,15 +6,18 @@ import { Activity, ArrowRight, LoaderCircle, RefreshCcw, Volume2, X } from "luci
 import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
 import { EvidencePanel } from "@/components/evidence-panel"
 import { RecommendationsPanel } from "@/components/recommendations-panel"
+import { ColorProfilePanel } from "@/components/color-profile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
   analyzeProgressionV2,
+  fetchColorProfile,
   recommendNextChords,
   findSubstitutes,
   type AnalysisV2,
+  type ColorProfile,
   type RecommendResponse,
   type SubstituteResponse,
 } from "@/lib/api/client"
@@ -42,6 +45,10 @@ export function WorkbenchV2() {
   const [input, setInput] = useState(samples[0].chords)
   const [key, setKey] = useState(samples[0].key)
   const [analysis, setAnalysis] = useState<AnalysisV2 | null>(null)
+  const [color, setColor] = useState<ColorProfile | null>(null)
+  const [colorBusy, setColorBusy] = useState(false)
+  const [colorError, setColorError] = useState<string | null>(null)
+  const colorController = useRef<AbortController | null>(null)
   const [next, setNext] = useState<RecommendResponse | null>(null)
   const [recommendationBusy, setRecommendationBusy] = useState(false)
   const [recommendationError, setRecommendationError] = useState<string | null>(null)
@@ -91,12 +98,23 @@ export function WorkbenchV2() {
     setBusy(true)
     setError(null)
     setNext(null)
+    colorController.current?.abort()
+    setColor(null)
+    setColorError(null)
+    setColorBusy(false)
     substitutionController.current?.abort()
     setSubstitutionIndex(null)
     setSubstitutes(null)
     try {
       const result = await analyzeProgressionV2({ chords, key: requestedKey.trim() || null, section_markers: false })
       setAnalysis(result)
+      const colorRequest = new AbortController()
+      colorController.current = colorRequest
+      setColorBusy(true)
+      fetchColorProfile({ progression: chords, key: result.song_key, signal: colorRequest.signal })
+        .then((profile) => { if (!colorRequest.signal.aborted) setColor(profile) })
+        .catch((caught) => { if (!colorRequest.signal.aborted) setColorError(caught instanceof Error ? caught.message : "Color analysis failed.") })
+        .finally(() => { if (!colorRequest.signal.aborted) setColorBusy(false) })
       loadRecommendations(result, genre, section)
     } catch (caught) {
       setAnalysis(null)
@@ -177,11 +195,11 @@ export function WorkbenchV2() {
         <form onSubmit={analyze} className="grid gap-4 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end">
           <div className="space-y-2">
             <Label htmlFor="progression-v2">Chord progression</Label>
-            <Input id="progression-v2" value={input} onChange={(event) => { recommendationController.current?.abort(); setInput(event.target.value); setAnalysis(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
+            <Input id="progression-v2" value={input} onChange={(event) => { recommendationController.current?.abort(); colorController.current?.abort(); setInput(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="key-v2">Key (optional)</Label>
-            <Input id="key-v2" value={key} onChange={(event) => { recommendationController.current?.abort(); setKey(event.target.value); setAnalysis(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
+            <Input id="key-v2" value={key} onChange={(event) => { recommendationController.current?.abort(); colorController.current?.abort(); setKey(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
           </div>
           <Button type="submit" disabled={busy} className="min-w-32">
             {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Activity aria-hidden="true" />}
@@ -201,7 +219,7 @@ export function WorkbenchV2() {
           </div>
           <div className="flex flex-wrap gap-2 lg:col-span-3">
             {samples.map((sample) => (
-              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { setInput(sample.chords); setKey(sample.key); setAnalysis(null); setNext(null); setError(null) }}>
+              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { recommendationController.current?.abort(); colorController.current?.abort(); setInput(sample.chords); setKey(sample.key); setAnalysis(null); setColor(null); setNext(null); setError(null) }}>
                 <RefreshCcw aria-hidden="true" /> {sample.name}
               </Button>
             ))}
@@ -295,6 +313,7 @@ export function WorkbenchV2() {
             </div>
 
             <aside className="space-y-5">
+              <ColorProfilePanel profile={color} busy={colorBusy} error={colorError} />
               <EvidencePanel key={evidenceTransitions.join("|")} transitions={evidenceTransitions} />
               <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Key distribution</h2>
@@ -307,7 +326,7 @@ export function WorkbenchV2() {
                 {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.modulations?.length} local modulation{analysis.modulations?.length === 1 ? "" : "s"} detected.</p>}
               </section>
 
-              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} />
+              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={rawTokens} keySignature={analysis.song_key} />
 
               {(analysis.warnings?.length ?? 0) > 0 && <section className="rounded-lg border border-[var(--state-warning)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Parse warnings</h2>
