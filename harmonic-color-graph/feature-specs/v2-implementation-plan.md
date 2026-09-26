@@ -1533,6 +1533,11 @@ Playwright screenshot (`test-results/color-workbench.png`, gitignored), and
 axe WCAG 2/2.1 A/AA scan pass. The scan caught the pre-existing muted-text
 contrast failure; `--text-muted` was raised to `#8f98a8` and documented in
 `context/ui-context.md`. No migration or API contract change.
+Preview smoke exposed a pre-existing API startup failure shared with the
+production API: the setuptools wheel omitted four JSON runtime assets,
+including import-time color rules. PR #26 includes the package-data fix and
+a test that inspects the built wheel; an isolated fixed-wheel import passes.
+Fresh CI and preview runtime smoke are required before merge.
 
 **M4 exit gate:** The color sanity suite is green; color visible in production for analysis and recommendations.
 

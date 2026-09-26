@@ -144,6 +144,11 @@
 
   "change_together": [
     {
+      "what": "Runtime JSON assets in the deployed Python wheel",
+      "files": ["backend/app/color/perceptual_params.json", "backend/app/color/rules/color_rules.json", "backend/app/theory/keys_params.json", "backend/app/recommend/weights/plausibility_v1.json", "backend/pyproject.toml [tool.setuptools.package-data]", "backend/tests/unit/test_distribution_assets.py"],
+      "rule": "Every app asset read by path must be included in the built wheel. Importing from an editable source checkout does not verify deployment packaging."
+    },
+    {
       "what": "Edge type codes",
       "files": ["backend/pipeline/load.py EDGE_TYPE_CODES", "edges_compact type_code check constraint (new migration)", "hcg.edges_read view CASE (new migration)"]
     },

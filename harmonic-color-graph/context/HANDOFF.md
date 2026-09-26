@@ -399,8 +399,21 @@ skip to "Immediate next steps" if you just need to know what to do next.
    Postgres integration tests skipped because `TEST_DATABASE_URL` is unset).
    The full Playwright suite passed 5/5 with the local API running; two
    pre-existing tests were made deterministic/scoped so this suite is
-   repeatable. The PR is open at commit `44817ba`. Wait for all CI and
-   previews, squash-merge, then verify `main` and production. Record the
+   repeatable. Initial PR checks and both Vercel deployment statuses went
+   green, but direct API preview and production `/health` and color calls
+   returned 500 `FUNCTION_INVOCATION_FAILED`. A clean, source-only install
+   imported; a built wheel contained **zero JSON assets** and failed at
+   `app.color.perceptual.load_color_rules()` during import. The PR now
+   includes `[tool.setuptools.package-data]` for all four runtime JSON
+   assets and a wheel-content regression test; an isolated install of the
+   fixed wheel imports the app and loads color rules/scorer weights. The
+   Vercel connector requires reauthentication, and its dashboard is login
+   protected, so the traceback was reproduced from the wheel locally.
+   `scripts/check.ps1 all` passed after the fix (one transient Hypothesis
+   slow-input health check on the first run, followed by a clean full rerun).
+   Push the packaging fix, wait for fresh CI and
+   previews, smoke the API preview, then squash-merge and verify `main`
+   and production. Record the
    merge SHA and checks here and in
    `context/progress-tracker.md` before starting F54. No migration is
    required for F44; its color endpoints are DB-free.

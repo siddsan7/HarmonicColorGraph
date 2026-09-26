@@ -26,9 +26,20 @@ detail it points to.
   of `TEST_DATABASE_URL`; CI must cover Postgres/Compose). Full
   Playwright suite passes 5/5 with local API: the old degraded-mode test
   now mocks a 503 health response, and the old smoke attribution assertion
-  is scoped to the footer. CI, preview, PR merge, and production
-  verification still need recording before F54 begins. No DB migration
-  is required for F44.
+  is scoped to the footer. The first PR #26 commit (`1b301cc`, docs) passed
+  all four CI jobs and both Vercel deployment statuses, but direct API
+  preview and production smoke returned 500 even for `/health`. Isolated
+  wheel reproduction found the cause: setuptools packaged no JSON files,
+  so `app.color.perceptual` raised `FileNotFoundError` for
+  `color_rules.json` at import. Added explicit package data for four runtime
+  assets plus a wheel-content regression test; a fixed-wheel install now
+  imports `app.main` and loads color rules and recommender weights. Fresh
+  `scripts/check.ps1 all` passed on rerun (the first run had one transient
+  Hypothesis slow-input health check under local build load; the affected
+  test and full unit suite passed cleanly afterward). Fresh CI, preview
+  runtime, PR merge, and production verification are pending.
+  Vercel connector is unauthenticated; dashboard inspection requires login.
+  No DB migration is required for F44.
 - 2026-09-25 F50–F53 (most of M5) are done and merged, picked up from four
   independent local worktree checkpoints (`../HarmonicColorGraph-f50`
   through `-f53`) at Siddharth's explicit request to finish, verify, and
