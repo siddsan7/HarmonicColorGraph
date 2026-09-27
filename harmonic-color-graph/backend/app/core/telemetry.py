@@ -18,8 +18,11 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace.status import Status, StatusCode
+from starlette.concurrency import run_in_threadpool
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from app.core.config import get_settings
 
 logger = logging.getLogger("hcg.telemetry")
 logger.setLevel(logging.INFO)
@@ -162,7 +165,8 @@ class TelemetryMiddleware:
                 emit_metric("api_request_count", 1, **labels)
                 if status >= 500 or failed:
                     emit_metric("api_error_count", 1, **labels)
-                emit_metric("api_latency_ms", (time.perf_counter() - started) * 1000, **labels)
+                latency_ms = (time.perf_counter() - started) * 1000
+                emit_metric("api_latency_ms", latency_ms, **labels)
                 logger.info(
                     json.dumps(
                         {
@@ -177,3 +181,26 @@ class TelemetryMiddleware:
                         sort_keys=True,
                     )
                 )
+                if route not in {
+                    "/health",
+                    "/health/db",
+                    "/health/redis",
+                    "/v2/admin/metrics",
+                } and get_settings().database_url.startswith("postgresql"):
+                    from app.core.request_metrics import record_request
+
+                    try:
+                        await run_in_threadpool(
+                            record_request,
+                            trace_id=current_trace_id(),
+                            request_id=request_id,
+                            route=route,
+                            method=method,
+                            status=status,
+                            latency_ms=latency_ms,
+                        )
+                    except Exception:
+                        logger.warning(
+                            "Request metric storage failed",
+                            extra={"error_category": "metric_write"},
+                        )

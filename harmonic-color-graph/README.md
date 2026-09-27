@@ -244,6 +244,9 @@ the deterministic workbench.
 
 For trace IDs, OTLP export, safe metric logs, and optional LangSmith tracing,
 see [observability setup](docs/observability.md).
+The private `/admin` page shows traffic, latency, worker, cache, and AI
+metrics after migration `0012_observability.sql` is applied and
+`HCG_JOBS_ADMIN_TOKEN` is configured.
 
 For a one-word song title that is also an ordinary word, use explicit song
 wording (for example, “the song Yesterday”) so the validator can require a

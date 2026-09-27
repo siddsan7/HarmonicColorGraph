@@ -1,6 +1,6 @@
 # Observability
 
-FastAPI returns `X-HCG-Trace-Id` and `X-Request-Id` for every HTTP request.
+FastAPI application responses return `X-HCG-Trace-Id` and `X-Request-Id`.
 The `http_request` structured log contains the same IDs, route template,
 method, and status. Metric events include the trace ID when called inside a
 trace. Worker jobs start their own trace with the job ID and type.
@@ -34,3 +34,24 @@ database and Redis errors, cache hits/misses, retry and dead-letter jobs,
 tool calls, validation failures, repair attempts, fallbacks, tokens, and cost.
 `queue_depth` is sampled by the worker every 30 seconds. Worker busy and idle
 milliseconds allow utilization to be derived over a time window.
+
+## Admin metrics
+
+Apply `supabase/migrations/0012_observability.sql` before enabling the
+dashboard. It creates a private request metrics table and adds per-model
+usage to the AI audit table. The API stores a route template, status,
+latency, trace ID, and request ID for each non-health request. It does not
+store request bodies or headers in this table. Storage failure does not
+change the API response. Health checks and the admin metrics route are
+excluded from these traffic aggregates.
+
+Set a private `HCG_JOBS_ADMIN_TOKEN` in the API environment. `/admin`
+accepts the token in a password field and keeps it in page memory only. It
+sends the token in `X-HCG-Jobs-Token` to `GET /v2/admin/metrics`; the API
+returns 403 without the correct token and 503 when the token is not
+configured. The dashboard shows 24-hour traffic, 5xx count, p50/p95/p99
+latency, current job states and Redis queue depth, retries, dead letters,
+AI spend, model and tool usage, and assistant fallback rate. Latency and
+model/tool breakdowns use up to the most recent 50,000 records, while
+traffic counts and AI cost/tokens cover the full window. The Redis hit rate
+is an instance-wide keyspace statistic, not a per-route cache measure.

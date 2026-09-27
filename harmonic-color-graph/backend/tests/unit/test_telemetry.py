@@ -66,6 +66,13 @@ def test_health_db_trace_correlates_http_and_sql_without_sensitive_fields(caplog
     assert "select 1" not in str(spans) + caplog.text
 
 
+def test_browser_origin_can_read_trace_header():
+    response = TestClient(app).get("/health", headers={"Origin": "http://localhost:3000"})
+    assert response.headers["access-control-allow-origin"] == "http://localhost:3000"
+    assert "X-HCG-Trace-Id" in response.headers["access-control-expose-headers"]
+    assert re.fullmatch(r"[0-9a-f]{32}", response.headers["x-hcg-trace-id"])
+
+
 def test_workflow_nodes_and_tools_share_parent_trace():
     exporter = CapturingExporter()
     trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(exporter))

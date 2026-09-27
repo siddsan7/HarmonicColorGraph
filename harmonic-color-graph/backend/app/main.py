@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api import phase1_router
+from app.api.admin_metrics_v2 import router as admin_metrics_v2_router
 from app.api.ai_v2 import router as ai_v2_router
 from app.api.analysis_v2 import router as analysis_v2_router
 from app.api.color_v2 import router as color_v2_router
@@ -31,18 +32,20 @@ app = FastAPI(
     version="0.1.0",
 )
 
+app.add_middleware(TelemetryMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["X-HCG-Trace-Id", "X-Request-Id"],
 )
-app.add_middleware(TelemetryMiddleware)
 
 # The v1 baseline stays callable permanently at /v1/* once v2 routes land
 # (feature-specs/v2-implementation-plan.md F06); the unversioned aliases are
 # kept so existing clients (the demo UI) don't break until F14 moves the UI.
 app.include_router(phase1_router)
+app.include_router(admin_metrics_v2_router)
 app.include_router(ai_v2_router)
 app.include_router(phase1_router, prefix="/v1")
 app.include_router(analysis_v2_router)

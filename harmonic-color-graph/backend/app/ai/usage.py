@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import ROUND_UP, Decimal
 from typing import Any
 
@@ -61,11 +61,20 @@ def request_cost_bound() -> Decimal:
 
 
 @dataclass
+class ModelTotals:
+    calls: int = 0
+    tokens_in: int = 0
+    tokens_out: int = 0
+    cost_usd: Decimal = Decimal("0")
+
+
+@dataclass
 class UsageMeter:
     tokens_in: int = 0
     tokens_out: int = 0
     cost_usd: Decimal = Decimal("0")
     model: str | None = None
+    by_model: dict[str, ModelTotals] = field(default_factory=dict)
 
     def record(
         self,
@@ -80,21 +89,28 @@ class UsageMeter:
             response_metadata = getattr(raw, "response_metadata", None) or {}
             usage = response_metadata.get("usage") or response_metadata.get("token_usage") or {}
         self.model = model
+        totals = self.by_model.setdefault(model, ModelTotals())
+        totals.calls += 1
         if not usage:
             # A model response without usage must never appear free to the
             # daily cap. Keep a conservative charge in the audit record.
             self.cost_usd += MISSING_USAGE_CHARGE_USD
+            totals.cost_usd += MISSING_USAGE_CHARGE_USD
             return
         incoming = int(usage.get("input_tokens", 0))
         outgoing = int(usage.get("output_tokens", 0))
         self.tokens_in += incoming
         self.tokens_out += outgoing
+        totals.tokens_in += incoming
+        totals.tokens_out += outgoing
         # An operator-selected model without explicit rates is charged at a
         # conservative ceiling until its actual contract rate is configured.
         rates = MODEL_RATES.get(model, (Decimal("10"), Decimal("50")))
         if input_rate is None or output_rate is None:
             input_rate, output_rate = rates
-        self.cost_usd += (incoming * input_rate + outgoing * output_rate) / 1_000_000
+        amount = (incoming * input_rate + outgoing * output_rate) / 1_000_000
+        self.cost_usd += amount
+        totals.cost_usd += amount
 
     def as_log(self) -> dict[str, Any]:
         return {
@@ -102,4 +118,13 @@ class UsageMeter:
             "tokens_in": self.tokens_in,
             "tokens_out": self.tokens_out,
             "cost_usd": self.cost_usd,
+            "model_usage": {
+                name: {
+                    "calls": totals.calls,
+                    "tokens_in": totals.tokens_in,
+                    "tokens_out": totals.tokens_out,
+                    "cost_usd": str(totals.cost_usd),
+                }
+                for name, totals in self.by_model.items()
+            },
         }
