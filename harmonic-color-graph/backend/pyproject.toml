@@ -24,7 +24,7 @@ dependencies = [
 
 [project.scripts]
 hcg-build = "pipeline.cli:main"
-hcg-eval = "tests.eval.prediction:main"
+hcg-eval = "tests.eval.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -83,5 +83,6 @@ include = ["app*", "pipeline*", "tests.eval*"]
 # by path at runtime (color rules load during app import), so they must ship.
 [tool.setuptools.package-data]
 "app.color" = ["perceptual_params.json", "rules/*.json"]
+"tests.eval" = ["ai_benchmark.jsonl", "ai_adversarial.jsonl"]
 "app.recommend" = ["weights/*.json"]
 "app.theory" = ["keys_params.json"]
