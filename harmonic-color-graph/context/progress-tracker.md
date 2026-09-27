@@ -2,8 +2,8 @@
 
 ## Active
 
-- Product: M7 F70 merged in PR #37 after independent review; F70.5 MCP is
-  implemented on `codex/f70-5-mcp` for verification and review.
+- Product: M7 F70 and F70.5 merged after independent reviews. F71 LangGraph
+  workflow is implemented on `codex/f71-langgraph` for verification and review.
 - Harness: Current owner and exact next action are in the root resume packet.
 - [Product context](HANDOFF.md) preserves M5 caveats and historical pointers.
 
@@ -27,8 +27,19 @@ API `/health` returned 200 at merge commit cb3dd66. F70.5's in-process MCP
 client discovers ten tools and checks direct-output parity; stdio and local
 Streamable HTTP clients both complete round trips. F70.5 backend lint, format,
 and unit suite; frontend lint, typecheck, tests, and build; documentation
-integrity all pass locally. Thirteen Postgres tests skip without a local test
-database. PR CI and independent review remain pending.
+integrity all passed locally. Thirteen Postgres tests skipped without a local
+test database. Independent review approved head 832d9f7; PR #38 CI run
+36297867978 passed all five jobs and both Vercel previews passed. PR #38
+merged at 77dd5c8; main CI run 36298009682 passed and production API health
+returned HTTP 200 at that version. F71 currently has a LangGraph with ten
+nodes, six routes, tool-sourced candidates/facts, model response repair, and
+deterministic fallback. A local 20-query full-graph suite routes 20/20
+correctly; fixture-backed response, key ambiguity, export, and citation tests
+pass. F71 backend lint, format, and unit suite; frontend lint, typecheck,
+tests, and build; documentation integrity all pass locally. Thirteen local
+Postgres tests skip without a test database. Live Claude evaluation awaits
+`ANTHROPIC_API_KEY`; the referenced Phase 3 §5 prompt source is unavailable
+in this checkout.
 
 ## Pending human evidence
 
