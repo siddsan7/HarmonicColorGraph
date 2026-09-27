@@ -220,9 +220,9 @@ matching `example:*` row. A bare sentence such as “Yesterday is in C” is
 ambiguous without that context.
 
 The 30-case F72 adversarial corpus is in
-`backend/tests/eval/ai_adversarial.jsonl`. Deterministic model fixtures verify
-the must-not rules without API access. A separate real-model evaluation runner
-is available for optional experiments.
+`backend/tests/eval/ai_adversarial.jsonl`. Unit tests cover the validator rules
+and check the corpus structure. A separate real-model evaluation runner is
+available for optional experiments.
 
 ## Phase Direction
 

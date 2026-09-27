@@ -43,8 +43,7 @@ Postgres tests skip without a test database. Live Claude evaluation awaits
 `ANTHROPIC_API_KEY`; the referenced Phase 3 §5 prompt source is unavailable
 in this checkout. F72 adds five grounding rules and a 30-case adversarial
 corpus with an optional cost-accounting real-model runner. Focused validator,
-workflow, language, and corpus tests pass. The offline must-not suite passes
-30/30 cases.
+workflow, language, and corpus integrity tests pass.
 
 ## Pending human evidence
 
