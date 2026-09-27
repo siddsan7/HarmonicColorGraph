@@ -7,6 +7,7 @@ pipeline stages, not hand-written parquet) -- no dependency on the real
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -165,12 +166,38 @@ def test_dev_tuning_is_deterministic_and_uses_explicit_artifact_root(
     )
 
 
-def test_dev_tuning_never_checks_or_scores_test_rows(artifacts, tmp_path):
+def test_dev_tuning_rejects_train_test_overlap_before_scoring(artifacts, tmp_path, monkeypatch):
     train_version, eval_version = artifacts
     root = tmp_path / "data" / "artifacts"
     sections_path = root / eval_version / "sections.parquet"
     sections = pl.read_parquet(sections_path).with_columns(
         pl.when(pl.col("split") == "test")
+        .then(pl.lit("train-0"))
+        .otherwise(pl.col("song_id"))
+        .alias("song_id")
+    )
+    sections.write_parquet(sections_path)
+
+    def unexpected_scoring(*args, **kwargs):
+        raise AssertionError("scoring started before leak check")
+
+    monkeypatch.setattr(prediction_module, "sample_test_positions", unexpected_scoring)
+    with pytest.raises(AssertionError, match="Leak detected.*test-split"):
+        prediction_module.tune_mixing_k(
+            train_version=train_version,
+            eval_version=eval_version,
+            sample_size=10,
+            mixing_k_values=(100.0,),
+            artifact_root=root,
+        )
+
+
+def test_dev_tuning_ignores_train_rows_in_eval_artifact(artifacts, tmp_path):
+    train_version, eval_version = artifacts
+    root = tmp_path / "data" / "artifacts"
+    sections_path = root / eval_version / "sections.parquet"
+    sections = pl.read_parquet(sections_path).with_columns(
+        pl.when(pl.col("split") == "train")
         .then(pl.lit("train-0"))
         .otherwise(pl.col("song_id"))
         .alias("song_id")
@@ -183,14 +210,42 @@ def test_dev_tuning_never_checks_or_scores_test_rows(artifacts, tmp_path):
         mixing_k_values=(100.0,),
         artifact_root=root,
     )
+    assert tuning["leak_check"]["checked_splits"] == ["dev", "test"]
     assert tuning["leak_check"]["dev_song_count"] == 10
-    with pytest.raises(AssertionError, match="Leak detected"):
-        prediction_module.run_evaluation(
-            train_version=train_version,
-            eval_version=eval_version,
-            sample_size=10,
-            artifact_root=root,
-        )
+    assert tuning["leak_check"]["test_song_count"] == 10
+
+
+def test_tuning_selects_maximal_mrr_and_lower_k_on_ties(artifacts, tmp_path, monkeypatch):
+    train_version, eval_version = artifacts
+
+    class OraclePredictor:
+        def __init__(self, store, max_order_cap, mixing_k=100.0):
+            self.mixing_k = mixing_k
+
+        def distribution(self, history, genre, section):
+            if genre is None or self.mixing_k in (10.0, 20.0):
+                return {"M:V": 0.9, "M:IV": 0.1}
+            return {"M:IV": 0.9, "M:V": 0.1}
+
+    position = SimpleNamespace(history=("M:I",), genre="pop", section="verse", actual="M:V")
+    monkeypatch.setattr(prediction_module, "KNPredictor", OraclePredictor)
+    monkeypatch.setattr(
+        prediction_module, "sample_test_positions", lambda *args, **kwargs: [position]
+    )
+    report = prediction_module.tune_mixing_k(
+        train_version=train_version,
+        eval_version=eval_version,
+        sample_size=1,
+        mixing_k_values=(30.0, 20.0, 10.0),
+        artifact_root=tmp_path / "data" / "artifacts",
+    )
+    assert report["candidates"] == [
+        {"mixing_k": 30.0, "context_mrr": 0.5},
+        {"mixing_k": 20.0, "context_mrr": 1.0},
+        {"mixing_k": 10.0, "context_mrr": 1.0},
+    ]
+    assert report["selected_mixing_k"] == 10.0
+    assert report["selected_context_mrr"] == 1.0
 
 
 def test_tuning_rejects_invalid_grid_before_loading_artifacts():

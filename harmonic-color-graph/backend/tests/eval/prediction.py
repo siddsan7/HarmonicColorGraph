@@ -59,12 +59,12 @@ def assert_no_leakage(
     eval_split: str,
     *,
     artifact_root: Path | None = None,
+    check_test_split: bool = False,
 ) -> dict:
-    """F31's dev-split-tuning-only check: no song sampled from
-    `eval_version`'s `eval_split` rows may appear in the train artifact's
-    ingested songs. Returns a small report dict; raises if it fails --
-    this is a hard gate, not a warning, since a leak invalidates every
-    metric below it.
+    """Verify train-song disjointness from the requested held-out song IDs.
+
+    Tuning checks both dev and test IDs before scoring dev positions. Only
+    song IDs and split labels are read here; the test positions stay unseen.
     """
     import polars as pl
 
@@ -73,22 +73,27 @@ def assert_no_leakage(
             _artifact_dir(train_version, artifact_root) / "ingest.parquet", columns=["song_id"]
         )["song_id"].to_list()
     )
-    eval_song_ids = {
-        row["song_id"]
-        for row in _read_sections(eval_version, split=eval_split, artifact_root=artifact_root)
-    }
-    overlap = train_song_ids & eval_song_ids
-    if overlap:
-        raise AssertionError(
-            f"Leak detected: {len(overlap)} {eval_split}-split song(s) from {eval_version!r} "
-            f"appear in {train_version!r}'s train artifact, e.g. {sorted(overlap)[:5]!r}"
-        )
-    return {
+    splits = (eval_split, "test") if check_test_split and eval_split != "test" else (eval_split,)
+    eval_frame = pl.read_parquet(
+        _artifact_dir(eval_version, artifact_root) / "sections.parquet",
+        columns=["song_id", "split"],
+    )
+    report = {
         "train_song_count": len(train_song_ids),
-        f"{eval_split}_song_count": len(eval_song_ids),
+        "checked_splits": list(splits),
         "overlap": 0,
         "passed": True,
     }
+    for split in splits:
+        eval_song_ids = set(eval_frame.filter(pl.col("split") == split)["song_id"].to_list())
+        overlap = train_song_ids & eval_song_ids
+        if overlap:
+            raise AssertionError(
+                f"Leak detected: {len(overlap)} {split}-split song(s) from {eval_version!r} "
+                f"appear in {train_version!r}'s train artifact, e.g. {sorted(overlap)[:5]!r}"
+            )
+        report[f"{split}_song_count"] = len(eval_song_ids)
+    return report
 
 
 def _position_context(position: SampledPosition) -> dict[str, str]:
@@ -172,7 +177,7 @@ def tune_mixing_k(
     mixing_k_values: tuple[float, ...] = MIXING_K_GRID,
     artifact_root: Path | None = None,
 ) -> dict:
-    """Choose context-mixing K on the dev split only; never inspect test rows."""
+    """Choose context-mixing K on dev after checking dev/test song-ID isolation."""
     if not mixing_k_values or any(not math.isfinite(k) or k <= 0 for k in mixing_k_values):
         raise ValueError("mixing K candidates must be finite positive numbers")
     if len(set(mixing_k_values)) != len(mixing_k_values):
@@ -180,7 +185,9 @@ def tune_mixing_k(
     if sample_size <= 0:
         raise ValueError("sample size must be positive")
 
-    leak_report = assert_no_leakage(train_version, eval_version, "dev", artifact_root=artifact_root)
+    leak_report = assert_no_leakage(
+        train_version, eval_version, "dev", artifact_root=artifact_root, check_test_split=True
+    )
     store = InMemoryNgramStore.from_parquet(
         str(_artifact_dir(train_version, artifact_root) / "ngrams.parquet")
     )
@@ -228,7 +235,7 @@ def render_tuning_markdown(report: dict) -> str:
         "",
         f"Train: `{versions['train']}`. Dev source: `{versions['eval_source']}`. "
         f"Positions: `{sample['actual_size']}` (seed `{sample['seed']}`).",
-        f"Leak overlap: `{report['leak_check']['overlap']}`.",
+        f"Train overlap with dev/test song IDs: `{report['leak_check']['overlap']}`.",
         "",
         f"Context-free MRR: `{report['context_free_mrr']}`.",
         "",
@@ -243,7 +250,7 @@ def render_tuning_markdown(report: dict) -> str:
             f"dev MRR `{report['selected_context_mrr']}` "
             f"(delta `{report['selected_delta_vs_context_free']}` vs. context-free).",
             "",
-            "Selection used only dev rows. Held-out test evidence requires a separate run.",
+            "Selection scored only dev rows. Held-out test evidence requires a separate run.",
         ]
     )
     return "\n".join(lines)
