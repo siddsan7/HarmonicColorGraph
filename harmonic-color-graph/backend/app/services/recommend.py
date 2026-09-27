@@ -11,6 +11,8 @@ from typing import Any, Protocol
 
 from sqlalchemy.orm import Session
 
+from app.core import telemetry
+from app.core.metrics import emit_metric
 from app.db.stores.graph import FactStore, NgramStore, PatternStore
 from app.predict.ngram import KNPredictor, NgramHistory, PredictionResult, TokenPrediction
 from app.predict.realize import realize
@@ -119,7 +121,12 @@ class RecommendationService:
         tokens, key, warnings = _input_tokens(request.progression, request.key)
         genre = _context_value(request.genre)
         section = _context_value(request.section)
-        prediction = self.predictor.predict(tokens, genre=genre, section=section, top_n=100)
+        retrieval_started = time.perf_counter()
+        with telemetry.safe_span("recommend.retrieval"):
+            prediction = self.predictor.predict(tokens, genre=genre, section=section, top_n=100)
+        emit_metric(
+            "recommend_retrieval_latency_ms", (time.perf_counter() - retrieval_started) * 1000
+        )
         intent_mode = request.intent is not None or request.preset is not None
         recommendations = (
             self._intent_items(prediction, tokens, key, request)
@@ -175,14 +182,19 @@ class RecommendationService:
     def _intent_items(
         self, prediction: PredictionResult, history: list[str], key: str, request: RecommendRequest
     ) -> list[Recommendation]:
-        pool = generate_candidates(history, key, prediction)
+        with telemetry.safe_span("recommend.candidate_generation"):
+            pool = generate_candidates(history, key, prediction)
+        emit_metric("recommend_candidate_count", len(pool))
         features = [extract_features(candidate, history, key) for candidate in pool[:64]]
-        scored = score_candidates(
-            features,
-            intent=request.intent,
-            preset=request.preset or "balanced",
-            limit=request.limit,
-        )
+        rerank_started = time.perf_counter()
+        with telemetry.safe_span("recommend.rerank"):
+            scored = score_candidates(
+                features,
+                intent=request.intent,
+                preset=request.preset or "balanced",
+                limit=request.limit,
+            )
+        emit_metric("recommend_rerank_latency_ms", (time.perf_counter() - rerank_started) * 1000)
         if not scored:
             return []
         original = {item.token: item for item in prediction.predictions}

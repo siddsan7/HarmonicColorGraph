@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import threading
 import time
@@ -12,7 +13,9 @@ from pydantic import ValidationError
 from redis.exceptions import RedisError
 from sqlalchemy.orm import Session
 
+from app.core import telemetry
 from app.core.config import AppSettings
+from app.core.metrics import emit_metric
 from app.jobs.handlers import JobTypeUnavailableError, run_job
 from app.jobs.policy import is_retryable
 from app.jobs.queue import JobQueue
@@ -46,7 +49,9 @@ class JobWorker:
         return len(queued_ids)
 
     def process_one(self, timeout: int = 5) -> bool:
+        idle_started = time.perf_counter()
         raw_id = self.queue.receive(timeout=timeout)
+        emit_metric("worker_idle_ms", (time.perf_counter() - idle_started) * 1000)
         if raw_id is None:
             return False
         try:
@@ -60,6 +65,30 @@ class JobWorker:
         if job is None:
             return False  # Duplicate wakeup, cancelled, or already claimed.
 
+        started = time.perf_counter()
+        with telemetry.safe_span("job.process") as span:
+            span.set_attribute("hcg.job_id", job_id)
+            span.set_attribute("hcg.job_type", job["type"])
+            outcome = self._execute_claimed(job_id, job)
+            logger.info(
+                json.dumps(
+                    {
+                        "event": "job_processed",
+                        "trace_id": telemetry.current_trace_id(),
+                        "job_id": job_id,
+                        "job_type": job["type"],
+                        "outcome": outcome,
+                    },
+                    sort_keys=True,
+                )
+            )
+        duration = (time.perf_counter() - started) * 1000
+        emit_metric("job_duration_ms", duration, job_type=job["type"])
+        emit_metric("worker_busy_ms", duration)
+        return True
+
+    def _execute_claimed(self, job_id: str, job: dict) -> str:
+
         heartbeat_stop = threading.Event()
 
         def renew_until_done() -> None:
@@ -68,8 +97,8 @@ class JobWorker:
                     with self.session_factory() as session:
                         if not JobRepository(session).renew_lease(job_id, self.worker_id):
                             return
-                except Exception:
-                    logger.exception("Lease renewal failed for job %s", job_id)
+                except Exception as exc:
+                    logger.error("Lease renewal failed for job %s (%s)", job_id, type(exc).__name__)
 
         heartbeat = threading.Thread(target=renew_until_done, daemon=True)
         heartbeat.start()
@@ -90,25 +119,41 @@ class JobWorker:
         except (ValidationError, JobTypeUnavailableError, FileNotFoundError, ValueError) as exc:
             logger.warning("Job %s failed validation: %s", job_id, type(exc).__name__)
             with self.session_factory() as session:
-                JobRepository(session).fail(job_id, self.worker_id, "invalid_job", str(exc))
+                status = JobRepository(session).fail(
+                    job_id, self.worker_id, "invalid_job", type(exc).__name__
+                )
+                if status == "dead_letter":
+                    emit_metric("job_dead_letter_count", 1, job_type=job["type"])
+                outcome = status
         except Exception as exc:
             retryable = is_retryable(exc)
-            logger.exception("Job %s failed (retryable=%s)", job_id, retryable)
+            logger.error(
+                "Job %s failed (retryable=%s, category=%s)",
+                job_id,
+                retryable,
+                type(exc).__name__,
+            )
             with self.session_factory() as session:
-                JobRepository(session).fail(
+                status = JobRepository(session).fail(
                     job_id,
                     self.worker_id,
                     "temporary_failure" if retryable else "job_failed",
                     "Job execution failed; inspect worker logs.",
                     retryable=retryable,
                 )
+                if status == "retrying":
+                    emit_metric("job_retry_count", 1, job_type=job["type"])
+                elif status == "dead_letter":
+                    emit_metric("job_dead_letter_count", 1, job_type=job["type"])
+                outcome = status
         else:
             with self.session_factory() as session:
                 JobRepository(session).complete(job_id, self.worker_id, result)
+            outcome = "completed"
         finally:
             heartbeat_stop.set()
             heartbeat.join(timeout=5)
-        return True
+        return outcome
 
     def run_forever(self, should_stop: Callable[[], bool]) -> None:
         recovered = False
@@ -128,6 +173,6 @@ class JobWorker:
                 logger.warning("Redis queue unavailable; retrying")
                 recovered = False
                 time.sleep(3)
-            except Exception:
-                logger.exception("Worker loop failed; retrying")
+            except Exception as exc:
+                logger.error("Worker loop failed; retrying (%s)", type(exc).__name__)
                 time.sleep(3)

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Session
 
+from app.core import telemetry
 from app.db.stores.graph import _ActiveStore
 
 SUBJECT_TYPES = {"function", "pattern"}
@@ -66,13 +67,16 @@ class EmbeddingStore(_ActiveStore):
                      and model = :model and subject_id <> :exclude
                    order by vec <=> cast(:vec as extensions.vector)
                    limit :limit"""
-        return self._all(
-            query,
-            vec="[" + ",".join(map(str, vector)) + "]",
-            model=model,
-            exclude=exclude,
-            limit=limit,
-        )
+        with telemetry.safe_span("pgvector.neighbors") as span:
+            span.set_attribute("hcg.subject_type", subject_type)
+            span.set_attribute("hcg.limit", limit)
+            return self._all(
+                query,
+                vec="[" + ",".join(map(str, vector)) + "]",
+                model=model,
+                exclude=exclude,
+                limit=limit,
+            )
 
     def popular_patterns(self, *, limit: int = 500) -> list[dict]:
         if not 1 <= limit <= 1000:

@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import os
 import re
+import time
 from collections.abc import Callable, Iterator
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
+from langsmith.run_helpers import tracing_context
 from pydantic import ValidationError
 
 from app.ai.state import (
@@ -31,6 +33,8 @@ from app.ai.usage import (
     configured_rates,
 )
 from app.ai.validators import validate_draft
+from app.core import telemetry
+from app.core.metrics import emit_metric
 
 StructuredCall = Callable[[str], Any]
 _KEY = re.compile(r"\bin\s+([A-G](?:#|b)?\s+(?:major|minor))\b", re.IGNORECASE)
@@ -105,15 +109,38 @@ def _llm_calls(
         runnable = model.with_structured_output(schema, include_raw=True)
 
         def invoke(prompt: str) -> Any:
-            result = runnable.invoke(prompt)
-            if meter is not None:
-                input_rate, output_rate = configured_rates(name, rate_prefix)
-                meter.record(
-                    result["raw"],
-                    name,
-                    input_rate=input_rate,
-                    output_rate=output_rate,
-                )
+            started = time.perf_counter()
+            with telemetry.safe_span("ai.model") as span:
+                span.set_attribute("gen_ai.request.model", name)
+                try:
+                    result = runnable.invoke(prompt)
+                    if meter is not None:
+                        input_rate, output_rate = configured_rates(name, rate_prefix)
+                        prior_in, prior_out, prior_cost = (
+                            meter.tokens_in,
+                            meter.tokens_out,
+                            meter.cost_usd,
+                        )
+                        meter.record(
+                            result["raw"],
+                            name,
+                            input_rate=input_rate,
+                            output_rate=output_rate,
+                        )
+                        emit_metric("ai_tokens_in", meter.tokens_in - prior_in, model=name)
+                        emit_metric("ai_tokens_out", meter.tokens_out - prior_out, model=name)
+                        emit_metric("ai_cost_usd", float(meter.cost_usd - prior_cost), model=name)
+                        span.set_attribute("gen_ai.usage.input_tokens", meter.tokens_in - prior_in)
+                        span.set_attribute(
+                            "gen_ai.usage.output_tokens", meter.tokens_out - prior_out
+                        )
+                except Exception:
+                    emit_metric("ai_llm_error_count", 1, model=name)
+                    raise
+                finally:
+                    emit_metric(
+                        "ai_llm_latency_ms", (time.perf_counter() - started) * 1000, model=name
+                    )
             if result["parsing_error"] is not None:
                 raise ValueError("Model structured output failed validation")
             return result["parsed"]
@@ -166,7 +193,7 @@ class AssistantWorkflow:
             "final": self._final,
         }
         for name, node in nodes.items():
-            builder.add_node(name, node)
+            builder.add_node(name, self._traced_node(name, node))
         builder.add_edge(START, "intent_parser")
         builder.add_edge("intent_parser", "analyze")
         builder.add_edge("analyze", "router")
@@ -185,6 +212,32 @@ class AssistantWorkflow:
         builder.add_edge("final", END)
         self.graph = builder.compile()
 
+    @staticmethod
+    def _traced_node(name: str, node: Callable[[AssistantState], dict[str, Any]]):
+        def run(state: AssistantState) -> dict[str, Any]:
+            started = time.perf_counter()
+            with telemetry.safe_span(f"ai.node.{name}"):
+                result = node(state)
+            emit_metric(
+                "ai_node_latency_ms", (time.perf_counter() - started) * 1000, operation=name
+            )
+            if name == "validate" and len(result.get("validated_candidates", [])) < len(
+                state.get("scored_candidates", [])
+            ):
+                emit_metric("ai_validation_failure_count", 1)
+            if name == "explain" and result.get("fallback"):
+                emit_metric("ai_fallback_count", 1)
+            return result
+
+        return run
+
+    @staticmethod
+    def _langsmith_enabled() -> bool:
+        return (
+            bool(os.getenv("LANGSMITH_API_KEY"))
+            and os.getenv("LANGSMITH_TRACING", "false").lower() == "true"
+        )
+
     @classmethod
     def from_environment(
         cls, tools: HarmonicTools, *, meter: UsageMeter | None = None
@@ -195,7 +248,8 @@ class AssistantWorkflow:
     def run(self, query: str) -> AssistantResponse:
         if not 1 <= len(query.strip()) <= 2000:
             raise ValueError("Query must contain 1–2000 characters")
-        state = self.graph.invoke(self._initial_state(query))
+        with tracing_context(enabled=self._langsmith_enabled()):
+            state = self.graph.invoke(self._initial_state(query))
         return AssistantResponse.model_validate(state["response"])
 
     @staticmethod
@@ -220,7 +274,7 @@ class AssistantWorkflow:
             "explain": "format_playback",
             "format_playback": "final",
         }
-        for update in self.graph.stream(state, stream_mode="updates"):
+        for update in self._graph_updates(state):
             for node, delta in update.items():
                 state.update(delta or {})
                 yield "step", {"node": node, "status": "completed"}
@@ -248,6 +302,10 @@ class AssistantWorkflow:
                     "final" if node == "router" and state["route"] == "clarify" else sequence[node]
                 )
                 yield "step", {"node": next_node, "status": "started"}
+
+    def _graph_updates(self, state: AssistantState) -> Iterator[dict[str, Any]]:
+        with tracing_context(enabled=self._langsmith_enabled()):
+            yield from self.graph.stream(state, stream_mode="updates")
 
     def _intent_parser(self, state: AssistantState) -> dict[str, Any]:
         query = state["raw_user_query"]
@@ -554,6 +612,9 @@ class AssistantWorkflow:
                     validate_draft(draft, facts, state.get("tool_results", {}))
                     return {"explanation": draft, "fallback": False}
                 except (ValueError, ValidationError) as exc:
+                    emit_metric("ai_validation_failure_count", 1)
+                    if attempt + 1 < MAIN_MAX_CALLS:
+                        emit_metric("ai_repair_attempt_count", 1)
                     error_code = f"explanation_validation_failed:{type(exc).__name__}"
                     prompt += (
                         f"\nRepair attempt {attempt + 1}: {type(exc).__name__}. "

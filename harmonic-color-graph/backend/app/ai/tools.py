@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 from dataclasses import dataclass
 from typing import Any
 
@@ -34,6 +35,8 @@ from app.ai.schemas import (
     ToolResult,
     TransitionData,
 )
+from app.core import telemetry
+from app.core.metrics import emit_metric
 from app.db.stores.embeddings import EmbeddingStore
 from app.db.stores.graph import GraphStore, PatternStore
 from app.graph.service import GraphService
@@ -349,6 +352,15 @@ class HarmonicTools:
     def call(self, name: str, payload: dict[str, Any]) -> ToolResult[Any]:
         if name not in TOOL_MODELS:
             raise ToolError("unknown_tool", f"Unknown harmonic tool: {name}")
+        started = time.perf_counter()
+        with telemetry.safe_span(f"ai.tool.{name}"):
+            try:
+                return self._call_validated(name, payload)
+            finally:
+                emit_metric("ai_tool_call_count", 1, tool=name)
+                emit_metric("ai_tool_latency_ms", (time.perf_counter() - started) * 1000, tool=name)
+
+    def _call_validated(self, name: str, payload: dict[str, Any]) -> ToolResult[Any]:
         input_model, output_model = TOOL_MODELS[name]
         try:
             request = input_model.model_validate(payload)

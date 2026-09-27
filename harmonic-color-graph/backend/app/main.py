@@ -19,8 +19,10 @@ from app.api.similar_v2 import router as similar_v2_router
 from app.api.substitutes_v2 import router as substitutes_v2_router
 from app.core.config import get_settings
 from app.core.redis import ping_redis
+from app.core.telemetry import TelemetryMiddleware, configure_telemetry
 from app.db.session import get_session
 
+configure_telemetry()
 settings = get_settings()
 
 app = FastAPI(
@@ -35,6 +37,7 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+app.add_middleware(TelemetryMiddleware)
 
 # The v1 baseline stays callable permanently at /v1/* once v2 routes land
 # (feature-specs/v2-implementation-plan.md F06); the unversioned aliases are

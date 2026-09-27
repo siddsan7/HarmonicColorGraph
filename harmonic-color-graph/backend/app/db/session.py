@@ -1,13 +1,51 @@
+import time
 from collections.abc import Generator
 from functools import lru_cache
 from pathlib import Path
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine, make_url
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
 
+from app.core import telemetry
 from app.core.config import get_settings
+from app.core.metrics import emit_metric
+
+
+def _instrument_engine(engine: Engine) -> None:
+    @event.listens_for(engine, "before_cursor_execute")
+    def before(_conn, _cursor, statement, _parameters, context, _executemany):
+        # Record the SQL verb only. SQL text, parameters and connection URLs can be sensitive.
+        verb = statement.lstrip().split(None, 1)[0].upper() if statement.strip() else "UNKNOWN"
+        operation = verb if verb in {"SELECT", "INSERT", "UPDATE", "DELETE"} else "OTHER"
+        scope = telemetry.safe_span("db.query")
+        span = scope.__enter__()
+        span.set_attribute("db.system.name", engine.dialect.name)
+        span.set_attribute("db.operation.name", operation)
+        context._hcg_span = (scope, time.perf_counter(), operation)
+
+    def finish(context, *, error: bool = False):
+        active = getattr(context, "_hcg_span", None)
+        if active is None:
+            return
+        context._hcg_span = None
+        scope, started, operation = active
+        elapsed_ms = (time.perf_counter() - started) * 1000
+        emit_metric("db_query_latency_ms", elapsed_ms, operation=operation)
+        if elapsed_ms >= 100:
+            emit_metric("db_slow_query_count", 1, operation=operation)
+        if error:
+            emit_metric("db_query_error_count", 1, operation=operation)
+        scope.__exit__(None, None, None)
+
+    @event.listens_for(engine, "after_cursor_execute")
+    def after(_conn, _cursor, _statement, _parameters, context, _executemany):
+        finish(context)
+
+    @event.listens_for(engine, "handle_error")
+    def failed(exception_context):
+        finish(exception_context.execution_context, error=True)
 
 
 def get_database_url() -> str:
@@ -36,7 +74,9 @@ def create_database_engine(database_url: str | None = None) -> Engine:
         db_path = make_url(url).database
         if db_path and db_path != ":memory:":
             Path(db_path).parent.mkdir(parents=True, exist_ok=True)
-    return create_engine(url, **engine_kwargs)
+    engine = create_engine(url, **engine_kwargs)
+    _instrument_engine(engine)
+    return engine
 
 
 def create_session_factory(database_url: str | None = None) -> sessionmaker[Session]:

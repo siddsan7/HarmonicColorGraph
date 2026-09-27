@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from threading import Lock
 from typing import Any, Protocol
 
+from app.core.telemetry import traced
+
 
 class GraphReader(Protocol):
     def active_version(self) -> str | None: ...
@@ -176,6 +178,7 @@ class GraphService:
                 _ADJACENCY_CACHE.popitem(last=False)
             return _ADJACENCY_CACHE[key]
 
+    @traced("graph.traversal")
     def paths(
         self,
         src: str,
