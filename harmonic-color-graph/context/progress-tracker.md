@@ -17,7 +17,11 @@ details. Local M6 UI verification on 2026-09-27 passed frontend lint,
 typecheck, 31 Vitest tests, build, and 17 targeted Chromium browser checks
 using mocked API responses. Accessibility scored 100; four mobile performance
 runs scored 73, 82, 82, and 84, so that threshold needs repeatable evidence.
-These local results do not establish production acceptance.
+Repeated browser measurements put mocked `I` neighborhood layout and paint at
+393–422 ms and synthetic 5,000-point map mouse hover to painted label at
+15.7–18.1 ms. The mobile picker opened the Workbench with restored state.
+These local results do not establish production acceptance or real-corpus load
+times.
 
 ## Open acceptance gates
 
