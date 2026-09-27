@@ -62,6 +62,8 @@ def test_thresholds_require_completed_cases_and_claims():
     assert summarize([row], 1, Decimal("0.01"))["passed"]
     assert not summarize([row], 2, Decimal("0.01"))["passed"]
     assert not summarize([{**row, "claim_count": 0, "valid_claims": 0}], 1, Decimal(0))["passed"]
+    assert not summarize([{**row, "required_tags": False}], 1, Decimal(0))["passed"]
+    assert not summarize([{**row, "tool_correct": False}], 1, Decimal(0))["passed"]
 
 
 def test_live_cost_cap_stops_before_model_invocation(monkeypatch):

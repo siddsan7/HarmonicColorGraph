@@ -14,9 +14,9 @@ The scoring rules are:
 | Intent match | Each target axis is within 0.35 of the parsed intent value and the first candidate's measured color step moves in the requested direction | ≥75% |
 | Intent parse match | Target color axes alone match the structured parser result | Reported |
 | Color axis match | First candidate's measured color step aligns with the target | Reported |
-| Tool correctness | Expected set is called and extra calls stay under the case allowance | Reported |
-| Theory validity | All claims pass the grounding validator and candidate facts/tools are traceable | Reported |
-| Required theory tags | Case-required relationship IDs occur in claim labels | Reported |
+| Tool correctness | Expected set is called and extra calls stay under the case allowance | 100% |
+| Theory validity | All claims pass the grounding validator and candidate facts/tools are traceable | 100% |
+| Required theory tags | Case-required relationship IDs occur in claim labels | 100% |
 | Fact coverage | Validator-passing claims divided by all claims | ≥95% |
 
 Passing also requires all 40 cases to complete, at least one scored intent case, and at least one claim. The fact-coverage measure is a deterministic faithfulness proxy; it does not prove semantic entailment. The score report includes per-case tool calls, validator codes, model usage, and estimated API cost. No prompt or model response text is persisted in the report.

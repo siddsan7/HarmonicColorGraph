@@ -26,6 +26,9 @@ THRESHOLDS = {
     "must_not": 1.0,
     "routing": 0.9,
     "intent_match": 0.75,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
     "fact_coverage": 0.95,
 }
 ROUTES = {"recommend", "explain", "generate", "similar", "compare", "clarify"}
@@ -82,9 +85,9 @@ class RecordingTools:
 def _tool_scope(*, fixture: bool):
     if fixture:
         # The weekly workflow uses reproducible seeded graph/vector/recommender services.
-        from tests.unit.test_mcp_server import _tools
+        from tests.eval.fixtures import seeded_tools
 
-        yield _tools()
+        yield seeded_tools()
     else:
         from app.db.session import _default_session_factory
 
