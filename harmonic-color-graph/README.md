@@ -126,6 +126,34 @@ Look up next chords:
 Invoke-RestMethod 'http://127.0.0.1:8000/next-chords?progression=I,V,vi&genre=pop&section=chorus'
 ```
 
+## Typed Harmonic Tools
+
+The M7 assistant uses ten validated internal tools in `backend/app/ai/tools.py`.
+They call the same domain services as the API without making HTTP requests.
+Analysis, color, and playback work without a corpus database; corpus-backed
+tools need a request-scoped database session. Every result includes typed
+`data`, `fact_ids`, and `evidence`. Empty `fact_ids` means the service has no
+stored fact to cite; callers must not invent one.
+
+```python
+from app.ai.tools import HarmonicTools
+from app.db.session import create_session_factory
+
+session_factory = create_session_factory()
+with session_factory() as session:
+    tools = HarmonicTools.from_session(session)
+    result = tools.call(
+        "recommend_next",
+        {"progression": ["C", "Am", "Dm"], "key": "C major", "limit": 3},
+    )
+    print(result.model_dump())
+```
+
+From `backend/`, export all input and output JSON schemas with
+`python -m app.ai.schemas > ai-tool-schemas.json`. Tool calls raise `ToolError`
+with stable codes for invalid input, missing corpus data, unavailable database,
+and invalid output. The external MCP interface is the next M7 feature.
+
 ## Phase Direction
 
 Phase 2 will add harmonic color profiles, embeddings,

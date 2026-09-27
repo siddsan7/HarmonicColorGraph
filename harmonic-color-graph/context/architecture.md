@@ -48,6 +48,10 @@ see `docs/roadmap-v2.md` and
   small, verifiable feature units.
 - `backend/app/api/` - Planned FastAPI route definitions and
   request/response wiring.
+- `backend/app/ai/` - Validated, request-scoped internal harmonic tools.
+  Pydantic schemas bound chord, key, context, and graph identifiers; the
+  dispatch layer calls services directly and returns typed data plus
+  evidence and stored fact IDs. LangGraph and MCP reuse this boundary.
 - `backend/app/theory/` - Planned symbolic music logic:
   chord parsing, normalization, key detection, Roman numeral
   conversion, theory labels, and voice-leading helpers.
