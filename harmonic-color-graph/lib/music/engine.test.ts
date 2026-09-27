@@ -97,4 +97,13 @@ describe("playback scheduling", () => {
     expect(voiced[1].map((note) => note % 12)).toEqual([5, 5, 9, 0])
     expect(voiced[1].every((note) => note >= 36 && note <= 84)).toBe(true)
   })
+
+  it("keeps the defining seventh in fallback voicings", () => {
+    const [dominant, extended] = resolveVoicings([
+      { label: "C7", pitchClasses: [0, 4, 7, 10] },
+      { label: "C9", pitchClasses: [0, 4, 7, 10, 2] },
+    ])
+    expect(new Set(dominant.map((note) => note % 12))).toEqual(new Set([0, 4, 7, 10]))
+    expect(new Set(extended.map((note) => note % 12))).toEqual(new Set([0, 4, 7, 10, 2]))
+  })
 })

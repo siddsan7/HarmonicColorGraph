@@ -28,9 +28,11 @@ export function resolveVoicings(chords: PlaybackChord[]): number[][] {
     const bassPc = chord.bassPc != null && pcs.includes(chord.bassPc) ? chord.bassPc : pcs[0]
     const basses = [36, 48, 60].flatMap((octave) => Array.from({ length: 12 }, (_, offset) => octave + offset)).filter((note) => note % 12 === bassPc && note <= 59)
     const bass = basses.sort((a, b) => Math.abs(a - (previous?.[0] ?? 48)) - Math.abs(b - (previous?.[0] ?? 48)) || a - b)[0]
-    const upperPcs = pcs.length >= 4 ? pcs.slice(0, 3) : [pcs[0], pcs[1] ?? pcs[0], pcs[2] ?? pcs[0]]
+    // Keep every distinct chord tone. For sevenths, the root is already in
+    // the bass, leaving the third, fifth, and defining seventh above it.
+    const upperPcs = pcs.length >= 4 ? pcs.slice(1) : [pcs[0], pcs[1] ?? pcs[0], pcs[2] ?? pcs[0]]
     const upper = upperPcs.map((pc, index) => {
-      const target = previous?.[index + 1] ?? [60, 64, 67][index]
+      const target = previous?.[index + 1] ?? [60, 64, 67][index] ?? 60 + index * 3
       return Array.from({ length: 25 }, (_, step) => 60 + step).filter((note) => note % 12 === pc)
         .sort((a, b) => Math.abs(a - target) - Math.abs(b - target) || a - b)[0]
     })
