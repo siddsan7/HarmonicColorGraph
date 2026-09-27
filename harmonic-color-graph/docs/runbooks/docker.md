@@ -1,9 +1,10 @@
 # Local Docker stack
 
-This stack runs the Next.js frontend, FastAPI API, a worker bootstrap,
+This stack runs the Next.js frontend, FastAPI API, durable job worker,
 pgvector/Postgres 17, and Redis. It applies the same SQL files used for
-Supabase. The worker validates Postgres and Redis connectivity; queue
-consumption is added in F27. Redis data is intentionally ephemeral.
+Supabase. The worker consumes Redis wakeups, reconciles queued jobs from the
+Postgres ledger, and retries recoverable work. Redis data is intentionally
+ephemeral.
 
 ## Requirements and first start
 
@@ -37,12 +38,16 @@ curl -f http://127.0.0.1:8000/health
 curl -f http://127.0.0.1:8000/health/db
 curl -f http://127.0.0.1:8000/health/redis
 docker compose exec worker python -m app.runtime_check dependencies
+docker compose logs worker
 ```
 
 `/health` is the API liveness check. `/health/db` and `/health/redis`
 confirm database and Redis connectivity. The API container health probe
 requires all three to pass. `docker compose ps` shows each service's
 health status.
+The worker dependency probe checks Postgres and Redis connectivity; a healthy
+probe alone does not prove that a job completed. Inspect worker logs and a
+job record when validating queue processing.
 
 ## Daily use
 
@@ -92,6 +97,7 @@ than running destructive integration fixtures against the app database.
 The local stack starts with empty harmonic tables. Production corpus data
 is not bundled in images or copied from Supabase. See the pipeline
 runbook and active implementation plan for loading a corpus. The worker
-is a connectivity bootstrap until F27 adds persistent jobs and queue
-consumption. The Compose stack validates local packaging and networking;
+implementation is merged, but a fresh Compose startup and job execution have
+not been verified on this host. The Compose stack validates local packaging
+and networking when run; it does not establish production worker readiness.
 Vercel and Supabase deployment still follow their separate runbooks.
