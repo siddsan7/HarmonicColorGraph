@@ -160,18 +160,21 @@ def validate_claims(
             violations.append(prefix + "figure_provenance")
         if lint_objective_emotion(claim.text):
             violations.append(prefix + "objective_emotion")
-        named_titles = [
-            match.group(0).lower()
+        title_matches = [
+            match
             for match in _TITLE.finditer(claim.text)
             if match.group(0).lower().removeprefix("the ").removeprefix("a ") not in _REGISTRY_NAMES
         ]
+        named_titles = [match.group(0).lower() for match in title_matches]
         named_titles.extend(
             match.group("name").lower()
             for match in _NAMED_SUBJECT.finditer(claim.text)
             if match.group("name").lower() not in _ANALYTIC_SUBJECTS
         )
         named_titles.extend(
-            match.group("name").lower() for match in _EXPLICIT_TITLE.finditer(claim.text)
+            match.group("name").lower()
+            for match in _EXPLICIT_TITLE.finditer(claim.text)
+            if not any(title.start() == match.start("name") for title in title_matches)
         )
         if (_SONG.search(claim.text) or named_titles) and not any(
             fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited

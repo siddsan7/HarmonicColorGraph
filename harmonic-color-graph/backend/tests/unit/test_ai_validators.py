@@ -166,3 +166,6 @@ def test_named_song_must_match_the_cited_example_row():
     assert "claim:0:song_provenance" in validate_claims([claim], unrelated, TOOLS)
     matching = {"example:abc": {"tool": "get_examples", "subject": "Let It Be"}}
     assert validate_claims([claim], matching, TOOLS) == []
+    explicit = Claim(text="The song Let It Be uses C.", fact_ids=["example:abc"])
+    assert validate_claims([explicit], matching, TOOLS) == []
+    assert "claim:0:song_provenance" in validate_claims([explicit], unrelated, TOOLS)
