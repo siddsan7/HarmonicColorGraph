@@ -946,6 +946,321 @@
         "title": "ExplainTransitionResponse",
         "type": "object"
       },
+      "GenerateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "allowed_genres": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Allowed Genres"
+          },
+          "cadence": {
+            "default": "any",
+            "enum": [
+              "authentic",
+              "plagal",
+              "deceptive",
+              "half",
+              "any"
+            ],
+            "title": "Cadence",
+            "type": "string"
+          },
+          "color_target": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Color Target",
+            "type": "object"
+          },
+          "custom_curve": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Curve"
+          },
+          "end": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "k": {
+            "default": 3,
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "K",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "length": {
+            "maximum": 16.0,
+            "minimum": 2.0,
+            "title": "Length",
+            "type": "integer"
+          },
+          "max_chromaticity": {
+            "default": 1.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Max Chromaticity",
+            "type": "number"
+          },
+          "novelty": {
+            "default": 0.0,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Novelty",
+            "type": "number"
+          },
+          "required_chords": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Required Chords",
+            "type": "object"
+          },
+          "smoothness": {
+            "default": 0.3,
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Smoothness",
+            "type": "number"
+          },
+          "start": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start"
+          },
+          "tension_curve": {
+            "default": "rise_then_resolve",
+            "enum": [
+              "rise_then_resolve",
+              "arch",
+              "plateau",
+              "custom"
+            ],
+            "title": "Tension Curve",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "length"
+        ],
+        "title": "GenerateRequest",
+        "type": "object"
+      },
+      "GenerateResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "corpus_version": {
+            "title": "Corpus Version",
+            "type": "string"
+          },
+          "genre": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Genre"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "latency_ms": {
+            "title": "Latency Ms",
+            "type": "number"
+          },
+          "paths": {
+            "items": {
+              "$ref": "#/components/schemas/GeneratedPath"
+            },
+            "title": "Paths",
+            "type": "array"
+          },
+          "warnings": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Warnings",
+            "type": "array"
+          }
+        },
+        "required": [
+          "key",
+          "paths",
+          "corpus_version",
+          "latency_ms"
+        ],
+        "title": "GenerateResponse",
+        "type": "object"
+      },
+      "GeneratedPath": {
+        "additionalProperties": false,
+        "properties": {
+          "chords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chords",
+            "type": "array"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/RelationshipFact"
+            },
+            "title": "Facts",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "number"
+          },
+          "steps": {
+            "items": {
+              "$ref": "#/components/schemas/GeneratedStep"
+            },
+            "title": "Steps",
+            "type": "array"
+          },
+          "tokens": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Tokens",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens",
+          "chords",
+          "steps",
+          "facts",
+          "score"
+        ],
+        "title": "GeneratedPath",
+        "type": "object"
+      },
+      "GeneratedStep": {
+        "additionalProperties": false,
+        "properties": {
+          "chord": {
+            "title": "Chord",
+            "type": "string"
+          },
+          "color": {
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "title": "Color",
+            "type": "object"
+          },
+          "explanation": {
+            "title": "Explanation",
+            "type": "string"
+          },
+          "pitch_classes": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Pitch Classes",
+            "type": "array"
+          },
+          "score_breakdown": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Score Breakdown",
+            "type": "object"
+          },
+          "sources": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Sources",
+            "type": "array"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          },
+          "voicing": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Voicing",
+            "type": "array"
+          }
+        },
+        "required": [
+          "token",
+          "chord",
+          "sources",
+          "pitch_classes",
+          "voicing",
+          "color",
+          "explanation",
+          "score_breakdown"
+        ],
+        "title": "GeneratedStep",
+        "type": "object"
+      },
       "GraphRebuildPayload": {
         "additionalProperties": false,
         "properties": {
@@ -3604,6 +3919,47 @@
         "summary": "Find Substitutes",
         "tags": [
           "substitutes-v2"
+        ]
+      }
+    },
+    "/v2/generate-progression": {
+      "post": {
+        "operationId": "generate_progression_v2_generate_progression_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Progression",
+        "tags": [
+          "generate-v2"
         ]
       }
     },

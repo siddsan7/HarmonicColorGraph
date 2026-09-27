@@ -276,6 +276,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/generate-progression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate Progression */
+        post: operations["generate_progression_v2_generate_progression_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/graph/explain-edge": {
         parameters: {
             query?: never;
@@ -802,6 +819,114 @@ export interface components {
             technical_explanation: string;
             /** To Roman */
             to_roman: string;
+        };
+        /** GenerateRequest */
+        GenerateRequest: {
+            /** Allowed Genres */
+            allowed_genres?: string[] | null;
+            /**
+             * Cadence
+             * @default any
+             * @enum {string}
+             */
+            cadence: "authentic" | "plagal" | "deceptive" | "half" | "any";
+            /** Color Target */
+            color_target?: {
+                [key: string]: number;
+            };
+            /** Custom Curve */
+            custom_curve?: number[] | null;
+            /** End */
+            end?: string | null;
+            /** Genre */
+            genre?: string | null;
+            /**
+             * K
+             * @default 3
+             */
+            k: number;
+            /** Key */
+            key: string;
+            /** Length */
+            length: number;
+            /**
+             * Max Chromaticity
+             * @default 1
+             */
+            max_chromaticity: number;
+            /**
+             * Novelty
+             * @default 0
+             */
+            novelty: number;
+            /** Required Chords */
+            required_chords?: {
+                [key: string]: string;
+            };
+            /**
+             * Smoothness
+             * @default 0.3
+             */
+            smoothness: number;
+            /** Start */
+            start?: string | null;
+            /**
+             * Tension Curve
+             * @default rise_then_resolve
+             * @enum {string}
+             */
+            tension_curve: "rise_then_resolve" | "arch" | "plateau" | "custom";
+        };
+        /** GenerateResponse */
+        GenerateResponse: {
+            /** Corpus Version */
+            corpus_version: string;
+            /** Genre */
+            genre?: string | null;
+            /** Key */
+            key: string;
+            /** Latency Ms */
+            latency_ms: number;
+            /** Paths */
+            paths: components["schemas"]["GeneratedPath"][];
+            /** Warnings */
+            warnings?: string[];
+        };
+        /** GeneratedPath */
+        GeneratedPath: {
+            /** Chords */
+            chords: string[];
+            /** Facts */
+            facts: components["schemas"]["RelationshipFact"][];
+            /** Score */
+            score: number;
+            /** Steps */
+            steps: components["schemas"]["GeneratedStep"][];
+            /** Tokens */
+            tokens: string[];
+        };
+        /** GeneratedStep */
+        GeneratedStep: {
+            /** Chord */
+            chord: string;
+            /** Color */
+            color: {
+                [key: string]: number | null;
+            };
+            /** Explanation */
+            explanation: string;
+            /** Pitch Classes */
+            pitch_classes: number[];
+            /** Score Breakdown */
+            score_breakdown: {
+                [key: string]: number;
+            };
+            /** Sources */
+            sources: string[];
+            /** Token */
+            token: string;
+            /** Voicing */
+            voicing: number[];
         };
         /** GraphRebuildPayload */
         GraphRebuildPayload: {
@@ -1901,6 +2026,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SubstituteResponse"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    generate_progression_v2_generate_progression_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["GenerateResponse"];
                 };
             };
             /** @description Validation Error */

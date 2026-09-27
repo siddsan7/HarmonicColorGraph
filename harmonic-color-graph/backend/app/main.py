@@ -10,6 +10,7 @@ from app.api import phase1_router
 from app.api.analysis_v2 import router as analysis_v2_router
 from app.api.color_v2 import router as color_v2_router
 from app.api.examples_v2 import router as examples_v2_router
+from app.api.generate_v2 import router as generate_v2_router
 from app.api.graph_v2 import router as graph_v2_router
 from app.api.jobs_v2 import router as jobs_v2_router
 from app.api.recommend_v2 import router as recommend_v2_router
@@ -44,6 +45,7 @@ app.include_router(graph_v2_router)
 app.include_router(examples_v2_router)
 app.include_router(jobs_v2_router)
 app.include_router(recommend_v2_router)
+app.include_router(generate_v2_router)
 app.include_router(color_v2_router)
 app.include_router(similar_v2_router)
 app.include_router(substitutes_v2_router)
