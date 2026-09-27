@@ -74,3 +74,12 @@ class SimilarResponse(StrictModel):
     results: list[SimilarItem]
     corpus_version: str
     warnings: list[str] = Field(default_factory=list)
+
+
+class RealizeProgressionRequest(StrictModel):
+    tokens: list[str] = Field(min_length=1, max_length=16)
+    key: str = Field(min_length=2, max_length=80)
+
+
+class RealizeProgressionResponse(StrictModel):
+    chords: list[str]

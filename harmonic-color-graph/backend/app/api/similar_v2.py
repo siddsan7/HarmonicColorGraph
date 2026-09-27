@@ -11,13 +11,17 @@ from sqlalchemy.orm import Session
 from app.core.cache import RateLimiter, redis_client
 from app.db.session import get_session
 from app.db.stores.embeddings import EmbeddingStore
+from app.predict.realize import realize
 from app.schemas.similar_v2 import (
+    RealizeProgressionRequest,
+    RealizeProgressionResponse,
     SimilarChordRequest,
     SimilarFunctionRequest,
     SimilarProgressionRequest,
     SimilarResponse,
 )
 from app.services.similarity import SimilarityService
+from app.theory.roman import parse_key
 
 router = APIRouter(prefix="/v2", tags=["similarity-v2"])
 
@@ -87,3 +91,16 @@ def similar_progressions(
     payload: SimilarProgressionRequest, service: Service, request: Request
 ) -> SimilarResponse | JSONResponse:
     return _run(request, service, payload, service.progressions)
+
+
+@router.post("/realize-progression", response_model=RealizeProgressionResponse)
+def realize_progression(
+    payload: RealizeProgressionRequest,
+) -> RealizeProgressionResponse | JSONResponse:
+    try:
+        parse_key(payload.key)
+        return RealizeProgressionResponse(
+            chords=[realize(token, payload.key).chord.raw_symbol for token in payload.tokens]
+        )
+    except (ValueError, KeyError) as exc:
+        return _error(422, "invalid_progression", str(exc))

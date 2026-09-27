@@ -61,3 +61,14 @@ def test_similarity_errors_use_envelope(client):
     assert response.status_code == 422
     assert response.json()["error"]["code"] == "invalid_similarity_input"
     assert client.post("/v2/similar-progressions", json={"tokens": ["I"]}).status_code == 422
+
+
+def test_realize_progression_for_workbench(client):
+    response = client.post(
+        "/v2/realize-progression",
+        json={"tokens": ["M:I", "M:V7", "M:vi"], "key": "C major"},
+    )
+    assert response.status_code == 200
+    assert response.json()["chords"] == ["C", "G7", "Am"]
+    invalid = client.post("/v2/realize-progression", json={"tokens": ["invalid"], "key": "C major"})
+    assert invalid.status_code == 422
