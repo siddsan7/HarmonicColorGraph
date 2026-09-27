@@ -17,7 +17,9 @@ from app.ai.tools import HarmonicTools, ToolServices
 from app.ai.usage import UsageMeter, request_cost_bound
 from app.ai.validators import validate_claims
 from app.ai.workflow import AssistantWorkflow
-from app.recommend.scorer import INTENT_AXES
+from app.recommend.candidates import Candidate
+from app.recommend.features import extract_features
+from app.recommend.scorer import INTENT_AXES, intent_score
 from app.theory.relationships_v2 import RULES
 
 CORPUS = Path(__file__).with_name("ai_benchmark.jsonl")
@@ -96,32 +98,32 @@ def _tool_scope(*, fixture: bool):
 
 
 def _candidate_axes(response: AssistantResponse) -> dict[str, float]:
-    """Read the first recommendation's measured final step, never model prose."""
-    if not response.candidates or not response.candidates[0].color:
+    """Score the top recommendation with the same deltas and orientation as F60."""
+    result = response.tool_results.get("recommend_next") or {}
+    data = result.get("data") or {}
+    recommendations = data.get("recommendations") or []
+    if not recommendations or not response.candidates:
         return {}
-    arc = response.candidates[0].color.get("arc") or []
-    if not arc:
+    top = response.candidates[0].chords[-1]
+    recommendation = next((row for row in recommendations if row.get("chord") == top), None)
+    if recommendation is None or not recommendation.get("color"):
         return {}
-    current = arc[-1]
-    previous = arc[-2] if len(arc) > 1 else None
-    raw = current.get("raw") or {}
-    prior = (previous or {}).get("raw") or {}
-    measured: dict[str, float] = {}
-    for axis, field, polarity in (
-        ("darker_brighter", "brightness", 1),
-        ("tense_relaxed", "tension", -1),
-        ("common_surprising", "surprise", 1),
-        ("simple_complex", "complexity", 1),
-        ("resolved_open", "resolution", -1),
-    ):
-        if raw.get(field) is not None and prior.get(field) is not None:
-            measured[axis] = (raw[field] - prior[field]) * polarity
-    if raw.get("smoothness") is not None:
-        measured["smooth"] = raw["smoothness"] - 0.5
-    dreamy = (current.get("perceptual") or {}).get("dreaminess") or {}
-    if dreamy.get("value") is not None:
-        measured["dreamy"] = dreamy["value"] - 0.5
-    return measured
+    candidate = Candidate(
+        token=recommendation["token"],
+        generators=frozenset({"benchmark"}),
+        ngram_probability=recommendation["score_breakdown"]["ngram"],
+    )
+    try:
+        features = extract_features(candidate, data["input_tokens"], data["key"])
+        measured = {
+            axis: intent_score(recommendation["color"], {axis: 1.0}, features)
+            for axis in INTENT_AXES
+        }
+        # Surprise is a [0, 1] novelty amount, so common means below neutral.
+        measured["common_surprising"] -= 0.5
+        return measured
+    except (KeyError, TypeError, ValueError):
+        return {}
 
 
 def _measure(

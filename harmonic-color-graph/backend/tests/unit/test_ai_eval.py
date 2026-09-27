@@ -2,8 +2,9 @@
 
 from decimal import Decimal
 
-from app.ai.state import AssistantResponse, Claim, ParsedIntent
-from tests.eval.ai import _measure, load_cases, run, summarize
+from app.ai.state import AssistantCandidate, AssistantResponse, Claim, ParsedIntent
+from tests.eval.ai import _candidate_axes, _measure, load_cases, run, summarize
+from tests.eval.fixtures import seeded_tools
 
 
 def test_benchmark_has_distinct_routes_axes_and_constraints():
@@ -72,3 +73,40 @@ def test_live_cost_cap_stops_before_model_invocation(monkeypatch):
     assert report["cases_completed"] == 0
     assert report["cost_usd"] == "0"
     assert not report["passed"]
+
+
+def test_intent_axis_uses_authoritative_recommendation_delta():
+    result = (
+        seeded_tools()
+        .call(
+            "recommend_next",
+            {
+                "progression": ["C", "G", "Am"],
+                "key": "C major",
+                "intent": {"common_surprising": 0.7},
+                "limit": 2,
+            },
+        )
+        .model_dump(mode="json")
+    )
+    data = result["data"]["data"]
+    top = data["recommendations"][0]
+    response = AssistantResponse(
+        route="recommend",
+        message="Tool backed recommendation",
+        candidates=[
+            AssistantCandidate(chords=["C", "G", "Am", top["chord"]], source_tool="recommend_next")
+        ],
+        tool_results={"recommend_next": result["data"]},
+    )
+    measured = _candidate_axes(response)
+    assert measured["common_surprising"] == top["color"]["surprise"] - 0.5
+    assert set(measured) == {
+        "darker_brighter",
+        "tense_relaxed",
+        "common_surprising",
+        "simple_complex",
+        "resolved_open",
+        "smooth",
+        "dreamy",
+    }
