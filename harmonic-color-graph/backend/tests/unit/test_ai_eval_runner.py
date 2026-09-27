@@ -5,7 +5,8 @@ from types import SimpleNamespace
 
 import pytest
 
-from tests.eval.ai_adversarial import _cost, _model_call
+from app.ai.state import AssistantResponse
+from tests.eval.ai_adversarial import _case_failures, _cost, _model_call
 
 
 class FakeModel:
@@ -37,3 +38,19 @@ def test_model_wrapper_rejects_missing_usage():
     usage = {"fast": {"input": 0, "output": 0, "calls": 0}}
     with pytest.raises(ValueError, match="token usage"):
         _model_call(FakeModel({}), object, usage, "fast")("prompt")
+
+
+def test_evaluation_requires_main_model_for_fact_backed_case():
+    before = {"fast": {"calls": 0}, "main": {"calls": 0}}
+    usage = {"fast": {"calls": 1}, "main": {"calls": 0}}
+    response = AssistantResponse(
+        route="explain",
+        message="Safe fallback.",
+        fact_ids=["relationship:authentic:1:2"],
+        fallback=True,
+    )
+    assert _case_failures({"must_not": "FORBIDDEN"}, response, before, usage) == [
+        "main_model_not_called"
+    ]
+    usage["main"]["calls"] = 1
+    assert _case_failures({"must_not": "FORBIDDEN"}, response, before, usage) == []

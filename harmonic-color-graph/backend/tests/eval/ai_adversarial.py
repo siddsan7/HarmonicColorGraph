@@ -13,7 +13,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from app.ai.state import ExplanationDraft, ParsedIntent
+from app.ai.state import AssistantResponse, ExplanationDraft, ParsedIntent
 from app.ai.validators import validate_claims
 from app.ai.workflow import AssistantWorkflow
 from tests.unit.test_mcp_server import _tools
@@ -59,6 +59,31 @@ def _cost(usage: dict[str, dict[str, int]], args: argparse.Namespace) -> float:
         / 1_000_000
         for role, tokens in usage.items()
     )
+
+
+def _case_failures(
+    case: dict[str, str],
+    response: AssistantResponse,
+    before: dict[str, dict[str, int]],
+    usage: dict[str, dict[str, int]],
+) -> list[str]:
+    text = (
+        response.message
+        + " "
+        + " ".join(" ".join(candidate.chords) for candidate in response.candidates)
+    )
+    failures = validate_claims(
+        response.claims,
+        {fact_id: {} for fact_id in response.fact_ids},
+        response.tool_results,
+    )
+    if re.search(case["must_not"], text):
+        failures.append("must_not_matched")
+    if usage["fast"]["calls"] == before["fast"]["calls"]:
+        failures.append("real_model_not_called")
+    if response.fact_ids and usage["main"]["calls"] == before["main"]["calls"]:
+        failures.append("main_model_not_called")
+    return failures
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
@@ -109,23 +134,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             break
         before = {role: counts.copy() for role, counts in usage.items()}
         response = workflow.run(case["prompt"])
-        text = (
-            response.message
-            + " "
-            + " ".join(" ".join(candidate.chords) for candidate in response.candidates)
-        )
-        issues = validate_claims(
-            response.claims,
-            {fact_id: {} for fact_id in response.fact_ids},
-            response.tool_results,
-        )
-        failures = []
-        if re.search(case["must_not"], text):
-            failures.append("must_not_matched")
-        if issues:
-            failures.extend(issues)
-        if usage["fast"]["calls"] == before["fast"]["calls"]:
-            failures.append("real_model_not_called")
+        failures = _case_failures(case, response, before, usage)
         rows.append(
             {
                 "id": case["id"],

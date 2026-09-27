@@ -2,12 +2,11 @@
 
 import re
 
-_EMOTION = r"sad|happy|nostalgic|dreamy|hopeful|tense|dark|uplifting|melancholic"
-OBJECTIVE_EMOTION = re.compile(
-    rf"\b(?:is|means|makes (?:you|listeners?|everyone|everybody) feel|sounds|feels)\s+"
-    rf"(?:objectively\s+)?(?:{_EMOTION})\b",
-    re.IGNORECASE,
+_EMOTION = (
+    r"sad|sadness|happy|happiness|nostalgic|nostalgia|dreamy|dreaminess|"
+    r"hopeful|hopefulness|tense|dark|uplifting|melancholic|melancholy"
 )
+OBJECTIVE_EMOTION = re.compile(rf"\b(?:{_EMOTION})\b", re.IGNORECASE)
 _HEDGE = re.compile(
     r"\b(?:may|might|can|could|often|sometimes|commonly|tends? to|"
     r"some listeners?|many listeners?)\b",

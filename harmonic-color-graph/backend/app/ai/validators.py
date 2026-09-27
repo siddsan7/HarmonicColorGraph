@@ -12,13 +12,24 @@ from app.theory.language import lint_objective_emotion
 from app.theory.relationships_v2 import RULES
 
 _REGISTRY = {rule.id for rule in RULES}
-_CADENCES = {rule.name.lower() for rule in RULES if rule.name.endswith("cadence")}
+_REGISTRY_NAMES = {rule.name.lower() for rule in RULES}
 _SONG = re.compile(
-    r"\b(?:song|track|artist|album|recording|spotify|beatles)\b|"
+    r"\b(?:song(?!\s+(?:key|tonic|mode|analysis)\b)|track|artist|album|recording|spotify|beatles)\b|"
     r"\b(?:performed|recorded|released)\s+by\b|\b(?:in|from)\s+[\"“][^\"”]+[\"”]",
     re.IGNORECASE,
 )
 _TITLE = re.compile(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,}\b")
+_NAMED_SUBJECT = re.compile(
+    r"\b(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,}\s+"
+    r"(?:uses|contains|features)\b"
+)
+_THEORY_LABEL = re.compile(
+    r"\b(?:a|an|the|called|named)\s+"
+    r"((?:[a-z][a-z-]*\s+){1,2}"
+    r"(?:cadence|dominant|resolution|substitution|mediant|relation|motion|"
+    r"progression|third|modulation|function))\b",
+    re.IGNORECASE,
+)
 _CADENCE = re.compile(r"\b([a-z][a-z-]*)\s+cadence\b", re.IGNORECASE)
 _RELATIONSHIP = re.compile(r"\brelationship:([a-z][a-z0-9_]*)\b", re.IGNORECASE)
 
@@ -66,16 +77,25 @@ def validate_claims(
             violations.append(prefix + "figure_provenance")
         if lint_objective_emotion(claim.text):
             violations.append(prefix + "objective_emotion")
-        if (_SONG.search(claim.text) or _TITLE.search(claim.text)) and not any(
-            fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited
-        ):
+        named_title = any(
+            match.group(0).lower().removeprefix("the ").removeprefix("a ") not in _REGISTRY_NAMES
+            for match in _TITLE.finditer(claim.text)
+        )
+        if (
+            _SONG.search(claim.text) or named_title or _NAMED_SUBJECT.search(claim.text)
+        ) and not any(fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited):
             violations.append(prefix + "song_provenance")
         if any(label not in _REGISTRY for label in claim.theory_labels):
             violations.append(prefix + "theory_registry")
         if any(match.group(1) not in _REGISTRY for match in _RELATIONSHIP.finditer(claim.text)):
             violations.append(prefix + "theory_registry")
         if any(
-            match.group(0).lower() not in _CADENCES
+            match.group(1).lower() not in _REGISTRY_NAMES
+            for match in _THEORY_LABEL.finditer(claim.text)
+        ):
+            violations.append(prefix + "theory_registry")
+        if any(
+            match.group(0).lower() not in _REGISTRY_NAMES
             and match.group(1).lower() not in {"a", "an", "the", "this", "that", "each"}
             for match in _CADENCE.finditer(claim.text)
         ):

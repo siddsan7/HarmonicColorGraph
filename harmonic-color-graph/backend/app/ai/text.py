@@ -19,6 +19,15 @@ _FIGURE = re.compile(
     r"(?:13|11|9|7|65|64|43|42|6)?(?:[#b]\d+)?"
     r"(?:/(?:VII|VI|IV|III|II|V|I|vii|vi|iv|iii|ii|v|i))?)(?![\w])"
 )
+_UNKNOWN_CHORD = re.compile(
+    r"(?<![\w])(?:[HJ-UW-Z](?:#|b)?(?:maj|m|dim|aug|sus|add)?\d+|"
+    r"[HJ-UW-Z](?:#|b)?(?:maj|m|dim|aug|sus|add)|"
+    r"[A-G](?:#|b)?(?:maj|m|dim|aug|sus|add)\d+)(?:[#b]\d+)?(?![\w])"
+)
+_UNKNOWN_FIGURE = re.compile(
+    r"(?<![\w])(?:[b#]?(?:VII|VI|IV|III|II|V|I|vii|vi|iv|iii|ii|v|i)"
+    r"(?:\d{2,}|(?:maj|add|sus)\d+)|[b#](?:IX|X|VIII))(?![\w])"
+)
 
 
 def extract_chords(text: str) -> list[str]:
@@ -46,6 +55,7 @@ def chord_mentions(text: str) -> set[str]:
             if not musical_noun and not neighboring_chord:
                 continue
         mentions.add(symbol)
+    mentions.update(match.group(0) for match in _UNKNOWN_CHORD.finditer(text))
     return mentions
 
 
@@ -61,4 +71,5 @@ def figure_mentions(text: str) -> set[str]:
         ):
             continue
         mentions.add(symbol)
+    mentions.update(match.group(0) for match in _UNKNOWN_FIGURE.finditer(text))
     return mentions
