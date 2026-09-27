@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import math
-import re
 from collections import Counter, defaultdict
 
 from app.db.stores.embeddings import EmbeddingStore
@@ -15,10 +14,10 @@ from app.schemas.similar_v2 import (
     SimilarResponse,
 )
 from app.theory.chord_normalizer import normalize_chord
+from app.theory.core_tokens import BARE_ROMAN, CORE_TOKEN
 from app.theory.roman import analyze_v2, parse_key
 
-CORE = re.compile(r"^[Mm]:[b#]?[ivIV]+(?:[+oh]?7?|maj7)?(?:/[b#]?[ivIV]+)?$")
-BARE_ROMAN = re.compile(r"^[b#]?[ivIV]+(?:[+oh]?7?|maj7)?(?:/[b#]?[ivIV]+)?$")
+CORE = CORE_TOKEN
 
 
 def _rotation_of(a: list[str], b: list[str]) -> bool:

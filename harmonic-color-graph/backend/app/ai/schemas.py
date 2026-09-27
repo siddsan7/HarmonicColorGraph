@@ -16,13 +16,12 @@ from app.schemas.recommend_v2 import RecommendRequest, RecommendResponse
 from app.schemas.similar_v2 import SimilarProgressionRequest, SimilarResponse
 from app.schemas.substitutes_v2 import SubstituteRequest, SubstituteResponse
 from app.theory.chord_normalizer import normalize_chord
+from app.theory.core_tokens import CORE_TOKEN, FUNCTION_ID
 from app.theory.roman import parse_key
 
 Chord = Annotated[str, StringConstraints(min_length=1, max_length=80, strip_whitespace=True)]
 Key = Annotated[str, StringConstraints(min_length=2, max_length=80, strip_whitespace=True)]
 Context = Annotated[str, StringConstraints(min_length=1, max_length=80, strip_whitespace=True)]
-_TOKEN = re.compile(r"^[Mm]:[b#]?[ivIV]+(?:[+oh]?7?|maj7)?(?:/[b#]?[ivIV]+)?$")
-_FUNCTION_ID = re.compile(r"^(?:function:)?[Mm]:[b#]?[ivIV]+(?:[+oh]?7?|maj7)?(?:/[b#]?[ivIV]+)?$")
 _CONTEXT = re.compile(
     r"(?:genre|section|decade):[A-Za-z0-9 _-]{1,60}"
     r"|genre_section:[A-Za-z0-9 _-]{1,30}:[A-Za-z0-9 _-]{1,30}"
@@ -36,13 +35,13 @@ def validate_key(value: str | None) -> str | None:
 
 
 def validate_function_id(value: str) -> str:
-    if not _FUNCTION_ID.fullmatch(value):
+    if not FUNCTION_ID.fullmatch(value):
         raise ValueError("Expected a mode-prefixed function token or function node ID")
     return value
 
 
 def validate_harmony(value: str) -> str:
-    if not _TOKEN.fullmatch(value) and not normalize_chord(value).success:
+    if not CORE_TOKEN.fullmatch(value) and not normalize_chord(value).success:
         raise ValueError("Expected a supported chord symbol or mode-prefixed function token")
     return value
 
@@ -73,7 +72,14 @@ class AnalyzeInput(StrictModel):
     section_markers: bool = False
 
     _key = field_validator("key")(validate_key)
-    _chords = field_validator("chords")(validate_chords)
+
+    @model_validator(mode="after")
+    def validate_chords_and_markers(self) -> AnalyzeInput:
+        for chord in self.chords:
+            if chord == "|" and self.section_markers:
+                continue
+            validate_harmony(chord)
+        return self
 
 
 class RecommendInput(RecommendRequest):
@@ -128,7 +134,7 @@ class SimilarInput(SimilarProgressionRequest):
     @field_validator("tokens")
     @classmethod
     def validate_tokens(cls, value: list[str] | None) -> list[str] | None:
-        if value is not None and any(not _TOKEN.fullmatch(token) for token in value):
+        if value is not None and any(not CORE_TOKEN.fullmatch(token) for token in value):
             raise ValueError("tokens must be mode-prefixed core tokens")
         return value
 
@@ -174,7 +180,7 @@ class ExamplesInput(StrictModel):
         if (self.pattern_tokens is None) == (self.transition is None):
             raise ValueError("Provide exactly one pattern or transition")
         tokens = self.pattern_tokens or self.transition or ()
-        if any(not _TOKEN.fullmatch(token) for token in tokens):
+        if any(not CORE_TOKEN.fullmatch(token) for token in tokens):
             raise ValueError("Expected mode-prefixed core tokens")
         return self
 
@@ -231,6 +237,7 @@ class GraphPathData(StrictModel):
 
 
 class SongExample(StrictModel):
+    fact_id: str = Field(pattern=r"^example:[0-9a-f]{64}$")
     song_id: str
     spotify_id: str | None = None
     genre: str | None = None

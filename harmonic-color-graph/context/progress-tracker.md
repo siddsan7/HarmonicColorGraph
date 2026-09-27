@@ -17,9 +17,11 @@ PR #27 (`fbc7c65`); M5 documentation closed in PR #28 (`55722f5`).
 M6 F65 is merged via PR #36. Real-corpus UMAP publication, live similarity,
 and F61 manual listening remain pending. M7 F70 adds ten internal tools with
 input/output JSON schemas and evidence envelopes. Local F70 checks passed:
-23 focused tool tests; backend lint, format, and unit suite; frontend lint,
+26 focused tool tests after review fixes; backend lint, format, and unit suite; frontend lint,
 typecheck, tests, and build; documentation integrity. Thirteen Postgres tests
-skipped because no local test database is configured. PR CI and review pending.
+skipped because no local test database is configured. PR #37's first CI run
+passed; independent review found three tool-boundary gaps, now fixed for a
+second review and CI run.
 
 ## Pending human evidence
 

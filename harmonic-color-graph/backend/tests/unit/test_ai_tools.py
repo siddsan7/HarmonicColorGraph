@@ -99,6 +99,46 @@ def test_graph_evidence_and_direct_service_outputs_match(tools):
     )
 
 
+def test_examples_emit_stable_row_backed_citations(tools):
+    payload = {"transition": ["M:V", "M:I"]}
+    result = tools.call("get_examples", payload)
+    assert len(result.fact_ids) == 1
+    fact_id = result.data.examples[0].fact_id
+    assert fact_id.startswith("example:")
+    assert result.fact_ids == result.evidence[0].fact_ids == [fact_id]
+    assert tools.call("get_examples", payload).fact_ids == result.fact_ids
+    other = tools.call("get_examples", {"pattern_tokens": ["M:I", "M:V", "M:I"]})
+    assert other.fact_ids != result.fact_ids
+
+
+def test_section_markers_reach_analyzer_only_when_enabled(tools):
+    result = tools.call(
+        "analyze_progression",
+        {"chords": ["C", "|", "G"], "key": "C major", "section_markers": True},
+    )
+    assert len(result.data.chords) == 2
+    with pytest.raises(ToolError) as error:
+        tools.call("analyze_progression", {"chords": ["C", "|", "G"]})
+    assert error.value.code == "invalid_input"
+
+
+def test_emitted_sus_core_token_is_usable_in_graph_examples_and_similarity(tools):
+    analyzed = tools.call("analyze_progression", {"chords": ["Csus4"], "key": "C major"})
+    assert analyzed.data.tokens[0].core == "M:Isus4"
+    store = FixtureGraph()
+    store.active_version = lambda: "sus-fixture"
+    store.nodes["function:M:Isus4"] = {"id": "function:M:Isus4", "props": {}}
+    store.edges.append(store.edge("M:Isus4", "M:V", 0.7))
+    tools.services.graph = GraphService(store)
+    assert tools.call("graph_path", {"source": "M:Isus4", "target": "M:V"}).data.paths
+    assert tools.call("explain_transition", {"source": "M:Isus4", "target": "M:V"}).data.edges
+    assert tools.call("get_examples", {"transition": ["M:Isus4", "M:V"]}).data.examples
+    assert tools.call(
+        "similar_progressions",
+        {"tokens": ["M:Isus4", "M:V", "M:I"], "mode": "surface"},
+    ).data.query.startswith("M:Isus4")
+
+
 def test_unknown_tool_is_typed(tools):
     with pytest.raises(ToolError) as error:
         tools.call("run_sql", {"query": "select 1"})

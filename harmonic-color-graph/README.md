@@ -133,7 +133,9 @@ They call the same domain services as the API without making HTTP requests.
 Analysis, color, and playback work without a corpus database; corpus-backed
 tools need a request-scoped database session. Every result includes typed
 `data`, `fact_ids`, and `evidence`. Empty `fact_ids` means the service has no
-stored fact to cite; callers must not invent one.
+stored fact to cite; callers must not invent one. The examples tool assigns
+stable `example:*` IDs to exact returned corpus rows so later validators can
+check song citations against those rows.
 
 ```python
 from app.ai.tools import HarmonicTools

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from dataclasses import dataclass
 from typing import Any
 
@@ -165,6 +167,24 @@ def _edge(row: dict[str, Any]) -> GraphEdge:
     )
 
 
+def _example_fact_id(
+    version: str, kind: str, subject: str, context: str, row: dict[str, Any]
+) -> str:
+    """Bind a citation to one returned corpus example, including its query scope."""
+    identity = {
+        "version": version,
+        "kind": kind,
+        "subject": subject,
+        "context": context,
+        "song_id": row["song_id"],
+        "section": row.get("section"),
+        "ordinal": row["ordinal"],
+        "position": row.get("position"),
+    }
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return "example:" + hashlib.sha256(encoded).hexdigest()
+
+
 def explain_transition(
     request: ExplainTransitionInput, service: GraphService
 ) -> ToolResult[TransitionData]:
@@ -263,6 +283,7 @@ def get_examples(
         corpus_version=version,
         examples=[
             SongExample(
+                fact_id=_example_fact_id(version, kind, subject, request.context, row),
                 song_id=row["song_id"],
                 spotify_id=row.get("spotify_id"),
                 genre=row.get("genre"),
@@ -275,11 +296,12 @@ def get_examples(
             for row in rows
         ],
     )
-    # An example ID identifies the returned row; no unsupported graph fact is invented.
+    # These IDs cite exact returned rows and can enter the later F72 fact pool.
     return ToolResult[ExamplesData](
         data=data,
+        fact_ids=sorted({item.fact_id for item in data.examples}),
         evidence=[
-            ToolEvidence(source="corpus", subject=f"example:{item.song_id}")
+            ToolEvidence(source="corpus", subject=item.song_id, fact_ids=[item.fact_id])
             for item in data.examples
         ]
         or [ToolEvidence(source="corpus", subject=subject, count=0)],
