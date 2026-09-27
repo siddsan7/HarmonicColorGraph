@@ -98,7 +98,12 @@ class GraphService:
             for src in frontier:
                 candidates = self.store.outgoing_edges(src, context_id=context_id)
                 candidates.sort(key=lambda edge: (-_probability(edge), str(edge["dst"])))
-                eligible = [edge for edge in candidates if (not edge_types or edge["type"] in edge_types) and _probability(edge) >= min_prob]
+                eligible = [
+                    edge
+                    for edge in candidates
+                    if (not edge_types or edge["type"] in edge_types)
+                    and _probability(edge) >= min_prob
+                ]
                 # The DB store fetches all destinations in one statement.
                 # Fixture stores can keep the simpler per-node reader.
                 batch = getattr(self.store, "nodes", None)
@@ -108,7 +113,11 @@ class GraphService:
                     if key in seen_edges:
                         continue
                     seen_edges.add(key)
-                    target = targets.get(edge["dst"]) if callable(batch) else self.store.node(edge["dst"])
+                    target = (
+                        targets.get(edge["dst"])
+                        if callable(batch)
+                        else self.store.node(edge["dst"])
+                    )
                     if target is None:
                         continue
                     nodes[edge["dst"]] = target

@@ -55,7 +55,8 @@ class GraphStore(_ActiveStore):
         rows = self._all(
             """select n.id, n.version, n.type, n.label,
                       case when cp.subject_id is null then n.props
-                           else n.props || jsonb_build_object('color', cp.axes, 'support', cp.support)
+                           else n.props || jsonb_build_object(
+                               'color', cp.axes, 'support', cp.support)
                       end as props
                from hcg.nodes n
                left join hcg.color_profiles cp

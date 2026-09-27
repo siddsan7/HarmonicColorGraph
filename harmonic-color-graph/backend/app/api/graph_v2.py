@@ -8,11 +8,11 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.color.profile import realize_progression
 from app.core.cache import RateLimiter, VersionedCache, redis_client
 from app.db.session import get_session
 from app.db.stores.graph import GraphStore
 from app.graph.service import GraphService
-from app.color.profile import realize_progression
 
 router = APIRouter(prefix="/v2/graph", tags=["graph-v2"])
 
@@ -181,7 +181,16 @@ def realize_graph_path(request: RealizeRequest) -> dict | JSONResponse:
     if any(not node.startswith(("function:M:", "function:m:")) for node in request.nodes):
         return _error("invalid_path", "Only function nodes can be played", 422)
     try:
-        chords, _ = realize_progression([node.removeprefix("function:") for node in request.nodes], request.key)
+        chords, _ = realize_progression(
+            [node.removeprefix("function:") for node in request.nodes], request.key
+        )
     except ValueError as exc:
         return _error("invalid_path", str(exc), 422)
-    return {"data": {"chords": [{"label": chord.symbol, "pitch_classes": chord.pitch_classes} for chord in chords]}, "warnings": []}
+    return {
+        "data": {
+            "chords": [
+                {"label": chord.symbol, "pitch_classes": chord.pitch_classes} for chord in chords
+            ]
+        },
+        "warnings": [],
+    }
