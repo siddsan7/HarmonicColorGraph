@@ -220,23 +220,9 @@ matching `example:*` row. A bare sentence such as “Yesterday is in C” is
 ambiguous without that context.
 
 The 30-case F72 adversarial corpus is in
-`backend/tests/eval/ai_adversarial.jsonl`. Run its real-model gate from
-`backend/` after setting `ANTHROPIC_API_KEY`:
-
-```sh
-python -m tests.eval.ai_adversarial \
-  --fast-input-price <current-usd-per-million-tokens> \
-  --fast-output-price <current-usd-per-million-tokens> \
-  --main-input-price <current-usd-per-million-tokens> \
-  --main-output-price <current-usd-per-million-tokens> \
-  --max-cost-usd <approved-cap>
-```
-
-Use current prices for the configured models. The runner uses deterministic
-tool fixtures, calls both configured Claude models, enforces must-not checks,
-and records per-case token usage, failures, and estimated USD cost in the
-ignored `.agent-logs/f72-live-eval.json`. Its exit status is nonzero if any
-case fails or the cost cap prevents completing the corpus.
+`backend/tests/eval/ai_adversarial.jsonl`. Deterministic model fixtures verify
+the must-not rules without API access. A separate real-model evaluation runner
+is available for optional experiments.
 
 ## Phase Direction
 
