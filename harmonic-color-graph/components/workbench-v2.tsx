@@ -1,6 +1,7 @@
 "use client"
 
-import { type FormEvent, useMemo, useRef, useState } from "react"
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import { Activity, ArrowRight, LoaderCircle, RefreshCcw, Volume2, X } from "lucide-react"
 
 import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
@@ -27,6 +28,7 @@ import {
 import { useSystemHealth } from "@/lib/hooks/use-system-health"
 import { usePlayback } from "@/lib/hooks/use-playback"
 import type { Instrument, PlaybackChord, PlaybackSequence } from "@/lib/music/engine"
+import { readProgression, writeProgression, type SharedProgression } from "@/lib/progression-url"
 
 const samples = [
   { name: "Applied dominant", chords: "D7 - G - C", key: "C major" },
@@ -46,8 +48,22 @@ function functionTone(value: string): string {
 }
 
 export function WorkbenchV2() {
-  const [input, setInput] = useState(samples[0].chords)
-  const [key, setKey] = useState(samples[0].key)
+  const search = useSearchParams()
+  const [shared, setShared] = useState<SharedProgression>(() => readProgression(search))
+  const { input, key, genre, section } = shared
+  function updateShared(patch: Partial<SharedProgression>) {
+    const next = { ...shared, ...patch }
+    setShared(next)
+    const query = writeProgression(new URLSearchParams(window.location.search), next).toString()
+    window.history.replaceState(null, "", `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`)
+  }
+  useEffect(() => {
+    function restore() {
+      setShared(readProgression(new URLSearchParams(window.location.search)))
+    }
+    window.addEventListener("popstate", restore)
+    return () => window.removeEventListener("popstate", restore)
+  }, [])
   const [analysis, setAnalysis] = useState<AnalysisV2 | null>(null)
   const [color, setColor] = useState<ColorProfile | null>(null)
   const [colorBusy, setColorBusy] = useState(false)
@@ -61,8 +77,6 @@ export function WorkbenchV2() {
   const [substitutionBusy, setSubstitutionBusy] = useState(false)
   const [substitutionError, setSubstitutionError] = useState<string | null>(null)
   const substitutionController = useRef<AbortController | null>(null)
-  const [genre, setGenre] = useState("")
-  const [section, setSection] = useState("")
   const [intent, setIntent] = useState<Partial<Record<IntentAxis, number>>>({})
   const [preset, setPreset] = useState<IntentPreset | null>(null)
   const recommendationController = useRef<AbortController | null>(null)
@@ -154,7 +168,7 @@ export function WorkbenchV2() {
 
   function appendChord(chord: string) {
     const chords = [...rawTokens, chord]
-    setInput(chords.join(" - "))
+    updateShared({ input: chords.join(" - ") })
     setAnalysis(null)
     void runAnalysis(chords, key || analysis?.song_key || "")
   }
@@ -196,12 +210,12 @@ export function WorkbenchV2() {
 
   function applySubstitute(index: number, chord: string) {
     const chords = rawTokens.map((item, position) => position === index ? chord : item)
-    setInput(chords.join(" - "))
+    updateShared({ input: chords.join(" - ") })
     void runAnalysis(chords, key || analysis?.song_key || "")
   }
 
   return (
-    <main className="min-h-screen bg-[var(--bg-base)] px-4 py-8 text-[var(--text-primary)] sm:px-8">
+    <main id="main-content" className="min-h-screen bg-[var(--bg-base)] px-4 py-8 text-[var(--text-primary)] sm:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--border-default)] pb-6">
           <div>
@@ -214,16 +228,16 @@ export function WorkbenchV2() {
 
         <DegradedModeBanner dbStatus={health.dbStatus} />
 
-        <Transport sequences={sequences} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => playSequences(sequences)} onStop={playback.stop} />
+        <div className="transport-sticky"><Transport sequences={sequences} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => playSequences(sequences)} onStop={playback.stop} /></div>
 
         <form onSubmit={analyze} className="grid gap-4 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end">
           <div className="space-y-2">
             <Label htmlFor="progression-v2">Chord progression</Label>
-            <Input id="progression-v2" value={input} onChange={(event) => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); setInput(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
+            <Input id="progression-v2" value={input} onChange={(event) => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); updateShared({ input: event.target.value }); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="key-v2">Key (optional)</Label>
-            <Input id="key-v2" value={key} onChange={(event) => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); setKey(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
+            <Input id="key-v2" value={key} onChange={(event) => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); updateShared({ key: event.target.value }); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
           </div>
           <Button type="submit" disabled={busy} className="min-w-32">
             {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Activity aria-hidden="true" />}
@@ -231,19 +245,19 @@ export function WorkbenchV2() {
           </Button>
           <div className="space-y-2">
             <Label htmlFor="genre-v2">Genre</Label>
-            <select id="genre-v2" value={genre} onChange={(event) => { setGenre(event.target.value); if (analysis) loadRecommendations(analysis, event.target.value, section) }} className="h-9 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 text-sm">
+            <select id="genre-v2" value={genre} onChange={(event) => { updateShared({ genre: event.target.value }); if (analysis) loadRecommendations(analysis, event.target.value, section) }} className="h-9 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 text-sm">
               <option value="">Unknown</option><option value="pop">Pop</option><option value="rock">Rock</option><option value="jazz">Jazz</option><option value="classical">Classical</option><option value="electronic">Electronic</option><option value="country">Country</option><option value="r&b">R&amp;B</option>
             </select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="section-v2">Section</Label>
-            <select id="section-v2" value={section} onChange={(event) => { setSection(event.target.value); if (analysis) loadRecommendations(analysis, genre, event.target.value) }} className="h-9 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 text-sm">
+            <select id="section-v2" value={section} onChange={(event) => { updateShared({ section: event.target.value }); if (analysis) loadRecommendations(analysis, genre, event.target.value) }} className="h-9 w-full rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] px-3 text-sm">
               <option value="">Unknown</option><option value="verse">Verse</option><option value="chorus">Chorus</option><option value="bridge">Bridge</option><option value="intro">Intro</option><option value="outro">Outro</option>
             </select>
           </div>
           <div className="flex flex-wrap gap-2 lg:col-span-3">
             {samples.map((sample) => (
-              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); setInput(sample.chords); setKey(sample.key); setAnalysis(null); setColor(null); setNext(null); setError(null) }}>
+              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); updateShared({ input: sample.chords, key: sample.key }); setAnalysis(null); setColor(null); setNext(null); setError(null) }}>
                 <RefreshCcw aria-hidden="true" /> {sample.name}
               </Button>
             ))}
