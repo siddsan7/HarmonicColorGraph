@@ -1,6 +1,6 @@
 # v2 implementation plan — index
 
-Current feature: **M6 / F60**, following the merged M5 gate. Read the
+Current feature: **M6 / F61**, following the F60 generator. Read the
 selected milestone and acceptance criteria before implementation.
 Feature IDs, dependencies, checkboxes, and completion evidence were preserved
 verbatim when this plan was split on 2026-09-26.

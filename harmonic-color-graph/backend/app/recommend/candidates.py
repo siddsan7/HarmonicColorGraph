@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
+from functools import lru_cache
 
 from app.predict.ngram import PredictionResult
 from app.predict.realize import realize
@@ -36,14 +37,20 @@ def theory_expansions(history: Sequence[str], key: str) -> set[str]:
     mode = history[-1][0] if history else ("M" if parse_key(key)[1] == "major" else "m")
     if mode not in _BORROWED or any(not token.startswith(f"{mode}:") for token in history):
         raise ValueError("History tokens must share a mode")
+    return set(_theory_expansions(mode, key))
+
+
+@lru_cache(maxsize=64)
+def _theory_expansions(mode: str, key: str) -> frozenset[str]:
     figures = {*_BASIC[mode], *_BORROWED[mode], *_MEDIANTS[mode]}
     for target in _TARGETS[mode]:
         figures.add(f"V7/{target}")
         figures.add(f"viio7/{target}")
         figures.add(f"subV7/{target}")
-    return {token for figure in figures if _realizable(token := f"{mode}:{figure}", key)}
+    return frozenset(token for figure in figures if _realizable(token := f"{mode}:{figure}", key))
 
 
+@lru_cache(maxsize=4096)
 def _realizable(token: str, key: str) -> bool:
     try:
         realize(token, key)

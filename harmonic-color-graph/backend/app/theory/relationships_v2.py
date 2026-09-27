@@ -105,9 +105,9 @@ RULES: tuple[RelationshipRule, ...] = (
         "minor plagal cadence",
         "cadence",
         2,
-        lambda w, _: _base(w[0]) == "iv" and _base(w[1]) == "I",
-        "Borrowed iv adds color before the major tonic returns.",
-        "The lowered sixth in iv moves toward the fifth of I.",
+        lambda w, _: _base(w[0]) == "iv" and _base(w[1]) in {"I", "i"},
+        "Minor subdominant harmony returns to the tonic.",
+        "The lowered sixth in iv moves toward the fifth of the tonic chord.",
     ),
     _rule(
         "deceptive",
