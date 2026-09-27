@@ -32,5 +32,5 @@ test("mobile navigation and playback controls remain reachable", async ({ page }
   await page.keyboard.press("Tab")
   await expect(page.getByLabel("Key (optional)")).toBeFocused()
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Generate" }).click()
-  await expect(page.getByRole("heading", { name: "Generate" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Generate", exact: true })).toBeVisible()
 })

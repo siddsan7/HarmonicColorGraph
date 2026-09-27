@@ -22,6 +22,7 @@ test("graph filters re-query and path mode highlights a valid path", async ({ pa
   await expect(page.getByRole("img", { name: /Harmonic graph with 3 nodes and 2 edges/ })).toBeVisible()
   await expect.poll(() => page.evaluate(() => performance.getEntriesByName("hcg-explore-layout-complete").length)).toBeGreaterThan(0)
   const loadMs = await page.evaluate(() => (performance.getEntriesByName("hcg-explore-neighborhood-ready")[0] as PerformanceMark)?.detail?.elapsedMs as number)
+  console.log(`I neighborhood ready in ${loadMs.toFixed(2)} ms (mocked three-node response)`)
   expect(loadMs).toBeLessThan(1000)
   expect(pageErrors).toEqual([])
   await page.getByRole("button", { name: "List view" }).click()
