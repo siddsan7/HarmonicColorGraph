@@ -23,6 +23,31 @@ _NAMED_SUBJECT = re.compile(
     r"\b(?P<name>(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,})\s+"
     r"(?:uses|contains|features|is\s+in)\b"
 )
+_ANALYTIC_SUBJECTS = {
+    "analysis",
+    "bass",
+    "cadence",
+    "candidate",
+    "chord",
+    "chords",
+    "example",
+    "figure",
+    "harmony",
+    "key",
+    "melody",
+    "mode",
+    "note",
+    "notes",
+    "pattern",
+    "progression",
+    "progressions",
+    "recommendation",
+    "result",
+    "sequence",
+    "song",
+    "tonic",
+    "transition",
+}
 _THEORY_SUFFIX = (
     r"cadence|dominant|resolution|substitution|mediant|relation|motion|"
     r"progression|third|modulation|function"
@@ -137,7 +162,9 @@ def validate_claims(
             if match.group(0).lower().removeprefix("the ").removeprefix("a ") not in _REGISTRY_NAMES
         ]
         named_titles.extend(
-            match.group("name").lower() for match in _NAMED_SUBJECT.finditer(claim.text)
+            match.group("name").lower()
+            for match in _NAMED_SUBJECT.finditer(claim.text)
+            if match.group("name").lower() not in _ANALYTIC_SUBJECTS
         )
         if (_SONG.search(claim.text) or named_titles) and not any(
             fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited
