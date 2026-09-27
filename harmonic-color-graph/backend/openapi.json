@@ -1552,6 +1552,30 @@
         "title": "PerceptualAxisOut",
         "type": "object"
       },
+      "RealizeRequest": {
+        "properties": {
+          "key": {
+            "default": "C major",
+            "maxLength": 40,
+            "title": "Key",
+            "type": "string"
+          },
+          "nodes": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 7,
+            "minItems": 1,
+            "title": "Nodes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "nodes"
+        ],
+        "title": "RealizeRequest",
+        "type": "object"
+      },
       "RecommendData": {
         "additionalProperties": false,
         "properties": {
@@ -4201,6 +4225,46 @@
           }
         },
         "summary": "Graph Path",
+        "tags": [
+          "graph-v2"
+        ]
+      }
+    },
+    "/v2/graph/realize": {
+      "post": {
+        "description": "Turn a selected function path into playable chords using F30 theory.",
+        "operationId": "realize_graph_path_v2_graph_realize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Realize Graph Path",
         "tags": [
           "graph-v2"
         ]

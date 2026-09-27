@@ -361,6 +361,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/graph/realize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Realize Graph Path
+         * @description Turn a selected function path into playable chords using F30 theory.
+         */
+        post: operations["realize_graph_path_v2_graph_realize_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/jobs": {
         parameters: {
             query?: never;
@@ -1044,6 +1064,16 @@ export interface components {
             source: "rule" | "derived" | "feedback";
             /** Value */
             value: number;
+        };
+        /** RealizeRequest */
+        RealizeRequest: {
+            /**
+             * Key
+             * @default C major
+             */
+            key: string;
+            /** Nodes */
+            nodes: string[];
         };
         /** RecommendData */
         RecommendData: {
@@ -2182,6 +2212,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PathRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    realize_graph_path_v2_graph_realize_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RealizeRequest"];
             };
         };
         responses: {

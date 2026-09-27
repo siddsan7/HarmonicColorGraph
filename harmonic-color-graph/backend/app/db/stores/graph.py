@@ -49,12 +49,25 @@ class _ActiveStore:
 
 
 class GraphStore(_ActiveStore):
-    def node(self, node_id: str) -> dict[str, Any] | None:
-        return self._one(
-            """select id, version, type, label, props
-               from hcg.nodes where version = hcg.v() and id = :node_id""",
-            node_id=node_id,
+    def nodes(self, node_ids: list[str]) -> dict[str, dict[str, Any]]:
+        if not node_ids:
+            return {}
+        rows = self._all(
+            """select n.id, n.version, n.type, n.label,
+                      case when cp.subject_id is null then n.props
+                           else n.props || jsonb_build_object('color', cp.axes, 'support', cp.support)
+                      end as props
+               from hcg.nodes n
+               left join hcg.color_profiles cp
+                 on cp.version = n.version and cp.subject_type = n.type
+                    and cp.subject_id = n.label
+               where n.version = hcg.v() and n.id = any(:node_ids)""",
+            node_ids=node_ids,
         )
+        return {row["id"]: row for row in rows}
+
+    def node(self, node_id: str) -> dict[str, Any] | None:
+        return self.nodes([node_id]).get(node_id)
 
     def outgoing_edges(
         self, src: str, *, edge_type: str | None = None, context_id: int | None = None

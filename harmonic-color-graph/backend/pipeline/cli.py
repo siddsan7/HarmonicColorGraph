@@ -15,7 +15,7 @@ from pipeline.synth import write_mini_corpus
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_VOCAB_REPORT_OUTPUT = REPO_ROOT / "docs" / "eval" / "vocab.md"
 
-# Stage ordering is stable; snapshot and export remain later-feature stubs.
+# Stage ordering is stable; export remains a later-feature stub.
 STAGE_ORDER = [
     "ingest",
     "analyze",
@@ -266,6 +266,11 @@ def _run_build(args: argparse.Namespace) -> None:
                 "export": run_export,
             }[stage]
             stage_runner(sections_path, artifact_dir / f"{stage}.parquet")
+            if stage == "snapshot":
+                public_snapshot = REPO_ROOT / "public" / "snapshot" / "graph-core.json"
+                public_snapshot.parent.mkdir(parents=True, exist_ok=True)
+                public_snapshot.write_bytes((artifact_dir / "snapshot.json").read_bytes())
+                manifest.output_hashes["snapshot.json"] = sha256_file(artifact_dir / "snapshot.json")
 
     stages_to_run = STAGE_ORDER[STAGE_ORDER.index(from_stage) : STAGE_ORDER.index(to_stage) + 1]
     for stage in stages_to_run:
