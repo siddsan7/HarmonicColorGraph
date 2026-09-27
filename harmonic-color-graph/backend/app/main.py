@@ -7,6 +7,7 @@ from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api import phase1_router
+from app.api.ai_v2 import router as ai_v2_router
 from app.api.analysis_v2 import router as analysis_v2_router
 from app.api.color_v2 import router as color_v2_router
 from app.api.examples_v2 import router as examples_v2_router
@@ -39,6 +40,7 @@ app.add_middleware(
 # (feature-specs/v2-implementation-plan.md F06); the unversioned aliases are
 # kept so existing clients (the demo UI) don't break until F14 moves the UI.
 app.include_router(phase1_router)
+app.include_router(ai_v2_router)
 app.include_router(phase1_router, prefix="/v1")
 app.include_router(analysis_v2_router)
 app.include_router(graph_v2_router)

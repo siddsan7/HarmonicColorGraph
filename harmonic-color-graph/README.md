@@ -213,7 +213,28 @@ analyses, optional playback, and a `fallback` flag. F72 validates every model
 claim against tool fact IDs, chord and Roman-figure output, subjective emotion
 wording, corpus example IDs for song references, and theory registry IDs. A
 failed draft gets one repair attempt, then a deterministic response. F73
-exposes this workflow through the streaming API.
+exposes this workflow at `POST /v2/ai/query`:
+
+```bash
+curl -N -H 'Content-Type: application/json' \
+  -d '{"query":"Recommend the next chord after C G Am in C major"}' \
+  http://localhost:8000/v2/ai/query
+```
+
+The response is SSE with `step`, `partial`, `final`, and `error` events.
+`partial` text is emitted only after grounding validation. The API permits
+20 assistant queries per IP per UTC hour and uses
+`HCG_DAILY_AI_BUDGET_USD` (default $2.00) to cap daily model spend from
+logged usage. It temporarily reserves a conservative upper bound for each
+in-flight query, so requests near the cap may receive 429 before the logged
+total reaches it. Oversized model prompts fall back to deterministic output.
+The private `hcg.ai_query_logs` table records outcomes and
+estimated model cost; `hcg.rate_limits` holds hourly counters. Apply migration
+`0011_ai_query.sql` before enabling the endpoint. Set a private
+`HCG_IP_HASH_SECRET` in the API deployment; production requests are rejected
+without it. The deterministic endpoints are available when the assistant
+returns 429.
+
 For a one-word song title that is also an ordinary word, use explicit song
 wording (for example, “the song Yesterday”) so the validator can require a
 matching `example:*` row. A bare sentence such as “Yesterday is in C” is

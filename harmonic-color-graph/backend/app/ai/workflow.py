@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import os
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from typing import Any
 
 from langgraph.graph import END, START, StateGraph
@@ -21,6 +21,15 @@ from app.ai.state import (
 )
 from app.ai.text import extract_chords
 from app.ai.tools import HarmonicTools, ToolError
+from app.ai.usage import (
+    FAST_MAX_OUTPUT_TOKENS,
+    FAST_MAX_PROMPT_BYTES,
+    MAIN_MAX_CALLS,
+    MAIN_MAX_OUTPUT_TOKENS,
+    MAIN_MAX_PROMPT_BYTES,
+    UsageMeter,
+    configured_rates,
+)
 from app.ai.validators import validate_draft
 
 StructuredCall = Callable[[str], Any]
@@ -69,28 +78,51 @@ def heuristic_intent(query: str) -> ParsedIntent:
     )
 
 
-def _llm_calls() -> tuple[StructuredCall | None, StructuredCall | None]:
+def _llm_calls(
+    meter: UsageMeter | None = None,
+) -> tuple[StructuredCall | None, StructuredCall | None]:
     if not os.getenv("ANTHROPIC_API_KEY"):
         return None, None
     from langchain_anthropic import ChatAnthropic
 
+    fast_name = os.getenv("HCG_LLM_FAST_MODEL", "claude-haiku-4-5-20251001")
+    main_name = os.getenv("HCG_LLM_MODEL", "claude-sonnet-5")
     fast = ChatAnthropic(
-        model=os.getenv("HCG_LLM_FAST_MODEL", "claude-haiku-4-5-20251001"),
+        model=fast_name,
         temperature=0,
-        max_tokens=512,
+        max_tokens=FAST_MAX_OUTPUT_TOKENS,
         default_request_timeout=8,
         max_retries=0,
     )
     main = ChatAnthropic(
-        model=os.getenv("HCG_LLM_MODEL", "claude-sonnet-5"),
-        temperature=0,
-        max_tokens=1024,
+        model=main_name,
+        max_tokens=MAIN_MAX_OUTPUT_TOKENS,
         default_request_timeout=20,
         max_retries=0,
     )
+
+    def tracked(model: Any, schema: type, name: str, rate_prefix: str) -> StructuredCall:
+        runnable = model.with_structured_output(schema, include_raw=True)
+
+        def invoke(prompt: str) -> Any:
+            result = runnable.invoke(prompt)
+            if meter is not None:
+                input_rate, output_rate = configured_rates(name, rate_prefix)
+                meter.record(
+                    result["raw"],
+                    name,
+                    input_rate=input_rate,
+                    output_rate=output_rate,
+                )
+            if result["parsing_error"] is not None:
+                raise ValueError("Model structured output failed validation")
+            return result["parsed"]
+
+        return invoke
+
     return (
-        fast.with_structured_output(ParsedIntent).invoke,
-        main.with_structured_output(ExplanationDraft).invoke,
+        tracked(fast, ParsedIntent, fast_name, "HCG_LLM_FAST"),
+        tracked(main, ExplanationDraft, main_name, "HCG_LLM"),
     )
 
 
@@ -154,17 +186,68 @@ class AssistantWorkflow:
         self.graph = builder.compile()
 
     @classmethod
-    def from_environment(cls, tools: HarmonicTools) -> AssistantWorkflow:
-        intent, explanation = _llm_calls()
+    def from_environment(
+        cls, tools: HarmonicTools, *, meter: UsageMeter | None = None
+    ) -> AssistantWorkflow:
+        intent, explanation = _llm_calls(meter)
         return cls(tools, intent_model=intent, explanation_model=explanation)
 
     def run(self, query: str) -> AssistantResponse:
         if not 1 <= len(query.strip()) <= 2000:
             raise ValueError("Query must contain 1–2000 characters")
-        state = self.graph.invoke(
-            {"raw_user_query": query, "errors": [], "fact_pool": {}, "tool_results": {}}
-        )
+        state = self.graph.invoke(self._initial_state(query))
         return AssistantResponse.model_validate(state["response"])
+
+    @staticmethod
+    def _initial_state(query: str) -> AssistantState:
+        return {"raw_user_query": query, "errors": [], "fact_pool": {}, "tool_results": {}}
+
+    def stream(self, query: str) -> Iterator[tuple[str, dict[str, Any]]]:
+        """Emit workflow progress and only validated explanation text."""
+        if not 1 <= len(query.strip()) <= 2000:
+            raise ValueError("Query must contain 1–2000 characters")
+        state = self._initial_state(query)
+        next_node = "intent_parser"
+        yield "step", {"node": next_node, "status": "started"}
+        sequence = {
+            "intent_parser": "analyze",
+            "analyze": "router",
+            "router": "retrieve",
+            "retrieve": "color_score",
+            "color_score": "validate",
+            "validate": "rank",
+            "rank": "explain",
+            "explain": "format_playback",
+            "format_playback": "final",
+        }
+        for update in self.graph.stream(state, stream_mode="updates"):
+            for node, delta in update.items():
+                state.update(delta or {})
+                yield "step", {"node": node, "status": "completed"}
+                if node == "explain":
+                    draft = state.get("explanation")
+                    message = (
+                        " ".join(claim.text for claim in draft.claims)
+                        if draft
+                        else state.get("fallback_message", "")
+                    )
+                    if message:
+                        yield "partial", {"text": message}
+                if node == "final":
+                    response = AssistantResponse.model_validate(state["response"])
+                    yield (
+                        "final",
+                        {
+                            "response": response.model_dump(mode="json"),
+                            "parsed_intent": state["parsed_intent"].model_dump(mode="json"),
+                            "tools": sorted(state.get("tool_results", {})),
+                        },
+                    )
+                    return
+                next_node = (
+                    "final" if node == "router" and state["route"] == "clarify" else sequence[node]
+                )
+                yield "step", {"node": next_node, "status": "started"}
 
     def _intent_parser(self, state: AssistantState) -> dict[str, Any]:
         query = state["raw_user_query"]
@@ -180,6 +263,8 @@ class AssistantWorkflow:
                 "Return chords, key, genre, section, intent axes, count, variants and export flag. "
                 f"User query: {query}"
             )
+            if len(prompt.encode("utf-8")) > FAST_MAX_PROMPT_BYTES:
+                raise ValueError("Intent prompt exceeds cost bound")
             parsed = ParsedIntent.model_validate(self.intent_model(prompt))
             return {"parsed_intent": parsed}
         except Exception as exc:
@@ -449,8 +534,10 @@ class AssistantWorkflow:
                 "If naming a theory relationship, provide its registry ID in theory_labels. "
                 f"Context: {json.dumps(context, ensure_ascii=False)}"
             )
-            for attempt in range(2):
+            for attempt in range(MAIN_MAX_CALLS):
                 try:
+                    if len(prompt.encode("utf-8")) > MAIN_MAX_PROMPT_BYTES:
+                        raise ValueError("Explanation prompt exceeds cost bound")
                     draft = ExplanationDraft.model_validate(self.explanation_model(prompt))
                     validate_draft(draft, facts, state.get("tool_results", {}))
                     return {"explanation": draft, "fallback": False}
