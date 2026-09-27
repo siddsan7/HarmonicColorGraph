@@ -16,6 +16,55 @@ export type GenerateRequest = components["schemas"]["GenerateRequest"]
 export type GenerateResponse = components["schemas"]["GenerateResponse"]
 export type GeneratedPath = components["schemas"]["GeneratedPath"]
 
+export type SimilarItem = {
+  subject_id: string
+  similarity: number
+  shared_tokens: string[]
+  rotation_of: string | null
+  support: number | null
+}
+export type SimilarResponse = {
+  query: string
+  model: string
+  results: SimilarItem[]
+  corpus_version: string
+  warnings: string[]
+}
+
+export async function findSimilarProgressions(request: {
+  progression: string[]
+  key: string
+  mode: "structural" | "surface"
+  genre?: string
+  signal?: AbortSignal
+}): Promise<SimilarResponse> {
+  const { signal, genre, ...body } = request
+  const payload: unknown = await apiFetch<unknown>("/v2/similar-progressions", {
+    method: "POST", headers: { "Content-Type": "application/json" }, signal,
+    body: JSON.stringify({ ...body, filters: genre ? { genre } : {} }),
+  })
+  if (typeof payload !== "object" || payload === null ||
+    !Array.isArray((payload as SimilarResponse).results) ||
+    !(payload as SimilarResponse).results.every((item) => typeof item.subject_id === "string" &&
+      typeof item.similarity === "number" && Array.isArray(item.shared_tokens))) {
+    throw new Error("Invalid similarity response.")
+  }
+  return payload as SimilarResponse
+}
+
+export async function realizeProgression(tokens: string[], key: string): Promise<string[]> {
+  const payload: unknown = await apiFetch<unknown>("/v2/realize-progression", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ tokens, key }),
+  })
+  if (typeof payload !== "object" || payload === null ||
+    !Array.isArray((payload as { chords?: unknown }).chords) ||
+    !(payload as { chords: unknown[] }).chords.every((chord) => typeof chord === "string")) {
+    throw new Error("Invalid realized progression response.")
+  }
+  return (payload as { chords: string[] }).chords
+}
+
 export async function generateProgression(request: GenerateRequest, signal?: AbortSignal): Promise<GenerateResponse> {
   const payload: unknown = await apiFetch<unknown>("/v2/generate-progression", {
     method: "POST", headers: { "Content-Type": "application/json" },

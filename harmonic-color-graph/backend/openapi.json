@@ -1552,6 +1552,49 @@
         "title": "PerceptualAxisOut",
         "type": "object"
       },
+      "RealizeProgressionRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "maxLength": 80,
+            "minLength": 2,
+            "title": "Key",
+            "type": "string"
+          },
+          "tokens": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 16,
+            "minItems": 1,
+            "title": "Tokens",
+            "type": "array"
+          }
+        },
+        "required": [
+          "tokens",
+          "key"
+        ],
+        "title": "RealizeProgressionRequest",
+        "type": "object"
+      },
+      "RealizeProgressionResponse": {
+        "additionalProperties": false,
+        "properties": {
+          "chords": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chords",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chords"
+        ],
+        "title": "RealizeProgressionResponse",
+        "type": "object"
+      },
       "RealizeRequest": {
         "properties": {
           "key": {
@@ -4583,6 +4626,47 @@
         "summary": "Retry Job",
         "tags": [
           "jobs-v2"
+        ]
+      }
+    },
+    "/v2/realize-progression": {
+      "post": {
+        "operationId": "realize_progression_v2_realize_progression_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizeProgressionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizeProgressionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Realize Progression",
+        "tags": [
+          "similarity-v2"
         ]
       }
     },

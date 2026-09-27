@@ -466,6 +466,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v2/realize-progression": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Realize Progression */
+        post: operations["realize_progression_v2_realize_progression_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v2/recommend-next-chords": {
         parameters: {
             query?: never;
@@ -1064,6 +1081,18 @@ export interface components {
             source: "rule" | "derived" | "feedback";
             /** Value */
             value: number;
+        };
+        /** RealizeProgressionRequest */
+        RealizeProgressionRequest: {
+            /** Key */
+            key: string;
+            /** Tokens */
+            tokens: string[];
+        };
+        /** RealizeProgressionResponse */
+        RealizeProgressionResponse: {
+            /** Chords */
+            chords: string[];
         };
         /** RealizeRequest */
         RealizeRequest: {
@@ -2423,6 +2452,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    realize_progression_v2_realize_progression_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RealizeProgressionRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RealizeProgressionResponse"];
                 };
             };
             /** @description Validation Error */
