@@ -265,11 +265,15 @@ def run(
         raise ValueError("ANTHROPIC_API_KEY is required for live evaluation")
     meter = UsageMeter()
     per_case_bound = request_cost_bound() if live else Decimal(0)
+    accounted_cost = Decimal(0)
     rows: list[dict[str, Any]] = []
     ragas_samples: list[dict[str, Any]] = []
+    unknown_cost_cases: list[str] = []
     for case in cases:
-        if meter.cost_usd + per_case_bound > max_cost_usd:
+        if accounted_cost + per_case_bound > max_cost_usd:
             break
+        before = meter.cost_usd
+        uncertain_cost = False
         try:
             with _tool_scope(fixture=fixture) as delegate:
                 tools = RecordingTools(delegate)
@@ -284,6 +288,7 @@ def run(
             response = AssistantResponse.model_validate(final["response"])
             parsed = ParsedIntent.model_validate(final["parsed_intent"])
             row = _measure(case, response, parsed, tools.called)
+            uncertain_cost = live and any("model_failed" in code for code in response.errors)
             if ragas and response.claims and len(ragas_samples) < 3:
                 ragas_samples.append(
                     {
@@ -298,13 +303,24 @@ def run(
                 )
         except Exception as exc:
             row = {"error": type(exc).__name__}
+            uncertain_cost = live
+        actual_cost = meter.cost_usd - before
+        if uncertain_cost:
+            # A timeout can be billed even when the provider returns no usage.
+            # Reserve the whole request bound before allowing another case.
+            accounted_cost += per_case_bound
+            unknown_cost_cases.append(case["id"])
+        else:
+            accounted_cost += actual_cost
         rows.append({"id": case["id"], **row})
-    summary = summarize(rows, len(cases), meter.cost_usd)
+    summary = summarize(rows, len(cases), accounted_cost)
     report = {
         "ran_at": datetime.now(UTC).isoformat(),
         "mode": "live" if live else "offline",
         "data_source": "seeded_fixture" if fixture else "database",
         "max_cost_usd": str(max_cost_usd),
+        "metered_cost_usd": str(meter.cost_usd),
+        "unknown_cost_cases": unknown_cost_cases,
         "model_usage": meter.as_log()["model_usage"],
         **summary,
         "cases": rows,
@@ -321,7 +337,9 @@ def render_markdown(report: dict[str, Any]) -> str:
         "",
         f"Run: {report['ran_at']} · Mode: {report['mode']} · "
         f"Cases: {report['cases_completed']}/{report['cases_total']}",
-        f"Estimated model cost: ${report['cost_usd']} (cap ${report['max_cost_usd']})",
+        f"Accounted model cost: ${report['cost_usd']} (cap ${report['max_cost_usd']}); "
+        f"metered ${report['metered_cost_usd']}; "
+        f"unknown-cost cases {len(report['unknown_cost_cases'])}",
         "",
         "| Metric | Observed | Required |",
         "|---|---:|---:|",

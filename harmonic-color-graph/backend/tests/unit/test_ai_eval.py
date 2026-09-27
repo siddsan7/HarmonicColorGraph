@@ -1,5 +1,6 @@
 """F76 benchmark integrity and scoring behavior."""
 
+from contextlib import contextmanager
 from decimal import Decimal
 
 from app.ai.state import AssistantCandidate, AssistantResponse, Claim, ParsedIntent
@@ -73,6 +74,28 @@ def test_live_cost_cap_stops_before_model_invocation(monkeypatch):
     assert report["cases_completed"] == 0
     assert report["cost_usd"] == "0"
     assert not report["passed"]
+
+
+def test_provider_failure_reserves_request_bound(monkeypatch):
+    class FailingWorkflow:
+        def stream(self, query):
+            raise TimeoutError("provider response lost")
+
+    @contextmanager
+    def scope(*, fixture):
+        yield object()
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    monkeypatch.setattr("tests.eval.ai._tool_scope", scope)
+    monkeypatch.setattr(
+        "tests.eval.ai.AssistantWorkflow.from_environment",
+        lambda tools, meter: FailingWorkflow(),
+    )
+    report = run(cases=load_cases()[:2], live=True, max_cost_usd=Decimal("1"))
+    assert report["cases_completed"] == 1
+    assert report["unknown_cost_cases"] == ["recommend-01"]
+    assert Decimal(report["cost_usd"]) > Decimal("0.8")
+    assert report["metered_cost_usd"] == "0"
 
 
 def test_intent_axis_uses_authoritative_recommendation_delta():
