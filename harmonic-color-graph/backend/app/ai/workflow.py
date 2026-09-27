@@ -21,7 +21,15 @@ from app.ai.state import (
 )
 from app.ai.text import extract_chords
 from app.ai.tools import HarmonicTools, ToolError
-from app.ai.usage import UsageMeter
+from app.ai.usage import (
+    FAST_MAX_OUTPUT_TOKENS,
+    FAST_MAX_PROMPT_BYTES,
+    MAIN_MAX_CALLS,
+    MAIN_MAX_OUTPUT_TOKENS,
+    MAIN_MAX_PROMPT_BYTES,
+    UsageMeter,
+    configured_rates,
+)
 from app.ai.validators import validate_draft
 
 StructuredCall = Callable[[str], Any]
@@ -82,13 +90,13 @@ def _llm_calls(
     fast = ChatAnthropic(
         model=fast_name,
         temperature=0,
-        max_tokens=512,
+        max_tokens=FAST_MAX_OUTPUT_TOKENS,
         default_request_timeout=8,
         max_retries=0,
     )
     main = ChatAnthropic(
         model=main_name,
-        max_tokens=1024,
+        max_tokens=MAIN_MAX_OUTPUT_TOKENS,
         default_request_timeout=20,
         max_retries=0,
     )
@@ -99,15 +107,12 @@ def _llm_calls(
         def invoke(prompt: str) -> Any:
             result = runnable.invoke(prompt)
             if meter is not None:
-                from decimal import Decimal
-
-                input_rate = os.getenv(f"{rate_prefix}_INPUT_USD_PER_MTOK")
-                output_rate = os.getenv(f"{rate_prefix}_OUTPUT_USD_PER_MTOK")
+                input_rate, output_rate = configured_rates(name, rate_prefix)
                 meter.record(
                     result["raw"],
                     name,
-                    input_rate=Decimal(input_rate) if input_rate else None,
-                    output_rate=Decimal(output_rate) if output_rate else None,
+                    input_rate=input_rate,
+                    output_rate=output_rate,
                 )
             if result["parsing_error"] is not None:
                 raise ValueError("Model structured output failed validation")
@@ -258,6 +263,8 @@ class AssistantWorkflow:
                 "Return chords, key, genre, section, intent axes, count, variants and export flag. "
                 f"User query: {query}"
             )
+            if len(prompt.encode("utf-8")) > FAST_MAX_PROMPT_BYTES:
+                raise ValueError("Intent prompt exceeds cost bound")
             parsed = ParsedIntent.model_validate(self.intent_model(prompt))
             return {"parsed_intent": parsed}
         except Exception as exc:
@@ -527,8 +534,10 @@ class AssistantWorkflow:
                 "If naming a theory relationship, provide its registry ID in theory_labels. "
                 f"Context: {json.dumps(context, ensure_ascii=False)}"
             )
-            for attempt in range(2):
+            for attempt in range(MAIN_MAX_CALLS):
                 try:
+                    if len(prompt.encode("utf-8")) > MAIN_MAX_PROMPT_BYTES:
+                        raise ValueError("Explanation prompt exceeds cost bound")
                     draft = ExplanationDraft.model_validate(self.explanation_model(prompt))
                     validate_draft(draft, facts, state.get("tool_results", {}))
                     return {"explanation": draft, "fallback": False}

@@ -225,13 +225,14 @@ The response is SSE with `step`, `partial`, `final`, and `error` events.
 `partial` text is emitted only after grounding validation. The API permits
 20 assistant queries per IP per UTC hour and uses
 `HCG_DAILY_AI_BUDGET_USD` (default $2.00) to cap daily model spend from
-logged usage. It temporarily reserves up to $0.25 per in-flight query, so
-requests near the cap may receive 429 before the logged total reaches it.
+logged usage. It temporarily reserves a conservative upper bound for each
+in-flight query, so requests near the cap may receive 429 before the logged
+total reaches it. Oversized model prompts fall back to deterministic output.
 The private `hcg.ai_query_logs` table records outcomes and
 estimated model cost; `hcg.rate_limits` holds hourly counters. Apply migration
 `0011_ai_query.sql` before enabling the endpoint. Set a private
-`HCG_IP_HASH_SECRET` in the API deployment so IP hashes are not easily
-reversible. The deterministic endpoints are available when the assistant
+`HCG_IP_HASH_SECRET` in the API deployment; production requests are rejected
+without it. The deterministic endpoints are available when the assistant
 returns 429.
 
 For a one-word song title that is also an ordinary word, use explicit song

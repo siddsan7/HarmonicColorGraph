@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 from app.ai.logs import AIQueryStore
 from app.ai.state import AssistantResponse
 from app.ai.tools import HarmonicTools
-from app.ai.usage import UsageMeter
+from app.ai.usage import UsageMeter, request_cost_bound
 from app.ai.workflow import AssistantWorkflow
 from app.core.config import get_settings
 from app.db.session import _default_session_factory
@@ -33,7 +33,6 @@ from app.schemas.harmony import StrictModel
 router = APIRouter(prefix="/v2/ai", tags=["ai-v2"])
 _HOUR_LIMIT = 20
 _WORKFLOW_DEADLINE_S = 55
-_BUDGET_RESERVATION_USD = Decimal("0.25")
 
 
 class AIQueryRequest(StrictModel):
@@ -79,6 +78,8 @@ def _client_ip(request: Request) -> str:
 
 def _ip_hash(ip: str) -> str:
     secret = os.getenv("HCG_IP_HASH_SECRET", "")
+    if not secret and (os.getenv("VERCEL") or get_settings().hcg_env == "production"):
+        raise ValueError("HCG_IP_HASH_SECRET is required in production")
     return hmac.new(secret.encode(), ip.encode(), hashlib.sha256).hexdigest()
 
 
@@ -91,6 +92,7 @@ class AIQueryRuntime:
     session_factory: Callable[[], Session]
     workflow_factory: Callable[[Session, UsageMeter], AssistantWorkflow]
     budget_usd: Decimal
+    reservation_usd: Decimal
     now: Callable[[], datetime] = lambda: datetime.now(UTC)
     clock: Callable[[], float] = time.perf_counter
 
@@ -103,8 +105,7 @@ class AIQueryRuntime:
                 count, retry_after = store.increment_hourly(f"ai:{ip_hash}", now)
                 store.lock_daily_budget()
                 cost = store.daily_cost(now)
-                reservation = min(_BUDGET_RESERVATION_USD, self.budget_usd)
-                if count > _HOUR_LIMIT or cost + reservation > self.budget_usd:
+                if count > _HOUR_LIMIT or cost + self.reservation_usd > self.budget_usd:
                     category = "ip_rate_limit" if count > _HOUR_LIMIT else "daily_budget"
                     store.write(
                         query_id=query_id,
@@ -129,7 +130,7 @@ class AIQueryRuntime:
                     ip_hash=ip_hash,
                     user_query=query,
                     error_category="pending",
-                    cost_usd=reservation,
+                    cost_usd=self.reservation_usd,
                 )
                 session.commit()
         except SQLAlchemyError:
@@ -149,6 +150,8 @@ class AIQueryRuntime:
                 for kind, payload in workflow.stream(query):
                     if self.clock() - started > _WORKFLOW_DEADLINE_S:
                         raise TimeoutError("Assistant workflow deadline exceeded")
+                    if meter.cost_usd > self.reservation_usd:
+                        raise RuntimeError("Assistant model cost exceeded its reserved bound")
                     if kind == "final":
                         response = AssistantResponse.model_validate(payload["response"])
                         store.finish(
@@ -218,6 +221,7 @@ def get_ai_runtime() -> AIQueryRuntime:
         session_factory=_default_session_factory(),
         workflow_factory=_default_workflow,
         budget_usd=get_settings().hcg_daily_ai_budget_usd,
+        reservation_usd=request_cost_bound(),
     )
 
 
@@ -232,7 +236,10 @@ def ai_query(
     runtime: Annotated[AIQueryRuntime, Depends(get_ai_runtime)],
 ) -> StreamingResponse | JSONResponse:
     query_id = uuid4()
-    ip_hash = _ip_hash(_client_ip(request))
+    try:
+        ip_hash = _ip_hash(_client_ip(request))
+    except ValueError:
+        return _error(503, "ai_configuration_error", "The assistant is temporarily unavailable.")
     rejection = runtime.preflight(query=body.query, ip_hash=ip_hash, query_id=query_id)
     if rejection is not None:
         return rejection

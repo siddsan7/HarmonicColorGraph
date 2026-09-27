@@ -10,7 +10,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.ai.logs import AIQueryStore, ai_query_logs, metadata
-from app.ai.usage import UsageMeter
+from app.ai.state import ParsedIntent
+from app.ai.usage import UsageMeter, request_cost_bound
 from app.ai.workflow import AssistantWorkflow
 from app.api.ai_v2 import AIQueryRuntime, get_ai_runtime
 from app.main import app
@@ -31,6 +32,7 @@ def _client(workflow_factory=None, budget=Decimal("2.00")):
         session_factory=factory,
         workflow_factory=workflow_factory or (lambda _session, _meter: AssistantWorkflow(_tools())),
         budget_usd=budget,
+        reservation_usd=Decimal("0.25"),
         now=lambda: NOW,
     )
     app.dependency_overrides[get_ai_runtime] = lambda: runtime
@@ -108,20 +110,20 @@ def test_daily_budget_uses_logged_cost_and_records_rejection():
 
 def test_next_request_is_blocked_after_a_metered_query_spends_the_budget():
     class Raw:
-        usage_metadata = {"input_tokens": 1_000_000, "output_tokens": 0}
+        usage_metadata = {"input_tokens": 50_000, "output_tokens": 0}
 
     def metered_workflow(_session, meter):
         meter.record(Raw(), "claude-sonnet-5")
         return AssistantWorkflow(_tools())
 
-    client, factory = _client(workflow_factory=metered_workflow)
+    client, factory = _client(workflow_factory=metered_workflow, budget=Decimal("0.35"))
     try:
         assert client.post("/v2/ai/query", json={"query": "Explain C G"}).status_code == 200
         response = client.post("/v2/ai/query", json={"query": "Explain C G"})
         assert response.status_code == 429
         with factory() as session:
             costs = session.execute(select(ai_query_logs.c.cost_usd)).scalars().all()
-            assert Decimal("3") in costs
+            assert Decimal("0.15") in costs
     finally:
         app.dependency_overrides.clear()
 
@@ -132,6 +134,7 @@ def test_pending_reservation_blocks_concurrent_spend_and_releases_on_completion(
         session_factory=factory,
         workflow_factory=lambda _session, _meter: AssistantWorkflow(_tools()),
         budget_usd=Decimal("0.30"),
+        reservation_usd=Decimal("0.25"),
         now=lambda: NOW,
     )
     first = uuid4()
@@ -185,6 +188,61 @@ def test_missing_provider_usage_gets_conservative_charge():
     meter = UsageMeter()
     meter.record(object(), "claude-sonnet-5")
     assert meter.cost_usd == Decimal("0.25")
+
+
+def test_request_reservation_bounds_three_model_calls(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "test-only")
+    assert Decimal("0.75") <= request_cost_bound() <= Decimal("2")
+
+
+def test_oversized_explanation_prompt_falls_back_before_model_call():
+    calls = 0
+
+    def explain(_prompt):
+        nonlocal calls
+        calls += 1
+        return {"claims": [{"text": "Unsupported", "fact_ids": ["fact:1"]}]}
+
+    workflow = AssistantWorkflow(_tools(), explanation_model=explain)
+    result = workflow._explain(
+        {
+            "raw_user_query": "Explain C G",
+            "route": "explain",
+            "parsed_intent": ParsedIntent(task_type="explain", chords=["C", "G"]),
+            "fact_pool": {"fact:1": {"subject": "x" * 100_000}},
+            "tool_results": {},
+        }
+    )
+    assert calls == 0
+    assert result["fallback"]
+
+
+def test_production_requires_private_ip_hash_secret(monkeypatch):
+    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.delenv("HCG_IP_HASH_SECRET", raising=False)
+    client, factory = _client()
+    try:
+        response = client.post("/v2/ai/query", json={"query": "Explain C G"})
+        assert response.status_code == 503
+        assert response.json()["error"]["code"] == "ai_configuration_error"
+        with factory() as session:
+            assert (
+                session.execute(select(func.count()).select_from(ai_query_logs)).scalar_one() == 0
+            )
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_production_accepts_configured_ip_hash_secret(monkeypatch):
+    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.setenv("HCG_IP_HASH_SECRET", "test-only-private-value")
+    client, _factory = _client()
+    try:
+        response = client.post("/v2/ai/query", json={"query": "Explain C G"})
+        assert response.status_code == 200
+        assert _events(response)[-1] == "final"
+    finally:
+        app.dependency_overrides.clear()
 
 
 def test_blank_query_is_rejected_before_rate_counter_changes():
