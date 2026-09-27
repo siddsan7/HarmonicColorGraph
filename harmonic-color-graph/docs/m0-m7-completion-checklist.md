@@ -91,7 +91,7 @@ broken.
 
 - [ ] **H01 — Choose and provision production Redis and a persistent worker
   host.** Confirm the service/host, expected cost, access method, and who owns
-  credentials. Production Redis is currently unavailable. This unlocks A06
+  credentials. Production Redis is currently unavailable. This unlocks A07
   and L01. Decision/evidence: _pending_.
 
 - [ ] **H02 — Configure deployment secrets and telemetry destination.** Put
@@ -117,11 +117,12 @@ broken.
 
 - [ ] **H05 — Make the full-corpus source and load authorization available.**
   This checkout contains no `data/raw/chordonomicon_v2.csv` and no
-  `data/artifacts/` build. Identify the licensed source or an existing
-  verified artifact, the machine/storage budget, and explicitly scope the
-  production reload before A04/A05. If the 300 MiB `hcg` budget cannot be met
-  by pruning, choose whether to change storage plan. Do not copy raw corpus
-  content into Git. Decision/evidence: _pending_.
+  `data/artifacts/` build. Identify the licensed source or verified
+  train/dev/test artifacts for A04, and the full-corpus source/artifacts and
+  machine/storage budget for A05. Explicitly authorize and scope the production
+  reload before A05. If the 300 MiB `hcg` budget cannot be met by pruning,
+  choose whether to change storage plan. Do not copy raw corpus content into
+  Git. Decision/evidence: _pending_.
 
 ## Agent work after dependencies are ready
 
@@ -180,7 +181,7 @@ broken.
   ranked suggestions with playable audio, color, and theory explanations;
   exercise explorer paths, generator, compare, MIDI export, real embedding map,
   URL restoration, and degraded snapshot. Include H04 listening evidence.
-  Prerequisites: A05, A06, H04. Evidence: _pending_.
+  Prerequisites: A02, A05, A06, H04. Evidence: _pending_.
 
 - [ ] **L04 — Close F71–F74 live assistant gates.** Run the 20-query live route
   set and supplied Phase 3 §5 prompts, grounding/adversarial cases, production
