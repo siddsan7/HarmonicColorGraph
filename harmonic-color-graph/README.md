@@ -189,6 +189,29 @@ Corpus-backed tools use the configured `DATABASE_URL`. MCP returns structured
 tool errors for invalid harmonic input and does not accept SQL, file paths, or
 administrative operations.
 
+### Assistant workflow
+
+F71 compiles a LangGraph workflow over the same typed tools. Set
+`ANTHROPIC_API_KEY` to use Claude for intent parsing and grounded explanations;
+`HCG_LLM_FAST_MODEL` and `HCG_LLM_MODEL` override the default model IDs. With
+the key absent or a model response invalid, the workflow uses bounded
+deterministic parsing and explanation. From `backend/`:
+
+```python
+from app.ai.tools import HarmonicTools
+from app.ai.workflow import AssistantWorkflow
+from app.db.session import create_session_factory
+
+with create_session_factory()() as session:
+    workflow = AssistantWorkflow.from_environment(HarmonicTools.from_session(session))
+    response = workflow.run("Recommend the next chord after C G Am in C major")
+    print(response.model_dump(mode="json"))
+```
+
+The response contains tool-sourced candidates and facts, any competing key
+analyses, optional playback, and a `fallback` flag. F72 adds the full safety
+validator; F73 exposes this workflow through the streaming API.
+
 ## Phase Direction
 
 Phase 2 will add harmonic color profiles, embeddings,
