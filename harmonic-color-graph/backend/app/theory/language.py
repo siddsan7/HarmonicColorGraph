@@ -12,12 +12,15 @@ _HEDGE = re.compile(
     r"some listeners?|many listeners?)\b",
     re.IGNORECASE,
 )
+_CLAUSE_BREAK = re.compile(r"[.!?;]|,\s*(?:but|yet|however|while|whereas|and)\b|\bbut\b")
 
 
 def lint_objective_emotion(text: str) -> bool:
     """Flag unhedged emotion assertions; return False for factual or hedged text."""
     for match in OBJECTIVE_EMOTION.finditer(text):
-        sentence_start = max(text.rfind(mark, 0, match.start()) for mark in ".!?") + 1
-        if not _HEDGE.search(text[sentence_start : match.start()]):
+        boundary = max(
+            (part.end() for part in _CLAUSE_BREAK.finditer(text, 0, match.start())), default=0
+        )
+        if not _HEDGE.search(text[boundary : match.start()]):
             return True
     return False

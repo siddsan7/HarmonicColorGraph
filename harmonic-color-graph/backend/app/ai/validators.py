@@ -23,14 +23,13 @@ _NAMED_SUBJECT = re.compile(
     r"\b(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,}\s+"
     r"(?:uses|contains|features)\b"
 )
-_THEORY_LABEL = re.compile(
-    r"\b(?:a|an|the|called|named)\s+"
-    r"((?:[a-z][a-z-]*\s+){1,2}"
-    r"(?:cadence|dominant|resolution|substitution|mediant|relation|motion|"
-    r"progression|third|modulation|function))\b",
+_THEORY_TERM = re.compile(
+    r"\b(?:cadence|dominant|resolution|substitution|mediant|relation|motion|"
+    r"progression|third|modulation|function)\b",
     re.IGNORECASE,
 )
-_CADENCE = re.compile(r"\b([a-z][a-z-]*)\s+cadence\b", re.IGNORECASE)
+_LABEL_STOP = {"a", "an", "the", "is", "was", "to", "of", "in", "this", "that", "form", "forms"}
+_DESCRIPTION = {"minor", "major", "smooth", "strong", "weak", "gentle", "clear", "final"}
 _RELATIONSHIP = re.compile(r"\brelationship:([a-z][a-z0-9_]*)\b", re.IGNORECASE)
 
 
@@ -56,6 +55,24 @@ def _symbols(tool_results: Mapping[str, Any]) -> tuple[set[str], set[str]]:
 
     visit(dict(tool_results))
     return chords, figures
+
+
+def _unsupported_theory_phrase(text: str) -> bool:
+    for match in _THEORY_TERM.finditer(text):
+        previous = re.findall(r"[A-Za-z-]+", text[: match.start()])[-2:]
+        descriptors: list[str] = []
+        for word in reversed(previous):
+            if word.lower() in _LABEL_STOP:
+                break
+            descriptors.insert(0, word.lower())
+        if not descriptors:
+            continue
+        phrase = " ".join([*descriptors, match.group(0).lower()])
+        if phrase not in _REGISTRY_NAMES and not (
+            len(descriptors) == 1 and descriptors[0] in _DESCRIPTION
+        ):
+            return True
+    return False
 
 
 def validate_claims(
@@ -89,16 +106,7 @@ def validate_claims(
             violations.append(prefix + "theory_registry")
         if any(match.group(1) not in _REGISTRY for match in _RELATIONSHIP.finditer(claim.text)):
             violations.append(prefix + "theory_registry")
-        if any(
-            match.group(1).lower() not in _REGISTRY_NAMES
-            for match in _THEORY_LABEL.finditer(claim.text)
-        ):
-            violations.append(prefix + "theory_registry")
-        if any(
-            match.group(0).lower() not in _REGISTRY_NAMES
-            and match.group(1).lower() not in {"a", "an", "the", "this", "that", "each"}
-            for match in _CADENCE.finditer(claim.text)
-        ):
+        if _unsupported_theory_phrase(claim.text):
             violations.append(prefix + "theory_registry")
         if any(
             fact_id.startswith("relationship:") and fact_id.split(":", 2)[1] not in _REGISTRY

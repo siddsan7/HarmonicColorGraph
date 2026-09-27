@@ -28,6 +28,10 @@ _UNKNOWN_FIGURE = re.compile(
     r"(?<![\w])(?:[b#]?(?:VII|VI|IV|III|II|V|I|vii|vi|iv|iii|ii|v|i)"
     r"(?:\d{2,}|(?:maj|add|sus)\d+)|[b#](?:IX|X|VIII))(?![\w])"
 )
+_BARE_UNKNOWN_CHORD = re.compile(
+    r"(?i:\b(?:add|play|use|try|recommend|choose|insert)\s+)([HJ-UW-Z])\b|"
+    r"\b([HJ-UW-Z])\s+(?i:chord|note|triad)\b"
+)
 
 
 def extract_chords(text: str) -> list[str]:
@@ -56,6 +60,9 @@ def chord_mentions(text: str) -> set[str]:
                 continue
         mentions.add(symbol)
     mentions.update(match.group(0) for match in _UNKNOWN_CHORD.finditer(text))
+    mentions.update(
+        match.group(1) or match.group(2) for match in _BARE_UNKNOWN_CHORD.finditer(text)
+    )
     return mentions
 
 

@@ -11,7 +11,11 @@ FACTS = {
 }
 TOOLS = {
     "analyze_progression": {
-        "chords": [{"symbol": "C", "raw_symbol": "C"}, {"symbol": "G7", "raw_symbol": "G7"}],
+        "chords": [
+            {"symbol": "C", "raw_symbol": "C"},
+            {"symbol": "G", "raw_symbol": "G"},
+            {"symbol": "G7", "raw_symbol": "G7"},
+        ],
         "tokens": [
             {"figure": "I", "display_figure": "I", "core": "maj:I"},
             {"figure": "V7", "display_figure": "V7", "core": "maj:V"},
@@ -25,6 +29,8 @@ TOOLS = {
     [
         ("C moves toward G7.", ["relationship:deceptive:1:2"], [], []),
         ("F#7 moves toward G7.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
+        ("Add H before C.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
+        ("The Q chord comes next.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
         ("V7 moves toward I.", ["relationship:deceptive:1:2"], [], []),
         ("Imaj9 moves toward V7.", ["relationship:deceptive:1:2"], [], ["figure_provenance"]),
         (
@@ -53,6 +59,12 @@ TOOLS = {
         ),
         ("The change may feel sad.", ["relationship:deceptive:1:2"], [], []),
         (
+            "C may feel sad, but G is objectively sad.",
+            ["relationship:deceptive:1:2"],
+            [],
+            ["objective_emotion"],
+        ),
+        (
             "It may feel tense. The change is sad.",
             ["relationship:deceptive:1:2"],
             [],
@@ -67,6 +79,9 @@ TOOLS = {
         ("A deceptive cadence occurs.", ["relationship:deceptive:1:2"], ["deceptive"], []),
         ("A galactic cadence occurs.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
         ("This is a galactic resolution.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
+        ("This is galactic resolution.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
+        ("This is a minor third.", ["relationship:deceptive:1:2"], [], []),
+        ("The chords form a smooth progression.", ["relationship:deceptive:1:2"], [], []),
         (
             "The transition is a borrowed dominant.",
             ["relationship:deceptive:1:2"],
