@@ -1,3 +1,4 @@
+from decimal import Decimal
 from functools import lru_cache
 
 from pydantic import Field
@@ -29,6 +30,9 @@ class AppSettings(BaseSettings):
         default="../data/samples/mini_corpus.csv", alias="HCG_EVALUATION_SOURCE"
     )
     hcg_env: str = Field(default="development", alias="HCG_ENV")
+    hcg_daily_ai_budget_usd: Decimal = Field(
+        default=Decimal("2.00"), gt=0, alias="HCG_DAILY_AI_BUDGET_USD"
+    )
     hcg_cors_origins: str = Field(default="", alias="HCG_CORS_ORIGINS")
     hcg_corpus_version: str = Field(default="unversioned", alias="HCG_CORPUS_VERSION")
     vercel_git_commit_sha: str = Field(default="dev", alias="VERCEL_GIT_COMMIT_SHA")

@@ -1,6 +1,22 @@
 {
   "components": {
     "schemas": {
+      "AIQueryRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "query": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Query",
+            "type": "string"
+          }
+        },
+        "required": [
+          "query"
+        ],
+        "title": "AIQueryRequest",
+        "type": "object"
+      },
       "AnalysisV2": {
         "additionalProperties": false,
         "properties": {
@@ -3690,6 +3706,46 @@
         "summary": "Transition Stats Endpoint",
         "tags": [
           "phase-1"
+        ]
+      }
+    },
+    "/v2/ai/query": {
+      "post": {
+        "operationId": "ai_query_v2_ai_query_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIQueryRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "text/event-stream": {}
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ai Query",
+        "tags": [
+          "ai-v2"
         ]
       }
     },
