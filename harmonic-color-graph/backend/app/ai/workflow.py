@@ -600,6 +600,7 @@ class AssistantWorkflow:
             analysis_options=state.get("analysis_options", []),
             playback=state.get("playback"),
             fact_ids=sorted(state.get("fact_pool", {})),
+            facts=state.get("fact_pool", {}),
             tool_results=state.get("tool_results", {}),
             errors=state.get("errors", []),
             fallback=state.get("fallback", True),

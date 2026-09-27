@@ -235,6 +235,13 @@ estimated model cost; `hcg.rate_limits` holds hourly counters. Apply migration
 without it. The deterministic endpoints are available when the assistant
 returns 429.
 
+The `/assistant` page reads this SSE stream through the same-origin API proxy.
+It shows the workflow steps, grounded explanation and cited facts, and
+playable progression options with links to the explorer and generator.
+The simple/technical switch reveals theory labels and citation IDs.
+When the assistant reaches its rate or budget limit, the page links back to
+the deterministic workbench.
+
 For a one-word song title that is also an ordinary word, use explicit song
 wording (for example, “the song Yesterday”) so the validator can require a
 matching `example:*` row. A bare sentence such as “Yesterday is in C” is

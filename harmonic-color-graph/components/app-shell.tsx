@@ -18,8 +18,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const search = useSearchParams()
 
   return <>
-    <a href="#main-content" className="skip-link">Skip to content</a>
     <header className="shell-header">
+      <a href="#main-content" className="skip-link">Skip to content</a>
       <div className="shell-header-inner">
         <Link href={hrefWithProgression("/", search)} className="shell-brand" aria-label="Harmonic Color Graph, Workbench">
           <span aria-hidden="true" className="shell-brand-mark">H<span>●</span>G</span>
