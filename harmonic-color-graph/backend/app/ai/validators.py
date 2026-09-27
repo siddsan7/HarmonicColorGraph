@@ -21,7 +21,7 @@ _SONG = re.compile(
 _TITLE = re.compile(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,}\b")
 _NAMED_SUBJECT = re.compile(
     r"\b(?P<name>(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,})\s+"
-    r"(?:uses|contains|features)\b"
+    r"(?:uses|contains|features|is\s+in)\b"
 )
 _THEORY_SUFFIX = (
     r"cadence|dominant|resolution|substitution|mediant|relation|motion|"

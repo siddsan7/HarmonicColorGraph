@@ -29,6 +29,10 @@ TOOLS = {
     ("text", "facts", "labels", "expected"),
     [
         ("C moves toward G7.", ["relationship:deceptive:1:2"], [], []),
+        ("A minor third separates the roots.", ["relationship:deceptive:1:2"], [], []),
+        ("A minor plagal cadence follows.", ["relationship:deceptive:1:2"], [], []),
+        ("A major tonic closes the phrase.", ["relationship:deceptive:1:2"], [], []),
+        ("A minor chord follows C.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
         ("F#7 moves toward G7.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
         ("Add H before C.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
         ("The Q chord comes next.", ["relationship:deceptive:1:2"], [], ["chord_provenance"]),
@@ -84,6 +88,7 @@ TOOLS = {
         ("Let It Be uses C.", ["relationship:deceptive:1:2"], [], ["song_provenance"]),
         ("Let It Be uses C.", ["example:abc"], [], ["song_provenance"]),
         ("Yesterday uses C.", ["relationship:deceptive:1:2"], [], ["song_provenance"]),
+        ("Yesterday is in C.", ["relationship:deceptive:1:2"], [], ["song_provenance"]),
         ("A deceptive cadence occurs.", ["relationship:deceptive:1:2"], ["deceptive"], []),
         ("A galactic cadence occurs.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
         ("A stellar cadence occurs.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),

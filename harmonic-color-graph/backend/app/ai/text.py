@@ -51,12 +51,18 @@ def chord_mentions(text: str) -> set[str]:
         symbol = match.group(0)
         if symbol == "A":
             following = text[match.end() :]
+            article_theory = re.match(
+                r"\s+(?:major|minor)\s+(?:third|plagal|tonic|cadence|"
+                r"progression|resolution|dominant|relationship)\b",
+                following,
+                re.IGNORECASE,
+            )
             musical_noun = re.match(r"\s+(?:chord|major|minor|triad|note)\b", following, re.I)
             neighboring_chord = any(
                 other.start() - match.end() <= 3 and other.start() > match.start()
                 for other in matches[index + 1 : index + 2]
             )
-            if not musical_noun and not neighboring_chord:
+            if article_theory or (not musical_noun and not neighboring_chord):
                 continue
         mentions.add(symbol)
     mentions.update(match.group(0) for match in _UNKNOWN_CHORD.finditer(text))
