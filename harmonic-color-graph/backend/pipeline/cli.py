@@ -250,9 +250,7 @@ def _run_build(args: argparse.Namespace) -> None:
             from pipeline.projection_export import export_projection
 
             public_projection = REPO_ROOT / "public" / "snapshot" / "embedding-map.json"
-            export_projection(
-                artifact_dir / "embedding_projection.parquet", public_projection, default_model
-            )
+            export_projection(artifact_dir / "embedding_projection.parquet", public_projection)
             manifest.params["embedding_models"] = ["chord2vec", "fastrp"]
             manifest.params["embedding_triplet_scores"] = {
                 item.model: {"passed": item.passed, "evaluated": item.evaluated}

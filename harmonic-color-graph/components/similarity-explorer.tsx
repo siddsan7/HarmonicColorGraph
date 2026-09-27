@@ -21,6 +21,27 @@ function parseProjection(value: unknown): Projection {
   return data as Projection
 }
 
+function MapPointPicker({ points, onSelect }: { points: Point[]; onSelect: (point: Point) => void }) {
+  const [query, setQuery] = useState("")
+  const matches = useMemo(() => {
+    const term = query.trim().toLowerCase()
+    return points.filter((point) => term ? point.id.toLowerCase().includes(term) : point.type === "pattern").slice(0, 20)
+  }, [points, query])
+  return <div className="mt-4 border-t border-[var(--border-default)] pt-4">
+    <label className="block text-sm">Find a mapped progression or function
+      <input value={query} onChange={(event) => setQuery(event.target.value)} className={`mt-1 w-full ${field}`}
+        placeholder="Search tokens, such as M:V" />
+    </label>
+    {matches.length ? <ul aria-label="Mapped points" className="mt-2 grid max-h-48 gap-1 overflow-y-auto sm:grid-cols-2">
+      {matches.map((point) => <li key={`${point.type}:${point.id}`}>
+        <button type="button" onClick={() => onSelect(point)}
+          className="w-full truncate rounded-md border border-[var(--border-default)] px-2 py-1 text-left font-mono text-xs text-[var(--accent-secondary)] hover:border-[var(--accent-secondary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-secondary)]"
+          aria-label={`Open mapped ${point.type} ${point.id} in Workbench`}>{point.id}</button>
+      </li>)}
+    </ul> : <p className="mt-2 text-xs text-[var(--text-muted)]">No projected points match.</p>}
+  </div>
+}
+
 function EmbeddingMap({ projection, onSelect, selected }: {
   projection: Projection; onSelect: (point: Point) => void; selected: string | null
 }) {
@@ -59,7 +80,8 @@ function EmbeddingMap({ projection, onSelect, selected }: {
       </circle>)}
     </svg>}
     <p ref={hover} className="min-h-5 truncate font-mono text-xs text-[var(--accent-secondary)]" />
-    <p className="mt-2 text-xs text-[var(--text-muted)]">Hover to inspect a label. Select a point to open it in the Workbench.</p>
+    <p className="mt-2 text-xs text-[var(--text-muted)]">Hover to inspect a label. Select a point or use the searchable list to open it in the Workbench.</p>
+    {points.length > 0 && <MapPointPicker points={points} onSelect={onSelect} />}
   </div>
 }
 

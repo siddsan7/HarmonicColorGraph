@@ -44,6 +44,23 @@ describe("similarity explorer", () => {
     expect(push).toHaveBeenCalledWith("/?p=C-G-Am&k=C-major")
   })
 
+  it("offers keyboard-reachable mapped points through search", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({
+      model: "chord2vec", points: [
+        { type: "pattern", id: "M:I M:V M:vi", x: 1, y: 2 },
+        { type: "pattern", id: "M:vi M:IV M:V", x: 3, y: 4 },
+      ],
+    }) }))
+    vi.mocked(realizeProgression).mockResolvedValue(["Am", "F", "G"])
+    render(<SimilarityExplorer />)
+    const picker = await screen.findByRole("textbox", { name: "Find a mapped progression or function" })
+    fireEvent.change(picker, { target: { value: "M:vi M:IV" } })
+    const choice = screen.getByRole("button", { name: "Open mapped pattern M:vi M:IV M:V in Workbench" })
+    expect(choice).toHaveAttribute("type", "button")
+    fireEvent.click(choice)
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/?p=Am-F-G&k=C-major"))
+  })
+
   it("switches to surface overlap ranking", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }))
     vi.mocked(findSimilarProgressions).mockResolvedValue({
