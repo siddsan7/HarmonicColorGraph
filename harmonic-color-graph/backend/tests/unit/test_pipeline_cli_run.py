@@ -86,6 +86,7 @@ def test_snapshot_stage_exports_bounded_global_graph(tmp_path, mini_corpus, monk
     assert snapshot.stat().st_size <= 500_000
     assert payload["context"] == "global"
     assert any(node["id"] == "function:M:I" for node in payload["nodes"])
+    assert all(node["label"] == node["id"].removeprefix("function:") for node in payload["nodes"])
     assert all(edge["type"] == "TRANSITIONS_TO" for edge in payload["edges"])
 
 

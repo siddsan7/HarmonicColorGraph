@@ -59,7 +59,7 @@ def run_snapshot(sections_path: str | Path, output_path: str | Path) -> None:
             {
                 "id": f"function:{token}",
                 "type": "function",
-                "label": token.split(":", 1)[1],
+                "label": token,
                 "props": props,
             }
         )
