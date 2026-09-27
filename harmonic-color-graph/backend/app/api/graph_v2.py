@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
+from app.color.profile import realize_progression
 from app.core.cache import RateLimiter, VersionedCache, redis_client
 from app.db.session import get_session
 from app.db.stores.graph import GraphStore
@@ -167,3 +168,29 @@ def graph_node(node_id: str, service: Graph) -> dict | JSONResponse:
     if node is None:
         return _error("not_found", f"Graph node not found: {node_id}", 404)
     return _response(service, node)
+
+
+class RealizeRequest(BaseModel):
+    nodes: list[str] = Field(min_length=1, max_length=7)
+    key: str = Field(default="C major", max_length=40)
+
+
+@router.post("/realize", response_model=None)
+def realize_graph_path(request: RealizeRequest) -> dict | JSONResponse:
+    """Turn a selected function path into playable chords using F30 theory."""
+    if any(not node.startswith(("function:M:", "function:m:")) for node in request.nodes):
+        return _error("invalid_path", "Only function nodes can be played", 422)
+    try:
+        chords, _ = realize_progression(
+            [node.removeprefix("function:") for node in request.nodes], request.key
+        )
+    except ValueError as exc:
+        return _error("invalid_path", str(exc), 422)
+    return {
+        "data": {
+            "chords": [
+                {"label": chord.symbol, "pitch_classes": chord.pitch_classes} for chord in chords
+            ]
+        },
+        "warnings": [],
+    }

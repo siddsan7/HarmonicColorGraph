@@ -12,7 +12,6 @@ import pytest
 pl = pytest.importorskip("polars")
 
 import pipeline.cli as cli  # noqa: E402
-from pipeline.stages._unimplemented import StageNotImplementedError  # noqa: E402
 from pipeline.synth import write_mini_corpus  # noqa: E402
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -71,8 +70,8 @@ def test_run_twice_yields_identical_manifest_hashes(tmp_path, mini_corpus, monke
     assert first == second
 
 
-def test_unimplemented_downstream_stage_raises_clear_error(tmp_path, mini_corpus, monkeypatch):
-    # `snapshot` (F63) is the next real stub, but STAGE_ORDER runs the real
+def test_snapshot_stage_exports_bounded_global_graph(tmp_path, mini_corpus, monkeypatch):
+    # STAGE_ORDER runs the real
     # `embeddings` stage (F50, gensim-backed) on the way there; the
     # `backend (unit)` CI job installs `.[dev,pipeline]` only, not the
     # optional `[ml]` extra, so this needs the same importorskip every other
@@ -81,8 +80,14 @@ def test_unimplemented_downstream_stage_raises_clear_error(tmp_path, mini_corpus
     monkeypatch.setattr(cli, "REPO_ROOT", tmp_path)
     args = _make_args(tmp_path, mini_corpus, "cv-test-a", to_stage="snapshot")
 
-    with pytest.raises(StageNotImplementedError, match="F63"):
-        cli._run_build(args)
+    cli._run_build(args)
+    snapshot = tmp_path / "public" / "snapshot" / "graph-core.json"
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    assert snapshot.stat().st_size <= 500_000
+    assert payload["context"] == "global"
+    assert any(node["id"] == "function:M:I" for node in payload["nodes"])
+    assert all(node["label"] == node["id"].removeprefix("function:") for node in payload["nodes"])
+    assert all(edge["type"] == "TRANSITIONS_TO" for edge in payload["edges"])
 
 
 def test_from_stage_after_to_stage_is_rejected(tmp_path, mini_corpus, monkeypatch):

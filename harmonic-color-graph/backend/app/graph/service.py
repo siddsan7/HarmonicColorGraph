@@ -17,6 +17,7 @@ from typing import Any, Protocol
 class GraphReader(Protocol):
     def active_version(self) -> str | None: ...
     def node(self, node_id: str) -> dict[str, Any] | None: ...
+    def nodes(self, node_ids: list[str]) -> dict[str, dict[str, Any]]: ...
     def outgoing_edges(
         self, src: str, *, edge_type: str | None = None, context_id: int | None = None
     ) -> list[dict[str, Any]]: ...
@@ -97,16 +98,26 @@ class GraphService:
             for src in frontier:
                 candidates = self.store.outgoing_edges(src, context_id=context_id)
                 candidates.sort(key=lambda edge: (-_probability(edge), str(edge["dst"])))
-                for edge in candidates:
-                    if edge_types and edge["type"] not in edge_types:
-                        continue
-                    if _probability(edge) < min_prob:
-                        continue
+                eligible = [
+                    edge
+                    for edge in candidates
+                    if (not edge_types or edge["type"] in edge_types)
+                    and _probability(edge) >= min_prob
+                ]
+                # The DB store fetches all destinations in one statement.
+                # Fixture stores can keep the simpler per-node reader.
+                batch = getattr(self.store, "nodes", None)
+                targets = batch([edge["dst"] for edge in eligible]) if callable(batch) else {}
+                for edge in eligible:
                     key = (edge["src"], edge["dst"], edge["type"], edge["context_id"])
                     if key in seen_edges:
                         continue
                     seen_edges.add(key)
-                    target = self.store.node(edge["dst"])
+                    target = (
+                        targets.get(edge["dst"])
+                        if callable(batch)
+                        else self.store.node(edge["dst"])
+                    )
                     if target is None:
                         continue
                     nodes[edge["dst"]] = target

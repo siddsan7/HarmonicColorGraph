@@ -176,3 +176,59 @@ body { background: var(--bg-base); color: var(--text-primary); }
   .transport-sticky { position: sticky; top: 0; z-index: 10; }
   .transport-sticky section { max-height: 42vh; overflow-y: auto; box-shadow: 0 .5rem 1rem #0008; }
 }
+.explorer { width: 100%; max-width: 96rem; margin: 0 auto; padding: 1.4rem 1rem 3rem; }
+.explorer-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; }
+.explorer-heading h1 { font-size: clamp(1.7rem, 4vw, 2.5rem); font-weight: 680; margin-top: .35rem; }
+.explorer-heading p:last-child, .explorer-shared, .explorer-panel > p { color: var(--text-secondary); }
+.explorer-heading .route-return { margin: 0; white-space: nowrap; }
+.explorer-shared { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; padding: .7rem 0; font-size: .82rem; }
+.explorer-shared strong { color: var(--text-primary); }
+.explorer-banner, .explorer-error { padding: .8rem; border-radius: .4rem; margin-bottom: .7rem; background: var(--bg-subtle); color: var(--accent-warm); }
+.explorer-error { color: var(--state-error); }
+.explorer-toolbar, .explorer-path-controls { display: flex; flex-wrap: wrap; align-items: end; gap: .7rem; padding: .85rem; border: 1px solid var(--border-default); border-radius: .5rem; background: var(--bg-surface); }
+.explorer-toolbar label, .explorer-path-controls label, .explorer-results label { display: flex; flex-direction: column; gap: .25rem; color: var(--text-secondary); font-size: .78rem; }
+.explorer-toolbar select, .explorer-toolbar input:not([type=checkbox]):not([type=range]), .explorer-path select, .explorer-path input { min-width: 7rem; padding: .45rem; border: 1px solid var(--border-strong); border-radius: .35rem; background: var(--bg-subtle); color: var(--text-primary); }
+.explorer-toolbar input[type=range] { accent-color: var(--accent-primary); }
+.explorer-toolbar fieldset { display: flex; flex-wrap: wrap; gap: .3rem .65rem; max-width: 32rem; border: 0; }
+.explorer-toolbar legend { color: var(--text-secondary); font-size: .78rem; }
+.explorer-toolbar fieldset label { flex-direction: row; align-items: center; white-space: nowrap; }
+.explorer-toolbar input[type=checkbox] { accent-color: var(--accent-primary); }
+.explorer button { padding: .43rem .65rem; border: 1px solid var(--border-strong); border-radius: .35rem; background: var(--bg-subtle); color: var(--text-primary); font-size: .8rem; }
+.explorer button:hover { border-color: var(--accent-secondary); }
+.explorer button:focus-visible, .explorer select:focus-visible, .explorer input:focus-visible { outline: 2px solid var(--accent-secondary); outline-offset: 2px; }
+.explorer button:disabled { opacity: .5; cursor: not-allowed; }
+.explorer-view { display: flex; gap: .25rem; }
+.explorer-view button[aria-pressed=true] { color: var(--bg-base); background: var(--accent-primary); }
+.explorer-layout { display: grid; grid-template-columns: minmax(0, 1fr) 18rem; gap: .75rem; margin-top: .75rem; }
+.explorer-graph, .explorer-panel, .explorer-path { min-width: 0; padding: .9rem; border: 1px solid var(--border-default); border-radius: .5rem; background: var(--bg-surface); }
+.explorer-graph-title { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: .5rem; }
+.explorer-graph-title h2, .explorer-panel h2, .explorer-path h2 { font-size: 1.05rem; font-weight: 650; }
+.explorer-graph-title span { color: var(--text-muted); font-size: .8rem; }
+.graph-canvas-wrap { position: relative; }
+.graph-canvas { height: min(64vh, 620px); min-height: 360px; background: var(--bg-base); border: 1px solid var(--border-default); border-radius: .4rem; }
+.graph-hover { position: absolute; bottom: .4rem; left: .5rem; right: .5rem; padding: .3rem .5rem; background: var(--bg-surface); color: var(--text-secondary); font-size: .75rem; pointer-events: none; }
+.explorer-table-wrap { max-height: 620px; overflow: auto; }
+.explorer-table-wrap table { width: 100%; border-collapse: collapse; font-size: .82rem; }
+.explorer-table-wrap caption { text-align: left; color: var(--text-muted); padding: .6rem 0; }
+.explorer-table-wrap th, .explorer-table-wrap td { padding: .5rem; border-bottom: 1px solid var(--border-default); text-align: left; }
+.explorer-table-wrap th { color: var(--text-muted); position: sticky; top: 0; background: var(--bg-surface); }
+.explorer-table-wrap .on-path { background: color-mix(in srgb, var(--accent-primary) 15%, var(--bg-surface)); }
+.explorer-legend { display: flex; flex-wrap: wrap; gap: .4rem 1rem; margin-top: .6rem; color: var(--text-muted); font-size: .74rem; }
+.explorer-legend i { display: inline-block; width: .7rem; height: .7rem; margin-right: .25rem; border-radius: 100%; background: var(--accent-secondary); }
+.explorer-legend .legend-low { background: var(--accent-primary); }
+.explorer-legend .legend-high { background: var(--accent-warm); }
+.explorer-legend .legend-tension { background: var(--accent-tension); }
+.explorer-panel dl { margin: 1rem 0; }
+.explorer-panel dl div { display: flex; justify-content: space-between; gap: .5rem; padding: .4rem 0; border-bottom: 1px solid var(--border-default); font-size: .78rem; overflow-wrap: anywhere; }
+.explorer-panel dt { color: var(--text-muted); }
+.explorer-panel h3 { margin: .8rem 0 .4rem; font-size: .85rem; font-weight: 600; }
+.explorer-panel > p { font-size: .8rem; }
+.explorer-evidence { display: grid; gap: .1rem; margin: .5rem 0; padding: .5rem; background: var(--bg-subtle); font-size: .75rem; overflow-wrap: anywhere; }
+.explorer-evidence small { color: var(--text-muted); }
+.explorer-actions { display: flex; flex-wrap: wrap; gap: .4rem; margin-top: 1rem; }
+.explorer-path { margin-top: .75rem; }
+.explorer-path-controls { border: 0; padding: .7rem 0; }
+.explorer-results { display: flex; flex-wrap: wrap; align-items: end; gap: .8rem; padding: .6rem 0; }
+.explorer-results p { font-family: var(--font-geist-mono); color: var(--accent-primary); }
+@media (max-width: 800px) { .explorer-layout { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .explorer-heading { display: block; } .explorer-heading .route-return { margin-top: .7rem; } .explorer-table-wrap { overflow-x: auto; } .explorer-table-wrap table { min-width: 600px; } }

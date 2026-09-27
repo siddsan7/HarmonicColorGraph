@@ -1,0 +1,169 @@
+"use client"
+
+import dynamic from "next/dynamic"
+import Link from "next/link"
+import { useSearchParams } from "next/navigation"
+import { useCallback, useEffect, useMemo, useState } from "react"
+import { hrefWithProgression, readProgression } from "@/lib/progression-url"
+import { filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphEdge, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
+import { usePlayback } from "@/lib/hooks/use-playback"
+import * as Tone from "tone"
+
+const GraphCanvas = dynamic(() => import("@/components/graph-canvas").then((mod) => mod.GraphCanvas), { ssr: false })
+const ROOT = "function:M:I"
+const EMPTY: GraphData = { nodes: [], edges: [], context: "global" }
+const EDGE_TYPES = ["TRANSITIONS_TO", "FUNCTIONS_AS", "ABS_TRANSITIONS_TO", "BELONGS_TO", "HAS_PATTERN"]
+type ApiError = Error & { code?: string }
+
+async function api<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(`/api/hcg/v2/graph${path}`, init)
+  const payload: unknown = await response.json().catch(() => null)
+  if (!response.ok) {
+    const error = new Error((payload as { error?: { message?: string } } | null)?.error?.message ?? `Graph API returned ${response.status}`) as ApiError
+    error.code = (payload as { error?: { code?: string } } | null)?.error?.code
+    throw error
+  }
+  return (payload as { data: T }).data
+}
+async function getSnapshot(): Promise<GraphData> {
+  const response = await fetch("/snapshot/graph-core.json")
+  if (!response.ok) throw new Error("The graph snapshot is unavailable")
+  return parseGraph(await response.json())
+}
+function edgeKey(edge: GraphEdge) { return `${edge.src}|${edge.dst}` }
+function label(id: string) { return id.replace(/^function:[Mm]:/, "") }
+function percent(value: number | null) { return value == null ? "—" : `${Math.round(value * 100)}%` }
+function colorValue(node: GraphNode, axis: string): string {
+  if (axis === "chromaticity") return Number(node.props.chromaticity ?? 0).toFixed(2)
+  const color = node.props.color as { perceptual?: Record<string, { value?: number }> } | undefined
+  return color?.perceptual?.[axis]?.value?.toFixed(2) ?? "—"
+}
+
+export function GraphExplorer() {
+  const search = useSearchParams()
+  const shared = readProgression(search)
+  const [root, setRoot] = useState(ROOT)
+  const [selected, setSelected] = useState(ROOT)
+  const [graph, setGraph] = useState<GraphData>(EMPTY)
+  const [snapshot, setSnapshot] = useState<GraphData | null>(null)
+  const [degraded, setDegraded] = useState(false)
+  const [error, setError] = useState("")
+  const [loading, setLoading] = useState(true)
+  const [view, setView] = useState<"canvas" | "list">("canvas")
+  const [contextType, setContextType] = useState(shared.genre ? "genre" : shared.section ? "section" : "global")
+  const [contextValue, setContextValue] = useState(shared.genre || shared.section || "")
+  const [edgeTypes, setEdgeTypes] = useState<string[]>(["TRANSITIONS_TO"])
+  const [minProb, setMinProb] = useState(0)
+  const [colorAxis, setColorAxis] = useState("chromaticity")
+  const [pathFrom, setPathFrom] = useState(ROOT)
+  const [pathTo, setPathTo] = useState("function:M:bVI")
+  const [constraint, setConstraint] = useState("none")
+  const [maxChromaticity, setMaxChromaticity] = useState(.7)
+  const [paths, setPaths] = useState<GraphPath[]>([])
+  const [pathIndex, setPathIndex] = useState(0)
+  const [pathError, setPathError] = useState("")
+  const playback = usePlayback()
+  const context = contextType === "global" || !contextValue.trim() ? "global" : `${contextType}:${contextValue.trim()}`
+  const filters = useMemo<GraphFilters>(() => ({ context, edgeTypes, minProb }), [context, edgeTypes, minProb])
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 640px)")
+    const update = () => { if (media.matches) setView("list") }
+    update(); media.addEventListener("change", update)
+    return () => media.removeEventListener("change", update)
+  }, [])
+  useEffect(() => {
+    const controller = new AbortController()
+    const started = performance.now()
+    async function load() {
+      await Promise.resolve()
+      if (controller.signal.aborted) return
+      setLoading(true); setError(""); setPaths([])
+      try {
+        if (degraded && snapshot) setGraph(snapshotNeighborhood(snapshot, root, filters))
+        else {
+          const params = new URLSearchParams({ id: root, context, min_prob: String(minProb), limit: "150" })
+          if (edgeTypes.length) params.set("edge_types", edgeTypes.join(","))
+          const data = parseGraph(await api<unknown>(`/neighborhood?${params}`, { signal: controller.signal }))
+          if (!controller.signal.aborted) { setGraph(data); setDegraded(false) }
+        }
+        if (!controller.signal.aborted) performance.mark("hcg-explore-neighborhood-ready", { detail: { elapsedMs: performance.now() - started } })
+      } catch (caught) {
+        if (controller.signal.aborted) return
+        const problem = caught as ApiError
+        if (problem.code === "db_unavailable" || /fetch|5\d\d/i.test(problem.message)) {
+          try {
+            const data = snapshot ?? await getSnapshot()
+            if (controller.signal.aborted) return
+            setSnapshot(data); setGraph(snapshotNeighborhood(data, root, filters)); setDegraded(true)
+          } catch (snapshotError) { setError((snapshotError as Error).message) }
+        } else setError(problem.message)
+      } finally { if (!controller.signal.aborted) setLoading(false) }
+    }
+    void load()
+    return () => controller.abort()
+  }, [root, filters, context, edgeTypes, minProb, degraded, snapshot])
+
+  const choose = useCallback((id: string) => setSelected(id), [])
+  const selectedNode = graph.nodes.find((node) => node.id === selected)
+  const outgoing = graph.edges.filter((edge) => edge.src === selected)
+  const activePath = paths[pathIndex]
+  const visible = degraded && snapshot ? filterGraph(graph, root, filters) : graph
+  async function expand() {
+    if (degraded && snapshot) { setGraph((current) => mergeGraph(current, snapshotNeighborhood(snapshot, selected, filters))); return }
+    try {
+      const params = new URLSearchParams({ id: selected, context, min_prob: String(minProb), limit: "150" })
+      if (edgeTypes.length) params.set("edge_types", edgeTypes.join(","))
+      const data = parseGraph(await api<unknown>(`/neighborhood?${params}`))
+      setGraph((current) => mergeGraph(current, data))
+    } catch (caught) { setError((caught as Error).message) }
+  }
+  async function findPaths() {
+    setPathError(""); setPaths([]); setPathIndex(0)
+    try {
+      let found: GraphPath[]
+      if (degraded && snapshot) found = snapshotPaths(snapshot, pathFrom, pathTo, constraint, maxChromaticity)
+      else {
+        const data = await api<{ paths: GraphPath[] }>("/path", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: pathFrom, to: pathTo, context, edge_types: edgeTypes, constraint, max_chromaticity: constraint === "max_chromaticity" ? maxChromaticity : null }) })
+        found = data.paths
+      }
+      setPaths(found)
+      if (!found.length) { setPathError("No path satisfies this constraint."); return }
+      if (degraded && snapshot) setGraph((current) => mergeGraph(current, { ...snapshot, context: current.context }))
+      else {
+        const missing = [...new Set(found.flatMap((path) => path.nodes))].filter((id) => !graph.nodes.some((node) => node.id === id))
+        const nodes = await Promise.all(missing.map((id) => api<GraphNode>(`/node/${encodeURIComponent(id)}`)))
+        setGraph((current) => mergeGraph(current, { nodes, edges: found.flatMap((path) => path.edges), context: current.context }))
+      }
+    } catch (caught) { setPathError((caught as Error).message) }
+  }
+  async function playNodes(nodes: string[]) {
+    try {
+      // Unlock audio within the click gesture before the realization request.
+      void Tone.start().catch(() => undefined)
+      const data = await api<{ chords: { label: string; pitch_classes: number[] }[] }>("/realize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nodes, key: shared.key || "C major" }) })
+      await playback.play([{ label: "Graph path", chords: data.chords.map((chord) => ({ label: chord.label, pitchClasses: chord.pitch_classes })) }], { bpm: 100, loop: false, instrument: "synth" })
+    } catch (caught) { setPathError((caught as Error).message) }
+  }
+  function toggleEdgeType(type: string) { setEdgeTypes((current) => current.includes(type) ? current.filter((item) => item !== type) : [...current, type]) }
+
+  return <main id="main-content" className="explorer">
+    <header className="explorer-heading"><div><p className="route-eyebrow">Harmonic Color Graph / Explore</p><h1>Graph Explorer</h1><p>Follow harmonic functions, compare transitions, and trace a playable path.</p></div><Link className="route-return" href={hrefWithProgression("/", search)}>Open in Workbench</Link></header>
+    <section className="explorer-shared" aria-label="Shared progression"><strong>Current progression</strong><span>{shared.input || "No progression selected"}</span><span>{shared.key || "Auto key"} · {shared.genre || "Any genre"} · {shared.section || "Any section"}</span></section>
+    {degraded && <p className="explorer-banner" role="status">Database unavailable. Showing the global graph snapshot{snapshot?.nodes.some((node) => node.props.snapshot_sample) ? " sample" : ""}; context filters and corpus counts are unavailable.</p>}
+    {error && <p className="explorer-error" role="alert">{error}</p>}
+    <section className="explorer-toolbar" aria-label="Graph filters">
+      <label>Context<select value={contextType} onChange={(event) => setContextType(event.target.value)}><option value="global">Global</option><option value="genre">Genre</option><option value="section">Section</option><option value="decade">Era / decade</option></select></label>
+      {contextType !== "global" && <label>Context value<input value={contextValue} onChange={(event) => setContextValue(event.target.value)} placeholder={contextType === "decade" ? "1990" : "pop"} /></label>}
+      <fieldset><legend>Relationships</legend>{EDGE_TYPES.map((type) => <label key={type}><input type="checkbox" checked={edgeTypes.includes(type)} onChange={() => toggleEdgeType(type)} />{type.replaceAll("_", " ").toLowerCase()}</label>)}</fieldset>
+      <label>Minimum probability <output>{percent(minProb)}</output><input type="range" min="0" max="1" step="0.05" value={minProb} onChange={(event) => setMinProb(Number(event.target.value))} /></label>
+      <label>Node tint<select value={colorAxis} onChange={(event) => setColorAxis(event.target.value)}><option value="none">Type only</option><option value="chromaticity">Chromaticity</option><option value="brightness">Brightness</option><option value="warmth">Warmth</option><option value="tension">Tension</option><option value="nostalgia">Nostalgia</option></select></label>
+      <div className="explorer-view" role="group" aria-label="Graph view"><button type="button" aria-pressed={view === "canvas"} onClick={() => setView("canvas")}>Canvas</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>List view</button></div>
+    </section>
+    <div className="explorer-layout"><section className="explorer-graph" aria-label="Graph neighborhood"><div className="explorer-graph-title"><h2>Neighborhood of {label(root)}</h2><span>{visible.nodes.length} nodes · {visible.edges.length} edges</span></div>
+      {loading ? <p role="status">Loading graph…</p> : view === "canvas" ? <GraphCanvas graph={visible} selected={selected} pathNodes={activePath?.nodes ?? []} pathEdges={activePath?.edges.map(edgeKey) ?? []} colorAxis={colorAxis} onSelect={choose} /> : <div className="explorer-table-wrap"><table><caption>Graph relationships: {visible.nodes.length} nodes and {visible.edges.length} edges</caption><thead><tr><th>From</th><th>To</th><th>Relationship</th><th>Probability</th><th>Tension Δ</th><th>Inspect</th></tr></thead><tbody>{visible.edges.map((edge, index) => <tr key={`${edgeKey(edge)}-${index}`} className={activePath?.edges.some((item) => edgeKey(item) === edgeKey(edge)) ? "on-path" : ""}><td>{label(edge.src)}</td><td>{label(edge.dst)}</td><td>{edge.type.replaceAll("_", " ").toLowerCase()}</td><td>{percent(edge.prob)}</td><td>{tensionDelta(edge, visible.nodes)?.toFixed(2) ?? "—"}</td><td><button type="button" onClick={() => choose(edge.dst)}>Inspect {label(edge.dst)}</button></td></tr>)}</tbody></table>{!visible.edges.length && <p>No relationships match the filters.</p>}</div>}
+      <div className="explorer-legend"><span><i className="legend-low" /> Low tint value</span><span><i className="legend-high" /> High tint value</span><span><i className="legend-tension" /> Rising tension</span><span>Edge width = probability; exact values appear on hover or in list view.</span></div>
+    </section><aside className="explorer-panel" aria-label="Node details"><h2>{selectedNode?.label ?? label(selected)}</h2><p>{selectedNode?.type ?? "Select a node"}</p>{selectedNode && <><dl><div><dt>ID</dt><dd>{selectedNode.id}</dd></div><div><dt>Chromaticity</dt><dd>{colorValue(selectedNode, "chromaticity")}</dd></div>{["tension", "brightness", "warmth", "nostalgia"].map((axis) => <div key={axis}><dt>{axis}</dt><dd>{colorValue(selectedNode, axis)}</dd></div>)}<div><dt>Outgoing in view</dt><dd>{outgoing.length}</dd></div><div><dt>Corpus support</dt><dd>{String(selectedNode.props.support ?? "—")}</dd></div></dl><h3>Facts and examples</h3>{outgoing.some((edge) => Array.isArray(edge.props.fact_ids) || Array.isArray(edge.props.example_refs)) ? outgoing.map((edge) => <div className="explorer-evidence" key={edgeKey(edge)}><strong>→ {label(edge.dst)}</strong><span>{percent(edge.prob)} · {edge.count ?? "—"} observations</span><small>{Array.isArray(edge.props.fact_ids) ? edge.props.fact_ids.join(", ") : "No linked facts"}</small>{Array.isArray(edge.props.example_refs) && edge.props.example_refs.length ? (edge.props.example_refs as Array<{ song_id?: string; section?: string }>).slice(0, 3).map((example, index) => <small key={`${example.song_id}-${index}`}>Example: {example.song_id || "unknown song"}{example.section ? ` · ${example.section}` : ""}</small>) : <small>No examples</small>}</div>) : <p>No linked facts or examples in this view.</p>}<div className="explorer-actions"><button type="button" onClick={() => void expand()}>Expand neighbors</button><button type="button" disabled={degraded} onClick={() => void playNodes([selected])}>Play node</button><button type="button" onClick={() => setPathFrom(selected)}>Set path start</button><button type="button" onClick={() => setPathTo(selected)}>Set path end</button><button type="button" onClick={() => setRoot(selected)}>Center here</button></div></>}</aside></div>
+    <section className="explorer-path" aria-label="Path mode"><h2>Path mode</h2><div className="explorer-path-controls"><label>From<select value={pathFrom} onChange={(event) => setPathFrom(event.target.value)}>{[...new Set([pathFrom, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>To<select value={pathTo} onChange={(event) => setPathTo(event.target.value)}>{[...new Set([pathTo, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>Constraint<select value={constraint} onChange={(event) => setConstraint(event.target.value)}><option value="none">Any path</option><option value="increasing_chromaticity">Increasing chromaticity</option><option value="max_chromaticity">Maximum chromaticity</option></select></label>{constraint === "max_chromaticity" && <label>Maximum <input type="number" min="0" max="1" step="0.1" value={maxChromaticity} onChange={(event) => setMaxChromaticity(Number(event.target.value))} /></label>}<button type="button" onClick={() => void findPaths()}>Find paths</button></div>{pathError && <p role="alert">{pathError}</p>}{paths.length > 0 && <div className="explorer-results"><label>Path<select value={pathIndex} onChange={(event) => setPathIndex(Number(event.target.value))}>{paths.map((path, index) => <option key={index} value={index}>{index + 1}: {path.nodes.map(label).join(" → ")}</option>)}</select></label><p>{activePath?.nodes.map(label).join(" → ")}</p><button type="button" disabled={degraded} onClick={() => void playNodes(activePath.nodes)}>{playback.playing ? "Restart path" : "Play path"}</button>{playback.playing && <button type="button" onClick={playback.stop}>Stop</button>}</div>}{playback.error && <p role="alert">{playback.error}</p>}</section>
+  </main>
+}

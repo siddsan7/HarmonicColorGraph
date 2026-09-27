@@ -120,3 +120,20 @@ def test_graph_api_path_contract_and_typed_error():
         assert missing.json()["error"]["code"] == "invalid_context"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_graph_realize_returns_playable_chords():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+    response = client.post(
+        "/v2/graph/realize",
+        json={"nodes": ["function:M:I", "function:M:IV", "function:M:bVI"], "key": "C major"},
+    )
+    assert response.status_code == 200
+    chords = response.json()["data"]["chords"]
+    assert len(chords) == 3
+    assert all(chord["pitch_classes"] for chord in chords)
+    assert client.post("/v2/graph/realize", json={"nodes": ["chord:C:maj"]}).status_code == 422
