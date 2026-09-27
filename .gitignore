@@ -1,0 +1,4 @@
+# Local current-state packet; Git common dir holds the authoritative record.
+AGENTS.override.md
+__pycache__/
+*.pyc

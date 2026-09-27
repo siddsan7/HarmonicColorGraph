@@ -30,6 +30,9 @@ jobs:
         run: |
           python scripts/check.py docs
           python -m unittest discover -s scripts -p test_check.py -q
+      - name: Check shared resume tool
+        working-directory: .
+        run: python -m unittest discover -s scripts -p test_resume.py -q
       - uses: actions/upload-artifact@v4
         if: always()
         with:

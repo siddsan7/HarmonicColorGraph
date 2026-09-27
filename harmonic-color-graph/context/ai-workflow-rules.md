@@ -2,7 +2,7 @@
 
 ## Scope and context
 
-Use AGENTS.md, the current handoff, and the relevant milestone specification.
+Use the root resume packet, app AGENTS.md, and the relevant milestone specification.
 Search the documentation index when additional context is needed. Implement
 authorized features in dependency order, retaining F00–F85 identifiers,
 including F09, F27–F29, and F70.5. Do not start unrelated milestones merely
@@ -42,7 +42,7 @@ files, raw datasets, or large artifacts except when the requested task requires 
    Existing authorization to continue applies after this review and required
    checks. Do not merge a failing PR.
 6. After an authorized merge, verify the resulting main/deployment as relevant
-   and update the compact handoff. Keep completed detail in linked history.
+   and checkpoint the shared resume record. Keep completed detail in linked history.
 
 Use an independent reviewer for consequential changes when assigned. Give the
 reviewer requirements, diff, and test evidence; request concrete failure cases.
@@ -50,7 +50,8 @@ Do not routinely create multiple agents or councils for trivial changes.
 
 ## Continuity and operational limits
 
-Update current state at a meaningful checkpoint, blocker, or session handoff.
+Checkpoint the shared resume record at a meaningful slice, blocker, PR/merge,
+or session handoff. The historical HANDOFF.md is not a task selector.
 Update architecture, facts, diagrams, and standards only when their described
 behavior changes. Do not copy the same history into every context file.
 When blocked, record the missing input and continue independent work.
