@@ -12,6 +12,27 @@ export type AnalysisV2 = components["schemas"]["AnalysisV2"]
 export type AnalyzeV2Request = components["schemas"]["AnalyzeV2Request"]
 export type ColorProfile = components["schemas"]["ColorProfileResponse"]
 export type ColorComparison = components["schemas"]["ColorCompareResponse"]
+export type GenerateRequest = components["schemas"]["GenerateRequest"]
+export type GenerateResponse = components["schemas"]["GenerateResponse"]
+export type GeneratedPath = components["schemas"]["GeneratedPath"]
+
+export async function generateProgression(request: GenerateRequest, signal?: AbortSignal): Promise<GenerateResponse> {
+  const payload: unknown = await apiFetch<unknown>("/v2/generate-progression", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(request), signal,
+  })
+  if (typeof payload !== "object" || payload === null) throw new Error("Invalid generator response.")
+  const response = payload as Record<string, unknown>
+  if (typeof response.key !== "string" || !Array.isArray(response.paths) ||
+    !response.paths.every((path) => typeof path === "object" && path !== null &&
+      Array.isArray((path as GeneratedPath).chords) && Array.isArray((path as GeneratedPath).tokens) &&
+      Array.isArray((path as GeneratedPath).steps) &&
+      (path as GeneratedPath).steps.every((step) => typeof step.chord === "string" &&
+        Array.isArray(step.pitch_classes) && Array.isArray(step.voicing)))) {
+    throw new Error("Invalid generator response.")
+  }
+  return payload as GenerateResponse
+}
 
 function isColorProfile(value: unknown): value is ColorProfile {
   if (typeof value !== "object" || value === null) return false

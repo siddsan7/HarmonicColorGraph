@@ -1,6 +1,6 @@
 import { Suspense } from "react"
-import { RoutePreview } from "@/components/route-preview"
+import { Generator } from "@/components/generator"
 
 export default function GeneratePage() {
-  return <Suspense><RoutePreview title="Generate" description="Shape a progression by key, tension, and color." status="The generator controls arrive in F64." /></Suspense>
+  return <Suspense><Generator /></Suspense>
 }
