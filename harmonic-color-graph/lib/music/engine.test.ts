@@ -99,11 +99,14 @@ describe("playback scheduling", () => {
   })
 
   it("keeps the defining seventh in fallback voicings", () => {
-    const [dominant, extended] = resolveVoicings([
+    const [dominant, extended, inverted] = resolveVoicings([
       { label: "C7", pitchClasses: [0, 4, 7, 10] },
       { label: "C9", pitchClasses: [0, 4, 7, 10, 2] },
+      { label: "C7/E", pitchClasses: [0, 4, 7, 10], bassPc: 4 },
     ])
     expect(new Set(dominant.map((note) => note % 12))).toEqual(new Set([0, 4, 7, 10]))
     expect(new Set(extended.map((note) => note % 12))).toEqual(new Set([0, 4, 7, 10, 2]))
+    expect(inverted[0] % 12).toBe(4)
+    expect(new Set(inverted.map((note) => note % 12))).toEqual(new Set([0, 4, 7, 10]))
   })
 })
