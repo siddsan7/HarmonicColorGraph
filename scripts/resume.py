@@ -147,8 +147,19 @@ def check_owner(data: dict, repo: Path) -> list[str]:
             issues.append(f"owner {key} changed since checkpoint")
     pr = data["owner"].get("pr")
     if pr:
+        environment = os.environ.copy()
+        if not environment.get("GH_TOKEN") and not environment.get("GITHUB_TOKEN"):
+            noninteractive = {**environment, "GIT_TERMINAL_PROMPT": "0", "GCM_INTERACTIVE": "never"}
+            credentials = subprocess.run(["git", "credential", "fill"], cwd=owner,
+                                         input="protocol=https\nhost=github.com\n\n", text=True,
+                                         encoding="utf-8", capture_output=True, env=noninteractive, timeout=10)
+            if credentials.returncode == 0:
+                token = next((line[9:] for line in credentials.stdout.splitlines()
+                              if line.startswith("password=")), None)
+                if token:
+                    environment["GH_TOKEN"] = token
         result = subprocess.run(["gh", "pr", "view", str(pr), "--json", "state,headRefOid,headRefName"],
-                                cwd=owner, text=True, encoding="utf-8", capture_output=True)
+                                cwd=owner, env=environment, text=True, encoding="utf-8", capture_output=True)
         if result.returncode:
             issues.append("PR status unavailable; inspect before continuing")
         else:
