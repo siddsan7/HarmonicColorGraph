@@ -182,6 +182,15 @@ def test_usage_meter_counts_both_models_and_estimates_cost():
     assert meter.tokens_in == 2000
     assert meter.tokens_out == 200
     assert meter.cost_usd == Decimal("0.006")
+    assert meter.as_log()["model_usage"] == {
+        "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "tokens_in": 1000,
+            "tokens_out": 100,
+            "cost_usd": "0.0015",
+        },
+        "claude-sonnet-5": {"calls": 1, "tokens_in": 1000, "tokens_out": 100, "cost_usd": "0.0045"},
+    }
 
 
 def test_missing_provider_usage_gets_conservative_charge():

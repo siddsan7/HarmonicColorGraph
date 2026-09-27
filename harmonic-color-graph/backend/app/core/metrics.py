@@ -29,6 +29,7 @@ _LABELS = {
     "outcome",
     "queue",
 }
+_HISTOGRAMS = {"queue_depth", "recommend_candidate_count"}
 
 
 def emit_metric(metric: str, value: int | float, **labels: str) -> None:
@@ -38,12 +39,12 @@ def emit_metric(metric: str, value: int | float, **labels: str) -> None:
         event["trace_id"] = trace_id
     logger.info(json.dumps(event, sort_keys=True))
     if metric not in _instruments:
-        if metric.endswith(("_ms", "_rate")) or metric == "queue_depth":
+        if metric.endswith(("_ms", "_rate")) or metric in _HISTOGRAMS:
             _instruments[metric] = telemetry.meter.create_histogram(metric)
         else:
             _instruments[metric] = telemetry.meter.create_counter(metric)
     instrument = _instruments[metric]
-    if metric.endswith(("_ms", "_rate")) or metric == "queue_depth":
+    if metric.endswith(("_ms", "_rate")) or metric in _HISTOGRAMS:
         instrument.record(value, safe)
     else:
         instrument.add(value, safe)

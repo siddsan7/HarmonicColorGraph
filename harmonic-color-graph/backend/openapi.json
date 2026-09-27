@@ -3709,6 +3709,53 @@
         ]
       }
     },
+    "/v2/admin/metrics": {
+      "get": {
+        "operationId": "admin_metrics_v2_admin_metrics_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-HCG-Jobs-Token",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Hcg-Jobs-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Admin Metrics",
+        "tags": [
+          "admin-v2"
+        ]
+      }
+    },
     "/v2/ai/query": {
       "post": {
         "operationId": "ai_query_v2_ai_query_post",
