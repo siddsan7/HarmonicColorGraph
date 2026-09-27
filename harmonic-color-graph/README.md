@@ -209,8 +209,20 @@ with create_session_factory()() as session:
 ```
 
 The response contains tool-sourced candidates and facts, any competing key
-analyses, optional playback, and a `fallback` flag. F72 adds the full safety
-validator; F73 exposes this workflow through the streaming API.
+analyses, optional playback, and a `fallback` flag. F72 validates every model
+claim against tool fact IDs, chord and Roman-figure output, subjective emotion
+wording, corpus example IDs for song references, and theory registry IDs. A
+failed draft gets one repair attempt, then a deterministic response. F73
+exposes this workflow through the streaming API.
+For a one-word song title that is also an ordinary word, use explicit song
+wording (for example, “the song Yesterday”) so the validator can require a
+matching `example:*` row. A bare sentence such as “Yesterday is in C” is
+ambiguous without that context.
+
+The 30-case F72 adversarial corpus is in
+`backend/tests/eval/ai_adversarial.jsonl`. Unit tests cover the validator rules
+and check the corpus structure. A separate real-model evaluation runner is
+available for optional experiments.
 
 ## Phase Direction
 

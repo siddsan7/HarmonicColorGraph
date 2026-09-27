@@ -52,6 +52,7 @@ class ParsedIntent(StrictModel):
 class Claim(StrictModel):
     text: str = Field(min_length=1, max_length=500)
     fact_ids: list[str] = Field(min_length=1)
+    theory_labels: list[str] = Field(default_factory=list)
 
 
 class ExplanationDraft(StrictModel):

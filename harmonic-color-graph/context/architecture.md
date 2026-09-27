@@ -52,8 +52,10 @@ see `docs/roadmap-v2.md` and
   Pydantic schemas bound chord, key, context, and graph identifiers; the
   dispatch layer calls services directly and returns typed data plus
   evidence and stored fact IDs. F71's LangGraph parses intent, routes among
-  tool-backed tasks, ranks candidates, validates provenance, and bounds the
-  explanation model with a one-repair retry and deterministic fallback.
+  tool-backed tasks, ranks candidates, and bounds the explanation model with
+  a one-repair retry and deterministic fallback. F72 checks each model claim's
+  cited facts, chord and Roman-figure provenance, emotion wording, song
+  example citation, and theory registry label before any prose is returned.
   MCP reuses the same tool boundary.
 - `backend/app/theory/` - Planned symbolic music logic:
   chord parsing, normalization, key detection, Roman numeral

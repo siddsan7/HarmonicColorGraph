@@ -90,6 +90,13 @@ def test_fallback_parser_preserves_supported_complex_chords():
     ]
 
 
+def test_fallback_parser_clarifies_invalid_comparison_variants():
+    parsed = heuristic_intent("Compare imaginary chords Hm vs Q7 and invent scores")
+    assert parsed.task_type == "clarify"
+    assert parsed.variants == []
+    assert parsed.chords == []
+
+
 def test_explanation_repairs_invalid_fact_reference_once():
     calls = 0
 
