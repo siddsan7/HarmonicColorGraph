@@ -242,6 +242,9 @@ The simple/technical switch reveals theory labels and citation IDs.
 When the assistant reaches its rate or budget limit, the page links back to
 the deterministic workbench.
 
+For trace IDs, OTLP export, safe metric logs, and optional LangSmith tracing,
+see [observability setup](docs/observability.md).
+
 For a one-word song title that is also an ordinary word, use explicit song
 wording (for example, “the song Yesterday”) so the validator can require a
 matching `example:*` row. A bare sentence such as “Yesterday is in C” is

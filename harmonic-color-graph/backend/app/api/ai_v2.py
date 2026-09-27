@@ -6,6 +6,7 @@ import hashlib
 import hmac
 import ipaddress
 import json
+import logging
 import os
 import time
 from collections.abc import Callable, Iterator
@@ -26,11 +27,14 @@ from app.ai.state import AssistantResponse
 from app.ai.tools import HarmonicTools
 from app.ai.usage import UsageMeter, request_cost_bound
 from app.ai.workflow import AssistantWorkflow
+from app.core import telemetry
 from app.core.config import get_settings
 from app.db.session import _default_session_factory
 from app.schemas.harmony import StrictModel
 
 router = APIRouter(prefix="/v2/ai", tags=["ai-v2"])
+logger = logging.getLogger("hcg.ai")
+logger.setLevel(logging.INFO)
 _HOUR_LIMIT = 20
 _WORKFLOW_DEADLINE_S = 55
 
@@ -166,6 +170,23 @@ class AIQueryRuntime:
                         )
                         session.commit()
                         logged = True
+                        logger.info(
+                            json.dumps(
+                                {
+                                    "event": "ai_query",
+                                    "trace_id": telemetry.current_trace_id(),
+                                    "query_id": str(query_id),
+                                    "route": response.route,
+                                    "model_version": meter.model,
+                                    "corpus_version": get_settings().hcg_corpus_version,
+                                    "tokens_in": meter.tokens_in,
+                                    "tokens_out": meter.tokens_out,
+                                    "cost_usd": str(meter.cost_usd),
+                                    "error_category": None,
+                                },
+                                sort_keys=True,
+                            )
+                        )
                         yield _sse(
                             "final",
                             {
@@ -191,6 +212,17 @@ class AIQueryRuntime:
                     logged = True
                 except SQLAlchemyError:
                     session.rollback()
+                logger.info(
+                    json.dumps(
+                        {
+                            "event": "ai_query",
+                            "trace_id": telemetry.current_trace_id(),
+                            "query_id": str(query_id),
+                            "error_category": category,
+                        },
+                        sort_keys=True,
+                    )
+                )
                 yield _sse(
                     "error",
                     {

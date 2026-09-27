@@ -20,6 +20,7 @@ from typing import Any, Literal, Protocol, TypeVar
 from redis import Redis
 from redis.exceptions import RedisError
 
+from app.core import telemetry
 from app.core.config import get_settings
 from app.core.metrics import emit_metric
 
@@ -110,7 +111,8 @@ class VersionedCache:
         if self.redis is not None:
             started = time.perf_counter()
             try:
-                raw = self.redis.get(key)
+                with telemetry.safe_span("redis.cache_get"):
+                    raw = self.redis.get(key)
                 if raw is not None:
                     value = json.loads(raw)
                     self._local_put(key, value, ttl_s)
@@ -120,6 +122,7 @@ class VersionedCache:
                     return value
             except (RedisError, OSError, ValueError, TypeError):
                 self.metrics.redis_errors += 1
+                emit_metric("redis_error_count", 1, operation="cache_get")
                 logger.warning("Redis cache read failed", extra={"error_category": "redis_read"})
             finally:
                 emit_metric(
@@ -135,9 +138,11 @@ class VersionedCache:
         if self.redis is not None:
             started = time.perf_counter()
             try:
-                self.redis.setex(key, ttl_s, json.dumps(value, ensure_ascii=False))
+                with telemetry.safe_span("redis.cache_set"):
+                    self.redis.setex(key, ttl_s, json.dumps(value, ensure_ascii=False))
             except (RedisError, OSError, ValueError, TypeError):
                 self.metrics.write_errors += 1
+                emit_metric("redis_error_count", 1, operation="cache_set")
                 logger.warning("Redis cache write failed", extra={"error_category": "redis_write"})
             finally:
                 emit_metric(
@@ -189,10 +194,12 @@ class RateLimiter:
         try:
             if self.redis is None:
                 raise ConnectionError("Redis is not configured")
-            count, ttl = self.redis.eval(_FIXED_WINDOW_SCRIPT, 1, key, window_s)
+            with telemetry.safe_span("redis.rate_check"):
+                count, ttl = self.redis.eval(_FIXED_WINDOW_SCRIPT, 1, key, window_s)
             count, ttl = int(count), max(0, int(ttl))
         except (RedisError, OSError, ConnectionError, ValueError, TypeError):
             self.redis_errors += 1
+            emit_metric("redis_error_count", 1, operation="rate_check")
             logger.warning("Redis rate limit unavailable", extra={"error_category": "redis_rate"})
             return RateLimitDecision(fail_mode == "open", 0, 0, 0, degraded=True)
         finally:
