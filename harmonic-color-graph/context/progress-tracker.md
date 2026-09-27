@@ -3,9 +3,9 @@
 ## Active
 
 - Product: M6 / F60 is next after the M5 automated gate.
-- Harness: `codex/lean-agent-context` shortens startup context and adds a
-  verification wrapper. PR review and CI determine merge readiness.
-- [Current handoff](HANDOFF.md) contains blockers and the next action.
+- Harness: PR #29 merged at `d7e201d`; current local workstream and exact next
+  action are in the ignored root `AGENTS.override.md`.
+- [Product context](HANDOFF.md) preserves M5 caveats and historical pointers.
 
 ## Completed milestones
 
