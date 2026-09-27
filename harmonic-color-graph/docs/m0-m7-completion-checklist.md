@@ -132,8 +132,9 @@ broken.
   Re-run the F31 and F52 reports after the current borrowed/mediant scoring
   correction. Check the plan's MRR, novelty, and coverage requirements; the
   prior hybrid top-five token coverage was 38 versus baseline 39 on 40 cases.
-  Change scoring only when the measured result supports it. Prerequisite: H05.
-  Evidence: _pending_.
+  Change scoring only when the measured result supports it. Prerequisite: H05's
+  verified train/dev/test input; production reload authorization is not needed
+  for this offline work. Evidence: _pending_.
 
 - [ ] **A05 — Build and atomically activate a new real-corpus version.** Run
   analysis/aggregates and the color, embedding, and snapshot stages from the
