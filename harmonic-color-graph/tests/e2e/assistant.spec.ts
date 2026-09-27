@@ -6,7 +6,8 @@ type Route = "recommend" | "explain" | "generate" | "similar" | "compare" | "cla
 function response(route: Route) {
   const candidate = {
     chords: ["C", "Am", "F", "G"], score: 0.82, fact_ids: ["corpus:42"],
-    color: { summary: { perceptual: { warmth: { value: 0.7 } } } }, source_tool: "recommend_next",
+    color: { summary: { perceptual: { warmth: { value: 0.7 } } } },
+    explanation: "Four chords lead back to C.", source_tool: "recommend_next",
   }
   return {
     route, key: "C major",
@@ -21,6 +22,12 @@ function response(route: Route) {
 }
 
 async function mockAssistant(page: Page, route: Route) {
+  await page.route("**/api/hcg/v2/analyze", (request) => request.fulfill({
+    json: {
+      chords: ["C", "Am", "F", "G"].map((symbol) => ({ raw_symbol: symbol, pitch_classes: [0, 4, 7], bass_pc: 0 })),
+      tokens: [], key_distribution: [], relationships: [], song_key: "C major",
+    },
+  }))
   await page.route("**/api/hcg/v2/ai/query", async (request) => {
     const events = [
       { kind: "step", value: { node: "intent_parser", status: "started" } },
@@ -57,6 +64,8 @@ for (const route of ["recommend", "explain", "generate", "similar", "compare", "
     }
     if (["recommend", "generate", "compare"].includes(route)) {
       await expect(page.getByRole("heading", { name: "Progressions to explore" })).toBeVisible()
+      await expect(page.getByText("Four chords lead back to C.")).toBeVisible()
+      await expect(page.getByRole("button", { name: "Play option 1" })).toBeEnabled()
       await expect(page.getByRole("link", { name: "Open in explorer" })).toHaveAttribute("href", /\/explore\?p=C-Am-F-G/)
       await expect(page.getByRole("link", { name: "Compare" })).toHaveAttribute("href", /\/generate\?p=C-Am-F-G/)
     }

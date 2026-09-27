@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowUpRight, Square, Volume2 } from "lucide-react"
 
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { analyzeProgressionV2 } from "@/lib/api/client"
 import type { AssistantCandidate, AssistantResponse } from "@/lib/api/assistant"
 import { usePlayback } from "@/lib/hooks/use-playback"
+import type { PlaybackSequence } from "@/lib/music/engine"
 
 const routeNames: Record<AssistantResponse["route"], string> = {
   recommend: "Recommendations", explain: "Explanation", generate: "Generated progression",
@@ -61,18 +62,32 @@ function SimilarResults({ response }: { response: AssistantResponse }) {
 export function AssistantResult({ response }: { response: AssistantResponse }) {
   const [mode, setMode] = useState<"simple" | "technical">("simple")
   const [playError, setPlayError] = useState<string | null>(null)
+  const [sequences, setSequences] = useState<(PlaybackSequence | null)[]>([])
   const playback = usePlayback()
   const cited = [...new Set(response.claims.flatMap((claim) => claim.fact_ids))]
-  async function play(candidate: AssistantCandidate) {
+  useEffect(() => {
+    let active = true
+    Promise.all(response.candidates.map(async (candidate): Promise<PlaybackSequence | null> => {
+      try {
+        const analysis = await analyzeProgressionV2({
+          chords: candidate.chords, key: response.key, section_markers: false,
+        })
+        return { label: candidate.chords.join(" → "), chords: analysis.chords.map((chord) => ({
+          label: chord.raw_symbol, pitchClasses: chord.pitch_classes ?? [], bassPc: chord.bass_pc,
+        })) }
+      } catch { return null }
+    })).then((ready) => { if (active) setSequences(ready) })
+    return () => { active = false }
+  }, [response])
+
+  function play(index: number) {
+    const sequence = sequences[index]
+    if (!sequence) return
     setPlayError(null)
-    try {
-      const analysis = await analyzeProgressionV2({ chords: candidate.chords, key: response.key, section_markers: false })
-      await playback.play([{ label: candidate.chords.join(" → "), chords: analysis.chords.map((chord) => ({
-        label: chord.raw_symbol, pitchClasses: chord.pitch_classes ?? [], bassPc: chord.bass_pc,
-      })) }], { bpm: 110, loop: false, instrument: "piano" })
-    } catch (error) {
+    // Invoke play directly in the click gesture so Tone.start can unlock audio.
+    void playback.play([sequence], { bpm: 110, loop: false, instrument: "piano" }).catch((error) => {
       setPlayError(error instanceof Error ? error.message : "Playback is unavailable.")
-    }
+    })
   }
   return <section className="mt-8" aria-labelledby="assistant-result-heading">
     <div className="flex flex-wrap items-end justify-between gap-3">
@@ -122,8 +137,9 @@ export function AssistantResult({ response }: { response: AssistantResponse }) {
             {color.length > 0 && <div className="mt-4 grid grid-cols-2 gap-3 border-t border-[var(--border-default)] pt-4 sm:grid-cols-4" aria-label="Harmonic color">
               {color.map(({ name, value }) => <div key={name}><p className="text-xs capitalize text-[var(--text-muted)]">{name.replaceAll("_", " ")}</p><p className="mt-1 font-mono text-sm">{Math.round(value * 100)}%</p></div>)}
             </div>}
+            {candidate.explanation && <p className="mt-4 text-sm leading-relaxed text-[var(--text-secondary)]">{candidate.explanation}</p>}
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button type="button" size="sm" onClick={() => play(candidate)} aria-label={`Play option ${index + 1}`}><Volume2 aria-hidden="true" /> Play</Button>
+              <Button type="button" size="sm" onClick={() => play(index)} disabled={!sequences[index]} aria-label={`Play option ${index + 1}`}><Volume2 aria-hidden="true" /> {sequences[index] ? "Play" : sequences.length ? "Audio unavailable" : "Preparing audio…"}</Button>
               <Button asChild size="sm" variant="outline"><Link href={progressionHref("/explore", candidate.chords, response.key)}>Open in explorer <ArrowUpRight aria-hidden="true" /></Link></Button>
               <Button asChild size="sm" variant="outline"><Link href={progressionHref("/generate", candidate.chords, response.key)}>Compare <ArrowUpRight aria-hidden="true" /></Link></Button>
             </div>

@@ -37,6 +37,7 @@ def test_twenty_query_routing_suite_and_valid_outputs():
         assert AssistantResponse.model_validate(result.model_dump(mode="json"))
         assert set(result.fact_ids) == set(result.facts)
         assert all(set(claim.fact_ids) <= set(result.facts) for claim in result.claims)
+        assert all(candidate.explanation for candidate in result.candidates)
         assert all(
             set(candidate.chords)
             <= {

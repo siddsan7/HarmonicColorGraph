@@ -5,6 +5,7 @@ export type AssistantCandidate = {
   score: number | null
   fact_ids: string[]
   color: Record<string, unknown> | null
+  explanation: string | null
   source_tool: string
 }
 export type AssistantResponse = {
