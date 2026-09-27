@@ -182,7 +182,8 @@ class RecommendationService:
     def _intent_items(
         self, prediction: PredictionResult, history: list[str], key: str, request: RecommendRequest
     ) -> list[Recommendation]:
-        pool = generate_candidates(history, key, prediction)
+        with telemetry.safe_span("recommend.candidate_generation"):
+            pool = generate_candidates(history, key, prediction)
         emit_metric("recommend_candidate_count", len(pool))
         features = [extract_features(candidate, history, key) for candidate in pool[:64]]
         rerank_started = time.perf_counter()

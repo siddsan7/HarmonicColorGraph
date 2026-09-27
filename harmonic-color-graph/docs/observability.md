@@ -11,6 +11,8 @@ and metrics. `OTEL_EXPORTER_OTLP_TRACES_ENDPOINT` and
 Use the standard `OTEL_EXPORTER_OTLP_HEADERS` environment variable for collector
 credentials. With no endpoint, the API continues to generate trace IDs and
 structured metric logs without sending telemetry over the network.
+On Vercel, completed requests make a bounded flush of traces and metrics so
+short function invocations do not rely on a background export interval.
 
 Spans cover HTTP responses, SQL operations, Redis cache/queue operations,
 graph traversal, pgvector neighbors, recommendation retrieval/ranking,

@@ -1,9 +1,13 @@
 """Request and database spans must join without exposing SQL or request data."""
 
 import re
+import subprocess
+import sys
 from contextlib import nullcontext
+from pathlib import Path
 from uuid import uuid4
 
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from opentelemetry import trace
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor, SpanExporter, SpanExportResult
@@ -15,8 +19,10 @@ from app.core.config import AppSettings
 from app.db.session import create_database_engine, get_session
 from app.jobs.worker_runtime import JobWorker
 from app.main import app
+from app.schemas.recommend_v2 import RecommendRequest
 from tests.unit.test_ai_query_v2 import _client
 from tests.unit.test_mcp_server import _tools
+from tests.unit.test_recommend_v2_api import _service
 
 
 class CapturingExporter(SpanExporter):
@@ -147,3 +153,93 @@ def test_worker_creates_trace_for_claimed_job(monkeypatch):
         span.name == "job.process" and f"{span.context.trace_id:032x}" == seen[0]
         for span in exporter.spans
     )
+
+
+def test_worker_bootstrap_configures_tracing_without_importing_api():
+    script = """
+from types import SimpleNamespace
+from app.core import telemetry
+import app.worker as worker
+
+class Queue:
+    @classmethod
+    def from_url(cls, _url):
+        return cls()
+    def close(self):
+        pass
+
+class StubWorker:
+    def __init__(self, _factory, _queue, _settings):
+        pass
+    def run_forever(self, _stop):
+        with telemetry.safe_span('job.process'):
+            print(telemetry.current_trace_id())
+
+worker.check_dependencies = lambda: None
+worker.get_settings = lambda: SimpleNamespace(redis_url='redis://unused')
+worker.create_session_factory = lambda: None
+worker.JobQueue = Queue
+worker.JobWorker = StubWorker
+worker.main()
+"""
+    result = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=Path(__file__).parents[2],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    assert re.fullmatch(r"[0-9a-f]{32}\n", result.stdout)
+
+
+def test_unhandled_500_keeps_trace_header_and_hides_exception(caplog):
+    test_app = FastAPI()
+    test_app.add_middleware(telemetry.TelemetryMiddleware)
+
+    @test_app.get("/fail")
+    def fail():
+        raise RuntimeError("database password=secret-value")
+
+    response = TestClient(test_app, raise_server_exceptions=False).get("/fail")
+    assert response.status_code == 500
+    assert re.fullmatch(r"[0-9a-f]{32}", response.headers["x-hcg-trace-id"])
+    assert response.json()["error"]["code"] == "internal_error"
+    assert "secret-value" not in response.text + caplog.text
+
+
+def test_serverless_flushes_traces_and_metrics(monkeypatch):
+    calls = []
+
+    class Provider:
+        def __init__(self, name):
+            self.name = name
+
+        def force_flush(self, *, timeout_millis):
+            calls.append((self.name, timeout_millis))
+
+    monkeypatch.setenv("VERCEL", "1")
+    monkeypatch.setattr(telemetry, "_export_traces", True)
+    monkeypatch.setattr(telemetry, "_export_metrics", True)
+    monkeypatch.setattr(telemetry.trace, "get_tracer_provider", lambda: Provider("trace"))
+    monkeypatch.setattr(telemetry.metrics, "get_meter_provider", lambda: Provider("metric"))
+    telemetry.flush_telemetry()
+    assert calls == [("trace", 250), ("metric", 250)]
+
+
+def test_recommendation_candidate_generation_is_traced():
+    exporter = CapturingExporter()
+    trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(exporter))
+    with trace.get_tracer("test").start_as_current_span("test.request") as root:
+        _service().recommend(
+            RecommendRequest(
+                progression=["C", "G", "Am"],
+                key="C major",
+                intent={"darker_brighter": -1.0},
+            )
+        )
+    names = {
+        span.name
+        for span in exporter.spans
+        if span.context.trace_id == root.get_span_context().trace_id
+    }
+    assert {"recommend.retrieval", "recommend.candidate_generation", "recommend.rerank"} <= names

@@ -5,6 +5,7 @@ import signal
 import threading
 
 from app.core.config import get_settings
+from app.core.telemetry import configure_telemetry
 from app.db.session import create_session_factory
 from app.jobs.queue import JobQueue
 from app.jobs.worker_runtime import JobWorker
@@ -20,6 +21,7 @@ def _stop(_signum: int, _frame: object) -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    configure_telemetry()
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
     check_dependencies()

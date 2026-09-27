@@ -18,6 +18,7 @@ from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.trace.status import Status, StatusCode
+from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 logger = logging.getLogger("hcg.telemetry")
@@ -26,6 +27,7 @@ tracer = trace.get_tracer("hcg")
 meter = metrics.get_meter("hcg")
 _configured = False
 _export_traces = False
+_export_metrics = False
 P = ParamSpec("P")
 R = TypeVar("R")
 
@@ -49,7 +51,7 @@ def safe_span(name: str):
 
 def configure_telemetry() -> None:
     """Set up process-level providers. No key or endpoint is required to run."""
-    global _configured, _export_traces, tracer, meter
+    global _configured, _export_traces, _export_metrics, tracer, meter
     if _configured:
         return
     _configured = True
@@ -76,6 +78,7 @@ def configure_telemetry() -> None:
                 OTLPMetricExporter(endpoint=metric_endpoint or f"{endpoint}/v1/metrics")
             )
         )
+        _export_metrics = True
     metrics.set_meter_provider(MeterProvider(resource=resource, metric_readers=readers))
     meter = metrics.get_meter("hcg")
 
@@ -85,10 +88,13 @@ def current_trace_id() -> str:
     return f"{context.trace_id:032x}" if context.is_valid else ""
 
 
-def flush_traces() -> None:
+def flush_telemetry() -> None:
     # Serverless invocations may freeze before the background batch interval.
-    if _export_traces and os.getenv("VERCEL"):
-        trace.get_tracer_provider().force_flush(timeout_millis=500)
+    if os.getenv("VERCEL"):
+        if _export_traces:
+            trace.get_tracer_provider().force_flush(timeout_millis=250)
+        if _export_metrics:
+            metrics.get_meter_provider().force_flush(timeout_millis=250)
 
 
 class TelemetryMiddleware:
@@ -104,19 +110,22 @@ class TelemetryMiddleware:
         try:
             await self._trace_http(scope, receive, send)
         finally:
-            flush_traces()
+            flush_telemetry()
 
     async def _trace_http(self, scope: Scope, receive: Receive, send: Send) -> None:
         request_id = str(uuid4())
         started = time.perf_counter()
         status = 500
+        response_started = False
+        failed = False
         method = scope["method"]
         with safe_span("http.request") as span:
             span.set_attribute("http.request.method", method)
 
             async def send_traced(message: Message) -> None:
-                nonlocal status
+                nonlocal status, response_started
                 if message["type"] == "http.response.start":
+                    response_started = True
                     status = message["status"]
                     headers = list(message.get("headers", []))
                     headers.append((b"x-hcg-trace-id", current_trace_id().encode("ascii")))
@@ -127,8 +136,21 @@ class TelemetryMiddleware:
             try:
                 await self.app(scope, receive, send_traced)
             except Exception:
+                failed = True
                 span.set_status(Status(StatusCode.ERROR))
-                raise
+                if response_started:
+                    raise
+                response = JSONResponse(
+                    status_code=500,
+                    content={
+                        "error": {
+                            "code": "internal_error",
+                            "message": "The request could not be completed.",
+                            "details": {},
+                        }
+                    },
+                )
+                await response(scope, receive, send_traced)
             finally:
                 route = getattr(scope.get("route"), "path", "unmatched")
                 span.set_attribute("http.route", route)
@@ -138,7 +160,7 @@ class TelemetryMiddleware:
 
                 labels = {"route": route, "method": method, "status": str(status)}
                 emit_metric("api_request_count", 1, **labels)
-                if status >= 500:
+                if status >= 500 or failed:
                     emit_metric("api_error_count", 1, **labels)
                 emit_metric("api_latency_ms", (time.perf_counter() - started) * 1000, **labels)
                 logger.info(
@@ -150,6 +172,7 @@ class TelemetryMiddleware:
                             "route": route,
                             "method": method,
                             "status": status,
+                            "error_category": "unhandled" if failed else None,
                         },
                         sort_keys=True,
                     )
