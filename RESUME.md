@@ -25,7 +25,8 @@ after a PR/merge, the primary agent prepares a JSON payload with `task`,
 `slice`, `owner` (path, branch, PR), `last_completed` (outcome, revision,
 evidence), `next_action`, `acceptance`, `references` (path and read condition),
 `verification` (passed, failed, skipped, unverified arrays), `blockers`, and
-`stable_rules`. Keep it outside Git, then run:
+`stable_rules`. `nested_overrides` and `nested_rules` refresh the short app
+directions in older worktrees too. Keep the payload outside Git, then run:
 
 ```powershell
 python scripts/resume.py checkpoint --input PATH_TO_PAYLOAD --expect CURRENT_REVISION

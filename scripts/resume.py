@@ -82,6 +82,8 @@ def validate(data: dict) -> None:
         raise ValueError("blockers must be a list")
     if not isinstance(data["stable_rules"], list) or not data["stable_rules"]:
         raise ValueError("stable_rules must be a nonempty list")
+    if data.get("nested_overrides") and (not isinstance(data["nested_overrides"], list) or not isinstance(data.get("nested_rules"), list)):
+        raise ValueError("nested_overrides and nested_rules must be lists")
 
 
 def render(data: dict) -> str:
@@ -156,28 +158,38 @@ def check_owner(data: dict, repo: Path) -> list[str]:
     return issues
 
 
+def packet_targets(repo: Path, data: dict) -> dict[Path, str]:
+    primary = render(data)
+    nested = MARKER + "\n# App-specific directions\n" + "\n".join(data.get("nested_rules", [])) + "\n"
+    targets = {}
+    for wt in worktrees(repo):
+        targets[wt / NAME] = primary
+        for relative in data.get("nested_overrides", []):
+            target = (wt / relative).resolve()
+            if not target.is_relative_to(wt) or target.name != NAME or not target.parent.is_dir():
+                raise ValueError(f"invalid nested override path: {relative} in {wt}")
+            targets[target] = nested
+    return targets
+
+
 def sync(repo: Path, data: dict) -> None:
-    packet = render(data)
-    destinations = managed_destinations(repo)
-    for target in destinations:
+    targets = packet_targets(repo, data)
+    managed_destinations(targets)
+    for target, packet in targets.items():
         atomic_write(target, packet)
 
 
-def managed_destinations(repo: Path) -> list[Path]:
-    destinations = [wt / NAME for wt in worktrees(repo)]
-    for target in destinations:
+def managed_destinations(targets: dict[Path, str]) -> None:
+    for target in targets:
         if target.exists() and not target.read_text(encoding="utf-8").startswith(MARKER):
             raise RuntimeError(f"unmanaged override exists: {target}")
-    return destinations
 
 
 def verify(repo: Path) -> list[str]:
     data = read_record(repo)
     validate(data)
     issues = check_owner(data, repo)
-    expected = render(data)
-    for wt in worktrees(repo):
-        target = wt / NAME
+    for target, expected in packet_targets(repo, data).items():
         if not target.exists() or target.read_text(encoding="utf-8") != expected:
             issues.append(f"startup packet out of sync: {target}")
     return issues
@@ -220,7 +232,7 @@ def main() -> int:
                     raise ValueError(f"owner not a local worktree: {owner}")
                 payload["owner"].update(owner_state(owner))
                 render(payload)
-                managed_destinations(repo)
+                managed_destinations(packet_targets(repo, payload))
                 atomic_write(path, json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
                 sync(repo, payload)
             print(f"checkpoint r{payload['revision']} synced to {len(worktrees(repo))} worktrees")

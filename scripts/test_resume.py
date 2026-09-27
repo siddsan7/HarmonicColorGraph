@@ -30,6 +30,8 @@ class ResumeTests(unittest.TestCase):
         run("git", "config", "user.email", "test@example.com", cwd=self.repo)
         (self.repo / ".gitignore").write_text("AGENTS.override.md\n")
         (self.repo / "app.py").write_text("print(1)\n")
+        (self.repo / "app").mkdir()
+        (self.repo / "app" / "AGENTS.md").write_text("stale nested directions\n")
         run("git", "add", ".", cwd=self.repo)
         run("git", "commit", "-qm", "initial", cwd=self.repo)
         self.other = self.base / "other"
@@ -41,7 +43,9 @@ class ResumeTests(unittest.TestCase):
             "next_action": "implement first slice", "acceptance": ["result is correct"],
             "references": [{"path": "app.py", "when": "read before editing app"}],
             "verification": {"passed": ["baseline committed"], "failed": [], "skipped": [], "unverified": ["feature check pending"]},
-            "blockers": [], "stable_rules": ["Use owner worktree."]}
+            "blockers": [], "stable_rules": ["Use owner worktree."],
+            "nested_overrides": ["app/AGENTS.override.md"],
+            "nested_rules": ["Root packet chooses the active task."]}
         record, _ = resume.locations(self.repo)
         record.parent.mkdir(parents=True)
         self.payload["owner"].update(resume.owner_state(self.other))
@@ -54,12 +58,19 @@ class ResumeTests(unittest.TestCase):
         self.assertEqual(a, b)
         self.assertIn("Next action: implement first slice", a)
         self.assertIn("unverified: feature check pending", a)
+        self.assertEqual((self.repo / "app" / resume.NAME).read_text(),
+                         (self.other / "app" / resume.NAME).read_text())
+        self.assertIn("Root packet chooses", (self.other / "app" / resume.NAME).read_text())
         self.assertEqual(resume.verify(self.repo), [])
 
     def test_partial_work_and_stale_packet_fail_closed(self):
         (self.other / "app.py").write_text("print(2)\n")
         self.assertTrue(any("diff_sha256" in x or "status" in x for x in resume.verify(self.repo)))
         (self.repo / resume.NAME).write_text("stale")
+        self.assertTrue(any("startup packet" in x for x in resume.verify(self.repo)))
+        (self.repo / resume.NAME).write_text(resume.render(self.payload), encoding="utf-8")
+        resume.sync(self.repo, self.payload)
+        (self.other / "app" / resume.NAME).write_text("stale nested")
         self.assertTrue(any("startup packet" in x for x in resume.verify(self.repo)))
 
     def test_changed_workstream_and_conflicting_revisions(self):
