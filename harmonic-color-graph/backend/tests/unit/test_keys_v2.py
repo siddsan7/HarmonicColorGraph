@@ -79,6 +79,49 @@ def test_song_key_and_local_modulation():
     assert result.modulations[0].semitones == 2
 
 
+def test_section_consensus_resolves_major_key_against_plagal_tonic_bias():
+    # Synthetic D-major song: F#m is diatonic iii, not G-major vii diminished.
+    sections = [
+        _chords("D Bm A G D".split()),
+        _chords("Bm F#m G D".split()),
+        _chords("D Bm F#m Gmaj7 G".split()),
+    ]
+    assert estimate_keys([chord for section in sections for chord in section]).best.key == "G major"
+    result = estimate_song_keys(sections)
+    assert result.song_key == "D major"
+    assert result.song_key_estimate.best.key == result.song_key
+    assert result.section_estimates[-1].best.key == "G major"
+    assert result.section_keys == ["D major"] * 3
+
+
+def test_section_consensus_keeps_natural_minor_bridge_diatonic():
+    # Synthetic A-minor song: Em is natural-minor v, not F-major vii diminished.
+    sections = [
+        _chords("F Am Dm Am".split()),
+        _chords("Am Dm F Am".split()),
+        _chords("F Em Am C F".split()),
+        _chords("F Dm Am C".split()),
+    ]
+    assert estimate_keys([chord for section in sections for chord in section]).best.key == "C major"
+    result = estimate_song_keys(sections)
+    assert result.song_key == "A minor"
+    assert result.song_key_estimate.best.key == result.song_key
+    assert result.section_estimates[2].best.key == "F major"
+    assert result.section_keys == ["A minor", "A minor", "A minor", "C major"]
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason="unmarked sections cannot report internal modulation, as exposed by song 381262",
+)
+def test_unsectioned_progression_reports_internal_modulation():
+    # Three invented cadence regions in one source section. The missing
+    # key-change event remains visible until intra-section keys are modeled.
+    chords = _chords("E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C".split())
+    result = estimate_song_keys([chords])
+    assert any(event.to_key in {"Ab major", "C major"} for event in result.modulations)
+
+
 @pytest.mark.parametrize("template", [["C", "F", "G", "C"], ["Am", "Dm", "E7", "Am"]])
 def test_all_twelve_transpositions_preserve_confidences(template):
     reference = None

@@ -409,7 +409,7 @@ perfectly diatonic:
   exactly the minor dominant of G natural minor) — a clean, standard
   label with no quality mismatch. The bridge looks mis-keyed relative to
   the rest of the song.
-- **Song `381262`** — a 76-chord, section-less country tune analyzed
+- **Song `381262`** — a 62-chord, section-less country tune analyzed
   under one global key (C major) even though the harmony clearly
   tonicizes A, D, and F for extended stretches (long secondary-dominant
   chains: `V7/ii`, `V7/V`, `V7/iii`, `V7/vi`, `#iv`...). This produces at
@@ -451,4 +451,29 @@ read as `bIII` (really Ab). Real Chordonomicon chord-chart data skews
 sharp regardless of key; the gold fixtures matching that is the analyzer
 being tested against real input, not a data-entry mistake. No changes
 recommended there.
+
+## Focused 20-song recheck (2026-09-27)
+
+The A01 section-consensus change was rerun read-only on all 20 sampled song
+IDs from the source CSV (SHA-256
+`9d2f4ccdc876a4e816712f128e4772b2af558c2a2923cce5be3a0364fbad9a8d`).
+The source sections were deduplicated and their repeat counts retained, as
+in the original ingest stage. No corpus reload or production row change was
+made.
+
+Under the 2026-09-24 review's musical criteria, **19/20 now read as
+musically defensible**, up from 17/20. Song `51575` changes its verse,
+second chorus, and outro from F major to C major, so `Em` reads as `iii`.
+Song `112249` changes its bridge from Eb major to G minor, so `Dm` reads as
+natural-minor `v`. The short intro of borderline song `349691` changes
+from C major to the song's G major. The other 17 sampled songs retain their
+section keys, including `381262`.
+
+`381262` remains the one unresolved reading: its source has one unmarked,
+62-chord section, while the current result has one key per source section.
+Its A, D, and F tonicizations therefore still appear under C major. A
+strict expected-failure regression records this limitation. The 19/20
+assessment is an automated recheck against the prior model review; H04's
+independent human music review is still pending, including any judgment on
+the remaining modulation and the two borderline songs.
 
