@@ -64,6 +64,7 @@ class AssistantCandidate(StrictModel):
     score: float | None = None
     fact_ids: list[str] = Field(default_factory=list)
     color: dict[str, Any] | None = None
+    explanation: str | None = None
     source_tool: str
 
 
@@ -76,6 +77,7 @@ class AssistantResponse(StrictModel):
     analysis_options: list[dict[str, Any]] = Field(default_factory=list)
     playback: dict[str, Any] | None = None
     fact_ids: list[str] = Field(default_factory=list)
+    facts: dict[str, dict[str, Any]] = Field(default_factory=dict)
     tool_results: dict[str, Any] = Field(default_factory=dict)
     errors: list[str] = Field(default_factory=list)
     fallback: bool = False

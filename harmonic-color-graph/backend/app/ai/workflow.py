@@ -414,6 +414,7 @@ class AssistantWorkflow:
                             chords=candidate_chords,
                             score=item["score"],
                             fact_ids=item["fact_ids"],
+                            explanation=item.get("explanation"),
                             source_tool=name,
                         )
                     )
@@ -426,6 +427,9 @@ class AssistantWorkflow:
                             score=item["score"],
                             fact_ids=sorted(
                                 {fact_id for fact in item["facts"] for fact_id in fact["fact_ids"]}
+                            ),
+                            explanation=" ".join(
+                                step["explanation"] for step in item["steps"] if step["explanation"]
                             ),
                             source_tool=name,
                         )
@@ -446,7 +450,15 @@ class AssistantWorkflow:
                 ]
                 allowed.update(analyzed_chords)
                 candidates.append(
-                    AssistantCandidate(chords=analyzed_chords, source_tool=f"color_profile:{index}")
+                    AssistantCandidate(
+                        chords=analyzed_chords,
+                        explanation=" ".join(
+                            reading["explanation"]
+                            for reading in result["data"]["summary"]["perceptual"].values()
+                            if reading.get("explanation")
+                        ),
+                        source_tool=f"color_profile:{index}",
+                    )
                 )
         return {
             "retrieved_candidates": candidates,
@@ -600,6 +612,7 @@ class AssistantWorkflow:
             analysis_options=state.get("analysis_options", []),
             playback=state.get("playback"),
             fact_ids=sorted(state.get("fact_pool", {})),
+            facts=state.get("fact_pool", {}),
             tool_results=state.get("tool_results", {}),
             errors=state.get("errors", []),
             fallback=state.get("fallback", True),
