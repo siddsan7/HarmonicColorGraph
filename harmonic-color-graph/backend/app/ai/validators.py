@@ -21,7 +21,11 @@ _SONG = re.compile(
 _TITLE = re.compile(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,}\b")
 _NAMED_SUBJECT = re.compile(
     r"\b(?P<name>(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,})\s+"
-    r"(?:uses|contains|features|is\s+in)\b"
+    r"(?:uses|contains|features)\b"
+)
+_EXPLICIT_TITLE = re.compile(
+    r"\b(?i:song|track|recording|album)\s+(?:(?i:named|called)\s+)?"
+    r"(?P<name>[A-Z][a-z]+)\b",
 )
 _ANALYTIC_SUBJECTS = {
     "analysis",
@@ -165,6 +169,9 @@ def validate_claims(
             match.group("name").lower()
             for match in _NAMED_SUBJECT.finditer(claim.text)
             if match.group("name").lower() not in _ANALYTIC_SUBJECTS
+        )
+        named_titles.extend(
+            match.group("name").lower() for match in _EXPLICIT_TITLE.finditer(claim.text)
         )
         if (_SONG.search(claim.text) or named_titles) and not any(
             fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited
