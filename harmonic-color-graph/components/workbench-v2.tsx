@@ -7,6 +7,7 @@ import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-stat
 import { EvidencePanel } from "@/components/evidence-panel"
 import { RecommendationsPanel } from "@/components/recommendations-panel"
 import { ColorProfilePanel } from "@/components/color-profile"
+import { Transport } from "@/components/transport"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -24,7 +25,8 @@ import {
   type SubstituteResponse,
 } from "@/lib/api/client"
 import { useSystemHealth } from "@/lib/hooks/use-system-health"
-import { playChordSequence } from "@/lib/music/preview"
+import { usePlayback } from "@/lib/hooks/use-playback"
+import type { Instrument, PlaybackChord, PlaybackSequence } from "@/lib/music/engine"
 
 const samples = [
   { name: "Applied dominant", chords: "D7 - G - C", key: "C major" },
@@ -67,7 +69,21 @@ export function WorkbenchV2() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const health = useSystemHealth()
+  const playback = usePlayback()
+  const [bpm, setBpm] = useState(120)
+  const [loop, setLoop] = useState(false)
+  const [instrument, setInstrument] = useState<Instrument>("synth")
   const rawTokens = useMemo(() => inputTokens(input), [input])
+  const playbackChords: PlaybackChord[] = analysis?.chords.map((chord) => ({
+    label: chord.raw_symbol,
+    pitchClasses: chord.pitch_classes ?? [],
+    bassPc: chord.bass_pc,
+  })) ?? []
+  const sequences: PlaybackSequence[] = analysis ? [{ label: "Progression", chords: playbackChords }] : []
+
+  function playSequences(items: PlaybackSequence[]) {
+    void playback.play(items, { bpm, loop, instrument })
+  }
   const evidenceTransitions = analysis ? [...new Set(analysis.tokens.slice(0, -1).map(
     (token, index) => `${token.core}->${analysis.tokens[index + 1].core}`
   ))] : []
@@ -97,6 +113,7 @@ export function WorkbenchV2() {
   }
 
   async function runAnalysis(chords: string[], requestedKey: string) {
+    playback.stop()
     if (chords.length === 0) {
       setError("Enter at least one chord.")
       return
@@ -172,10 +189,9 @@ export function WorkbenchV2() {
 
   function previewSubstitute(index: number, replacement: number[]) {
     if (!analysis) return
-    const sequence = analysis.chords.map((chord, position) =>
-      position === index ? replacement : (chord.pitch_classes ?? [])
-    )
-    void playChordSequence(sequence).catch(() => setSubstitutionError("Audio preview is unavailable in this browser."))
+    playSequences([{ label: "Substitute", chords: playbackChords.map((chord, position) =>
+      position === index ? { ...chord, pitchClasses: replacement } : chord
+    ) }])
   }
 
   function applySubstitute(index: number, chord: string) {
@@ -198,14 +214,16 @@ export function WorkbenchV2() {
 
         <DegradedModeBanner dbStatus={health.dbStatus} />
 
+        <Transport sequences={sequences} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => playSequences(sequences)} onStop={playback.stop} />
+
         <form onSubmit={analyze} className="grid gap-4 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 shadow-sm lg:grid-cols-[minmax(0,1fr)_12rem_auto] lg:items-end">
           <div className="space-y-2">
             <Label htmlFor="progression-v2">Chord progression</Label>
-            <Input id="progression-v2" value={input} onChange={(event) => { recommendationController.current?.abort(); colorController.current?.abort(); setInput(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
+            <Input id="progression-v2" value={input} onChange={(event) => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); setInput(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="key-v2">Key (optional)</Label>
-            <Input id="key-v2" value={key} onChange={(event) => { recommendationController.current?.abort(); colorController.current?.abort(); setKey(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
+            <Input id="key-v2" value={key} onChange={(event) => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); setKey(event.target.value); setAnalysis(null); setColor(null); setNext(null) }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
           </div>
           <Button type="submit" disabled={busy} className="min-w-32">
             {busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Activity aria-hidden="true" />}
@@ -225,7 +243,7 @@ export function WorkbenchV2() {
           </div>
           <div className="flex flex-wrap gap-2 lg:col-span-3">
             {samples.map((sample) => (
-              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { recommendationController.current?.abort(); colorController.current?.abort(); setInput(sample.chords); setKey(sample.key); setAnalysis(null); setColor(null); setNext(null); setError(null) }}>
+              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); setInput(sample.chords); setKey(sample.key); setAnalysis(null); setColor(null); setNext(null); setError(null) }}>
                 <RefreshCcw aria-hidden="true" /> {sample.name}
               </Button>
             ))}
@@ -247,7 +265,7 @@ export function WorkbenchV2() {
                 <div className="mt-5 flex flex-wrap items-center gap-2">
                   {analysis.tokens.map((token, index) => (
                     <div key={`${index}-${token.figure}`} className="flex items-center gap-2">
-                      <button type="button" onClick={() => openSubstitutes(index)} aria-expanded={substitutionIndex === index} aria-label={`Find substitutes for ${analysis.chords[index]?.raw_symbol}`} className="min-w-20 rounded-md border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-center hover:border-[var(--accent-secondary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-secondary)]">
+                      <button type="button" onClick={() => openSubstitutes(index)} aria-expanded={substitutionIndex === index} aria-current={playback.position?.sequence === 0 && playback.position.chord === index ? "step" : undefined} aria-label={`Find substitutes for ${analysis.chords[index]?.raw_symbol}`} className={`min-w-20 rounded-md border bg-[var(--bg-subtle)] px-3 py-2 text-center hover:border-[var(--accent-secondary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-secondary)] ${playback.position?.sequence === 0 && playback.position.chord === index ? "border-[var(--accent-primary)] ring-2 ring-[var(--accent-primary)]" : "border-[var(--border-strong)]"}`}>
                         <span className="block font-mono text-lg font-semibold" title={token.applied_to ? `${token.applied_role === "V" ? "Applied dominant" : "Applied function"} of ${token.applied_to}` : undefined}>{token.display_figure ?? token.figure}</span>
                         <span className="mt-1 block text-xs text-[var(--text-muted)]">{analysis.chords[index]?.raw_symbol}</span>
                         <Badge variant="outline" className={`mt-2 text-[10px] ${functionTone(token.function)}`}>{token.function}</Badge>
@@ -332,7 +350,7 @@ export function WorkbenchV2() {
                 {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.modulations?.length} local modulation{analysis.modulations?.length === 1 ? "" : "s"} detected.</p>}
               </section>
 
-              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={rawTokens} keySignature={analysis.song_key} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} />
+              <RecommendationsPanel result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={rawTokens} keySignature={analysis.song_key} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPlay={playSequences} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} />
 
               {(analysis.warnings?.length ?? 0) > 0 && <section className="rounded-lg border border-[var(--state-warning)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Parse warnings</h2>

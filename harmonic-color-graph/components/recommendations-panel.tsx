@@ -7,13 +7,12 @@ import { ColorDelta } from "@/components/color-profile"
 import { IntentControls } from "@/components/intent-controls"
 import { Button } from "@/components/ui/button"
 import { compareColor, type ColorComparison, type IntentAxis, type IntentPreset, type RecommendResponse, type Recommendation } from "@/lib/api/client"
-import { playChordSequence } from "@/lib/music/preview"
+import type { PlaybackSequence } from "@/lib/music/engine"
 
-function RecommendationRow({ item, onAppend, progression, keySignature, pitchClasses, rankingMode }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature: string; pitchClasses: number[][]; rankingMode: "statistical" | "intent" }) {
+function RecommendationRow({ item, onAppend, progression, keySignature, pitchClasses, rankingMode, onPlay }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature: string; pitchClasses: number[][]; rankingMode: "statistical" | "intent"; onPlay: (sequences: PlaybackSequence[]) => void }) {
   const [comparison, setComparison] = useState<ColorComparison | null>(null)
   const [compareBusy, setCompareBusy] = useState(false)
   const [compareError, setCompareError] = useState<string | null>(null)
-  const [audioError, setAudioError] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
   useEffect(() => () => controller.current?.abort(), [])
 
@@ -35,13 +34,12 @@ function RecommendationRow({ item, onAppend, progression, keySignature, pitchCla
         <span className="ml-2 font-mono text-sm text-[var(--text-secondary)]">{item.figure}</span>
       </div>
       <div className="flex gap-1">
-        <Button type="button" size="sm" variant="outline" disabled={!item.pitch_classes.length} onClick={() => { setAudioError(null); void playChordSequence([...pitchClasses, item.pitch_classes]).catch(() => setAudioError("Audio preview is unavailable in this browser.")) }} aria-label={`Play progression ending with ${item.chord}`}><Volume2 aria-hidden="true" /> Play</Button>
+        <Button type="button" size="sm" variant="outline" disabled={!item.pitch_classes.length} onClick={() => onPlay([{ label: `Ending with ${item.chord}`, chords: [...pitchClasses.map((pcs, index) => ({ label: progression[index], pitchClasses: pcs })), { label: item.chord, pitchClasses: item.pitch_classes }] }])} aria-label={`Play progression ending with ${item.chord}`}><Volume2 aria-hidden="true" /> Play</Button>
         <Button type="button" size="sm" variant="outline" onClick={() => onAppend(item.chord)} aria-label={`Append ${item.chord}`}><Plus aria-hidden="true" /> Add</Button>
       </div>
     </div>
     <p className="mt-2 font-mono text-xs text-[var(--text-secondary)]">{progression.join(" → ")} → <strong>{item.chord}</strong></p>
     {rankingMode === "intent" && Object.keys(item.color).length > 0 && <p className="mt-2 text-xs text-[var(--text-secondary)]">Color change: {Object.entries(item.color).map(([axis, value]) => `${axis} ${value >= 0 ? "+" : ""}${value.toFixed(2)}`).join(" · ")}</p>}
-    {audioError && <p role="alert" className="mt-2 text-xs text-[var(--state-error)]">{audioError}</p>}
     <div className="mt-3 flex justify-between text-xs text-[var(--text-secondary)]">
       <span>{item.labels.join(" · ")} · {item.evidence.count} observed</span>
       <span>{Math.round(item.score * 100)}% {rankingMode === "intent" ? "of shown fit" : "probability"}</span>
@@ -71,7 +69,7 @@ function RecommendationRow({ item, onAppend, progression, keySignature, pitchCla
   </li>
 }
 
-export function RecommendationsPanel({ result, busy, error, onAppend, progression, keySignature, pitchClasses, onPreferencesChange }: {
+export function RecommendationsPanel({ result, busy, error, onAppend, progression, keySignature, pitchClasses, onPreferencesChange, onPlay }: {
   result: RecommendResponse | null
   busy: boolean
   error: string | null
@@ -79,6 +77,7 @@ export function RecommendationsPanel({ result, busy, error, onAppend, progressio
   progression: string[]
   keySignature: string
   pitchClasses: number[][]
+  onPlay: (sequences: PlaybackSequence[]) => void
   onPreferencesChange: (intent: Partial<Record<IntentAxis, number>>, preset: IntentPreset | null) => void
 }) {
   return <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5" aria-busy={busy}>
@@ -90,7 +89,7 @@ export function RecommendationsPanel({ result, busy, error, onAppend, progressio
     {!busy && !error && result && <>
       <p className="mt-3 text-xs text-[var(--text-muted)]">Used: {result.meta.context_used.backoff.join(" → ") || "unknown"}</p>
       {result.warnings.map((warning) => <p key={`${warning.code}-${warning.message}`} className="mt-2 text-xs text-[var(--state-warning)]">{warning.message}</p>)}
-      <ol className="mt-4 space-y-2">{result.data.recommendations.map((item) => <RecommendationRow key={item.token} item={item} onAppend={onAppend} progression={progression} keySignature={keySignature} pitchClasses={pitchClasses} rankingMode={result.meta.ranking_mode} />)}</ol>
+      <ol className="mt-4 space-y-2">{result.data.recommendations.map((item) => <RecommendationRow key={item.token} item={item} onAppend={onAppend} progression={progression} keySignature={keySignature} pitchClasses={pitchClasses} rankingMode={result.meta.ranking_mode} onPlay={onPlay} />)}</ol>
       {!result.data.recommendations.length && <p className="mt-3 text-sm text-[var(--text-muted)]">No corpus candidates are available for this context.</p>}
     </>}
   </section>
