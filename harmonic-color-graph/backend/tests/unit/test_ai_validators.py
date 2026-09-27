@@ -82,9 +82,11 @@ TOOLS = {
         ("The song key is C major.", ["relationship:deceptive:1:2"], [], []),
         ("The Authentic Cadence follows C.", ["relationship:deceptive:1:2"], [], []),
         ("Let It Be uses C.", ["relationship:deceptive:1:2"], [], ["song_provenance"]),
+        ("Let It Be uses C.", ["example:abc"], [], ["song_provenance"]),
         ("Yesterday uses C.", ["relationship:deceptive:1:2"], [], ["song_provenance"]),
         ("A deceptive cadence occurs.", ["relationship:deceptive:1:2"], ["deceptive"], []),
         ("A galactic cadence occurs.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
+        ("A stellar cadence occurs.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
         ("This is a galactic resolution.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
         ("This is galactic resolution.", ["relationship:deceptive:1:2"], [], ["theory_registry"]),
         ("This is a minor third.", ["relationship:deceptive:1:2"], [], []),
@@ -144,3 +146,11 @@ def test_registered_relationship_templates_are_not_rejected_as_invented_labels()
         assert not _unsupported_theory_phrase(rule.fact_template), rule.id
         assert not _unsupported_theory_phrase(rule.technical_template), rule.id
     assert not _unsupported_theory_phrase("The prior dominant resolves.")
+
+
+def test_named_song_must_match_the_cited_example_row():
+    claim = Claim(text="Let It Be uses C.", fact_ids=["example:abc"])
+    unrelated = {"example:abc": {"tool": "get_examples", "subject": "unrelated-song-123"}}
+    assert "claim:0:song_provenance" in validate_claims([claim], unrelated, TOOLS)
+    matching = {"example:abc": {"tool": "get_examples", "subject": "Let It Be"}}
+    assert validate_claims([claim], matching, TOOLS) == []

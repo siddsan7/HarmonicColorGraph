@@ -20,7 +20,7 @@ _SONG = re.compile(
 )
 _TITLE = re.compile(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+){1,}\b")
 _NAMED_SUBJECT = re.compile(
-    r"\b(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,}\s+"
+    r"\b(?P<name>(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,})\s+"
     r"(?:uses|contains|features)\b"
 )
 _THEORY_SUFFIX = (
@@ -37,6 +37,7 @@ _SUSPICIOUS_LABEL = re.compile(
     rf"(?:{_THEORY_SUFFIX})\b",
     re.IGNORECASE,
 )
+_CADENCE_LABEL = re.compile(r"\b([a-z][a-z-]*)\s+cadence\b", re.IGNORECASE)
 _DESCRIPTION = {"minor", "major", "smooth", "strong", "weak", "gentle", "clear", "final", "tonic"}
 _RELATIONSHIP = re.compile(r"\brelationship:([a-z][a-z0-9_]*)\b", re.IGNORECASE)
 
@@ -68,6 +69,12 @@ def _symbols(tool_results: Mapping[str, Any]) -> tuple[set[str], set[str]]:
 def _unsupported_theory_phrase(text: str) -> bool:
     if _SUSPICIOUS_LABEL.search(text):
         return True
+    for match in _CADENCE_LABEL.finditer(text):
+        descriptor = match.group(1).lower()
+        if descriptor not in {"a", "an", "the", "this", "that", "each"} and (
+            match.group(0).lower() not in _REGISTRY_NAMES and descriptor not in _DESCRIPTION
+        ):
+            return True
     for match in _LABEL_ASSERTION.finditer(text):
         phrase = match.group(1).lower()
         descriptors = phrase.split()[:-1]
@@ -76,6 +83,33 @@ def _unsupported_theory_phrase(text: str) -> bool:
         ):
             return True
     return False
+
+
+def _example_identities(
+    cited: set[str], fact_pool: Mapping[str, Any], tool_results: Mapping[str, Any]
+) -> set[str]:
+    identities = {
+        metadata.get("subject", "").lower()
+        for fact_id in cited
+        if fact_id.startswith("example:")
+        for metadata in [fact_pool.get(fact_id, {})]
+        if isinstance(metadata, dict) and isinstance(metadata.get("subject"), str)
+    }
+
+    def visit(value: Any) -> None:
+        if isinstance(value, dict):
+            if isinstance(value.get("fact_id"), str) and value["fact_id"] in cited:
+                for key in ("song_id", "spotify_id"):
+                    if isinstance(value.get(key), str):
+                        identities.add(value[key].lower())
+            for item in value.values():
+                visit(item)
+        elif isinstance(value, list):
+            for item in value:
+                visit(item)
+
+    visit(dict(tool_results))
+    return identities
 
 
 def validate_claims(
@@ -97,13 +131,19 @@ def validate_claims(
             violations.append(prefix + "figure_provenance")
         if lint_objective_emotion(claim.text):
             violations.append(prefix + "objective_emotion")
-        named_title = any(
-            match.group(0).lower().removeprefix("the ").removeprefix("a ") not in _REGISTRY_NAMES
+        named_titles = [
+            match.group(0).lower()
             for match in _TITLE.finditer(claim.text)
+            if match.group(0).lower().removeprefix("the ").removeprefix("a ") not in _REGISTRY_NAMES
+        ]
+        named_titles.extend(
+            match.group("name").lower() for match in _NAMED_SUBJECT.finditer(claim.text)
         )
-        if (
-            _SONG.search(claim.text) or named_title or _NAMED_SUBJECT.search(claim.text)
-        ) and not any(fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited):
+        if (_SONG.search(claim.text) or named_titles) and not any(
+            fact_id.startswith("example:") and fact_id in fact_pool for fact_id in cited
+        ):
+            violations.append(prefix + "song_provenance")
+        if named_titles and set(named_titles) - _example_identities(cited, fact_pool, tool_results):
             violations.append(prefix + "song_provenance")
         if any(label not in _REGISTRY for label in claim.theory_labels):
             violations.append(prefix + "theory_registry")
