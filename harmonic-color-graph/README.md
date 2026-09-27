@@ -209,8 +209,30 @@ with create_session_factory()() as session:
 ```
 
 The response contains tool-sourced candidates and facts, any competing key
-analyses, optional playback, and a `fallback` flag. F72 adds the full safety
-validator; F73 exposes this workflow through the streaming API.
+analyses, optional playback, and a `fallback` flag. F72 validates every model
+claim against tool fact IDs, chord and Roman-figure output, subjective emotion
+wording, corpus example IDs for song references, and theory registry IDs. A
+failed draft gets one repair attempt, then a deterministic response. F73
+exposes this workflow through the streaming API.
+
+The 30-case F72 adversarial corpus is in
+`backend/tests/eval/ai_adversarial.jsonl`. Run its real-model gate from
+`backend/` after setting `ANTHROPIC_API_KEY`:
+
+```sh
+python -m tests.eval.ai_adversarial \
+  --fast-input-price <current-usd-per-million-tokens> \
+  --fast-output-price <current-usd-per-million-tokens> \
+  --main-input-price <current-usd-per-million-tokens> \
+  --main-output-price <current-usd-per-million-tokens> \
+  --max-cost-usd <approved-cap>
+```
+
+Use current prices for the configured models. The runner uses deterministic
+tool fixtures, calls both configured Claude models, enforces must-not checks,
+and records per-case token usage, failures, and estimated USD cost in the
+ignored `.agent-logs/f72-live-eval.json`. Its exit status is nonzero if any
+case fails or the cost cap prevents completing the corpus.
 
 ## Phase Direction
 
