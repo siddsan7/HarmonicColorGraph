@@ -1,7 +1,7 @@
 """F71 routing, structured output, provenance, retries, and fallback."""
 
 from app.ai.state import AssistantResponse, ParsedIntent
-from app.ai.workflow import AssistantWorkflow
+from app.ai.workflow import AssistantWorkflow, heuristic_intent
 from tests.unit.test_mcp_server import _tools
 
 ROUTING_QUERIES = [
@@ -11,8 +11,8 @@ ROUTING_QUERIES = [
     ("Next chord for Am F C G in C major", "recommend"),
     ("Explain C G Am F in C major", "explain"),
     ("Why does Dm G C work in C major", "explain"),
-    ("Analyze C F G C in C major", "explain"),
-    ("What does C Am F G do in C major?", "explain"),
+    ("Explain what a deceptive cadence is", "explain"),
+    ("What is a secondary dominant?", "explain"),
     ("Generate a four chord progression in C major", "generate"),
     ("Create a progression in A minor", "generate"),
     ("Make a bright progression", "generate"),
@@ -80,6 +80,16 @@ def test_low_key_confidence_returns_two_analyses():
     assert all(item["analysis"]["tokens"] for item in result.analysis_options)
 
 
+def test_fallback_parser_preserves_supported_complex_chords():
+    assert heuristic_intent("Explain F#m7b5 B7 Em in E minor").chords == ["F#m7b5", "B7", "Em"]
+    assert heuristic_intent("Analyze C7sus4 Fmaj7 G/B Cmaj9#11").chords == [
+        "C7sus4",
+        "Fmaj7",
+        "G/B",
+        "Cmaj9#11",
+    ]
+
+
 def test_explanation_repairs_invalid_fact_reference_once():
     calls = 0
 
@@ -88,7 +98,6 @@ def test_explanation_repairs_invalid_fact_reference_once():
         calls += 1
         fact_id = "made-up" if calls == 1 else "relationship:deceptive:1:2"
         return {
-            "message": "The transition has cited evidence.",
             "claims": [{"text": "The transition is supported.", "fact_ids": [fact_id]}],
         }
 
@@ -111,7 +120,14 @@ def test_invented_chord_rejected_then_deterministic_fallback():
     def explain(_prompt):
         nonlocal calls
         calls += 1
-        return {"message": "Add F#7 for a dramatic turn.", "claims": []}
+        return {
+            "claims": [
+                {
+                    "text": "Add F#7 for a dramatic turn.",
+                    "fact_ids": ["relationship:deceptive:1:2"],
+                }
+            ]
+        }
 
     workflow = AssistantWorkflow(
         _tools(),
@@ -132,16 +148,80 @@ def test_invalid_explanation_schema_gets_one_repair():
     def explain(_prompt):
         nonlocal calls
         calls += 1
-        return {} if calls == 1 else {"message": "Tool results are shown below.", "claims": []}
+        return (
+            {}
+            if calls == 1
+            else {
+                "claims": [
+                    {
+                        "text": "The transition is supported.",
+                        "fact_ids": ["relationship:deceptive:1:2"],
+                    }
+                ]
+            }
+        )
+
+    result = AssistantWorkflow(
+        _tools(),
+        intent_model=lambda _: ParsedIntent(task_type="recommend", chords=["C", "G", "Am"]),
+        explanation_model=explain,
+    ).run("Recommend C G Am")
+    assert calls == 2
+    assert not result.fallback
+    assert AssistantResponse.model_validate(result.model_dump(mode="json"))
+
+
+def test_uncited_model_message_is_rejected_and_article_a_is_not_a_chord():
+    fact_id = "relationship:deceptive:1:2"
+
+    def intent(_prompt):
+        return ParsedIntent(task_type="recommend", chords=["C", "G", "Am"])
+
+    valid = AssistantWorkflow(
+        _tools(),
+        intent_model=intent,
+        explanation_model=lambda _: {
+            "claims": [{"text": "A gentle transition is supported.", "fact_ids": [fact_id]}]
+        },
+    ).run("Recommend C G Am")
+    assert not valid.fallback
+    assert valid.message == valid.claims[0].text
+
+    invalid = AssistantWorkflow(
+        _tools(),
+        intent_model=intent,
+        explanation_model=lambda _: {
+            "message": "The Beatles used this exact progression in Let It Be.",
+            "claims": [{"text": "A transition occurs.", "fact_ids": [fact_id]}],
+        },
+    ).run("Recommend C G Am")
+    assert invalid.fallback
+    assert "Beatles" not in invalid.message
+
+
+def test_explain_model_receives_validated_graph_evidence():
+    prompts = []
+
+    def explain(prompt):
+        prompts.append(prompt)
+        return {
+            "claims": [
+                {
+                    "text": "The cadence resolves toward the tonic.",
+                    "fact_ids": ["relationship:authentic:1:2"],
+                }
+            ]
+        }
 
     result = AssistantWorkflow(
         _tools(),
         intent_model=lambda _: ParsedIntent(task_type="explain", chords=["C", "G", "C"]),
         explanation_model=explain,
     ).run("Explain C G C")
-    assert calls == 2
     assert not result.fallback
-    assert AssistantResponse.model_validate(result.model_dump(mode="json"))
+    assert "explain_transition" in result.tool_results
+    assert '"tool_results"' in prompts[0]
+    assert '"edges"' in prompts[0]
 
 
 def test_export_uses_playback_tool_and_invalid_chord_clarifies():

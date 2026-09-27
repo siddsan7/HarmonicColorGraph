@@ -55,8 +55,7 @@ class Claim(StrictModel):
 
 
 class ExplanationDraft(StrictModel):
-    message: str = Field(min_length=1, max_length=1500)
-    claims: list[Claim] = Field(default_factory=list, max_length=8)
+    claims: list[Claim] = Field(min_length=1, max_length=8)
 
 
 class AssistantCandidate(StrictModel):
@@ -96,6 +95,7 @@ class AssistantState(TypedDict, total=False):
     analysis_options: list[dict[str, Any]]
     playback: dict[str, Any] | None
     explanation: ExplanationDraft | None
+    fallback_message: str
     fallback: bool
     tool_results: dict[str, Any]
     tool_chords: list[str]
