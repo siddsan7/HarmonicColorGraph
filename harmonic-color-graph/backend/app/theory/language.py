@@ -12,7 +12,7 @@ _HEDGE = re.compile(
     r"some listeners?|many listeners?)\b",
     re.IGNORECASE,
 )
-_CLAUSE_BREAK = re.compile(r"[.!?;]|,\s*(?:but|yet|however|while|whereas|and)\b|\bbut\b")
+_CLAUSE_BREAK = re.compile(r"[.!?;]|,\s*and\b|\b(?:but|yet|however|while|whereas)\b")
 
 
 def lint_objective_emotion(text: str) -> bool:

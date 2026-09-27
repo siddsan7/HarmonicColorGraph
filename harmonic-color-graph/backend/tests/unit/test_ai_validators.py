@@ -3,7 +3,8 @@
 import pytest
 
 from app.ai.state import Claim, ExplanationDraft
-from app.ai.validators import validate_claims, validate_draft
+from app.ai.validators import _unsupported_theory_phrase, validate_claims, validate_draft
+from app.theory.relationships_v2 import RULES
 
 FACTS = {
     "relationship:deceptive:1:2": {"tool": "analyze_progression"},
@@ -60,6 +61,12 @@ TOOLS = {
         ("The change may feel sad.", ["relationship:deceptive:1:2"], [], []),
         (
             "C may feel sad, but G is objectively sad.",
+            ["relationship:deceptive:1:2"],
+            [],
+            ["objective_emotion"],
+        ),
+        (
+            "C may feel sad while G is objectively sad.",
             ["relationship:deceptive:1:2"],
             [],
             ["objective_emotion"],
@@ -130,3 +137,10 @@ def test_tool_symbols_cannot_be_smuggled_through_fact_pool():
 def test_unknown_chord_root_is_rejected():
     claim = Claim(text="Add H7 before C.", fact_ids=["relationship:deceptive:1:2"])
     assert "claim:0:chord_provenance" in validate_claims([claim], FACTS, TOOLS)
+
+
+def test_registered_relationship_templates_are_not_rejected_as_invented_labels():
+    for rule in RULES:
+        assert not _unsupported_theory_phrase(rule.fact_template), rule.id
+        assert not _unsupported_theory_phrase(rule.technical_template), rule.id
+    assert not _unsupported_theory_phrase("The prior dominant resolves.")

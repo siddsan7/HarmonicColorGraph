@@ -23,13 +23,21 @@ _NAMED_SUBJECT = re.compile(
     r"\b(?!The\b|This\b|That\b|These\b|Those\b)[A-Z][a-z]{3,}\s+"
     r"(?:uses|contains|features)\b"
 )
-_THEORY_TERM = re.compile(
-    r"\b(?:cadence|dominant|resolution|substitution|mediant|relation|motion|"
-    r"progression|third|modulation|function)\b",
+_THEORY_SUFFIX = (
+    r"cadence|dominant|resolution|substitution|mediant|relation|motion|"
+    r"progression|third|modulation|function"
+)
+_LABEL_ASSERTION = re.compile(
+    rf"\b(?:is|called|named|known as)\s+(?:(?:a|an|the)\s+)?"
+    rf"((?:[a-z][a-z-]*\s+){{1,2}}(?:{_THEORY_SUFFIX}))\b",
     re.IGNORECASE,
 )
-_LABEL_STOP = {"a", "an", "the", "is", "was", "to", "of", "in", "this", "that", "form", "forms"}
-_DESCRIPTION = {"minor", "major", "smooth", "strong", "weak", "gentle", "clear", "final"}
+_SUSPICIOUS_LABEL = re.compile(
+    rf"\b(?:galactic|cosmic|borrowed|imaginary|fictional|invented|fake)\s+"
+    rf"(?:{_THEORY_SUFFIX})\b",
+    re.IGNORECASE,
+)
+_DESCRIPTION = {"minor", "major", "smooth", "strong", "weak", "gentle", "clear", "final", "tonic"}
 _RELATIONSHIP = re.compile(r"\brelationship:([a-z][a-z0-9_]*)\b", re.IGNORECASE)
 
 
@@ -58,16 +66,11 @@ def _symbols(tool_results: Mapping[str, Any]) -> tuple[set[str], set[str]]:
 
 
 def _unsupported_theory_phrase(text: str) -> bool:
-    for match in _THEORY_TERM.finditer(text):
-        previous = re.findall(r"[A-Za-z-]+", text[: match.start()])[-2:]
-        descriptors: list[str] = []
-        for word in reversed(previous):
-            if word.lower() in _LABEL_STOP:
-                break
-            descriptors.insert(0, word.lower())
-        if not descriptors:
-            continue
-        phrase = " ".join([*descriptors, match.group(0).lower()])
+    if _SUSPICIOUS_LABEL.search(text):
+        return True
+    for match in _LABEL_ASSERTION.finditer(text):
+        phrase = match.group(1).lower()
+        descriptors = phrase.split()[:-1]
         if phrase not in _REGISTRY_NAMES and not (
             len(descriptors) == 1 and descriptors[0] in _DESCRIPTION
         ):
