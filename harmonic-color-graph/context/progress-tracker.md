@@ -2,8 +2,8 @@
 
 ## Active
 
-- Product: M6 F65 merged in PR #36; M7 F70 typed internal tools are implemented
-  on `codex/f70-typed-tools` for review. F70.5 MCP is next after merge.
+- Product: M7 F70 merged in PR #37 after independent review; F70.5 MCP is
+  implemented on `codex/f70-5-mcp` for verification and review.
 - Harness: Current owner and exact next action are in the root resume packet.
 - [Product context](HANDOFF.md) preserves M5 caveats and historical pointers.
 
@@ -20,8 +20,15 @@ input/output JSON schemas and evidence envelopes. Local F70 checks passed:
 26 focused tool tests after review fixes; backend lint, format, and unit suite; frontend lint,
 typecheck, tests, and build; documentation integrity. Thirteen Postgres tests
 skipped because no local test database is configured. PR #37's first CI run
-passed; independent review found three tool-boundary gaps, now fixed for a
-second review and CI run.
+passed; independent review found three tool-boundary gaps, fixed at 5544fbe.
+The reviewer approved that head; PR CI run 36297200286 passed all five jobs,
+both Vercel previews passed, main CI run 36297344909 passed, and production
+API `/health` returned 200 at merge commit cb3dd66. F70.5's in-process MCP
+client discovers ten tools and checks direct-output parity; stdio and local
+Streamable HTTP clients both complete round trips. F70.5 backend lint, format,
+and unit suite; frontend lint, typecheck, tests, and build; documentation
+integrity all pass locally. Thirteen Postgres tests skip without a local test
+database. PR CI and independent review remain pending.
 
 ## Pending human evidence
 

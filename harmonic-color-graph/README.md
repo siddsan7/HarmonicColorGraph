@@ -154,7 +154,40 @@ with session_factory() as session:
 From `backend/`, export all input and output JSON schemas with
 `python -m app.ai.schemas > ai-tool-schemas.json`. Tool calls raise `ToolError`
 with stable codes for invalid input, missing corpus data, unavailable database,
-and invalid output. The external MCP interface is the next M7 feature.
+and invalid output.
+
+### MCP clients
+
+The MCP server publishes those same schemas and results. From `backend/`,
+`python -m app.mcp.server` runs the stdio transport for a local MCP client.
+Configure the client to launch that command with `backend/` as its working
+directory. For a local Streamable HTTP endpoint, run:
+
+```powershell
+cd backend
+python -m uvicorn app.mcp.server:app --host 127.0.0.1 --port 8001
+```
+
+An MCP client can then call a database-independent tool:
+
+```python
+import asyncio
+from mcp import Client
+
+async def main():
+    async with Client("http://127.0.0.1:8001/mcp") as client:
+        print([tool.name for tool in (await client.list_tools()).tools])
+        result = await client.call_tool(
+            "analyze_progression", {"chords": ["C", "G", "Am"], "key": "C major"}
+        )
+        print(result.structured_content)
+
+asyncio.run(main())
+```
+
+Corpus-backed tools use the configured `DATABASE_URL`. MCP returns structured
+tool errors for invalid harmonic input and does not accept SQL, file paths, or
+administrative operations.
 
 ## Phase Direction
 

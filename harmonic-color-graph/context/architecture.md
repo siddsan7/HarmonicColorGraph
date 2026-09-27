@@ -63,8 +63,10 @@ see `docs/roadmap-v2.md` and
 - `backend/app/jobs/` - Planned typed job schemas, queue
   adapter, worker handlers, retry/lease rules, and progress
   reporting; handlers call shared services.
-- `backend/app/mcp/` - Planned MCP tool/resource interface
-  over shared services and validated schemas.
+- `backend/app/mcp/` - MCP stdio and Streamable HTTP interface over the
+  shared F70 tool registry. It advertises the same input/output schemas,
+  opens request-scoped service sessions, and returns structured results or
+  typed tool errors without HTTP self-calls.
 - `backend/app/db/` - Planned database engine/session setup,
   migrations, repositories, and query helpers.
 - `backend/app/models/` - Planned SQLAlchemy persistence
