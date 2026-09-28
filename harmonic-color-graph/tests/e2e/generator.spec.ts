@@ -39,7 +39,7 @@ test("compare mode shows three distinct variants and color deltas", async ({ pag
     const pick = body.preset === "plausible" ? "F" : body.preset === "balanced" ? "Fm" : "Ab"
     return route.fulfill({ json: { data: { key: "C major", recommendations: [{ chord: pick, token: "M:IV", pitch_classes: [5, 9, 0], score: .8, explanation: "Fits the chosen direction.", labels: [] }] }, meta: { corpus_version: "test", ranking_mode: "intent" } } })
   })
-  await page.route("**/api/hcg/v2/color/compare?**", (route) => route.fulfill({ json: { a: profile, b: profile, raw_deltas: {}, perceptual_deltas: { brightness: -.2, tension: .3, complexity: .1, resolution: -.1 } } }))
+  await page.route("**/api/hcg/v2/color/compare?**", (route) => route.fulfill({ json: { a: profile, b: profile, raw_deltas: { brightness: -.2, tension: .3, complexity: .1, resolution: -.1 }, perceptual_deltas: { nostalgia: .8, dreaminess: .6 } } }))
   await page.goto("/generate?p=C-G-Am&k=C-major")
   await page.getByRole("button", { name: "Generate A/B/C variants" }).click()
   await expect(page.getByRole("heading", { name: "A · Common" })).toBeVisible()
