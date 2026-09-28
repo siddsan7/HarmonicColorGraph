@@ -23,13 +23,12 @@ class JobQueue:
         self.redis = redis
 
     @classmethod
-    def from_url(cls, url: str) -> JobQueue:
-        # BRPOP must outlive its idle wait without a client-side socket timeout.
+    def from_url(cls, url: str, *, socket_timeout: int = 3) -> JobQueue:
         return cls(
             Redis.from_url(
                 url,
                 socket_connect_timeout=3,
-                socket_timeout=IDLE_RECEIVE_TIMEOUT_S + 5,
+                socket_timeout=socket_timeout,
             )
         )
 
