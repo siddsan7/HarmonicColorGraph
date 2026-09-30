@@ -102,12 +102,12 @@ The education workspace now keeps a persistent Cytoscape instance with an initia
 
 Passed:
 - npm lint, TypeScript check, 34 Vitest tests, and production Next.js build.
-- Ten focused Chromium journeys against the production build on local port 3013: graph filters/sample fallback; exact directed/contextual/parallel-edge highlight; camera/position/instance stability; alternate/clear; delayed route invalidation; 36-node/68-edge rendering; generation/playback/MIDI; comparison; feeling-to-sketch handoff after changing the key field; shared URLs and mobile navigation.
+- Eleven focused Chromium journeys against the production build on local port 3013: graph filters/sample fallback; exact directed/contextual/parallel-edge highlight; camera/position/instance stability; alternate/clear; delayed route invalidation; 36-node/68-edge rendering; generation/playback/MIDI; comparison; feeling-to-sketch handoff after changing the key field; shared URLs, mobile navigation, and the existing database-unavailable banner regression.
 - Documentation integrity and git diff whitespace check.
-- Visual review of the actual 36-node canvas; parent independently inspected the bundled sample route on desktop and mobile, including unchanged instance/positions/pan/zoom on inspection and no page overflow at 390px.
+- Visual review of the actual 36-node canvas; parent independently inspected the bundled sample route on desktop and mobile, including unchanged instance/positions/pan/zoom on inspection and no page overflow at 390px. Final desktop camera inspection at 1440×900 confirmed the canvas ends at 855.8px, fit-path zoom stays below 1.6, and zoom controls work.
 
 Resolved during verification: Windows text encoding errors, route select accessible names, and route controls initially pushing the canvas below the desktop viewport. No known failing focused checks remain.
 
 Skipped: merge, deployment, backend/corpus changes, unrelated M0–M7 gates. Browser service responses use explicit fixtures, apart from the bundled sample fallback. Production corpus quality, live graph realization and subjective musical usefulness remain unverified. The 36-node fixture demonstrates bounded interaction behavior, not a frame-rate benchmark or large-corpus performance claim. A persisted multi-section song document remains future scope.
 
-Local evidence: `.agent-logs/redesign-36-node-path.png`; browser tests in `tests/e2e/graph-explorer.spec.ts`, `generator.spec.ts`, and `shareable-state.spec.ts`; graph data regressions in `lib/graph/data.test.ts`. Parent owns the final workstream checkpoint and independent review record.
+Local evidence: `.agent-logs/redesign-36-node-path.png`; browser tests in `tests/e2e/graph-explorer.spec.ts`, `generator.spec.ts`, `shareable-state.spec.ts`, and `degraded-mode.spec.ts`; graph data regressions in `lib/graph/data.test.ts`. Parent owns the final workstream checkpoint and independent review record.

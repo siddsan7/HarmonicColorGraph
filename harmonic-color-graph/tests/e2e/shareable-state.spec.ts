@@ -7,7 +7,7 @@ test("a deep link restores progression context across routes", async ({ page }) 
   await expect(page.getByLabel("Genre")).toHaveValue("pop")
   await expect(page.getByLabel("Section")).toHaveValue("chorus")
 
-  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Explore" }).click()
+  await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Explore harmony", exact: true }).click()
   await expect(page).toHaveURL(/\/explore\?p=C-G-Am&k=C-major&g=pop&s=chorus/)
   await expect(page.getByText("C - G - Am")).toBeVisible()
   await page.getByRole("link", { name: "Return to your sketch" }).click()

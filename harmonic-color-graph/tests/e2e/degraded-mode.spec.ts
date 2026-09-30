@@ -16,7 +16,7 @@ test("degraded mode banner appears when the database is unreachable", async ({
   await page.goto("/")
 
   await expect(
-    page.getByRole("heading", { name: "Harmonic analysis" })
+    page.getByRole("heading", { name: "Give your next idea somewhere to go." })
   ).toBeVisible()
   await expect(page.getByText("Live data is waking up")).toBeVisible({
     timeout: 15_000,
