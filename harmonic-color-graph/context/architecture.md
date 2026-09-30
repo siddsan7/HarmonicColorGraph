@@ -8,7 +8,7 @@ Full detail and rationale: `docs/roadmap-v2.md` §3 and
 | Layer              | Technology                                              | Role |
 | ------------------ | -------------------------------------------------------- | ---- |
 | Frontend           | Next.js 16, React 19, TypeScript, Tailwind 4, shadcn/ui  | Workbench, graph explorer, generator, similarity, assistant UI |
-| Graph UI           | Cytoscape.js + cytoscape-fcose                           | Harmonic graph explorer, paths, neighborhoods |
+| Graph UI           | 3d-force-graph + Three.js                           | Spatial harmonic atlas with orbit camera, directed routes and accessible relationship list |
 | Audio              | Tone.js, @tonejs/midi                                    | Voice-led playback, compare mode, MIDI export |
 | Backend            | FastAPI, Pydantic v2, Python 3.12                        | `/v1` legacy + `/v2` analysis, recommend, generate, graph, color, similar, AI |
 | Theory processing  | In-house (`backend/app/theory/`); music21 as a dev-only oracle | Spelling, key/Roman v2, relationship catalog v2 (ADR-004: music21 never a runtime dependency) |

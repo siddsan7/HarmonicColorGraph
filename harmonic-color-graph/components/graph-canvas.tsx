@@ -1,114 +1,320 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import type { Core, ElementDefinition } from "cytoscape"
-import { edgeKey, tensionDelta, type GraphData } from "@/lib/graph/data"
+import { Expand, Focus, HelpCircle, Maximize2, Minus, Orbit, Plus, RotateCcw, Route, Sparkles } from "lucide-react"
+import type { ForceGraph3DInstance } from "3d-force-graph"
+import type { Group, Sprite, Mesh, MeshBasicMaterial, SpriteMaterial, PerspectiveCamera } from "three"
+import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { atlasData, nodeColor, nodeLabel, type AtlasNode, type AtlasLink } from "@/lib/graph/atlas"
+import type { GraphData } from "@/lib/graph/data"
 
-type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void }
+type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void }
+type Atlas = ForceGraph3DInstance<AtlasNode, AtlasLink>
+type NodeVisual = { group: Group; core: Mesh; halo: Sprite; ring: Sprite; label: Sprite; updateLabel: (text: string) => void; dispose: () => void }
+type Runtime = { graph: Atlas; visuals: Map<string, NodeVisual>; refresh: () => void; replay: () => void; cancelReplay: () => void; fit: (mode: "all" | "path" | "selected" | "reset") => void; wake: (ms?: number) => void; dispose: () => void }
+const ROUTE = "#ffd091"
 
 export function GraphCanvas(props: Props) {
   const container = useRef<HTMLDivElement>(null)
-  const cy = useRef<Core | null>(null)
+  const runtime = useRef<Runtime | null>(null)
   const latest = useRef(props)
   const [ready, setReady] = useState(false)
+  const [failure, setFailure] = useState("")
   const [hover, setHover] = useState("")
+  const stage = useRef<HTMLDivElement>(null)
+  const [fullScreen, setFullScreen] = useState(false)
+  const [guide, setGuide] = useState(false)
+  const [reduced, setReduced] = useState(false)
   useEffect(() => { latest.current = props })
+  useEffect(() => { const update = () => setFullScreen(document.fullscreenElement === stage.current); document.addEventListener("fullscreenchange", update); return () => document.removeEventListener("fullscreenchange", update) }, [])
+
   useEffect(() => {
     let disposed = false
-    let observer: ResizeObserver | undefined
+    let cleanup = () => {}
     async function mount() {
-      const [{ default: cytoscape }, { default: fcose }] = await Promise.all([import("cytoscape"), import("cytoscape-fcose")])
-      cytoscape.use(fcose)
-      if (disposed || !container.current) return
-      const css = getComputedStyle(container.current)
-      const color = (name: string) => css.getPropertyValue(name).trim()
-      const instance = cytoscape({ container: container.current, elements: [], minZoom: .25, maxZoom: 3, wheelSensitivity: .2, layout: { name: "preset" }, style: [
-        { selector: "node", style: { label: "data(label)", "background-color": "data(color)", color: color("--bg-base"), "font-size": 15, "font-weight": 700, "text-valign": "center", "text-halign": "center", width: 64, height: 46, shape: "round-rectangle", "border-width": 1, "border-color": color("--text-secondary"), "text-wrap": "ellipsis", "text-max-width": "110px" } },
-        { selector: "node.chord", style: { shape: "ellipse" } },
-        { selector: "node.pattern, node.genre", style: { width: 110 } },
-        { selector: "edge", style: { width: "data(width)", "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle", "arrow-scale": 1.2, "curve-style": "bezier", opacity: .6 } },
-        { selector: ".muted", style: { opacity: .16 } },
-        { selector: "edge.path", style: { width: 5, "line-color": color("--route-accent"), "target-arrow-color": color("--route-accent"), "arrow-scale": 1.6, "underlay-color": color("--bg-base"), "underlay-opacity": 1, "underlay-padding": 4, opacity: 1, "z-index": 20 } },
-        { selector: "node.path", style: { "border-width": 3, "border-color": color("--route-accent"), opacity: 1 } },
-        { selector: "node.endpoint", style: { "border-width": 5, "border-style": "double", "background-color": color("--route-accent") } },
-        { selector: "node.selected", style: { "outline-color": color("--text-primary"), "outline-width": 3, "outline-offset": 4, opacity: 1 } },
-      ] })
-      cy.current = instance
-      instance.on("tap", "node", (event) => latest.current.onSelect(event.target.id()))
-      instance.on("mouseover", "edge", (event) => {
-        const edge = event.target
-        setHover(`${edge.source().data("label")} → ${edge.target().data("label")} · ${edge.data("type").replaceAll("_", " ").toLowerCase()} · ${edge.data("prob") == null ? "probability unavailable" : `${Math.round(edge.data("prob") * 100)}%`}`)
-      })
-      instance.on("mouseout", "edge", () => setHover(""))
-      observer = new ResizeObserver(() => instance.resize())
-      observer.observe(container.current)
-      performance.mark("hcg-explore-canvas-created")
-      setReady(true)
+      try {
+        const [THREE, { default: ForceGraph }] = await Promise.all([import("three"), import("3d-force-graph")])
+        if (disposed || !container.current) return
+        const host = container.current
+        const media = window.matchMedia("(prefers-reduced-motion: reduce)")
+        setReduced(media.matches)
+        const graph = new ForceGraph(host, { controlType: "orbit", rendererConfig: { antialias: true, alpha: true, powerPreference: "high-performance" } }) as unknown as Atlas
+        let cleaned = false
+        const owned = new Set<{ dispose: () => void }>()
+        const releaseGPU = () => { if (cleaned) return; cleaned = true; graph.pauseAnimation(); graph._destructor(); owned.forEach((resource) => resource.dispose()); graph.renderer().dispose(); graph.renderer().forceContextLoss(); host.replaceChildren() }
+        cleanup = releaseGPU
+        const controls = graph.controls() as OrbitControls
+        controls.enableDamping = !media.matches
+        controls.dampingFactor = .12
+        controls.minDistance = 40
+        controls.maxDistance = 1400
+        controls.rotateSpeed = .65
+        controls.zoomSpeed = .8
+        controls.screenSpacePanning = true
+        graph.renderer().setPixelRatio(Math.min(window.devicePixelRatio, 1.75))
+        graph.renderer().setClearColor(0x060a12, 0)
+        graph.backgroundColor("#00000000").showNavInfo(false).numDimensions(3).enableNodeDrag(false)
+          .warmupTicks(0).cooldownTicks(0).nodeLabel("").linkLabel("").linkOpacity(.8)
+          .linkCurvature("curvature").linkCurveRotation("rotation").linkResolution(12)
+          .linkDirectionalArrowRelPos(.79).linkDirectionalArrowResolution(12)
+          .linkDirectionalParticles(0).linkDirectionalParticleWidth(1.7).linkDirectionalParticleColor(() => ROUTE).linkDirectionalParticleSpeed(.011)
+        const visuals = new Map<string, NodeVisual>()
+        const sphere = new THREE.SphereGeometry(3.2, 12, 8); owned.add(sphere)
+        function texture(draw: (ctx: CanvasRenderingContext2D, size: number) => void, size = 128) {
+          const canvas = document.createElement("canvas"); canvas.width = size; canvas.height = size
+          const ctx = canvas.getContext("2d")!
+          draw(ctx, size)
+          const image = new THREE.CanvasTexture(canvas); image.colorSpace = THREE.SRGBColorSpace
+          owned.add(image); return image
+        }
+        const glow = texture((ctx, size) => {
+          const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2)
+          gradient.addColorStop(0, "rgba(255,255,255,.7)"); gradient.addColorStop(.25, "rgba(255,255,255,.18)"); gradient.addColorStop(1, "rgba(255,255,255,0)")
+          ctx.fillStyle = gradient; ctx.fillRect(0, 0, size, size)
+        })
+        const ring = texture((ctx, size) => { ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(size / 2, size / 2, size * .38, 0, Math.PI * 2); ctx.stroke(); ctx.fillStyle = "#fff"; ctx.fillRect(size * .84, size / 2 - 3, 6, 6) })
+        function buildNode(node: AtlasNode) {
+          const existing = visuals.get(node.id)
+          if (existing) return existing.group
+          const group = new THREE.Group()
+          const isRoute = latest.current.pathNodes.includes(node.id)
+          const coreMaterial = new THREE.MeshBasicMaterial({ color: isRoute ? ROUTE : nodeColor(node, latest.current.colorAxis), transparent: true })
+          const core = new THREE.Mesh(sphere, coreMaterial)
+          const haloMaterial = new THREE.SpriteMaterial({ map: glow, color: coreMaterial.color, transparent: true, depthWrite: false, sizeAttenuation: false, blending: THREE.AdditiveBlending })
+          const halo = new THREE.Sprite(haloMaterial); halo.scale.set(32, 32, 1)
+          const ringMaterial = new THREE.SpriteMaterial({ map: ring, color: ROUTE, transparent: true, depthWrite: false, sizeAttenuation: false })
+          const selection = new THREE.Sprite(ringMaterial); selection.scale.set(16, 16, 1); selection.visible = node.id === latest.current.selected || node.id === latest.current.pathNodes[0] || node.id === latest.current.pathNodes.at(-1)
+          const drawLabel = (ctx: CanvasRenderingContext2D, size: number, text: string) => {
+            ctx.clearRect(0, 0, size, size)
+            ctx.font = "500 44px Arial, sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle"
+            ctx.shadowColor = "#060a12"; ctx.shadowBlur = 12; ctx.fillStyle = "#eef3ff"
+            ctx.fillText(text, size / 2, size / 2, size - 8)
+          }
+          let currentLabel = nodeLabel(node)
+          const labelTexture = texture((ctx, size) => drawLabel(ctx, size, currentLabel), 256)
+          const labelMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false, sizeAttenuation: false })
+          const label = new THREE.Sprite(labelMaterial); label.scale.set(.13, .13, 1); label.position.set(0, 11, 0)
+          group.add(halo, core, selection, label)
+          const nodeResources = [coreMaterial, haloMaterial, ringMaterial, labelMaterial, labelTexture]
+          nodeResources.forEach((resource) => owned.add(resource))
+          visuals.set(node.id, { group, core, halo, ring: selection, label, updateLabel: (text) => { if (text === currentLabel) return; currentLabel = text; const canvas = labelTexture.image as HTMLCanvasElement; drawLabel(canvas.getContext("2d")!, 256, text); labelTexture.needsUpdate = true }, dispose: () => { nodeResources.forEach((resource) => { resource.dispose(); owned.delete(resource) }); group.removeFromParent() } })
+          return group
+        }
+        graph.nodeThreeObject(buildNode)
+        // Sparse guide points convey depth without inventing data or a measured similarity axis.
+        const grid = new THREE.GridHelper(360, 18, 0x25354d, 0x172336)
+        grid.position.y = -115
+        const gridMaterials = Array.isArray(grid.material) ? grid.material : [grid.material]
+        gridMaterials.forEach((material) => { material.transparent = true; material.opacity = .18; owned.add(material) })
+        owned.add(grid.geometry); graph.scene().add(grid)
+        let timer: ReturnType<typeof setTimeout> | undefined
+        let visible = true
+        let active = false
+        const wake = (ms = 1000) => {
+          if (disposed || !visible || document.hidden) return
+          graph.resumeAnimation(); host.dataset.rendering = "active"
+          clearTimeout(timer)
+          timer = setTimeout(() => { if (!active) { graph.pauseAnimation(); host.dataset.rendering = "paused" } }, ms)
+        }
+        function diagnostics() {
+          const position = graph.cameraPosition()
+          const camera = graph.camera() as PerspectiveCamera
+          camera.updateMatrixWorld()
+          const scale = 82 * 2 * Math.tan(camera.fov * Math.PI / 360) / Math.max(1, host.clientHeight)
+          const pixelScale = 2 * Math.tan(camera.fov * Math.PI / 360) / Math.max(1, host.clientHeight)
+          graph.graphData().nodes.forEach((node) => {
+            const visual = visuals.get(node.id)
+            if (!visual) return
+            const important = latest.current.selected === node.id || latest.current.pathNodes.includes(node.id)
+            const depth = Math.max(1, new THREE.Vector3(node.x, node.y, node.z).applyMatrix4(camera.matrixWorldInverse).z * -1)
+            visual.core.scale.setScalar(depth * pixelScale * (important ? 5 : 3.5) / 3.2)
+            visual.label.scale.set(scale, scale, 1)
+            visual.label.position.copy(new THREE.Vector3(0, depth * pixelScale * 17, 0).applyQuaternion(camera.quaternion))
+            visual.halo.scale.setScalar(pixelScale * (important ? 44 : 32))
+            visual.ring.scale.setScalar(pixelScale * 24)
+          })
+          host.dataset.camera = JSON.stringify(position)
+          host.dataset.target = JSON.stringify(controls.target)
+        }
+        // Read-only inspection on demand; no scene-sized serialization in the render loop.
+        const diagnosticHost = host as HTMLDivElement & { atlasSnapshot?: () => unknown }
+        diagnosticHost.atlasSnapshot = () => {
+          const width = graph.linkWidth(), color = graph.linkColor()
+          return {
+            screenNodes: graph.graphData().nodes.map((node) => ({ id: node.id, ...graph.graph2ScreenCoords(node.x, node.y, node.z) })),
+            nodes: graph.graphData().nodes.map((node) => ({ id: node.id, color: (visuals.get(node.id)?.core.material as MeshBasicMaterial | undefined)?.color.getHexString() })),
+            edges: graph.graphData().links.map((link) => ({ id: link.id, width: typeof width === "function" ? width(link) : width, color: typeof color === "function" ? color(link) : color })),
+          }
+        }
+        const onChange = () => { diagnostics(); wake() }
+        const onStart = () => { active = true; wake() }
+        const onEnd = () => { active = false; wake() }
+        controls.addEventListener("change", onChange); controls.addEventListener("start", onStart); controls.addEventListener("end", onEnd)
+        const onPointer = () => wake()
+        host.addEventListener("pointermove", onPointer); host.addEventListener("pointerdown", onPointer); host.addEventListener("wheel", onPointer, { passive: true })
+        function fit(mode: "all" | "path" | "selected" | "reset") {
+          const p = latest.current
+          const nodes = graph.graphData().nodes.filter((node) => mode === "selected" ? node.id === p.selected : mode === "path" ? p.pathNodes.includes(node.id) : true)
+          if (!nodes.length) return
+          const center = new THREE.Vector3()
+          nodes.forEach((node) => center.add(new THREE.Vector3(node.x, node.y, node.z))); center.divideScalar(nodes.length)
+          const camera = graph.camera() as PerspectiveCamera
+          const tangent = Math.tan(camera.fov * Math.PI / 360)
+          const direction = mode === "reset" ? new THREE.Vector3(.8, .5, 1).normalize() : new THREE.Vector3().copy(camera.position).sub(controls.target).normalize()
+          const right = new THREE.Vector3().crossVectors(new THREE.Vector3(0, 1, 0), direction).normalize()
+          const up = new THREE.Vector3().crossVectors(direction, right).normalize()
+          let distance = mode === "selected" ? 75 : 90
+          nodes.forEach((node) => {
+            const delta = new THREE.Vector3(node.x, node.y, node.z).sub(center)
+            const depth = delta.dot(direction)
+            distance = Math.max(distance, depth + Math.abs(delta.dot(right)) / (tangent * camera.aspect) * 1.3, depth + Math.abs(delta.dot(up)) / tangent * Math.max(1.5, host.clientHeight / Math.max(150, host.clientHeight - 160)))
+          })
+          center.addScaledVector(up, -distance * tangent * (host.clientWidth < 600 ? 110 : 65) / host.clientHeight)
+          controls.maxDistance = Math.max(1400, distance * 3)
+          const target = center.clone().addScaledVector(direction, distance)
+          wake(1200); graph.cameraPosition(target, center, media.matches ? 0 : 450)
+          if (media.matches) { controls.update(); graph.camera().updateMatrixWorld(); diagnostics() }
+        }
+        let hoveredNode = ""
+        function refresh() {
+          const p = latest.current, route = new Set(p.pathNodes), pathEdges = new Set(p.pathEdges)
+          graph.graphData().nodes.forEach((node) => {
+            const visual = visuals.get(node.id)
+            if (!visual) return
+            visual.updateLabel(nodeLabel(node))
+            const selected = node.id === p.selected, onPath = route.has(node.id), endpoint = node.id === p.pathNodes[0] || node.id === p.pathNodes.at(-1)
+            const tint = onPath ? ROUTE : nodeColor(node, p.colorAxis), opacity = route.size && !onPath && !selected ? .22 : 1
+            const core = visual.core.material as MeshBasicMaterial; core.color.set(tint); core.opacity = opacity
+            const halo = visual.halo.material as SpriteMaterial; halo.color.set(tint); halo.opacity = opacity * (selected || onPath ? .9 : .45)
+            visual.core.scale.setScalar(endpoint ? 1.3 : selected ? 1.15 : 1)
+            visual.ring.visible = selected || endpoint; (visual.ring.material as SpriteMaterial).color.set(selected ? "#e8f2ff" : ROUTE)
+            visual.label.visible = (!route.size && graph.graphData().nodes.length <= 20) || selected || onPath || hoveredNode === node.id
+            ;(visual.label.material as SpriteMaterial).opacity = Math.max(.3, opacity)
+          })
+          graph.linkColor((link) => pathEdges.has(link.id) ? ROUTE : graph.graphData().nodes.length > 50 ? "#1d2b40" : p.pathEdges.length ? "#27374c" : "#445e7c")
+            .linkWidth((link) => pathEdges.has(link.id) ? 2.2 : 0)
+            .linkDirectionalArrowLength((link) => pathEdges.has(link.id) ? 7.5 : 0)
+            .linkDirectionalArrowColor((link) => pathEdges.has(link.id) ? ROUTE : "#445e7c")
+          host.dataset.pathEdges = JSON.stringify(graph.graphData().links.filter((link) => pathEdges.has(link.id)).map((link) => link.id))
+          diagnostics()
+          wake()
+        }
+        let replayTimer: ReturnType<typeof setTimeout> | undefined
+        function cancelReplay() { clearTimeout(replayTimer); graph.linkDirectionalParticles(0); host.dataset.replay = "idle"; wake() }
+        function replay() {
+          cancelReplay()
+          if (media.matches) return
+          const edges = new Set(latest.current.pathEdges)
+          graph.linkDirectionalParticles((link) => edges.has(link.id) ? 1 : 0)
+          host.dataset.replay = "playing"; wake(2200)
+          replayTimer = setTimeout(cancelReplay, 1800)
+        }
+        graph.onNodeClick((node) => latest.current.onSelect(node.id))
+          .onNodeHover((node) => {
+            const previous = hoveredNode
+            hoveredNode = node?.id ?? ""
+            const p = latest.current
+            // Hover changes two label sprites, never the whole link geometry.
+            for (const id of [previous, hoveredNode]) {
+              const visual = visuals.get(id)
+              if (!visual) continue
+              visual.label.visible = (!p.pathNodes.length && visuals.size <= 20) || id === p.selected || p.pathNodes.includes(id) || id === hoveredNode
+              ;(visual.label.material as SpriteMaterial).opacity = 1
+            }
+            host.style.cursor = node ? "pointer" : "grab"
+            setHover(node ? `${nodeLabel(node)} · ${node.type} · click to inspect` : "")
+            wake()
+          })
+          .onLinkHover((link) => { setHover(link ? `${link.type.replaceAll("_", " ").toLowerCase()} · ${link.prob == null ? "Probability unavailable" : `${Math.round(link.prob * 100)}% probability`}` : ""); wake() })
+        const resize = new ResizeObserver(() => { graph.width(host.clientWidth).height(host.clientHeight); wake() }); resize.observe(host)
+        const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { controls.update(); diagnostics(); wake(1500) } else { graph.pauseAnimation(); host.dataset.rendering = "paused" } }); intersection.observe(host)
+        const visibility = () => { if (document.hidden) { graph.pauseAnimation(); host.dataset.rendering = "paused" } else wake() }; document.addEventListener("visibilitychange", visibility)
+        const motion = () => { setReduced(media.matches); controls.enableDamping = !media.matches; cancelReplay(); wake() }; media.addEventListener("change", motion)
+        const contextLost = (event: Event) => { event.preventDefault(); setFailure("The 3D view lost its graphics connection. Your route is still available in List view."); graph.pauseAnimation() }; graph.renderer().domElement.addEventListener("webglcontextlost", contextLost)
+        host.dataset.renderer = "webgl"
+        performance.mark("hcg-explore-canvas-created")
+        cleanup = () => {
+          clearTimeout(replayTimer); clearTimeout(timer); resize.disconnect(); intersection.disconnect()
+          document.removeEventListener("visibilitychange", visibility); media.removeEventListener("change", motion)
+          host.removeEventListener("pointermove", onPointer); host.removeEventListener("pointerdown", onPointer); host.removeEventListener("wheel", onPointer)
+          controls.removeEventListener("change", onChange); controls.removeEventListener("start", onStart); controls.removeEventListener("end", onEnd)
+          graph.renderer().domElement.removeEventListener("webglcontextlost", contextLost)
+          delete diagnosticHost.atlasSnapshot
+          releaseGPU(); visuals.clear()
+        }
+        runtime.current = { graph, visuals, refresh, replay, cancelReplay, fit, wake, dispose: cleanup }
+        setReady(true)
+      } catch {
+        if (!disposed) { cleanup(); setFailure("This device cannot start the 3D view. Open List view to explore every connection and route.") }
+      }
     }
     void mount()
-    return () => { disposed = true; observer?.disconnect(); cy.current?.destroy(); cy.current = null }
+    return () => { disposed = true; cleanup(); runtime.current = null }
   }, [])
 
   useEffect(() => {
-    const instance = cy.current
-    if (!ready || !instance || !container.current) return
-    const first = instance.nodes().length === 0
-    const css = getComputedStyle(container.current)
-    const color = (name: string) => css.getPropertyValue(name).trim()
-    const elements: ElementDefinition[] = props.graph.nodes.map((node, index) => {
-      const angle = index * Math.PI * (3 - Math.sqrt(5))
-      const radius = 100 + 36 * Math.sqrt(index)
-      const adjacent = props.graph.edges.find((edge) => edge.src === node.id || edge.dst === node.id)
-      const anchorId = adjacent ? adjacent.src === node.id ? adjacent.dst : adjacent.src : undefined
-      const anchor = anchorId ? instance.getElementById(anchorId) : undefined
-      const origin = anchor?.length ? anchor.position() : { x: 350, y: 250 }
-      const distance = anchor?.length ? 140 : radius
-      return { data: { id: node.id, label: node.type === "function" ? node.label.replace(/^[Mm]:/, "") : node.label, color: color("--accent-secondary") }, classes: node.type, position: { x: origin.x + distance * Math.cos(angle), y: origin.y + distance * Math.sin(angle) } }
-    })
-    elements.push(...props.graph.edges.map((edge) => ({ data: { id: `edge:${edgeKey(edge)}`, source: edge.src, target: edge.dst, width: 1.5 + (edge.prob ?? 0) * 4, color: color(tensionDelta(edge, props.graph.nodes)! > .1 ? "--accent-tension" : "--text-muted"), prob: edge.prob, type: edge.type } })))
-    const ids = new Set(elements.map((element) => element.data.id))
-    instance.batch(() => {
-      instance.elements().filter((element) => !ids.has(element.id())).remove()
-      for (const element of elements) {
-        const existing = instance.getElementById(element.data.id!)
-        if (existing.length) existing.data(element.data)
-        else instance.add(element)
-      }
-    })
-    if (first && elements.length) { instance.resize(); instance.layout({ name: "fcose", randomize: false, quality: "proof", animate: false, fit: true, padding: 65, nodeSeparation: 100, idealEdgeLength: 150 } as import("cytoscape").LayoutOptions).run(); performance.mark("hcg-explore-layout-complete") }
-  }, [ready, props.graph])
-
-  useEffect(() => {
-    const instance = cy.current
-    if (!ready || !instance || !container.current) return
-    const css = getComputedStyle(container.current)
-    instance.batch(() => {
-      instance.elements().removeClass("path muted selected endpoint")
-      if (props.pathNodes.length) instance.elements().addClass("muted")
-      props.graph.nodes.forEach((node) => {
-        const perceptual = (node.props.color as { perceptual?: Record<string, { value?: number }> } | undefined)?.perceptual
-        const value = props.colorAxis === "chromaticity" ? Number(node.props.chromaticity ?? 0) : perceptual?.[props.colorAxis]?.value ?? .5
-        instance.getElementById(node.id).data("color", css.getPropertyValue(props.colorAxis === "none" ? "--accent-secondary" : value >= .65 ? "--accent-warm" : value >= .35 ? "--accent-secondary" : "--accent-primary").trim())
+    const engine = runtime.current
+    if (!ready || !engine) return
+    const previous = engine.graph.graphData()
+    const next = atlasData(props.graph, previous.nodes)
+    const changed = next.nodes.map((node) => node.id).join("|") !== previous.nodes.map((node) => node.id).join("|") || next.links.map((link) => link.id).join("|") !== previous.links.map((link) => link.id).join("|")
+    if (!changed) previous.links.forEach((link, index) => { link.prob = next.links[index].prob; link.type = next.links[index].type })
+    if (changed) {
+      const first = previous.nodes.length === 0
+      const ids = new Set(next.nodes.map((node) => node.id))
+      engine.visuals.forEach((visual, id) => { if (!ids.has(id)) { visual.dispose(); engine.visuals.delete(id) } })
+      engine.graph.graphData(next)
+      container.current!.dataset.positions = JSON.stringify(next.nodes.map(({ id, x, y, z }) => ({ id, x, y, z })))
+      engine.wake()
+      requestAnimationFrame(() => {
+        if (runtime.current !== engine) return
+        engine.refresh()
+        requestAnimationFrame(() => { if (runtime.current === engine) engine.refresh() })
+        if (first) { engine.fit("reset"); performance.mark("hcg-explore-layout-complete") }
       })
-      props.pathNodes.forEach((id) => instance.getElementById(id).removeClass("muted").addClass("path"))
-      props.pathEdges.forEach((id) => instance.getElementById(`edge:${id}`).removeClass("muted").addClass("path"))
-      for (const id of [props.pathNodes[0], props.pathNodes.at(-1)]) if (id) instance.getElementById(id).addClass("endpoint")
-      instance.getElementById(props.selected).addClass("selected")
-    })
-  }, [ready, props.graph, props.colorAxis, props.pathNodes, props.pathEdges, props.selected])
+    }
+    engine.refresh()
+  }, [ready, props.graph, props.pathNodes, props.selected])
 
-  function fit(path: boolean) {
-    const instance = cy.current
-    if (!instance) return
-    const elements = path ? instance.elements(".path") : instance.elements()
-    if (!elements.length) return
-    instance.stop()
-    const bounds = elements.boundingBox()
-    const level = Math.max(instance.minZoom(), Math.min(path ? 1.6 : 2, (instance.width() - 100) / Math.max(bounds.w, 1), (instance.height() - 100) / Math.max(bounds.h, 1)))
-    const pan = { x: instance.width() / 2 - level * (bounds.x1 + bounds.w / 2), y: instance.height() / 2 - level * (bounds.y1 + bounds.h / 2) }
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) instance.viewport({ zoom: level, pan })
-    else instance.animate({ zoom: level, pan, duration: 240 })
+  useEffect(() => { if (ready) runtime.current?.refresh() }, [ready, props.colorAxis, props.selected, props.pathNodes, props.pathEdges])
+  const routeIdentity = props.pathEdges.join(";")
+  useEffect(() => { if (ready) runtime.current?.cancelReplay() }, [ready, routeIdentity])
+  function zoom(factor: number) {
+    const engine = runtime.current
+    if (!engine) return
+    const controls = engine.graph.controls() as OrbitControls, camera = engine.graph.camera()
+    const offset = camera.position.clone().sub(controls.target)
+    const distance = Math.max(controls.minDistance, Math.min(controls.maxDistance, offset.length() * factor))
+    const position = offset.setLength(distance).add(controls.target)
+    engine.wake(); engine.graph.cameraPosition(position, controls.target, reduced ? 0 : 350)
   }
-  function zoom(factor: number) { const instance = cy.current; if (instance) instance.zoom({ level: instance.zoom() * factor, renderedPosition: { x: instance.width() / 2, y: instance.height() / 2 } }) }
-  return <div className="graph-canvas-wrap"><div className="graph-camera" role="group" aria-label="Graph camera"><button onClick={() => zoom(1.25)} aria-label="Zoom in">+</button><button onClick={() => zoom(.8)} aria-label="Zoom out">−</button><button onClick={() => fit(false)}>Fit graph</button><button onClick={() => cy.current?.layout({ name: "fcose", randomize: false, quality: "proof", animate: false, fit: true, padding: 65, idealEdgeLength: 150 } as import("cytoscape").LayoutOptions).run()}>Arrange graph</button><button disabled={!props.pathNodes.length} onClick={() => fit(true)}>Fit path</button></div><div ref={container} className="graph-canvas" role="img" aria-label={`Harmonic graph with ${props.graph.nodes.length} nodes and ${props.graph.edges.length} edges. Use the list view for keyboard navigation.`} /><p className="graph-hover" aria-live="polite">{hover || "Drag to explore · scroll to zoom · select a function to inspect"}</p></div>
+  function orbit() {
+    const engine = runtime.current
+    if (!engine) return
+    const controls = engine.graph.controls() as OrbitControls, position = engine.graph.camera().position.clone().sub(controls.target)
+    const x = position.x, z = position.z
+    position.x = x * Math.cos(.4) + z * Math.sin(.4); position.z = z * Math.cos(.4) - x * Math.sin(.4)
+    position.add(controls.target); engine.wake(); engine.graph.cameraPosition(position, controls.target, reduced ? 0 : 400)
+  }
+  return <div ref={stage} className={`atlas-stage${props.pathNodes.length ? " has-route" : ""}`}>
+    <div className="atlas-canvas" ref={container} role="img" aria-label={`3D harmonic graph with ${props.graph.nodes.length} nodes and ${props.graph.edges.length} edges. Drag to orbit. Use List view for keyboard navigation.`} />
+    {!ready && !failure && <div className="atlas-loading" role="status"><span />Mapping the harmonic space…</div>}
+    {failure && <div className="atlas-fallback" role="status"><strong>Your music is still here.</strong><p>{failure}</p><button type="button" onClick={props.onListView}>Open List view</button></div>}
+    <div className="atlas-coordinate" aria-hidden="true"><span>HARMONIC ATLAS</span><span>RELATIONSHIP SPACE / 3D</span></div>
+    <div className="atlas-axis" aria-hidden="true"><i /><i /><i /><span>x</span><span>y</span><span>z</span></div>
+    <div className="atlas-toolbar" role="group" aria-label="Graph camera">
+      <button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("all")}><Expand size={15} />Fit graph</button>
+      <button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("selected")} aria-label="Focus selected"><Focus size={15} />Focus</button>
+      <button type="button" disabled={!ready || !!failure} onClick={orbit}><Orbit size={15} />Orbit</button>
+      <button type="button" aria-label={fullScreen ? "Exit full screen" : "Full screen"} onClick={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void stage.current?.requestFullscreen().catch(() => setGuide(true)) }}><Maximize2 size={15} /></button>
+      <span className="atlas-toolbar-divider" />
+      <button type="button" disabled={!ready || !!failure} onClick={() => zoom(.8)} aria-label="Zoom in"><Plus size={16} /></button>
+      <button type="button" disabled={!ready || !!failure} onClick={() => zoom(1.25)} aria-label="Zoom out"><Minus size={16} /></button>
+      <button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("reset")} aria-label="Reset camera"><RotateCcw size={15} /></button>
+      <button type="button" aria-expanded={guide} onClick={() => setGuide(!guide)} aria-label="Graph controls guide"><HelpCircle size={16} /></button>
+    </div>
+    {props.pathNodes.length > 0 && <div className="atlas-route-tools"><button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("path")}><Route size={14} />Fit path</button><button type="button" disabled={!ready || reduced || !!failure} onClick={() => runtime.current?.replay()} title={reduced ? "Animation disabled by reduced motion preference" : "Send a brief pulse along the route"}><Sparkles size={14} />Replay direction</button></div>}
+    {guide && <div className="atlas-guide"><strong>Move through the music</strong><span>Drag to orbit · scroll / pinch to zoom</span><span>Right drag or two fingers to pan</span><span>Click a node to inspect. Focus brings it closer.</span><span>Keyboard: use the Orbit, Zoom and Focus buttons, or List view.</span></div>}
+    <div className="atlas-caption"><span aria-live="polite">{hover || "Relationship layout · distance is not a similarity score"}</span><span>DRAG TO ORBIT</span></div>
+  </div>
 }

@@ -18,7 +18,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const search = useSearchParams()
 
   return <>
-    <header className="shell-header">
+    <header className={`shell-header${pathname === "/explore" ? " shell-atlas" : ""}`}>
       <a href="#main-content" className="skip-link">Skip to content</a>
       <div className="shell-header-inner">
         <Link href={hrefWithProgression("/", search)} className="shell-brand" aria-label="Harmonic Color Graph, Workbench">

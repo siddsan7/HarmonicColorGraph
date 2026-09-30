@@ -111,3 +111,7 @@ Resolved during verification: Windows text encoding errors, route select accessi
 Skipped: merge, deployment, backend/corpus changes, unrelated M0–M7 gates. Browser service responses use explicit fixtures, apart from the bundled sample fallback. Production corpus quality, live graph realization and subjective musical usefulness remain unverified. The 36-node fixture demonstrates bounded interaction behavior, not a frame-rate benchmark or large-corpus performance claim. A persisted multi-section song document remains future scope.
 
 Local evidence: `.agent-logs/redesign-36-node-path.png`; browser tests in `tests/e2e/graph-explorer.spec.ts`, `generator.spec.ts`, `shareable-state.spec.ts`, and `degraded-mode.spec.ts`; graph data regressions in `lib/graph/data.test.ts`. Parent owns the final workstream checkpoint and independent review record.
+
+## Renderer superseded
+
+The user subsequently requested a real 3D atlas inspired by Epicure. The implemented renderer and current verification are documented in [3D harmonic atlas](3d-harmonic-atlas-plan.md). The Cytoscape evidence above records the first implementation; the songwriter and path semantics carry forward.
