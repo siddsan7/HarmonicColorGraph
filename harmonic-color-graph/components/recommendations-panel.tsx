@@ -8,6 +8,7 @@ import { IntentControls } from "@/components/intent-controls"
 import { Button } from "@/components/ui/button"
 import { compareColor, type ColorComparison, type IntentAxis, type IntentPreset, type RecommendResponse, type Recommendation } from "@/lib/api/client"
 import type { PlaybackSequence } from "@/lib/music/engine"
+import { RequestError } from "@/components/studio-primitives"
 
 function RecommendationRow({ item, onAppend, progression, keySignature, pitchClasses, rankingMode, onPlay }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature: string; pitchClasses: number[][]; rankingMode: "statistical" | "intent"; onPlay: (sequences: PlaybackSequence[]) => void }) {
   const [comparison, setComparison] = useState<ColorComparison | null>(null)
@@ -51,7 +52,7 @@ function RecommendationRow({ item, onAppend, progression, keySignature, pitchCla
       <Button type="button" size="sm" variant="outline" onClick={loadComparison} disabled={compareBusy} aria-expanded={comparison !== null}>
         {compareBusy ? "Comparing color…" : comparison ? "Refresh color comparison" : "Compare color"}
       </Button>
-      {compareError && <p role="alert" className="mt-2 text-xs text-[var(--state-error)]">{compareError}</p>}
+      {compareError && <RequestError action="compare" detail={compareError} onRetry={loadComparison} />}
       {comparison && <div className="mt-3"><ColorDelta comparison={comparison} /></div>}
     </div>
     {item.explanation && <details className="mt-3 text-xs text-[var(--text-secondary)]">
@@ -69,10 +70,11 @@ function RecommendationRow({ item, onAppend, progression, keySignature, pitchCla
   </li>
 }
 
-export function RecommendationsPanel({ result, busy, error, onAppend, progression, keySignature, pitchClasses, onPreferencesChange, onPlay }: {
+export function RecommendationsPanel({ result, busy, error, onAppend, progression, keySignature, pitchClasses, onPreferencesChange, onPlay, onRetry }: {
   result: RecommendResponse | null
   busy: boolean
   error: string | null
+  onRetry?: () => void
   onAppend: (chord: string) => void
   progression: string[]
   keySignature: string
@@ -85,8 +87,8 @@ export function RecommendationsPanel({ result, busy, error, onAppend, progressio
     <p className="mt-1 text-xs text-[var(--text-secondary)]">Suggestions from the full progression, with optional color intent.</p>
     <IntentControls onApply={onPreferencesChange} busy={busy} />
     {busy && <p className="mt-4 text-sm text-[var(--text-muted)]">Finding next chords…</p>}
-    {error && <p role="alert" className="mt-4 text-sm text-[var(--state-error)]">{error}</p>}
-    {!busy && !error && result && <>
+    {error && <RequestError action="recommend" detail={error} onRetry={onRetry ?? (() => onPreferencesChange({}, null))} />}
+    {result && <>
       <p className="mt-3 text-xs text-[var(--text-muted)]">Used: {result.meta.context_used.backoff.join(" → ") || "unknown"}</p>
       {result.warnings.map((warning) => <p key={`${warning.code}-${warning.message}`} className="mt-2 text-xs text-[var(--state-warning)]">{warning.message}</p>)}
       <ol className="mt-4 space-y-2">{result.data.recommendations.map((item) => <RecommendationRow key={item.token} item={item} onAppend={onAppend} progression={progression} keySignature={keySignature} pitchClasses={pitchClasses} rankingMode={result.meta.ranking_mode} onPlay={onPlay} />)}</ol>

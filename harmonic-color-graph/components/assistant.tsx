@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react"
 import Link from "next/link"
 import dynamic from "next/dynamic"
+import { useSearchParams } from "next/navigation"
+import { readProgression, writeProgression } from "@/lib/progression-url"
+import { ContextSummary } from "@/components/studio-primitives"
 import { AudioLines, Check, ChevronRight, LoaderCircle, Search, Sparkles } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -28,6 +31,12 @@ const subscribeHydration = () => () => {}
 const AssistantResult = dynamic(() => import("@/components/assistant-result").then((module) => module.AssistantResult), { ssr: false })
 
 export function Assistant() {
+  const search = useSearchParams()
+  const shared = readProgression(search)
+  const [includeSketch, setIncludeSketch] = useState(true)
+  const [resultRevision, setResultRevision] = useState(0)
+  const [submittedContext, setSubmittedContext] = useState(shared)
+  const sketchHref = `/?${writeProgression(new URLSearchParams(), shared)}`
   const [query, setQuery] = useState("")
   const [busy, setBusy] = useState(false)
   const [steps, setSteps] = useState<AssistantStep[]>([])
@@ -39,17 +48,17 @@ export function Assistant() {
   const controller = useRef<AbortController | null>(null)
   useEffect(() => () => controller.current?.abort(), [])
 
+  const submittedText = includeSketch ? `Current sketch (provided by the user): ${JSON.stringify(shared)}\n\nQuestion: ${query.trim()}` : query.trim()
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const text = query.trim()
-    if (!text || busy) return
+    const text = submittedText
+    if (!query.trim() || busy || text.length > 2000) return
     controller.current?.abort()
     const current = new AbortController()
     controller.current = current
     setBusy(true)
     setSteps([])
     setPartial("")
-    setResult(null)
     setError(null)
     setLimited(false)
     try {
@@ -60,7 +69,7 @@ export function Assistant() {
           return previous.map((step, position) => position === index ? event.value : step)
         })
         if (event.kind === "partial") setPartial(event.value)
-        if (event.kind === "final") setResult(event.value)
+        if (event.kind === "final") { setResult(event.value); setSubmittedContext(shared); setResultRevision((value) => value + 1) }
       }, current.signal)
     } catch (caught) {
       if (!current.signal.aborted) {
@@ -77,27 +86,31 @@ export function Assistant() {
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_16rem]">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[.18em] text-[var(--accent-primary)]"><Sparkles className="size-4" aria-hidden="true" /> Harmonic intelligence</div>
-          <h1 className="mt-3 max-w-2xl text-4xl font-semibold tracking-tight sm:text-5xl">Ask about the music.</h1>
+          <h1 className="mt-3 max-w-2xl text-3xl font-semibold tracking-tight">Ask about the music.</h1>
           <p className="mt-4 max-w-2xl text-[var(--text-secondary)]">Explore a progression, discover what could come next, or ask why a change works. Answers are tied to harmonic tools and cited facts.</p>
-          <form onSubmit={submit} className="mt-8 rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-3 shadow-lg shadow-black/10">
+          <ContextSummary value={shared} />
+          <form id="assistant-form" onSubmit={submit} className="mt-8 rounded-2xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-3 shadow-lg shadow-black/10">
             <label htmlFor="assistant-query" className="sr-only">Ask the harmonic assistant</label>
             <textarea id="assistant-query" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={2000} rows={3}
               placeholder="e.g. What chord could follow C – Am – F in C major?" className="w-full resize-y rounded-lg bg-transparent p-3 text-base outline-none placeholder:text-[var(--text-muted)] focus-visible:ring-2 focus-visible:ring-[var(--accent-secondary)]" />
             <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-default)] px-2 pt-3">
-              <span className="text-xs text-[var(--text-muted)]">{query.length}/2000 characters</span>
-              <Button type="submit" disabled={!query.trim() || busy}>{busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Search aria-hidden="true" />}{busy ? "Thinking…" : "Ask assistant"}</Button>
+              <span className="text-xs text-[var(--text-muted)]">{submittedText.length}/2000 characters including attachment</span>
+              <Button type="submit" disabled={!query.trim() || busy || submittedText.length > 2000}>{busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Search aria-hidden="true" />}{busy ? "Thinking…" : "Ask assistant"}</Button>
             </div>
           </form>
+          <label className="include-context"><input type="checkbox" checked={includeSketch} onChange={(event) => setIncludeSketch(event.target.checked)} /> Include current sketch in my question</label>
+          <details className="submitted-context"><summary>Exactly what the assistant will receive</summary><pre>{includeSketch ? `Current sketch (provided by the user): ${JSON.stringify(shared)}\n\nQuestion: ${query.trim()}` : query.trim() || "Your question only"}</pre></details>
+          {submittedText.length > 2000 && <p role="alert">Shorten the question or turn off the sketch attachment to stay within 2,000 characters.</p>}
           <div className="mt-5">
             <p className="text-xs font-semibold uppercase tracking-[.12em] text-[var(--text-muted)]">Try a question</p>
-            <div className="mt-3 flex flex-wrap gap-2">{examples.map((example) => <button key={example} type="button" onClick={() => setQuery(example)}
+            <div className="mt-3 flex flex-wrap gap-2">{["Explain the strongest change in my sketch", "Suggest a contrasting next chord for my sketch", ...examples].map((example) => <button key={example} type="button" onClick={() => { setQuery(example); setIncludeSketch(example.includes("my sketch")) }}
               className="rounded-full border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-left text-xs text-[var(--text-secondary)] transition hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-secondary)]">{example}</button>)}</div>
           </div>
         </div>
         <aside className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 lg:self-start" aria-label="How the assistant works">
-          <div className="flex items-center gap-2 text-sm font-semibold"><AudioLines className="size-4 text-[var(--accent-primary)]" aria-hidden="true" /> Built for listening</div>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">Recommendations come from analysis, the harmonic graph, and color tools. Inspect the evidence, then hear an option for yourself.</p>
-          <Link href="/" className="mt-5 inline-flex items-center gap-1 text-sm text-[var(--accent-secondary)] hover:underline">Open the workbench <ChevronRight className="size-4" aria-hidden="true" /></Link>
+          <div className="flex items-center gap-2 text-sm font-semibold"><AudioLines className="size-4 text-[var(--accent-primary)]" aria-hidden="true" /> Your musical context</div>
+          <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">Attach your sketch explicitly, inspect the evidence, then return to editing. The question preview shows exactly what is sent.</p>
+          <Link href={sketchHref} className="mt-5 inline-flex items-center gap-1 text-sm text-[var(--accent-secondary)] hover:underline">Continue in your sketch <ChevronRight className="size-4" aria-hidden="true" /></Link>
         </aside>
       </div>
       {steps.length > 0 && <section className="mt-9 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5" aria-labelledby="assistant-steps-heading" aria-busy={busy}>
@@ -113,10 +126,10 @@ export function Assistant() {
       </section>}
       {error && <div role="alert" className="mt-8 rounded-xl border border-[var(--state-error)]/40 bg-[var(--state-error)]/10 p-5">
         <p className="font-semibold">{limited ? "Assistant limit reached" : "The assistant could not answer"}</p>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">{error}</p>
-        <p className="mt-3 text-sm"><Link className="text-[var(--accent-secondary)] underline" href="/">Use deterministic tools in the workbench</Link> while the assistant is unavailable.</p>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">Your question and sketch are still here.</p><button type="button" onClick={() => (document.getElementById("assistant-form") as HTMLFormElement)?.requestSubmit()}>Try again</button><details><summary>Service details</summary><p>{error}</p></details>
+        <p className="mt-3 text-sm"><Link className="text-[var(--accent-secondary)] underline" href={sketchHref}>Continue in your sketch</Link> while the assistant is unavailable.</p>
       </div>}
-      {result && <AssistantResult key={result.message} response={result} />}
+      {result && <AssistantResult key={resultRevision} response={result} context={submittedContext} />}
     </div>
   </main>
 }

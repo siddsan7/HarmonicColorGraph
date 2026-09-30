@@ -9,7 +9,7 @@ Read only the rows relevant to the task. Paths are relative to this document.
 | Start M6/F60 | [M6](../feature-specs/v2/M6.md) | Generator, playback, explorer requirements |
 | Understand user goals or scope | [Project overview](project-overview.md) | Product requirements |
 | Change service, storage, or deployment boundaries | [Architecture](architecture.md), [ADRs](../docs/adr/) | Invariants and decisions |
-| Change UI behavior or visuals | [UI context](ui-context.md) | Existing product conventions |
+| Change UI behavior or visuals | [Design guide](../docs/frontend-design-guide.md), [review implementation](../docs/frontend-review-implementation.md), [UI context](ui-context.md) | Shared design, R01–R22 behavior/evidence and existing product conventions |
 | Implement code in an unfamiliar area | [Code standards](code-standards.md) | Local implementation conventions |
 | Prepare release or PR | [Workflow](ai-workflow-rules.md) | Review and shipping requirements |
 | Check a recurring trap or identifier | [Gotchas](brain/gotchas.json), [facts](brain/facts.json) | Search for the affected subsystem |

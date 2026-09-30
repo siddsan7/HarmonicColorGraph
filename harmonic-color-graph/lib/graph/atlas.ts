@@ -5,9 +5,10 @@ export type AtlasLink = { id: string; source: string | AtlasNode; target: string
 
 export function nodeLabel(node: GraphNode) { return node.type === "function" ? node.label.replace(/^[Mm]:/, "") : node.label }
 export function nodeColor(node: GraphNode, axis: string) {
+  if (axis === "none") return ({ function: "#79cfd0", chord: "#8cb8ed", pattern: "#a995ec", genre: "#dca875" } as Record<string, string>)[node.type] ?? "#8290a5"
   const values = (node.props.color as { perceptual?: Record<string, { value?: number }> } | undefined)?.perceptual
   const value = axis === "chromaticity" ? node.props.chromaticity : values?.[axis]?.value
-  return axis === "none" || typeof value !== "number" ? "#82b9dd" : value > .65 ? "#eeb980" : value > .3 ? "#a995ec" : "#76d8d1"
+  return typeof value !== "number" ? "#8290a5" : value > .65 ? "#eeb980" : value > .3 ? "#a995ec" : "#76d8d1"
 }
 
 /** Bounded deterministic spring layout. Previous nodes stay fixed; only additions settle. */

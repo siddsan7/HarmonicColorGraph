@@ -18,10 +18,11 @@ export function Transport({ sequences, playing, position, error, bpm, loop, inst
   onStop: () => void
 }) {
   const active = position && sequences[position.sequence]
+  if (!sequences.some((sequence) => sequence.chords.length)) return null
   return <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-4" aria-label="Playback transport">
     <div className="flex flex-wrap items-end gap-4">
       <PlayButton playing={playing} disabled={!sequences.some((sequence) => sequence.chords.length)} onPlay={onPlay} onStop={onStop} />
-      <label className="text-sm">Tempo
+      <strong className="transport-source">{active?.label || sequences[0]?.label}</strong><details className="transport-options"><summary>Playback settings</summary><div className="action-row"><label className="text-sm">Tempo
         <input className="ml-2 w-20 rounded border border-[var(--border-default)] bg-[var(--bg-subtle)] px-2 py-1" type="number" min={30} max={240} step={1} value={bpm} onChange={(event) => onBpmChange(Number(event.target.value))} /> BPM
       </label>
       <label className="text-sm">Instrument
@@ -30,10 +31,11 @@ export function Transport({ sequences, playing, position, error, bpm, loop, inst
         </select>
       </label>
       <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={loop} onChange={(event) => onLoopChange(event.target.checked)} />Loop</label>
+      </div></details>
     </div>
     <p className="mt-3 text-sm text-[var(--text-secondary)]" role="status" aria-live="polite">
       {playing ? active ? `Playing ${active.label}: ${active.chords[position.chord]?.label}` : "Starting playback…" : "Playback stopped"}
     </p>
-    {error && <p className="mt-2 text-sm text-[var(--state-error)]" role="alert">{error}</p>}
+    {error && <div className="request-error"><p role="alert">Playback could not start. Your music is unchanged.</p><button type="button" onClick={onPlay}>Try playback again</button><details><summary>Audio details</summary><p>{error}</p></details></div>}
   </section>
 }

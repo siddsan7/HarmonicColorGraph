@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { ArrowUpRight, Square, Volume2 } from "lucide-react"
 
+import { writeProgression, type SharedProgression } from "@/lib/progression-url"
 import { Button } from "@/components/ui/button"
 import { analyzeProgressionV2 } from "@/lib/api/client"
 import type { AssistantCandidate, AssistantResponse } from "@/lib/api/assistant"
@@ -15,10 +16,8 @@ const routeNames: Record<AssistantResponse["route"], string> = {
   similar: "Similar progressions", compare: "Comparison", clarify: "Clarification",
 }
 
-function progressionHref(path: string, chords: string[], key: string | null) {
-  const params = new URLSearchParams({ p: chords.join("-") })
-  if (key) params.set("k", key.replaceAll(" ", "-"))
-  return `${path}?${params}`
+function progressionHref(path: string, chords: string[], key: string | null, context?: SharedProgression) {
+  return `${path}?${writeProgression(new URLSearchParams(), { input: chords.join(" - "), key: key || context?.key || "", genre: context?.genre || "", section: context?.section || "" })}`
 }
 
 function Citation({ id, response }: { id: string; response: AssistantResponse }) {
@@ -59,7 +58,7 @@ function SimilarResults({ response }: { response: AssistantResponse }) {
   </section>
 }
 
-export function AssistantResult({ response }: { response: AssistantResponse }) {
+export function AssistantResult({ response, context }: { response: AssistantResponse; context?: SharedProgression }) {
   const [mode, setMode] = useState<"simple" | "technical">("simple")
   const [playError, setPlayError] = useState<string | null>(null)
   const [sequences, setSequences] = useState<(PlaybackSequence | null)[]>([])
@@ -140,8 +139,9 @@ export function AssistantResult({ response }: { response: AssistantResponse }) {
             {candidate.explanation && <p className="mt-4 text-sm leading-relaxed text-[var(--text-secondary)]">{candidate.explanation}</p>}
             <div className="mt-4 flex flex-wrap gap-2">
               <Button type="button" size="sm" onClick={() => play(index)} disabled={!sequences[index]} aria-label={`Play option ${index + 1}`}><Volume2 aria-hidden="true" /> {sequences[index] ? "Play" : sequences.length ? "Audio unavailable" : "Preparing audio…"}</Button>
-              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/explore", candidate.chords, response.key)}>Open in explorer <ArrowUpRight aria-hidden="true" /></Link></Button>
-              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/generate", candidate.chords, response.key)}>Compare <ArrowUpRight aria-hidden="true" /></Link></Button>
+              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/", candidate.chords, response.key, context)}>Use in sketch <ArrowUpRight aria-hidden="true" /></Link></Button>
+              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/explore", candidate.chords, response.key, context)}>Open in explorer <ArrowUpRight aria-hidden="true" /></Link></Button>
+              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/generate", candidate.chords, response.key, context)}>Compare <ArrowUpRight aria-hidden="true" /></Link></Button>
             </div>
             {candidate.fact_ids.length > 0 && <details className="mt-4 border-t border-[var(--border-default)] pt-3">
               <summary className="cursor-pointer text-sm text-[var(--text-secondary)]">Why this option? · {candidate.fact_ids.length} cited facts</summary>

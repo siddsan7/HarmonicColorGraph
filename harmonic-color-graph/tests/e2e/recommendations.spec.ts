@@ -46,7 +46,7 @@ test("workbench shows context-aware recommendations and appends a selected chord
   await page.getByLabel("Chord progression").fill(chords.join(" - "))
   await page.getByLabel("Key (optional)").fill("C major")
   await page.getByLabel("Genre").selectOption("pop")
-  await page.getByLabel("Section").selectOption("chorus")
+  await page.getByLabel("Section", { exact: true }).selectOption("chorus")
   await page.getByRole("button", { name: "Analyze" }).click()
   const panel = page.getByRole("heading", { name: "Possible next chords" }).locator("..")
   await expect(panel.getByRole("button", { name: "Append F" })).toBeVisible()
@@ -56,8 +56,10 @@ test("workbench shows context-aware recommendations and appends a selected chord
   expect(requests.at(-1)).toMatchObject({ genre: "pop", section: "chorus" })
 
   await page.getByLabel("Genre").selectOption("rock")
+  await expect(page.getByText("Previous analysis", { exact: true })).toBeVisible()
+  await page.getByRole("button", { name: "Analyze", exact: true }).click()
   await expect(panel.getByRole("button", { name: "Append G" })).toBeVisible()
-  expect(requests.at(-1)).toMatchObject({ genre: "rock", section: "chorus" })
+  await expect.poll(() => requests.at(-1)).toMatchObject({ genre: "rock", section: "chorus" })
 
   await page.locator("#intent-dreamy").focus()
   await page.keyboard.press("End")
@@ -72,6 +74,26 @@ test("workbench shows context-aware recommendations and appends a selected chord
   await expect(panel.getByRole("button", { name: "Append G" })).toBeVisible()
   expect(requests.at(-1)?.intent).toBeUndefined()
 
+  // Canonical comma input remains current; changing song sections cannot apply old suggestions.
+  await page.getByLabel("Chord progression").fill("C, G, Am")
+  await page.getByRole("button", { name: "Analyze", exact: true }).click()
+  await expect(panel.getByRole("button", { name: "Append F" })).toBeVisible()
+  await expect(page.getByText("Previous analysis", { exact: true })).toHaveCount(0)
+  await page.getByRole("button", { name: "+ Section", exact: true }).click()
+  await expect(page.getByText("Previous analysis", { exact: true })).toBeVisible()
+  await expect(page.locator("[inert]")).toContainText("Possible next chords")
+  await expect(page.getByRole("button", { name: "Find substitutes for C", exact: true })).toBeDisabled()
+  await page.getByRole("button", { name: "Undo", exact: true }).click()
+  await expect(page.getByText("Previous analysis", { exact: true })).toHaveCount(0)
+  let failOnce = true
+  await page.route("**/api/hcg/v2/analyze", (route) => {
+    if (!failOnce) return route.fallback()
+    failOnce = false
+    return route.fulfill({ status: 500, json: { error: { code: "internal", message: "fixture failed analysis refresh" } } })
+  })
+  await page.getByRole("button", { name: "Analyze", exact: true }).click()
+  await expect(page.getByRole("alert").filter({ hasText: "We couldn't analyze" })).toBeVisible()
+  await expect(panel.getByRole("button", { name: "Append F" })).toBeVisible()
   await panel.getByRole("button", { name: "Append F" }).click()
   await expect(page.getByLabel("Chord progression")).toHaveValue("C - G - Am - F")
 })

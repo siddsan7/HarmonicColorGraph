@@ -34,6 +34,7 @@ test("graph filters re-query and path mode highlights a valid path", async ({ pa
   await expect(page.getByRole("table").getByRole("row")).toHaveCount(2)
   expect(queries.length).toBeGreaterThanOrEqual(2)
   await page.getByRole("slider").fill("0")
+  if (!await page.getByRole("button", { name: "Find paths", exact: true }).isVisible()) await page.locator(".route-editor > summary").click()
   await page.getByRole("button", { name: "Find paths" }).click()
   await expect(page.locator(".explorer-results p")).toHaveText("I → IV → bVI")
   await expect(page.locator(".on-path")).toHaveCount(2)
@@ -49,6 +50,7 @@ test("blocked API uses snapshot and mobile list counts", async ({ page }) => {
   await expect(caption).toContainText(/nodes and \d+ edges/)
   const count = Number((await caption.textContent())?.match(/(\d+) edges/)?.[1])
   await expect(page.getByRole("table").locator("tbody tr")).toHaveCount(count)
+  if (!await page.getByRole("button", { name: "Find paths", exact: true }).isVisible()) await page.locator(".route-editor > summary").click()
   await page.getByRole("button", { name: "Find paths" }).click()
   await expect(page.locator(".explorer-results p")).toContainText(/I → .*bVI/)
 })
@@ -67,8 +69,9 @@ test("route identity, viewport and positions survive inspection, tint and altern
     const host = element as HTMLElement
     return { camera: JSON.parse(host.dataset.camera!), positions: JSON.parse(host.dataset.positions!), highlighted: JSON.parse(host.dataset.pathEdges!), instances: performance.getEntriesByName("hcg-explore-canvas-created").length, layouts: performance.getEntriesByName("hcg-explore-layout-complete").length }
   })
-  await page.waitForTimeout(700) // initial 450ms camera transition must finish before stability comparison
+  await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "paused") // wait for the camera to settle before comparing exact stability
   const before = await state()
+  if (!await page.getByRole("button", { name: "Find paths", exact: true }).isVisible()) await page.locator(".route-editor > summary").click()
   await page.getByRole("button", { name: "Find paths", exact: true }).click()
   await expect(page.getByRole("list", { name: "Route steps" }).getByRole("button")).toHaveCount(3)
   await page.getByRole("list", { name: "Route steps" }).getByRole("button").nth(1).click()
@@ -103,6 +106,7 @@ test("late path responses cannot restore cleared routes or changed endpoints", a
     await route.fulfill({ json: { data: { paths: [{ nodes: nodes.map((node) => node.id), edges, cost: 1 }] } } }).catch(() => undefined)
   })
   await page.goto("/explore")
+  if (!await page.getByRole("button", { name: "Find paths", exact: true }).isVisible()) await page.locator(".route-editor > summary").click()
   await page.getByRole("button", { name: "Find paths", exact: true }).click()
   await expect(page.getByRole("button", { name: "Finding routes…" })).toBeDisabled()
   await page.getByLabel("To", { exact: true }).selectOption(nodes[1].id)
@@ -120,6 +124,7 @@ test("bounded 36 node graph renders a readable directed route without another la
   await page.goto("/explore")
   await expect.poll(() => page.evaluate(() => performance.getEntriesByName("hcg-explore-layout-complete").length)).toBe(1)
   await page.getByLabel("To", { exact: true }).selectOption(manyNodes[4].id)
+  if (!await page.getByRole("button", { name: "Find paths", exact: true }).isVisible()) await page.locator(".route-editor > summary").click()
   await page.getByRole("button", { name: "Find paths", exact: true }).click()
   await page.getByRole("button", { name: "Fit path", exact: true }).click()
   await expect(page.getByRole("list", { name: "Route steps" }).getByRole("button")).toHaveCount(5)
@@ -150,7 +155,7 @@ test("real 3D orbit, raycast selection and camera controls work", async ({ page 
   await page.mouse.move(box.x + point.x, box.y + point.y)
   await page.waitForTimeout(100)
   await page.mouse.click(box.x + point.x, box.y + point.y)
-  await expect(page.getByRole("region", { name: "Node details" }).getByRole("heading", { name: "IV", exact: true })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Node details" }).getByRole("heading", { name: /^IV(?: · .+)?$/ })).toBeVisible()
   const selectedCamera = await host.getAttribute("data-camera")
   await page.getByRole("button", { name: "Focus selected" }).click()
   await expect.poll(() => host.getAttribute("data-camera")).not.toBe(selectedCamera)
@@ -175,6 +180,8 @@ test("reduced motion keeps finite direction replay disabled and mobile atlas wit
   await page.route("**/api/hcg/v2/graph/neighborhood?**", (route) => route.fulfill({ json: { data: { nodes, edges, context: "global" } } }))
   await page.route("**/api/hcg/v2/graph/path", (route) => route.fulfill({ json: { data: { paths: [{ nodes: nodes.map((node) => node.id), edges, cost: 1 }] } } }))
   await page.goto("/explore")
+  await expect(page.getByRole("button", { name: "List view", exact: true })).toHaveAttribute("aria-pressed", "true")
+  if (!await page.getByRole("button", { name: "Find paths", exact: true }).isVisible()) await page.locator(".route-editor > summary").click()
   await page.getByRole("button", { name: "Find paths", exact: true }).click()
   await page.getByRole("button", { name: "3D atlas", exact: true }).click()
   await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-renderer", "webgl")
@@ -189,7 +196,7 @@ test("reduced motion keeps finite direction replay disabled and mobile atlas wit
   await page.mouse.move(mobileBox.x + mobileNode.x, mobileBox.y + mobileNode.y)
   await page.waitForTimeout(100)
   await page.mouse.click(mobileBox.x + mobileNode.x, mobileBox.y + mobileNode.y)
-  await expect(page.getByRole("region", { name: "Node details" }).getByRole("heading", { name: "IV", exact: true })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Node details" }).getByRole("heading", { name: /^IV(?: · .+)?$/ })).toBeVisible()
 })
 
 test("WebGL unavailable offers usable relationship list", async ({ page }) => {
@@ -206,7 +213,7 @@ test("WebGL unavailable offers usable relationship list", async ({ page }) => {
   await page.getByRole("button", { name: "Open List view", exact: true }).click()
   await expect(page.getByRole("table").locator("tbody tr")).toHaveCount(2)
   await page.getByRole("button", { name: "Inspect IV", exact: true }).click()
-  await expect(page.getByRole("region", { name: "Node details" }).getByRole("heading", { name: "IV", exact: true })).toBeVisible()
+  await expect(page.getByRole("region", { name: "Node details" }).getByRole("heading", { name: /^IV(?: · .+)?$/ })).toBeVisible()
 })
 
 test("scene pauses at rest and can be repeatedly replaced by the accessible list", async ({ page }) => {

@@ -82,14 +82,14 @@ test("assistant handles hourly limit and stream errors without hiding determinis
   await page.getByRole("button", { name: /What chord could follow/ }).click()
   await page.getByRole("button", { name: "Ask assistant" }).click()
   await expect(page.getByRole("main").getByRole("alert")).toContainText("Assistant limit reached")
-  await expect(page.getByRole("link", { name: "Use deterministic tools in the workbench" })).toBeVisible()
+  await expect(page.getByRole("main").getByRole("link", { name: "Continue in your sketch" }).last()).toBeVisible()
   await page.unroute("**/api/hcg/v2/ai/query")
   await page.route("**/api/hcg/v2/ai/query", (request) => request.fulfill({
     status: 200, contentType: "text/event-stream",
     body: 'event: error\ndata: {"error":{"code":"workflow_failed","message":"Please retry."}}\n\n',
   }))
   await page.getByRole("button", { name: "Ask assistant" }).click()
-  await expect(page.getByRole("main").getByRole("alert")).toContainText("Please retry.")
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("The assistant could not answer")
 })
 
 test("assistant passes accessibility scan on initial and result views", async ({ page }) => {
@@ -101,4 +101,30 @@ test("assistant passes accessibility scan on initial and result views", async ({
   await page.getByRole("button", { name: "Ask assistant" }).click()
   await expect(page.getByRole("heading", { name: "Recommendations" })).toBeVisible()
   expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
+})
+
+
+test("identical answer text cannot reuse prior candidate audio", async ({ page }) => {
+  let replies = 0
+  let finishAnalysis: (() => void) | undefined
+  await page.route("**/api/hcg/v2/analyze", async (route) => {
+    const body = route.request().postDataJSON()
+    if (body.chords[0] === "Dm") await new Promise<void>((resolve) => { finishAnalysis = resolve })
+    await route.fulfill({ json: { song_key: "C major", tokens: [], key_distribution: [], relationships: [], chords: body.chords.map((symbol: string) => ({ raw_symbol: symbol, pitch_classes: [0, 4, 7] })) } })
+  })
+  await page.route("**/api/hcg/v2/ai/query", (route) => {
+    const next = response("recommend")
+    if (++replies > 1) next.candidates[0].chords = ["Dm", "G", "C"]
+    return route.fulfill({ contentType: "text/event-stream", body: `event: final\ndata: ${JSON.stringify({ response: next })}\n\n` })
+  })
+  await page.goto("/assistant?p=Am-F&k=A-minor&g=jazz&s=verse")
+  await page.getByRole("textbox", { name: "Ask the harmonic assistant" }).fill("Suggest a next chord")
+  await page.getByRole("button", { name: "Ask assistant", exact: true }).click()
+  await expect(page.getByRole("button", { name: "Play option 1" })).toBeEnabled()
+  await page.getByRole("button", { name: "Ask assistant", exact: true }).click()
+  await expect(page.getByRole("link", { name: "Use in sketch", exact: true })).toHaveAttribute("href", /p=Dm-G-C.*g=jazz&s=verse/)
+  await expect(page.getByRole("button", { name: "Play option 1" })).toBeDisabled()
+  await expect.poll(() => !!finishAnalysis).toBe(true)
+  finishAnalysis!()
+  await expect(page.getByRole("button", { name: "Play option 1" })).toBeEnabled()
 })

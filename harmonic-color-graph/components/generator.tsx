@@ -9,6 +9,7 @@ import { downloadMidi } from "@/lib/music/midi-export"
 import type { PlaybackChord, PlaybackSequence } from "@/lib/music/engine"
 import { readProgression, writeProgression } from "@/lib/progression-url"
 import { Button } from "@/components/ui/button"
+import { ContextSummary, ContextSelect, RequestError, TaskState, RouteMotif } from "@/components/studio-primitives"
 import { Transport } from "@/components/transport"
 
 const feelings = [
@@ -45,6 +46,7 @@ export function Generator() {
   const search = useSearchParams()
   const shared = readProgression(search)
   const initialFeeling = feelings.find((item) => item.id === search.get("feeling")) ?? feelings[0]
+  const [mode, setMode] = useState<"new" | "continue">("new")
   const [feeling, setFeeling] = useState(initialFeeling.id)
   const [key, setKey] = useState(shared.key || "C major")
   const [genre, setGenre] = useState(shared.genre)
@@ -61,6 +63,7 @@ export function Generator() {
   const [warnings, setWarnings] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [variantContext, setVariantContext] = useState({ key: shared.key, genre: shared.genre, section: shared.section })
   const [variants, setVariants] = useState<Variant[]>([])
   const [compareBusy, setCompareBusy] = useState(false)
   const [compareError, setCompareError] = useState<string | null>(null)
@@ -76,12 +79,12 @@ export function Generator() {
     setLength(value)
     setCustom((old) => Array.from({ length: value }, (_, index) => old[index] ?? 0.5))
   }
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  async function submit(event?: FormEvent<HTMLFormElement>) {
+    event?.preventDefault()
     request.current?.abort()
     const controller = new AbortController()
     request.current = controller
-    playback.stop(); setCompareBusy(false); setBusy(true); setError(null); setPaths([]); setWarnings([])
+    playback.stop(); setCompareBusy(false); setBusy(true); setError(null); setWarnings([])
     const settings = preset === "familiar" ? { novelty: 0, smoothness: 0.8, max_chromaticity: 0.25 } : preset === "adventurous" ? { novelty: 0.85, smoothness: 0.2, max_chromaticity: 1 } : { novelty: 0.35, smoothness: 0.5, max_chromaticity: 0.7 }
     try {
       const response = await generateProgression({ key, length, k: 3, start: start.trim() || null, end: end.trim() || null, cadence, genre: genre || null, tension_curve: curve, ...(curve === "custom" ? { custom_curve: custom } : {}), color_target: colors, ...settings }, controller.signal)
@@ -94,10 +97,10 @@ export function Generator() {
     request.current?.abort()
     const controller = new AbortController()
     request.current = controller
-    setBusy(false); setCompareBusy(true); setCompareError(null); setVariants([])
+    setBusy(false); setCompareBusy(true); setCompareError(null)
     try {
       const original = shared.input.split(/\s*-\s*/).filter(Boolean)
-      if (!original.length) throw new Error("Add a progression in the Workbench first.")
+      if (!original.length) throw new Error("Add chords to your sketch first.")
       const analysis = await analyzeProgressionV2({ chords: original, key: shared.key || null, section_markers: false })
       const base: PlaybackChord[] = analysis.chords.map((chord) => ({ label: chord.raw_symbol, pitchClasses: chord.pitch_classes ?? [], bassPc: chord.bass_pc }))
       const choices = [
@@ -114,7 +117,7 @@ export function Generator() {
         return { label: choice.label, chord, progression: [...original, chord.chord] }
       })
       const comparisons = await Promise.all(selected.map((item) => compareColor({ a: original, b: item.progression, key: analysis.song_key, signal: controller.signal })))
-      if (!controller.signal.aborted) setVariants(selected.map((item, index) => ({ ...item, original: base, delta: comparisons[index].raw_deltas as Record<string, number> })))
+      if (!controller.signal.aborted) { setVariants(selected.map((item, index) => ({ ...item, original: base, delta: comparisons[index].raw_deltas as Record<string, number> }))); setVariantContext({ key: analysis.song_key, genre: shared.genre, section: shared.section }) }
     } catch (caught) {
       if (!controller.signal.aborted) setCompareError(caught instanceof Error ? caught.message : "Comparison failed.")
     } finally { if (!controller.signal.aborted) setCompareBusy(false) }
@@ -124,35 +127,44 @@ export function Generator() {
   }
   return <main id="main-content" className="min-h-screen bg-[var(--bg-base)] px-4 py-8 text-[var(--text-primary)] sm:px-8"><div className="mx-auto max-w-7xl space-y-5">
     <header><p className="route-eyebrow">Harmonic Color Graph / Generate</p><h1 className="mt-2 text-3xl font-semibold">Find the feeling. Follow the sound.</h1><p className="mt-2 text-sm text-[var(--text-secondary)]">Choose a direction, listen to a few possibilities, and take one back to your sketch.</p></header>
-    <div className="transport-sticky"><Transport sequences={active} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => play(active)} onStop={playback.stop} /></div>
-    <div className="grid gap-5 lg:grid-cols-[minmax(17rem,1fr)_minmax(0,1.6fr)]">
+    <ContextSummary value={shared} />
+    <div className="studio-modes" role="group" aria-label="Idea workflow"><button type="button" aria-pressed={mode === "new"} onClick={() => setMode("new")}>New idea</button><button type="button" aria-pressed={mode === "continue"} onClick={() => setMode("continue")}>Continue my sketch</button></div>
+    {mode === "new" && <div className={`grid gap-5 ${paths.length ? "lg:grid-cols-[minmax(17rem,1fr)_minmax(0,1.6fr)]" : "generator-first"}`}>
       <form onSubmit={submit} className={`${panel} space-y-4`}><h2 className="text-lg font-semibold">What would you like to explore?</h2>
-        <div className="feeling-options" role="group" aria-label="Musical direction">{feelings.map((item) => <button key={item.id} type="button" aria-pressed={feeling === item.id} onClick={() => { setFeeling(item.id); setColors(item.colors); setCurve(item.curve); setPreset(item.preset) }}><strong>{item.name}</strong><span>{item.description}</span></button>)}</div>
-        <p className="text-xs text-[var(--text-secondary)]">These are starting suggestions, not fixed meanings of emotion. Each choice sets the color and movement controls below. Start in C major, or change it in musical details.</p>
+                <Button type="submit" disabled={busy}>{busy ? "Generating…" : "Generate progressions"}</Button>
+        <div className="feeling-options" role="group" aria-label="Musical direction">{feelings.map((item) => <button key={item.id} type="button" aria-pressed={feeling === item.id} onClick={() => { setFeeling(item.id); setColors(item.colors); setCurve(item.curve); setPreset(item.preset) }}><strong>{feeling === item.id && <span aria-hidden="true">✓ </span>}{item.name}</strong><span>{item.description}</span><RouteMotif /></button>)}</div>
+        <p className="text-xs text-[var(--text-secondary)]">These are starting suggestions, not fixed meanings of emotion. Each choice sets editable color and movement controls.</p>
+        <p className="settings-summary">{key} · {length} chords · {feelings.find((item) => item.id === feeling)?.name}</p>
+
         <details className="musical-details"><summary>Musical details & color controls</summary><div className="space-y-4 pt-4">
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Key<input className={field} value={key} required onChange={(event) => setKey(event.target.value)} /></label><label className="text-sm">Length<input className={field} type="number" min="2" max="16" value={length} onChange={(event) => resizeCurve(Number(event.target.value))} /></label></div>
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Start chord or function<input className={field} value={start} placeholder="Optional" onChange={(event) => setStart(event.target.value)} /></label><label className="text-sm">End chord or function<input className={field} value={end} placeholder="Optional" onChange={(event) => setEnd(event.target.value)} /></label></div>
-        <div className="grid grid-cols-2 gap-3"><label className="text-sm">Cadence<select className={field} value={cadence} onChange={(event) => setCadence(event.target.value as GenerateRequest["cadence"])}>{["any", "authentic", "plagal", "deceptive", "half"].map((item) => <option key={item} value={item}>{item}</option>)}</select></label><label className="text-sm">Genre<input className={field} value={genre} placeholder="Any" onChange={(event) => setGenre(event.target.value)} /></label></div>
+        <div className="grid grid-cols-2 gap-3"><label className="text-sm">Cadence<select className={field} value={cadence} onChange={(event) => setCadence(event.target.value as GenerateRequest["cadence"])}>{["any", "authentic", "plagal", "deceptive", "half"].map((item) => <option key={item} value={item}>{item}</option>)}</select></label><label className="text-sm">Genre<ContextSelect kind="genre" className={field} value={genre} onChange={setGenre} /></label></div>
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Tension curve<select className={field} value={curve} onChange={(event) => setCurve(event.target.value as GenerateRequest["tension_curve"])}><option value="rise_then_resolve">Rise then resolve</option><option value="arch">Arch</option><option value="plateau">Plateau</option><option value="custom">Custom</option></select></label><label className="text-sm">Preset<select className={field} value={preset} onChange={(event) => setPreset(event.target.value)}><option value="familiar">Familiar and smooth</option><option value="balanced">Balanced</option><option value="adventurous">Adventurous</option></select></label></div>
         {curve === "custom" && <CurveEditor values={custom} onChange={setCustom} />}
         <fieldset className="space-y-2"><legend className="text-sm font-semibold">Color targets</legend>{axes.map((axis) => <label key={axis} className="block text-xs capitalize">{axis} <output className="float-right font-mono">{colors[axis].toFixed(2)}</output><input type="range" min="0" max="1" step="0.05" value={colors[axis]} onChange={(event) => setColors((current) => ({ ...current, [axis]: Number(event.target.value) }))} className="w-full accent-[var(--accent-primary)]" /></label>)}</fieldset>
         </div></details>
-        <Button type="submit" disabled={busy}>{busy ? "Generating…" : "Generate progressions"}</Button>{error && <p role="alert" className="text-sm text-[var(--state-error)]">{error}</p>}
+{error && <RequestError action="generate" detail={error} onRetry={() => void submit()} />}
       </form>
-      <div className="space-y-4" aria-live="polite"><h2 className="text-lg font-semibold">Ideas to listen to</h2>{warnings.map((warning, index) => <p key={index} className="text-sm text-[var(--state-warning)]">{warning}</p>)}
-        {!busy && !paths.length && !error && <p className={`${panel} text-sm text-[var(--text-secondary)]`}>Pick a direction and generate three starting ideas. Your own ear gets the final say.</p>}
+      <div className="idea-results space-y-4" aria-busy={busy}>
+
+<h2 className="text-lg font-semibold">Ideas to listen to</h2>{warnings.map((warning, index) => <p key={index} className="text-sm text-[var(--state-warning)]">{warning}</p>)}
+        {busy && <TaskState title="Finding new ideas…" busy>{paths.length ? "Previous ideas remain available below." : "Three ideas will appear here when ready."}</TaskState>}
+        {error && paths.length > 0 && <TaskState title="Previous ideas">These keep their original musical settings.</TaskState>}
+        {!busy && !paths.length && <p className={`${panel} text-sm text-[var(--text-secondary)]`}>Pick a direction and generate three starting ideas. Your own ear gets the final say.</p>}
         {paths.map((path, index) => { const chords = toPlayback(path); return <article key={`${path.tokens.join("-")}-${index}`} className={panel}>
-          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">Path {index + 1}</h3><span className="font-mono text-xs text-[var(--text-muted)]">Score {path.score.toFixed(2)}</span></div>
+          <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">Idea {index + 1}</h3><span className="text-xs text-[var(--text-muted)]">{resultContext.key} · {resultContext.genre || "Any genre"}</span></div>
           <p className="mt-3 font-mono text-sm text-[var(--accent-primary)]">{path.tokens.join(" → ")}</p><p className="mt-2 font-mono text-sm">{path.chords.join(" → ")}</p>
           <div className="mt-3 flex h-12 items-end gap-1" role="img" aria-label="Tension color arc">{path.steps.map((step, position) => <div key={position} title={`Step ${position + 1}: tension ${(step.color.tension ?? 0).toFixed(2)}`} className="min-w-0 flex-1 rounded-sm bg-[var(--accent-tension)]" style={{ height: `${Math.max(8, (step.color.tension ?? 0) * 100)}%` }} />)}</div>
           <p className="mt-1 text-xs text-[var(--text-muted)]">Tension: {path.steps.map((step) => (step.color.tension ?? 0).toFixed(2)).join(" · ")}</p>
-          <details className="mt-3 text-xs text-[var(--text-secondary)]"><summary className="cursor-pointer">Why this path</summary><ol className="mt-2 space-y-1">{path.steps.map((step, position) => <li key={position}>{position + 1}. {step.chord}: {step.explanation}</li>)}</ol></details>
-          <div className="mt-4 flex flex-wrap gap-2"><Button size="sm" type="button" onClick={() => play([{ label: `Path ${index + 1}`, chords }])}>Play</Button><Button size="sm" variant="outline" type="button" onClick={() => downloadMidi(chords, bpm)}>Export MIDI</Button><Link className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-xs" href={resultLink(path, "/explore")}>Open in Explorer</Link><Link className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-xs" href={resultLink(path, "/")}>Send to Workbench</Link></div>
+          <details className="mt-3 text-xs text-[var(--text-secondary)]"><summary className="cursor-pointer">Why this idea</summary><p>Generator score: {path.score.toFixed(2)}</p><ol className="mt-2 space-y-1">{path.steps.map((step, position) => <li key={position}>{position + 1}. {step.chord}: {step.explanation}</li>)}</ol></details>
+          <div className="mt-4 flex flex-wrap gap-2"><Button size="sm" type="button" onClick={() => play([{ label: `Idea ${index + 1}`, chords }])}>Play</Button><Button size="sm" variant="outline" type="button" onClick={() => downloadMidi(chords, bpm)}>Export MIDI</Button><Link className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-xs" href={resultLink(path, "/explore")}>Explore harmony</Link><Link className="rounded-md border border-[var(--border-default)] px-3 py-1.5 text-xs" href={resultLink(path, "/")}>Use in sketch</Link></div>
         </article> })}
       </div>
-    </div>
-    <section className={`${panel} space-y-3`}><div><h2 className="text-lg font-semibold">Compare next chords</h2><p className="text-sm text-[var(--text-secondary)]">Extend the shared progression with a common, darker, or surprising suggestion.</p><p className="mt-1 font-mono text-xs">Original: {shared.input || "None"}</p></div><Button type="button" variant="outline" onClick={compare} disabled={compareBusy}>{compareBusy ? "Comparing…" : "Generate A/B/C variants"}</Button>{compareError && <p role="alert" className="text-sm text-[var(--state-error)]">{compareError}</p>}
-      {variants.length > 0 && <><Button type="button" onClick={() => play([{ label: "Original", chords: variants[0].original }, ...variants.map((variant) => ({ label: variant.label, chords: [...variant.original, { label: variant.chord.chord, pitchClasses: variant.chord.pitch_classes }] }))])}>Play original and A/B/C in sequence</Button><div className="grid gap-3 md:grid-cols-4"><article className="rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4"><h3 className="font-semibold">Original</h3><p className="mt-2 font-mono text-sm">{shared.input.split(/\s*-\s*/).join(" → ")}</p><Button type="button" size="sm" variant="outline" className="mt-3" onClick={() => play([{ label: "Original", chords: variants[0].original }])}>Play original</Button></article>{variants.map((variant) => <article key={variant.label} className="rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4"><h3 className="font-semibold">{variant.label}</h3><p className="mt-2 font-mono text-sm">{variant.progression.join(" → ")}</p><p className="mt-2 text-xs text-[var(--text-secondary)]">{variant.chord.explanation || variant.chord.labels.join(", ")}</p><dl className="mt-3 grid grid-cols-2 gap-1 text-xs">{axes.map((axis) => <div key={axis}><dt className="capitalize text-[var(--text-muted)]">{axis}</dt><dd className="font-mono">{(variant.delta[axis] ?? 0) >= 0 ? "+" : ""}{(variant.delta[axis] ?? 0).toFixed(2)}</dd></div>)}</dl><Button type="button" size="sm" variant="outline" className="mt-3" onClick={() => play([{ label: variant.label, chords: [...variant.original, { label: variant.chord.chord, pitchClasses: variant.chord.pitch_classes }] }])}>Play {variant.label.slice(0, 1)}</Button></article>)}</div></>}
-    </section>
+    </div>}
+    <div className="transport-sticky"><Transport sequences={active} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => play(active)} onStop={playback.stop} /></div>
+    {mode === "continue" && <section className={`${panel} space-y-3`}><div><h2 className="text-lg font-semibold">Compare next chords</h2><p className="text-sm text-[var(--text-secondary)]">Extend the shared progression with a common, darker, or surprising suggestion.</p><p className="mt-1 font-mono text-xs">Original: {shared.input || "None"}</p></div><Button type="button" variant="outline" onClick={compare} disabled={compareBusy}>{compareBusy ? "Comparing…" : "Generate A/B/C variants"}</Button>{compareError && <RequestError action="compare" detail={compareError} onRetry={() => void compare()} />}
+      {variants.length > 0 && <><Button type="button" onClick={() => play([{ label: "Original", chords: variants[0].original }, ...variants.map((variant) => ({ label: variant.label, chords: [...variant.original, { label: variant.chord.chord, pitchClasses: variant.chord.pitch_classes }] }))])}>Play original and A/B/C in sequence</Button><div className="grid gap-3 md:grid-cols-4"><article className="rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4"><h3 className="font-semibold">Original</h3><p className="mt-2 font-mono text-sm">{variants[0].original.map((chord) => chord.label).join(" → ")}</p><Button type="button" size="sm" variant="outline" className="mt-3" onClick={() => play([{ label: "Original", chords: variants[0].original }])}>Play original</Button></article>{variants.map((variant) => <article key={variant.label} className="rounded-md border border-[var(--border-default)] bg-[var(--bg-subtle)] p-4"><h3 className="font-semibold">{variant.label}</h3><p className="mt-2 font-mono text-sm">{variant.progression.join(" → ")}</p><p className="mt-2 text-xs text-[var(--text-secondary)]">{variant.chord.explanation || variant.chord.labels.join(", ")}</p><dl className="mt-3 grid grid-cols-2 gap-1 text-xs">{axes.map((axis) => <div key={axis}><dt className="capitalize text-[var(--text-muted)]">{axis}</dt><dd className="font-mono">{(variant.delta[axis] ?? 0) >= 0 ? "+" : ""}{(variant.delta[axis] ?? 0).toFixed(2)}</dd></div>)}</dl><Button type="button" size="sm" variant="outline" className="mt-3" onClick={() => play([{ label: variant.label, chords: [...variant.original, { label: variant.chord.chord, pitchClasses: variant.chord.pitch_classes }] }])}>Play {variant.label.slice(0, 1)}</Button><Link className="ml-3 text-sm underline" href={`/?${writeProgression(new URLSearchParams(), { input: variant.progression.join(" - "), ...variantContext })}`}>Use in sketch</Link></article>)}</div></>}
+    </section>}
   </div></main>
 }

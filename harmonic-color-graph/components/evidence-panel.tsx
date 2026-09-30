@@ -68,6 +68,7 @@ function ExampleRow({ example }: { example: SongExample }) {
 }
 
 export function EvidencePanel({ transitions }: { transitions: string[] }) {
+  const [attempt, setAttempt] = useState(0)
   const [selected, setSelected] = useState(0)
   const [examples, setExamples] = useState<SongExample[]>([])
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle")
@@ -90,7 +91,7 @@ export function EvidencePanel({ transitions }: { transitions: string[] }) {
         }
       })
     return () => { current = false }
-  }, [pair])
+  }, [pair, attempt])
 
   if (transitions.length === 0) return null
 
@@ -103,7 +104,7 @@ export function EvidencePanel({ transitions }: { transitions: string[] }) {
       {transitions.map((transition, index) => <option key={`${transition}-${index}`} value={index}>{transition.replace("->", " → ")}</option>)}
     </select>
     {status === "loading" || status === "idle" ? <p className="mt-4 flex items-center gap-2 text-sm text-[var(--text-muted)]"><LoaderCircle className="size-4 animate-spin" aria-hidden="true" />Loading examples…</p> : null}
-    {status === "error" ? <p className="mt-4 text-sm text-[var(--text-muted)]">Corpus examples are unavailable right now.</p> : null}
+    {status === "error" ? <div className="task-state"><p>Corpus examples are unavailable right now. This does not change the chord analysis.</p><button type="button" onClick={() => { setStatus("loading"); setAttempt((value) => value + 1) }}>Try examples again</button></div> : null}
     {status === "ready" && examples.length === 0 ? <p className="mt-4 text-sm text-[var(--text-muted)]">No cited song examples are stored for this transition yet.</p> : null}
     {status === "ready" && examples.length > 0 ? <ol className="mt-4 space-y-2">{examples.map((example) => <ExampleRow key={`${example.song_id}:${example.section_ordinal}:${example.position}:${example.rank}`} example={example} />)}</ol> : null}
     <p className="mt-4 text-xs text-[var(--text-muted)]">Source: Chordonomicon (Kantarelis et al., 2024), CC BY-NC 4.0. Titles via Spotify when available.</p>

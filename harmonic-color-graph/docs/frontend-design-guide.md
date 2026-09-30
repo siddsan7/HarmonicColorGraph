@@ -1,6 +1,6 @@
-# Proposed frontend design guide
+# Frontend design guide
 
-Status: design proposal following the independent review, not an implemented or user-approved rebrand. Companion: [frontend design review](frontend-design-review.md). Preserve the approved 3D atlas and deterministic harmonic behavior.
+Status: implemented under the explicit R01–R22 authorization and reviewed on 2026-09-30. The product name is unchanged. Companion: [frontend design review](frontend-design-review.md); delivered behavior, verification and limits: [implementation ledger](frontend-review-implementation.md). The approved 3D atlas and deterministic harmonic behavior are preserved.
 
 ## Direction: a musical observatory
 

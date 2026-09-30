@@ -1,14 +1,15 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, type RefObject } from "react"
 import { Expand, Focus, HelpCircle, Maximize2, Minus, Orbit, Plus, RotateCcw, Route, Sparkles } from "lucide-react"
 import type { ForceGraph3DInstance } from "3d-force-graph"
 import type { Group, Sprite, Mesh, MeshBasicMaterial, SpriteMaterial, PerspectiveCamera } from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { atlasData, nodeColor, nodeLabel, type AtlasNode, type AtlasLink } from "@/lib/graph/atlas"
 import type { GraphData } from "@/lib/graph/data"
+import type { AtlasView } from "@/lib/graph/presentation"
 
-type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void }
+type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void; initialView?: AtlasView | null; captureRef?: RefObject<(() => AtlasView) | null> }
 type Atlas = ForceGraph3DInstance<AtlasNode, AtlasLink>
 type NodeVisual = { group: Group; core: Mesh; halo: Sprite; ring: Sprite; label: Sprite; updateLabel: (text: string) => void; dispose: () => void }
 type Runtime = { graph: Atlas; visuals: Map<string, NodeVisual>; refresh: () => void; replay: () => void; cancelReplay: () => void; fit: (mode: "all" | "path" | "selected" | "reset") => void; wake: (ms?: number) => void; dispose: () => void }
@@ -252,13 +253,14 @@ export function GraphCanvas(props: Props) {
           releaseGPU(); visuals.clear()
         }
         runtime.current = { graph, visuals, refresh, replay, cancelReplay, fit, wake, dispose: cleanup }
+        if (latest.current.captureRef) latest.current.captureRef.current = () => ({ positions: graph.graphData().nodes.map(({ id, x, y, z }) => ({ id, x, y, z })), camera: { position: { x: graph.camera().position.x, y: graph.camera().position.y, z: graph.camera().position.z }, target: { x: controls.target.x, y: controls.target.y, z: controls.target.z } } })
         setReady(true)
       } catch {
         if (!disposed) { cleanup(); setFailure("This device cannot start the 3D view. Open List view to explore every connection and route.") }
       }
     }
     void mount()
-    return () => { disposed = true; cleanup(); runtime.current = null }
+    return () => { disposed = true; cleanup(); runtime.current = null; if (latest.current.captureRef) latest.current.captureRef.current = null }
   }, [])
 
   useEffect(() => {
@@ -266,6 +268,10 @@ export function GraphCanvas(props: Props) {
     if (!ready || !engine) return
     const previous = engine.graph.graphData()
     const next = atlasData(props.graph, previous.nodes)
+    if (!previous.nodes.length && props.initialView) {
+      const positions = new Map(props.initialView.positions.map((node) => [node.id, node]))
+      next.nodes.forEach((node) => { const saved = positions.get(node.id); if (saved) { node.x = node.fx = saved.x; node.y = node.fy = saved.y; node.z = node.fz = saved.z } })
+    }
     const changed = next.nodes.map((node) => node.id).join("|") !== previous.nodes.map((node) => node.id).join("|") || next.links.map((link) => link.id).join("|") !== previous.links.map((link) => link.id).join("|")
     if (!changed) previous.links.forEach((link, index) => { link.prob = next.links[index].prob; link.type = next.links[index].type })
     if (changed) {
@@ -279,11 +285,20 @@ export function GraphCanvas(props: Props) {
         if (runtime.current !== engine) return
         engine.refresh()
         requestAnimationFrame(() => { if (runtime.current === engine) engine.refresh() })
-        if (first) { engine.fit("reset"); performance.mark("hcg-explore-layout-complete") }
+        if (first) {
+          if (latest.current.initialView) {
+            const view = latest.current.initialView, controls = engine.graph.controls() as OrbitControls
+            const distance = Math.hypot(view.camera.position.x - view.camera.target.x, view.camera.position.y - view.camera.target.y, view.camera.position.z - view.camera.target.z)
+            controls.maxDistance = Math.max(1400, distance * 3)
+            const camera = engine.graph.camera() as PerspectiveCamera; camera.far = controls.maxDistance * 4; camera.updateProjectionMatrix()
+            engine.graph.cameraPosition(view.camera.position, view.camera.target, 0); controls.update(); engine.refresh()
+          } else engine.fit("reset")
+          performance.mark("hcg-explore-layout-complete")
+        }
       })
     }
     engine.refresh()
-  }, [ready, props.graph, props.pathNodes, props.selected])
+  }, [ready, props.graph, props.pathNodes, props.selected, props.initialView])
 
   useEffect(() => { if (ready) runtime.current?.refresh() }, [ready, props.colorAxis, props.selected, props.pathNodes, props.pathEdges])
   const routeIdentity = props.pathEdges.join(";")

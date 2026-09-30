@@ -41,6 +41,8 @@ see `docs/roadmap-v2.md` and
 - `app/` - Next.js App Router UI. Owns the browser-facing
   demo and should call backend APIs rather than duplicating
   harmonic business logic.
+- `lib/sketches.ts` and `lib/hooks/use-sketchbook.ts` own bounded, versioned browser-local songwriter documents, saved snapshots and recovery drafts. No server identity or cloud sync is implied. All imports and candidate mutations are validated before acceptance; conflicting tabs stop stale persistence.
+- `lib/graph/presentation.ts` owns the validated version 1 teaching capture; `/teach` renders a self-contained graph, directed contextual path, positions/camera, musical context and author explanation without backend access. Share fragments or JSON carry the snapshot, not account permissions. The capture limit does not truncate the interactive atlas.
 - `context/` - Persistent project memory for agents and
   humans. Owns product scope, architecture, standards,
   workflow rules, phase context, and progress tracking.
