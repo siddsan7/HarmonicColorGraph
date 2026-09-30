@@ -92,3 +92,22 @@ Later iterations can add a persisted multi-section song document, richer timing 
 - Visually review the actual rendered canvas and path on desktop and the mobile alternative. Record what used fixtures versus live data; do not claim production corpus or playback readiness from fixture checks.
 
 User or assigned reviewer review and required gates precede merge or deployment. Earlier M0-M7 quality and live-service gates remain open independently of this redesign.
+
+
+## First implementation evidence — 2026-09-29
+
+Implemented the warm studio palette and navigation, three songwriter entry points, described feeling presets using existing deterministic generation controls, and generated-result context captured independently of later form edits. Existing analysis, suggestions, comparison, playback, MIDI and shared URL flows remain available. Healthy service diagnostics and advanced generation controls use disclosure.
+
+The education workspace now keeps a persistent Cytoscape instance with an initial seeded fCoSE layout, separate batched data/style updates, explicit camera/arrange controls, resize observation, and viewport preservation during inspection and tint changes. Directed route identity includes relationship type and numeric/string context. Selected routes have amber arrows, subdued context, endpoint emphasis and numbered keyboard-accessible steps. The desktop route builder and inspector sit beside the graph; mobile uses controls, list/graph, then inspection. Request abort guards cover path searches, neighborhood expansion and pending realization; clear/swap/context changes invalidate stale routes. Sample paths merge only their nodes/edges and respect relationship filters.
+
+Passed:
+- npm lint, TypeScript check, 34 Vitest tests, and production Next.js build.
+- Ten focused Chromium journeys against the production build on local port 3013: graph filters/sample fallback; exact directed/contextual/parallel-edge highlight; camera/position/instance stability; alternate/clear; delayed route invalidation; 36-node/68-edge rendering; generation/playback/MIDI; comparison; feeling-to-sketch handoff after changing the key field; shared URLs and mobile navigation.
+- Documentation integrity and git diff whitespace check.
+- Visual review of the actual 36-node canvas; parent independently inspected the bundled sample route on desktop and mobile, including unchanged instance/positions/pan/zoom on inspection and no page overflow at 390px.
+
+Resolved during verification: Windows text encoding errors, route select accessible names, and route controls initially pushing the canvas below the desktop viewport. No known failing focused checks remain.
+
+Skipped: merge, deployment, backend/corpus changes, unrelated M0–M7 gates. Browser service responses use explicit fixtures, apart from the bundled sample fallback. Production corpus quality, live graph realization and subjective musical usefulness remain unverified. The 36-node fixture demonstrates bounded interaction behavior, not a frame-rate benchmark or large-corpus performance claim. A persisted multi-section song document remains future scope.
+
+Local evidence: `.agent-logs/redesign-36-node-path.png`; browser tests in `tests/e2e/graph-explorer.spec.ts`, `generator.spec.ts`, and `shareable-state.spec.ts`; graph data regressions in `lib/graph/data.test.ts`. Parent owns the final workstream checkpoint and independent review record.

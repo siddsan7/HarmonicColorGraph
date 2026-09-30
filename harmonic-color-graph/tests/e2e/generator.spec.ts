@@ -12,6 +12,7 @@ test("generate, play, and export a parseable MIDI file", async ({ page }) => {
     await route.fulfill({ json: { key: "C major", paths: [{ tokens: steps.map((step) => step.token), chords, steps, facts: [], score: 0.8 }], corpus_version: "test", latency_ms: 10, warnings: [] } })
   })
   await page.goto("/generate?p=C-G-Am&k=C-major")
+  await page.getByText("Musical details & color controls").click()
   await page.getByLabel("Tension curve").selectOption("custom")
   await page.getByLabel("Tension step 2").fill("0.75")
   await page.getByRole("button", { name: "Generate progressions" }).click()
@@ -47,4 +48,25 @@ test("compare mode shows three distinct variants and color deltas", async ({ pag
   await expect(page.getByRole("heading", { name: "C · Surprising" })).toBeVisible()
   await expect(page.getByText("+0.30")).toHaveCount(3)
   await expect(page.getByRole("button", { name: "Play original and A/B/C in sequence" })).toBeEnabled()
+})
+
+test("feeling entry generates without theory and preserves result context after settings change", async ({ page }) => {
+  let request: Record<string, unknown> = {}
+  await page.route("**/api/hcg/v2/generate-progression", async (route) => {
+    request = route.request().postDataJSON()
+    await route.fulfill({ json: { key: "C major", paths: [{ tokens: steps.map((step) => step.token), chords, steps, facts: [], score: .8 }], warnings: [] } })
+  })
+  await page.goto("/?p=Am-F&k=C-major&g=pop&s=verse")
+  await page.getByRole("link", { name: /Start with a feeling/ }).click()
+  await page.getByRole("button", { name: /Quiet & reflective/ }).click()
+  await page.getByRole("button", { name: "Generate progressions", exact: true }).click()
+  await expect(page.getByRole("heading", { name: "Path 1" })).toBeVisible()
+  expect(request).toMatchObject({ key: "C major", tension_curve: "arch", color_target: { brightness: .3, tension: .4 } })
+  await page.getByText("Musical details & color controls").click()
+  await page.getByLabel("Key", { exact: true }).fill("D major")
+  await page.getByRole("link", { name: "Send to Workbench" }).click()
+  await expect(page.getByLabel("Chord progression")).toHaveValue("C - F - G - C")
+  await expect(page.getByLabel("Key (optional)")).toHaveValue("C major")
+  await expect(page.getByLabel("Genre", { exact: true })).toHaveValue("pop")
+  await expect(page.getByLabel("Section", { exact: true })).toHaveValue("verse")
 })

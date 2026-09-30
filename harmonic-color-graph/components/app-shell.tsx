@@ -5,9 +5,9 @@ import { usePathname, useSearchParams } from "next/navigation"
 import { hrefWithProgression } from "@/lib/progression-url"
 
 const routes = [
-  { href: "/", label: "Workbench" },
-  { href: "/explore", label: "Explore" },
-  { href: "/generate", label: "Generate" },
+  { href: "/", label: "Write music" },
+  { href: "/explore", label: "Explore harmony" },
+  { href: "/generate", label: "Find an idea" },
   { href: "/similar", label: "Similar" },
   { href: "/assistant", label: "Assistant" },
   { href: "/about", label: "About" },

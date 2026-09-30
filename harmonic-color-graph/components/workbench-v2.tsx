@@ -1,6 +1,7 @@
 "use client"
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
+import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { Activity, ArrowRight, LoaderCircle, RefreshCcw, Volume2, X } from "lucide-react"
 
@@ -219,13 +220,18 @@ export function WorkbenchV2() {
       <div className="mx-auto max-w-7xl space-y-6">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b border-[var(--border-default)] pb-6">
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--accent-primary)]">Harmonic Color Graph / Workbench</p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Harmonic analysis</h1>
-            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">Explore key, function, chord structure, and the musical relationships in a progression.</p>
+            <p className="font-mono text-xs uppercase tracking-[0.25em] text-[var(--accent-primary)]">Your songwriting space</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight">Give your next idea somewhere to go.</h1>
+            <p className="mt-2 max-w-xl text-sm text-[var(--text-secondary)]">Start with a few chords, a feeling, or a little curiosity. Listen, change one thing, and follow what you like.</p>
           </div>
-          <SystemStatusBadges {...health} />
+          <details className="text-xs text-[var(--text-muted)]"><summary className="cursor-pointer">Service status</summary><div className="mt-2"><SystemStatusBadges {...health} /></div></details>
         </header>
 
+        <section className="song-starts" aria-label="Start a song">
+          <button type="button" onClick={() => document.getElementById("progression-v2")?.focus()}><span>01 / Develop</span><strong>I have some chords</strong><p>Bring your idea. Hear where it can go.</p><b aria-hidden="true">↗</b></button>
+          <Link href={`/generate?${writeProgression(new URLSearchParams(), shared)}&feeling=open`}><span>02 / Discover</span><strong>Start with a feeling</strong><p>Find a musical color, then make it yours.</p><b aria-hidden="true">↗</b></Link>
+          <button type="button" onClick={() => { playback.stop(); recommendationController.current?.abort(); colorController.current?.abort(); updateShared({ input: "C - Am - F - G", key: "C major" }); setAnalysis(null); setColor(null); setNext(null); setError(null); document.getElementById("progression-v2")?.focus() }}><span>03 / Play</span><strong>Try a starting idea</strong><p>A simple loop with room to wander.</p><b aria-hidden="true">↗</b></button>
+        </section>
         <DegradedModeBanner dbStatus={health.dbStatus} />
 
         <div className="transport-sticky"><Transport sequences={sequences} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => playSequences(sequences)} onStop={playback.stop} /></div>
@@ -372,7 +378,7 @@ export function WorkbenchV2() {
               </section>}
             </aside>
           </div>
-        ) : <section className="rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--bg-surface)] p-12 text-center text-[var(--text-secondary)]">Choose a progression and run the v2 analysis.</section>}
+        ) : <section className="rounded-lg border border-dashed border-[var(--border-strong)] bg-[var(--bg-surface)] p-12 text-center text-[var(--text-secondary)]">Add your chords above, then analyze them to hear the progression and explore what comes next.</section>}
         <footer className="border-t border-[var(--border-default)] pt-4 text-xs text-[var(--text-muted)]">
           Chord data: <a className="underline" href="https://arxiv.org/abs/2410.22046">Chordonomicon (Kantarelis et al., 2024)</a>, <a className="underline" href="https://creativecommons.org/licenses/by-nc/4.0/">CC BY-NC 4.0</a>.
         </footer>

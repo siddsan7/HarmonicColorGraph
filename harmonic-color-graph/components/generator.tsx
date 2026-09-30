@@ -11,6 +11,11 @@ import { readProgression, writeProgression } from "@/lib/progression-url"
 import { Button } from "@/components/ui/button"
 import { Transport } from "@/components/transport"
 
+const feelings = [
+  { id: "open", name: "Warm & open", description: "Bright chords, gentle movement, a place to land.", preset: "familiar", curve: "rise_then_resolve" as const, colors: { brightness: .75, tension: .25, complexity: .25, resolution: .8 } },
+  { id: "reflective", name: "Quiet & reflective", description: "A softer color with a little unresolved space.", preset: "balanced", curve: "arch" as const, colors: { brightness: .3, tension: .4, complexity: .45, resolution: .4 } },
+  { id: "restless", name: "Restless & searching", description: "More surprise, stronger tension, less certainty.", preset: "adventurous", curve: "plateau" as const, colors: { brightness: .45, tension: .8, complexity: .7, resolution: .2 } },
+]
 const axes = ["brightness", "tension", "complexity", "resolution"] as const
 type Axis = (typeof axes)[number]
 type Variant = { label: string; progression: string[]; chord: Recommendation; delta: Record<string, number>; original: PlaybackChord[] }
@@ -39,17 +44,20 @@ function CurveEditor({ values, onChange }: { values: number[]; onChange: (values
 export function Generator() {
   const search = useSearchParams()
   const shared = readProgression(search)
+  const initialFeeling = feelings.find((item) => item.id === search.get("feeling")) ?? feelings[0]
+  const [feeling, setFeeling] = useState(initialFeeling.id)
   const [key, setKey] = useState(shared.key || "C major")
   const [genre, setGenre] = useState(shared.genre)
   const [length, setLength] = useState(4)
   const [start, setStart] = useState("")
   const [end, setEnd] = useState("")
   const [cadence, setCadence] = useState<GenerateRequest["cadence"]>("any")
-  const [curve, setCurve] = useState<GenerateRequest["tension_curve"]>("rise_then_resolve")
+  const [curve, setCurve] = useState<GenerateRequest["tension_curve"]>(initialFeeling.curve)
   const [custom, setCustom] = useState([0.2, 0.5, 0.8, 0.2])
-  const [colors, setColors] = useState<Record<Axis, number>>({ brightness: 0.5, tension: 0.5, complexity: 0.5, resolution: 0.5 })
-  const [preset, setPreset] = useState("balanced")
+  const [colors, setColors] = useState<Record<Axis, number>>(initialFeeling.colors)
+  const [preset, setPreset] = useState(initialFeeling.preset)
   const [paths, setPaths] = useState<GeneratedPath[]>([])
+  const [resultContext, setResultContext] = useState({ key, genre, section: shared.section })
   const [warnings, setWarnings] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -77,7 +85,7 @@ export function Generator() {
     const settings = preset === "familiar" ? { novelty: 0, smoothness: 0.8, max_chromaticity: 0.25 } : preset === "adventurous" ? { novelty: 0.85, smoothness: 0.2, max_chromaticity: 1 } : { novelty: 0.35, smoothness: 0.5, max_chromaticity: 0.7 }
     try {
       const response = await generateProgression({ key, length, k: 3, start: start.trim() || null, end: end.trim() || null, cadence, genre: genre || null, tension_curve: curve, ...(curve === "custom" ? { custom_curve: custom } : {}), color_target: colors, ...settings }, controller.signal)
-      if (!controller.signal.aborted) { setPaths(response.paths); setWarnings(response.warnings ?? []) }
+      if (!controller.signal.aborted) { setPaths(response.paths); setResultContext({ key: response.key || key, genre, section: shared.section }); setWarnings(response.warnings ?? []) }
     } catch (caught) {
       if (!controller.signal.aborted) setError(caught instanceof Error ? caught.message : "Generation failed.")
     } finally { if (!controller.signal.aborted) setBusy(false) }
@@ -112,23 +120,27 @@ export function Generator() {
     } finally { if (!controller.signal.aborted) setCompareBusy(false) }
   }
   function resultLink(path: GeneratedPath, destination: string) {
-    return `${destination}?${writeProgression(new URLSearchParams(), { input: path.chords.join(" - "), key, genre, section: shared.section }).toString()}`
+    return `${destination}?${writeProgression(new URLSearchParams(), { input: path.chords.join(" - "), ...resultContext }).toString()}`
   }
   return <main id="main-content" className="min-h-screen bg-[var(--bg-base)] px-4 py-8 text-[var(--text-primary)] sm:px-8"><div className="mx-auto max-w-7xl space-y-5">
-    <header><p className="route-eyebrow">Harmonic Color Graph / Generate</p><h1 className="mt-2 text-3xl font-semibold">Generate</h1><p className="mt-2 text-sm text-[var(--text-secondary)]">Shape a progression by key, cadence, tension, and color.</p></header>
+    <header><p className="route-eyebrow">Harmonic Color Graph / Generate</p><h1 className="mt-2 text-3xl font-semibold">Find the feeling. Follow the sound.</h1><p className="mt-2 text-sm text-[var(--text-secondary)]">Choose a direction, listen to a few possibilities, and take one back to your sketch.</p></header>
     <div className="transport-sticky"><Transport sequences={active} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => play(active)} onStop={playback.stop} /></div>
     <div className="grid gap-5 lg:grid-cols-[minmax(17rem,1fr)_minmax(0,1.6fr)]">
-      <form onSubmit={submit} className={`${panel} space-y-4`}><h2 className="text-lg font-semibold">Constraints</h2>
+      <form onSubmit={submit} className={`${panel} space-y-4`}><h2 className="text-lg font-semibold">What would you like to explore?</h2>
+        <div className="feeling-options" role="group" aria-label="Musical direction">{feelings.map((item) => <button key={item.id} type="button" aria-pressed={feeling === item.id} onClick={() => { setFeeling(item.id); setColors(item.colors); setCurve(item.curve); setPreset(item.preset) }}><strong>{item.name}</strong><span>{item.description}</span></button>)}</div>
+        <p className="text-xs text-[var(--text-secondary)]">These are starting suggestions, not fixed meanings of emotion. Each choice sets the color and movement controls below. Start in C major, or change it in musical details.</p>
+        <details className="musical-details"><summary>Musical details & color controls</summary><div className="space-y-4 pt-4">
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Key<input className={field} value={key} required onChange={(event) => setKey(event.target.value)} /></label><label className="text-sm">Length<input className={field} type="number" min="2" max="16" value={length} onChange={(event) => resizeCurve(Number(event.target.value))} /></label></div>
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Start chord or function<input className={field} value={start} placeholder="Optional" onChange={(event) => setStart(event.target.value)} /></label><label className="text-sm">End chord or function<input className={field} value={end} placeholder="Optional" onChange={(event) => setEnd(event.target.value)} /></label></div>
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Cadence<select className={field} value={cadence} onChange={(event) => setCadence(event.target.value as GenerateRequest["cadence"])}>{["any", "authentic", "plagal", "deceptive", "half"].map((item) => <option key={item} value={item}>{item}</option>)}</select></label><label className="text-sm">Genre<input className={field} value={genre} placeholder="Any" onChange={(event) => setGenre(event.target.value)} /></label></div>
         <div className="grid grid-cols-2 gap-3"><label className="text-sm">Tension curve<select className={field} value={curve} onChange={(event) => setCurve(event.target.value as GenerateRequest["tension_curve"])}><option value="rise_then_resolve">Rise then resolve</option><option value="arch">Arch</option><option value="plateau">Plateau</option><option value="custom">Custom</option></select></label><label className="text-sm">Preset<select className={field} value={preset} onChange={(event) => setPreset(event.target.value)}><option value="familiar">Familiar and smooth</option><option value="balanced">Balanced</option><option value="adventurous">Adventurous</option></select></label></div>
         {curve === "custom" && <CurveEditor values={custom} onChange={setCustom} />}
         <fieldset className="space-y-2"><legend className="text-sm font-semibold">Color targets</legend>{axes.map((axis) => <label key={axis} className="block text-xs capitalize">{axis} <output className="float-right font-mono">{colors[axis].toFixed(2)}</output><input type="range" min="0" max="1" step="0.05" value={colors[axis]} onChange={(event) => setColors((current) => ({ ...current, [axis]: Number(event.target.value) }))} className="w-full accent-[var(--accent-primary)]" /></label>)}</fieldset>
+        </div></details>
         <Button type="submit" disabled={busy}>{busy ? "Generating…" : "Generate progressions"}</Button>{error && <p role="alert" className="text-sm text-[var(--state-error)]">{error}</p>}
       </form>
-      <div className="space-y-4" aria-live="polite"><h2 className="text-lg font-semibold">Generated paths</h2>{warnings.map((warning, index) => <p key={index} className="text-sm text-[var(--state-warning)]">{warning}</p>)}
-        {!busy && !paths.length && !error && <p className={`${panel} text-sm text-[var(--text-secondary)]`}>Set your constraints and generate up to three paths.</p>}
+      <div className="space-y-4" aria-live="polite"><h2 className="text-lg font-semibold">Ideas to listen to</h2>{warnings.map((warning, index) => <p key={index} className="text-sm text-[var(--state-warning)]">{warning}</p>)}
+        {!busy && !paths.length && !error && <p className={`${panel} text-sm text-[var(--text-secondary)]`}>Pick a direction and generate three starting ideas. Your own ear gets the final say.</p>}
         {paths.map((path, index) => { const chords = toPlayback(path); return <article key={`${path.tokens.join("-")}-${index}`} className={panel}>
           <div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold">Path {index + 1}</h3><span className="font-mono text-xs text-[var(--text-muted)]">Score {path.score.toFixed(2)}</span></div>
           <p className="mt-3 font-mono text-sm text-[var(--accent-primary)]">{path.tokens.join(" → ")}</p><p className="mt-2 font-mono text-sm">{path.chords.join(" → ")}</p>
