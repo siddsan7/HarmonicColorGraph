@@ -235,8 +235,9 @@ test("150-node scene becomes idle after a bounded layout", async ({ page }) => {
   await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "paused", { timeout: 12000 })
   expect((await sceneSnapshot(page)).edges.every((edge) => edge.width === 0 && edge.color === "#1d2b40")).toBe(true)
   await page.screenshot({ path: ".agent-logs/atlas-150-node.png", fullPage: true })
+  const beforeOrbit = await page.locator(".atlas-canvas").getAttribute("data-camera")
   await page.getByRole("button", { name: "Orbit", exact: true }).click()
-  await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "active")
+  await expect.poll(() => page.locator(".atlas-canvas").getAttribute("data-camera")).not.toBe(beforeOrbit)
   await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "paused", { timeout: 12000 })
 })
 

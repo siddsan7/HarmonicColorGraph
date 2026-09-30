@@ -44,6 +44,9 @@ export function GraphCanvas(props: Props) {
         const releaseGPU = () => { if (cleaned) return; cleaned = true; graph.pauseAnimation(); graph._destructor(); owned.forEach((resource) => resource.dispose()); graph.renderer().dispose(); graph.renderer().forceContextLoss(); host.replaceChildren() }
         cleanup = releaseGPU
         const controls = graph.controls() as OrbitControls
+        const camera = graph.camera() as PerspectiveCamera
+        camera.near = 1
+        camera.updateProjectionMatrix()
         controls.enableDamping = !media.matches
         controls.dampingFactor = .12
         controls.minDistance = 40
@@ -78,8 +81,10 @@ export function GraphCanvas(props: Props) {
           if (existing) return existing.group
           const group = new THREE.Group()
           const isRoute = latest.current.pathNodes.includes(node.id)
-          const coreMaterial = new THREE.MeshBasicMaterial({ color: isRoute ? ROUTE : nodeColor(node, latest.current.colorAxis), transparent: true })
+          const coreMaterial = new THREE.MeshBasicMaterial({ color: isRoute ? ROUTE : nodeColor(node, latest.current.colorAxis), transparent: true, depthTest: false, depthWrite: false })
           const core = new THREE.Mesh(sphere, coreMaterial)
+          // Keep small, screen-sized points legible above crossing connections and grid lines.
+          core.renderOrder = 20
           const haloMaterial = new THREE.SpriteMaterial({ map: glow, color: coreMaterial.color, transparent: true, depthWrite: false, sizeAttenuation: false, blending: THREE.AdditiveBlending })
           const halo = new THREE.Sprite(haloMaterial); halo.scale.set(32, 32, 1)
           const ringMaterial = new THREE.SpriteMaterial({ map: ring, color: ROUTE, transparent: true, depthWrite: false, sizeAttenuation: false })
@@ -94,6 +99,7 @@ export function GraphCanvas(props: Props) {
           const labelTexture = texture((ctx, size) => drawLabel(ctx, size, currentLabel), 256)
           const labelMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false, sizeAttenuation: false })
           const label = new THREE.Sprite(labelMaterial); label.scale.set(.13, .13, 1); label.position.set(0, 11, 0)
+          label.visible = (!latest.current.pathNodes.length && latest.current.graph.nodes.length <= 20) || node.id === latest.current.selected || isRoute
           group.add(halo, core, selection, label)
           const nodeResources = [coreMaterial, haloMaterial, ringMaterial, labelMaterial, labelTexture]
           nodeResources.forEach((resource) => owned.add(resource))
@@ -141,6 +147,7 @@ export function GraphCanvas(props: Props) {
         diagnosticHost.atlasSnapshot = () => {
           const width = graph.linkWidth(), color = graph.linkColor()
           return {
+            clipping: { near: (graph.camera() as PerspectiveCamera).near, far: (graph.camera() as PerspectiveCamera).far },
             screenNodes: graph.graphData().nodes.map((node) => ({ id: node.id, ...graph.graph2ScreenCoords(node.x, node.y, node.z) })),
             nodes: graph.graphData().nodes.map((node) => ({ id: node.id, color: (visuals.get(node.id)?.core.material as MeshBasicMaterial | undefined)?.color.getHexString() })),
             edges: graph.graphData().links.map((link) => ({ id: link.id, width: typeof width === "function" ? width(link) : width, color: typeof color === "function" ? color(link) : color })),
@@ -171,6 +178,8 @@ export function GraphCanvas(props: Props) {
           })
           center.addScaledVector(up, -distance * tangent * (host.clientWidth < 600 ? 110 : 65) / host.clientHeight)
           controls.maxDistance = Math.max(1400, distance * 3)
+          camera.far = controls.maxDistance * 4
+          camera.updateProjectionMatrix()
           const target = center.clone().addScaledVector(direction, distance)
           wake(1200); graph.cameraPosition(target, center, media.matches ? 0 : 450)
           if (media.matches) { controls.update(); graph.camera().updateMatrixWorld(); diagnostics() }
@@ -226,7 +235,7 @@ export function GraphCanvas(props: Props) {
             wake()
           })
           .onLinkHover((link) => { setHover(link ? `${link.type.replaceAll("_", " ").toLowerCase()} · ${link.prob == null ? "Probability unavailable" : `${Math.round(link.prob * 100)}% probability`}` : ""); wake() })
-        const resize = new ResizeObserver(() => { graph.width(host.clientWidth).height(host.clientHeight); wake() }); resize.observe(host)
+        const resize = new ResizeObserver(() => { graph.width(host.clientWidth).height(host.clientHeight); requestAnimationFrame(() => { if (!disposed) diagnostics() }); wake() }); resize.observe(host)
         const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { controls.update(); diagnostics(); wake(1500) } else { graph.pauseAnimation(); host.dataset.rendering = "paused" } }); intersection.observe(host)
         const visibility = () => { if (document.hidden) { graph.pauseAnimation(); host.dataset.rendering = "paused" } else wake() }; document.addEventListener("visibilitychange", visibility)
         const motion = () => { setReduced(media.matches); controls.enableDamping = !media.matches; cancelReplay(); wake() }; media.addEventListener("change", motion)
