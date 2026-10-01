@@ -715,6 +715,11 @@ def load_corpus(
                 loaded_embeddings = _load_embeddings(conn, artifact_dir, version, nodes)
                 if loaded_embeddings != artifact_counts["embeddings.parquet"]:
                     raise ValueError("Loaded embedding count differs from artifact")
+                # Replacement loads can retain statistics for the old version.
+                # Refresh before planning the correlated nearest-neighbor join,
+                # or a one-row estimate can cause thousands of broad node scans.
+                for table in ("corpus_versions", "nodes", "embeddings"):
+                    conn.execute(f"analyze hcg.{table}")
                 _materialize_similar_edges(
                     conn, version, manifest.params["embedding_default_model"]
                 )
