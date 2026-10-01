@@ -25,13 +25,8 @@ from typing import Any, Protocol
 # producer and consumer import this small shared contract instead.
 from app.ngram_contract import HISTORY_SEP, MAX_ORDER_GLOBAL, MAX_ORDER_OTHER
 
-# F30 plan: "K is tuned on the dev split." F31 (the leak-free evaluation
-# harness) doesn't exist yet, so there is no dev split to tune against.
-# 100 is a placeholder -- large enough that a context needs real repeated
-# evidence (roughly 100+ observations of the exact history) before it
-# dominates its backoff parent, small enough that a context with a few
-# hundred observations still gets most of the weight. F31 should replace
-# this with a tuned value and remove this comment.
+# Retain context support smoothing while protecting the longer global history.
+# Dev-only policy comparisons are recorded in docs/eval/prediction-context-a01.md.
 DEFAULT_MIXING_K = 100.0
 
 
@@ -164,6 +159,7 @@ class _Computed:
 class KNPredictor:
     store: NgramReader
     mixing_k: float = DEFAULT_MIXING_K
+    context_lift: bool = True
     # F31's baseline ablations ("KN orders 2-5, with and without context
     # backoff") need a lower max order than the pipeline actually built --
     # e.g. evaluating "order 3" means never using order 4/5 evidence even
@@ -254,6 +250,55 @@ class KNPredictor:
             discounts,
             contributions,
         )
+        if self.context_lift:
+            global_level = next((level for level in resolved if level.key == "global"), None)
+            if (
+                len(resolved) > 1
+                and global_level is not None
+                and min(len(history_tokens) + 1, global_level.max_order) > MAX_ORDER_OTHER
+            ):
+                # Context counts stop at order 3. Apply their lift relative to
+                # the SAME order global baseline, instead of replacing order
+                # 4/5 evidence with a shorter-history context distribution.
+                short_contributions = defaultdict(lambda: defaultdict(float))
+                contextual, _ = self._mix_chain(
+                    [level.context_id for level in resolved],
+                    [min(level.max_order, MAX_ORDER_OTHER) for level in resolved],
+                    history_tokens,
+                    rows,
+                    discounts,
+                    short_contributions,
+                )
+                global_distributions = []
+                for order in (global_level.max_order, MAX_ORDER_OTHER):
+                    probabilities, _ = _context_distribution(
+                        global_level.context_id,
+                        order,
+                        history_tokens,
+                        rows,
+                        discounts,
+                        defaultdict(lambda: defaultdict(float)),
+                    )
+                    global_distributions.append(_renormalize(probabilities))
+                full, short = global_distributions
+                adjusted = {
+                    token: probability
+                    * max(contextual.get(token, 0.0), 1e-9)
+                    / max(short.get(token, 0.0), 1e-9)
+                    for token, probability in full.items()
+                }
+                total = sum(adjusted.values())
+                if total > 0:
+                    adjusted = {token: value / total for token, value in adjusted.items()}
+                    # Preserve the relative evidence shares within each token;
+                    # these are effective probability contributions after the
+                    # lift adjustment, not independent causal attributions.
+                    for bucket in contributions.values():
+                        for token in bucket:
+                            bucket[token] *= adjusted.get(token, 0.0) / max(
+                                dist.get(token, 0.0), 1e-300
+                            )
+                    dist = adjusted
         dist = _renormalize(dist)
 
         # Exactly one row per (context_id, order) within a single request

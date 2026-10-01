@@ -152,6 +152,49 @@ def test_no_active_corpus_raises_lookup_error():
         predictor.predict(["A"])
 
 
+def test_neutral_short_context_preserves_long_history_and_explanation_mass():
+    store = InMemoryNgramStore()
+    for context in ("global", "genre:pop"):
+        store.add_row(
+            context,
+            1,
+            "",
+            total=100,
+            distinct_next=2,
+            next={"B": 90, "C": 10},
+            cont={"B": 90, "C": 10},
+        )
+        store.add_row(context, 3, "A B", total=100, distinct_next=2, next={"B": 90, "C": 10})
+    store.add_row("global", 4, "Z A B", total=100, distinct_next=2, next={"B": 10, "C": 90})
+    predictor = KNPredictor(store)
+    global_dist = predictor.distribution(["Z", "A", "B"])
+    contextual = predictor.distribution(["Z", "A", "B"], genre="pop")
+    assert contextual == pytest.approx(global_dist)
+    assert contextual["C"] == pytest.approx(0.9)
+    old = KNPredictor(store, context_lift=False).distribution(["Z", "A", "B"], genre="pop")
+    assert old["C"] == pytest.approx(0.5)
+    for item in predictor.predict(["Z", "A", "B"], genre="pop").predictions:
+        assert sum(part.contribution for part in item.breakdown) == pytest.approx(item.probability)
+        assert any(part.context == "global" and part.order == 4 for part in item.breakdown)
+
+
+def test_lift_without_long_history_evidence_keeps_context_backoff():
+    store = _abc_store()
+    store.add_row(
+        "genre:pop",
+        1,
+        "",
+        total=100,
+        distinct_next=2,
+        next={"B": 10, "C": 90},
+        cont={"B": 10, "C": 90},
+    )
+    store.add_row("genre:pop", 3, "Z A", total=100, distinct_next=2, next={"B": 10, "C": 90})
+    history = ["Z", "Z", "A"]
+    expected = KNPredictor(store, context_lift=False).distribution(history, genre="pop")
+    assert KNPredictor(store).distribution(history, genre="pop") == pytest.approx(expected)
+
+
 @given(
     history=st.lists(st.sampled_from(["A", "B", "C", "D", "Z"]), min_size=0, max_size=4),
     genre=st.sampled_from([None, "pop", "obscure"]),
