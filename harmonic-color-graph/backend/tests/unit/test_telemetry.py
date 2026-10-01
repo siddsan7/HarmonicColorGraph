@@ -9,6 +9,8 @@ from contextlib import nullcontext
 from pathlib import Path
 from uuid import uuid4
 
+import anyio
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from opentelemetry import trace
@@ -72,6 +74,107 @@ def test_slow_export_keeps_request_event_loop_responsive(monkeypatch):
 
     asyncio.run(scenario())
     assert progress_during_export == [True]
+
+
+def test_export_does_not_consume_endpoint_worker_capacity(monkeypatch):
+    progressed = threading.Event()
+    progress_during_export = []
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        exporting = asyncio.Event()
+        limiter = anyio.to_thread.current_default_thread_limiter()
+        original = limiter.total_tokens
+        limiter.total_tokens = 1
+
+        def stalled_export():
+            loop.call_soon_threadsafe(exporting.set)
+            progress_during_export.append(progressed.wait(timeout=2))
+
+        async def endpoint(_scope, _receive, _send):
+            pass
+
+        monkeypatch.setattr(telemetry, "flush_telemetry", stalled_export)
+        monkeypatch.setattr(
+            telemetry, "get_settings", lambda: AppSettings(database_url="sqlite://")
+        )
+        middleware = telemetry.TelemetryMiddleware(endpoint)
+        try:
+            request = asyncio.create_task(middleware({"type": "http", "method": "GET"}, None, None))
+            await exporting.wait()
+            await telemetry.run_in_threadpool(progressed.set)
+            await request
+        finally:
+            limiter.total_tokens = original
+
+    asyncio.run(scenario())
+    assert progress_during_export == [True]
+
+
+def test_export_batches_cover_late_arrivals_and_survive_cancellation(monkeypatch):
+    calls = []
+    active = 0
+    maximum = 0
+
+    async def scenario():
+        nonlocal active, maximum
+        loop = asyncio.get_running_loop()
+        started = [asyncio.Event(), asyncio.Event()]
+        release = [threading.Event(), threading.Event()]
+
+        def export():
+            nonlocal active, maximum
+            index = len(calls)
+            calls.append(index)
+            active += 1
+            maximum = max(maximum, active)
+            try:
+                loop.call_soon_threadsafe(started[index].set)
+                assert release[index].wait(timeout=5)
+            finally:
+                active -= 1
+
+        monkeypatch.setattr(telemetry, "flush_telemetry", export)
+        middleware = telemetry.TelemetryMiddleware(None)
+        first = asyncio.create_task(middleware._flush())
+        await asyncio.wait_for(started[0].wait(), timeout=2)
+        late = [asyncio.create_task(middleware._flush()) for _ in range(50)]
+        # Ensure the arrivals register while the first export is still blocked.
+        await asyncio.sleep(0)
+        first.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await first
+        assert not any(task.done() for task in late)
+        release[0].set()
+        await asyncio.wait_for(started[1].wait(), timeout=2)
+        assert not any(task.done() for task in late)
+        release[1].set()
+        await asyncio.wait_for(asyncio.gather(*late), timeout=2)
+
+    asyncio.run(scenario())
+    assert calls == [0, 1]
+    assert maximum == 1
+
+
+def test_failed_export_can_retry_and_middleware_supports_a_new_loop(monkeypatch):
+    calls = []
+
+    def export():
+        calls.append(1)
+        if len(calls) == 1:
+            raise RuntimeError("collector unavailable")
+
+    monkeypatch.setattr(telemetry, "flush_telemetry", export)
+    middleware = telemetry.TelemetryMiddleware(None)
+
+    async def scenario():
+        with pytest.raises(RuntimeError, match="collector unavailable"):
+            await middleware._flush()
+        await middleware._flush()
+
+    asyncio.run(scenario())
+    asyncio.run(middleware._flush())
+    assert len(calls) == 3
 
 
 def test_health_db_trace_correlates_http_and_sql_without_sensitive_fields(caplog):

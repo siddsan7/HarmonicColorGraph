@@ -102,3 +102,34 @@ Private evidence is retained under `~/.hcg/rollback-production-20261001T064908Z`
 backup review, local restore verification, fresh capacity rehearsal, procedure
 hashes, and production activation report. The repository-local read-only
 acceptance report is `.agent-logs/corpus-production-acceptance.json`.
+
+
+### First telemetry release and remaining contention
+
+PR63 passed all five CI jobs in run 36829958374 and independent exact-head
+review, then merged as `630ebf5094e12c58d9df91c1b506d16e6ee52514`.
+Deployment `dpl_CQ8Zm6jkNrRLAWfoAAobD4r7nNED` reports healthy and the reviewed
+production label `cv-2026-10-b`. The rollback notes require restoring the
+previous corpus label alongside any corpus rollback.
+
+Fresh back-to-back measurements preserve response and audit correctness.
+Function server p95 is 51.55 ms (passes), but pattern p95 is 510.04 ms
+(fails; median 85.63 ms). The original report is retained as
+`corpus-production-http-before-telemetry-fix.json`. This is an improvement,
+not a complete performance pass.
+
+A second regression reproduced shared worker-pool starvation during blocking
+export. The follow-up coordinator uses one export task per event loop,
+coalesces waiting requests, and records which completed requests each export
+covers. Requests arriving during an export await a subsequent one. Export
+uses the asyncio executor rather than AnyIO's endpoint worker capacity.
+Cancellation of one request does not cancel the shared export. Focused tests
+cover capacity, overlapping arrivals, cancellation, exceptions, and loop
+isolation. Production verification remains required after release.
+
+Public browser checks on the corrected corpus also verified structural and
+surface rotation matches, exact map lookup, Workbench URL restoration,
+analysis/color/song evidence, smooth-intent recommendations, active playback,
+and generation of three paths plus distinct A/B/C continuations. The 390 px
+Workbench layout has no page-wide overflow. These observations do not replace
+human listening, Safari/iOS, or the complete production UI acceptance set.
