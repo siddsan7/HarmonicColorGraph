@@ -68,7 +68,15 @@ export function GraphExplorer() {
 
   useEffect(() => {
     const media = window.matchMedia("(max-width: 640px)")
-    const update = () => { if (media.matches) setView("list") }
+    const update = () => {
+      if (media.matches) setView("list")
+      else {
+        // Fetch the desktop renderer while the neighborhood request is in
+        // flight, instead of adding its download to the API response time.
+        // Mobile's default list view keeps these optional chunks deferred.
+        void Promise.all([import("@/components/graph-canvas"), import("cytoscape"), import("cytoscape-fcose")]).catch(() => undefined)
+      }
+    }
     update(); media.addEventListener("change", update)
     return () => media.removeEventListener("change", update)
   }, [])
