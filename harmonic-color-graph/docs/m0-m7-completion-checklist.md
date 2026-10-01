@@ -13,10 +13,10 @@ Scope: finish the remaining M0–M7 implementation and automated acceptance,
 excluding human music/listening review and the separate frontend redesign.
 Representative Phase 3 prompts are approved. Free hosting/storage only; up to
 $10 total new paid AI evaluation on existing billing. New evaluation spending
-so far: $4.652728. Independent reviewer approval plus required checks authorizes
+so far: $4.709505. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#67 are merged after independent review and required
+- PRs #48–#51 and #53–#68 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
@@ -48,7 +48,8 @@ merge/deploy and validated corpus activation with rollback prepared.
   Native-schema generation shipped in reviewed PR67. The
   [native fixture recheck](eval/ai-live-native-pr67-2026-10-01.md) passes 40/40
   with nine fallbacks and no container-format failures. Production acceptance
-  remains open.
+  remains open. The [production stream interruption](eval/assistant-stream-completion-2026-10-01.md)
+  is reconciled for cost, with HTTP delivery unverified; the daily cap is $2.
 - Human music/listening review remains explicitly pending. The database
   credential disclosed by a diagnostic must be rotated in coordinated API
   and worker configuration; its value is not recorded in these documents.

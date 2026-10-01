@@ -111,7 +111,13 @@ export async function queryAssistant(
       while (end !== -1) {
         const line = buffer.slice(0, end).replace(/\r$/, "")
         buffer = buffer.slice(end + 1)
-        if (!line) dispatch()
+        if (!line) {
+          dispatch()
+          // A validated final frame terminates the application protocol.
+          // Waiting for transport EOF can hang or reject an already delivered
+          // result when a proxy keeps the connection open or closes it badly.
+          if (finished) return
+        }
         else if (line.startsWith("event:")) kind = line.slice(6).trim()
         else if (line.startsWith("data:")) data.push(line.slice(5).trimStart())
         end = buffer.indexOf("\n")
@@ -123,6 +129,7 @@ export async function queryAssistant(
       }
     }
   } finally {
+    if (finished) void reader.cancel().catch(() => undefined)
     reader.releaseLock()
   }
   if (!finished) throw new AssistantQueryError("The assistant stream ended before a result arrived.")
