@@ -59,7 +59,7 @@ test("workbench shows context-aware recommendations and appends a selected chord
     const request = route.request().postDataJSON() as { genre?: string; section?: string; intent?: { dreamy?: number }; preset?: string }
     requests.push(request)
     const ranked = request.intent
-      ? [{ ...candidate("Fm", "iv", 0.58), color: { brightness: -0.46, smoothness: 0.96 }, labels: ["Intent match", "Theory option"], evidence: { count: 0, contexts: [], example_refs: [] } }]
+      ? [{ ...candidate("Fm", "iv", 0.58), color: { brightness: -0.46, smoothness: 0.96 }, labels: ["Intent ranked", "Theory option"], evidence: { count: 0, contexts: [], example_refs: [] } }]
       : request.genre === "rock"
       ? [candidate("G", "V", 0.48), candidate("F", "IV", 0.35)]
       : [candidate("F", "IV", 0.52), candidate("G", "V", 0.30)]

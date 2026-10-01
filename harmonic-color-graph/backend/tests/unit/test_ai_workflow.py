@@ -59,6 +59,99 @@ def test_explanation_prompt_does_not_duplicate_candidate_color_profiles():
     assert candidate.color == profile
 
 
+def test_prompt_projection_preserves_evidence_and_full_public_result():
+    import json
+
+    from app.ai.validators import _symbols
+
+    prompts = []
+
+    def explain(prompt):
+        prompts.append(prompt)
+        raise ValueError("capture")
+
+    result = AssistantWorkflow(_tools(), explanation_model=explain).run(
+        "Recommend a next chord after D A Bm in D major"
+    )
+    context = json.loads(prompts[0].split("Context: ", 1)[1])
+    assert "analysis" not in context
+    compact = context["tool_results"]
+    assert _symbols(compact) == _symbols(result.tool_results)
+    assert compact["analyze_progression"] == result.tool_results["analyze_progression"]
+    assert context["facts"] == result.facts
+    assert len(json.dumps(compact)) < 0.7 * len(json.dumps(result.tool_results))
+    original_axis = result.tool_results["color_profile:0"]["arc"][0]["perceptual"]["warmth"]
+    projected_axis = compact["color_profile:0"]["arc"][0]["perceptual"]["warmth"]
+    assert "explanation" in original_axis
+    assert projected_axis == {
+        key: value for key, value in original_axis.items() if key != "explanation"
+    }
+
+
+def test_oversized_explanation_skips_model_and_futile_repair(monkeypatch):
+    import app.ai.workflow as module
+
+    monkeypatch.setattr(module, "MAIN_MAX_PROMPT_BYTES", 1)
+    calls = []
+    result = AssistantWorkflow(_tools(), explanation_model=lambda prompt: calls.append(prompt)).run(
+        "Explain D A Bm in D major"
+    )
+    assert calls == []
+    assert result.fallback
+    assert "explanation_prompt_too_large" in result.errors
+
+
+def test_structured_failure_diagnostics_do_not_expose_provider_content():
+    from types import SimpleNamespace
+
+    from app.ai.workflow import StructuredOutputError
+
+    for reason, code in (
+        ("max_tokens", "output_limit"),
+        ("private provider text", "structured_parse"),
+    ):
+        exc = StructuredOutputError(SimpleNamespace(response_metadata={"stop_reason": reason}))
+        assert str(exc) == code
+        assert exc.code == code
+
+
+def test_provider_parse_failure_preserves_usage_and_reports_token_limit(monkeypatch):
+    from types import SimpleNamespace
+
+    import langchain_anthropic
+    import pytest
+
+    from app.ai.usage import UsageMeter
+    from app.ai.workflow import StructuredOutputError, _llm_calls
+
+    class Model:
+        def __init__(self, **kwargs):
+            pass
+
+        def with_structured_output(self, schema, *, include_raw):
+            return self
+
+        def invoke(self, prompt):
+            return {
+                "raw": SimpleNamespace(
+                    usage_metadata={"input_tokens": 10, "output_tokens": 1024},
+                    response_metadata={"stop_reason": "max_tokens"},
+                ),
+                "parsed": None,
+                "parsing_error": ValueError("private provider text"),
+            }
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "unit-test-placeholder")
+    monkeypatch.setattr(langchain_anthropic, "ChatAnthropic", Model)
+    meter = UsageMeter()
+    _, main = _llm_calls(meter)
+    with pytest.raises(StructuredOutputError, match="^output_limit$"):
+        main("prompt")
+    assert meter.tokens_in == 10
+    assert meter.tokens_out == 1024
+    assert meter.cost_usd > 0
+
+
 def test_twenty_query_routing_suite_and_valid_outputs():
     tools = _tools()
     workflow = AssistantWorkflow(tools)

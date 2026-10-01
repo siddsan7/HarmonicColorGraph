@@ -4,6 +4,49 @@ from app.recommend.features import FEATURE_NAMES, CandidateFeatures, extract_fea
 from app.recommend.scorer import intent_score, load_weights, score_candidates
 
 
+def test_intent_strength_scales_weak_requests_without_amplifying_multiple_axes():
+    import pytest
+
+    from app.recommend.features import COLOR_AXES
+
+    delta = dict.fromkeys(COLOR_AXES, 0.0)
+    delta.update(brightness=0.6, tension=-0.4)
+    strong = intent_score(delta, {"darker_brighter": 1})
+    assert intent_score(delta, {"darker_brighter": 0.1}) == pytest.approx(strong / 10)
+    assert intent_score(delta, {"darker_brighter": -0.1}) == pytest.approx(-strong / 10)
+    assert intent_score(delta, {"darker_brighter": 0}) == 0
+    assert intent_score(delta, {"darker_brighter": 1, "tense_relaxed": 1}) == 0.5
+
+
+def test_transition_deltas_compare_adjacent_arrivals_with_available_context():
+    import pytest
+
+    from app.color.features import compute_chord_color
+    from app.theory.roman import analyze_v2
+
+    analysis = analyze_v2("A7 D G", "D major")
+    colors = [
+        compute_chord_color(
+            analysis.chords[index],
+            analysis.tokens[index],
+            "D major",
+            previous_chord=analysis.chords[index - 1],
+            previous_token=analysis.tokens[index - 1],
+        )
+        for index in (1, 2)
+    ]
+    item = extract_features(Candidate("M:IV", frozenset({"theory"})), ["M:V7", "M:I"], "D major")
+    assert colors[0].resolution > colors[1].resolution
+    assert item.color_delta["resolution"] == pytest.approx(
+        colors[1].resolution - colors[0].resolution
+    )
+    assert item.color_delta["smoothness"] == pytest.approx(
+        colors[1].smoothness - colors[0].smoothness
+    )
+    assert item.values["vl_cost"] == pytest.approx(1 - colors[1].smoothness)
+    assert intent_score(item.color_delta, {"resolved_open": 1}, item) > 0
+
+
 def test_list_diversity_preserves_first_choice_and_promotes_distinct_pitch_content():
     from app.recommend.features import COLOR_AXES
 

@@ -93,13 +93,26 @@ def extract_features(
         raise ValueError("Feature extraction needs a previous chord")
     previous = realize(history[-1], key).chord
     current = realize(candidate.token, key).chord
-    previous_token = romanize_chord(previous, key)
+    predecessor = realize(history[-2], key).chord if len(history) >= 2 else None
+    predecessor_token = (
+        romanize_chord(predecessor, key, next_chord=previous) if predecessor else None
+    )
+    previous_token = romanize_chord(previous, key, previous_chord=predecessor)
     current_token = romanize_chord(current, key, previous_chord=previous)
-    previous_color = compute_chord_color(previous, previous_token, key)
+    previous_color = compute_chord_color(
+        previous,
+        previous_token,
+        key,
+        previous_chord=predecessor,
+        previous_token=predecessor_token,
+    )
     current_color = compute_chord_color(
         current, current_token, key, previous_chord=previous, previous_token=previous_token
     )
     old_color = _color_values(previous_color, norms)
+    # With a single historical chord there is no prior arrival to compare;
+    # retain the zero baseline for missing transition axes. With context,
+    # compare both actual arrivals instead of treating missing data as zero.
     new_color = _color_values(current_color, norms)
     ngram_p = candidate.ngram_probability
     bigram_p = (global_bigram or {}).get(candidate.token, 0.0)

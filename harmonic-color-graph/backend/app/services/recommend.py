@@ -267,7 +267,9 @@ class RecommendationService:
                     if source in provenance
                 ]
             )
-            labels = (["Intent match"] if request.intent else ["Preset ranked"]) + origin_labels
+            # A weighted preference does not guarantee an attainable color
+            # change (for example, a triad cannot always become simpler).
+            labels = (["Intent ranked"] if request.intent else ["Preset ranked"]) + origin_labels
             explanation = None
             if request.include_explanations:
                 origin = (
