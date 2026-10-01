@@ -128,7 +128,7 @@ def test_provider_parse_failure_preserves_usage_and_reports_token_limit(monkeypa
         def __init__(self, **kwargs):
             pass
 
-        def with_structured_output(self, schema, *, include_raw):
+        def with_structured_output(self, schema, *, include_raw, method):
             return self
 
         def invoke(self, prompt):
@@ -190,9 +190,79 @@ def test_real_tool_parser_failure_codes_are_sanitized():
     try:
         parser.parse_result([ChatGeneration(message=unknown)])
     except Exception as exc:
-        assert StructuredOutputError(unknown, exc).code == "tool_parse"
+        assert StructuredOutputError(unknown, exc).code == "output_parse"
     else:
         raise AssertionError("Unknown tool unexpectedly parsed")
+
+
+def test_native_explanation_schema_reaches_provider_and_keeps_local_validation(monkeypatch):
+    import importlib
+    import json
+
+    import langchain_anthropic.chat_models as adapter
+    import pytest
+    from anthropic import DefaultHttpxClient
+
+    from app.ai.usage import UsageMeter
+    from app.ai.workflow import StructuredOutputError, _llm_calls
+
+    # Use the installed SDK's transport generation (httpx or httpx2).
+    transport_module = next(
+        base.__module__.split(".")[0]
+        for base in DefaultHttpxClient.__mro__
+        if base.__module__.split(".")[0] in {"httpx", "httpx2"}
+    )
+    httpx = importlib.import_module(transport_module)
+    requests = []
+
+    def respond(request):
+        body = json.loads(request.content)
+        requests.append(body)
+        text = "A supported transition." if len(requests) == 1 else "x" * 501
+        return httpx.Response(
+            200,
+            json={
+                "id": "msg_test",
+                "type": "message",
+                "role": "assistant",
+                "model": body["model"],
+                "stop_reason": "end_turn",
+                "stop_sequence": None,
+                "content": [
+                    {
+                        "type": "text",
+                        "text": json.dumps(
+                            {
+                                "claims": [
+                                    {"text": text, "fact_ids": ["fact:1"], "theory_labels": []}
+                                ]
+                            }
+                        ),
+                    }
+                ],
+                "usage": {"input_tokens": 10, "output_tokens": 20},
+            },
+        )
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "unit-test-placeholder")
+    with httpx.Client(transport=httpx.MockTransport(respond)) as client:
+        monkeypatch.setattr(adapter, "_get_default_httpx_client", lambda **kwargs: client)
+        meter = UsageMeter()
+        _, main = _llm_calls(meter)
+        draft = main("Explain the supplied evidence")
+        assert draft.claims[0].fact_ids == ["fact:1"]
+        schema = requests[0]["output_config"]["format"]
+        assert schema["type"] == "json_schema"
+        assert schema["schema"]["properties"]["claims"]["type"] == "array"
+        assert schema["schema"]["additionalProperties"] is False
+        assert "tools" not in requests[0]
+        assert requests[0]["max_tokens"] == 1024
+        # Provider schema transformations omit some length constraints; local
+        # Pydantic validation must continue to enforce the unchanged limit.
+        with pytest.raises(StructuredOutputError):
+            main("Explain the supplied evidence")
+        assert meter.tokens_in == 20 and meter.tokens_out == 40
+        assert meter.cost_usd > 0
 
 
 def test_twenty_query_routing_suite_and_valid_outputs():

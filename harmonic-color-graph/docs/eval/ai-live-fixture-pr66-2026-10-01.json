@@ -1,0 +1,1261 @@
+{
+  "ran_at": "2026-10-01T08:44:08.553306+00:00",
+  "mode": "live",
+  "data_source": "seeded_fixture",
+  "max_cost_usd": "5",
+  "metered_cost_usd": "1.421454",
+  "unknown_cost_cases": [],
+  "model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "calls": 40,
+      "tokens_in": 52971,
+      "tokens_out": 3889,
+      "cost_usd": "0.072416"
+    },
+    "claude-sonnet-5": {
+      "calls": 67,
+      "tokens_in": 570494,
+      "tokens_out": 20805,
+      "cost_usd": "1.349038"
+    }
+  },
+  "cases_completed": 40,
+  "cases_total": 40,
+  "claims": 37,
+  "intent_cases": 12,
+  "cost_usd": "1.421454",
+  "metrics": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 1.0,
+    "intent_match": 0.8333,
+    "intent_parse_match": 1.0,
+    "color_axis_match": 0.8333,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 1.0
+  },
+  "thresholds": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 0.9,
+    "intent_match": 0.75,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 0.95
+  },
+  "passed": true,
+  "cases": [
+    {
+      "id": "recommend-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.04285714285714293,
+        "tense_relaxed": -0.15,
+        "common_surprising": -0.291259374819711,
+        "simple_complex": 0.0,
+        "resolved_open": 0.45,
+        "smooth": -0.04166666666666652,
+        "dreamy": 0.1
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "darker_brighter": -1.0
+      }
+    },
+    {
+      "id": "recommend-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.08571428571428563,
+        "tense_relaxed": -0.15,
+        "common_surprising": -0.36269424693483865,
+        "simple_complex": 0.0,
+        "resolved_open": -0.3,
+        "smooth": -0.12499999999999989,
+        "dreamy": 0.1
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "darker_brighter": 1.0
+      }
+    },
+    {
+      "id": "recommend-03",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0035714285714285587,
+        "tense_relaxed": -0.38,
+        "common_surprising": -0.2792190574483112,
+        "simple_complex": 0.25,
+        "resolved_open": 0.6499999999999999,
+        "smooth": 0.04166666666666652,
+        "dreamy": 0.10624999999999998
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "tense_relaxed": -1.0
+      }
+    },
+    {
+      "id": "recommend-04",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": true,
+      "color_axis_match": false,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": 0.75,
+        "smooth": 0.33333333333333326,
+        "dreamy": 0.15
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "tense_relaxed": 1.0
+      }
+    },
+    {
+      "id": "recommend-05",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.7714285714285715,
+        "tense_relaxed": 0.23333333333333334,
+        "common_surprising": 0.5,
+        "simple_complex": 0.0,
+        "resolved_open": -0.6499999999999999,
+        "smooth": 0.04166666666666652,
+        "dreamy": 0.12958333333333333
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "common_surprising": 1.0
+      }
+    },
+    {
+      "id": "recommend-06",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.042857142857142816,
+        "tense_relaxed": 0.15,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": -0.75,
+        "smooth": 0.0,
+        "dreamy": 0.115
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [],
+      "parsed_intent_axes": {
+        "common_surprising": -1.0
+      }
+    },
+    {
+      "id": "recommend-07",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.042857142857142816,
+        "tense_relaxed": 0.3,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": -0.6499999999999999,
+        "smooth": 0.04166666666666674,
+        "dreamy": 0.13
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "resolved_open": -1.0
+      }
+    },
+    {
+      "id": "recommend-08",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.36269424693483865,
+        "simple_complex": 0.0,
+        "resolved_open": 0.3,
+        "smooth": 0.33333333333333326,
+        "dreamy": 0.15
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "resolved_open": 1.0
+      }
+    },
+    {
+      "id": "recommend-09",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.33029005387644805,
+        "simple_complex": 0.0,
+        "resolved_open": 0.0,
+        "smooth": 0.33333333333333326,
+        "dreamy": 0.15
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "smooth": 1.0
+      }
+    },
+    {
+      "id": "recommend-10",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": true,
+      "color_axis_match": false,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.37142857142857144,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": 0.45,
+        "smooth": 0.08333333333333337,
+        "dreamy": 0.11875
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [],
+      "parsed_intent_axes": {
+        "simple_complex": -1.0
+      }
+    },
+    {
+      "id": "recommend-11",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.03928571428571426,
+        "tense_relaxed": -0.08000000000000002,
+        "common_surprising": -0.2792190574483112,
+        "simple_complex": 0.25,
+        "resolved_open": 0.3,
+        "smooth": 0.2499999999999999,
+        "dreamy": 0.13749999999999998
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 4,
+      "claim_count": 4,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [],
+      "parsed_intent_axes": {
+        "simple_complex": 1.0
+      }
+    },
+    {
+      "id": "recommend-12",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.6357142857142858,
+        "tense_relaxed": -0.16666666666666666,
+        "common_surprising": 0.5,
+        "simple_complex": 0.25,
+        "resolved_open": 0.0,
+        "smooth": -0.04166666666666663,
+        "dreamy": 0.8625
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "dreamy": 1.0
+      }
+    },
+    {
+      "id": "generate-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "generate-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "tense_relaxed": 1.0
+      }
+    },
+    {
+      "id": "generate-03",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "generate-04",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "generate-05",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "generate-06",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "generate-07",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {
+        "darker_brighter": 1.0
+      }
+    },
+    {
+      "id": "generate-08",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 1,
+      "claim_count": 1,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explain_transition:corpus_unavailable",
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-03",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 2,
+      "claim_count": 2,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explain_transition:corpus_unavailable",
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-04",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 1,
+      "claim_count": 1,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-05",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-06",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 2,
+      "claim_count": 2,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-07",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 4,
+      "claim_count": 4,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "explain-08",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 5,
+      "claim_count": 5,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explain_transition:corpus_unavailable",
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "similar-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "similar-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "similar-03",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": false,
+      "error_codes": [],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "similar-04",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "similar-05",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "similar-06",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "compare-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "compare-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "compare-03",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "compare-04",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "explanation_validation_failed:StructuredOutputError:structured_parse:claims:list_type"
+      ],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "clarify-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [],
+      "parsed_intent_axes": {}
+    },
+    {
+      "id": "clarify-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [],
+      "parsed_intent_axes": {}
+    }
+  ]
+}

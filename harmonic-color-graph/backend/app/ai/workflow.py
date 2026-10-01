@@ -7,7 +7,7 @@ import os
 import re
 import time
 from collections.abc import Callable, Iterator
-from typing import Any
+from typing import Any, Literal
 
 from langchain_core.exceptions import OutputParserException
 from langgraph.graph import END, START, StateGraph
@@ -54,7 +54,7 @@ class StructuredOutputError(ValueError):
             if missing:
                 self.code = "missing_structured_output"
             elif isinstance(parsing_error, OutputParserException):
-                self.code = "tool_parse"
+                self.code = "output_parse"
         if self.code == "structured_parse" and isinstance(parsing_error, ValidationError):
             # Pydantic messages/inputs/context and unknown field names can
             # contain model output. Only publish these fixed schema codes.
@@ -167,8 +167,14 @@ def _llm_calls(
         max_retries=0,
     )
 
-    def tracked(model: Any, schema: type, name: str, rate_prefix: str) -> StructuredCall:
-        runnable = model.with_structured_output(schema, include_raw=True)
+    def tracked(
+        model: Any,
+        schema: type,
+        name: str,
+        rate_prefix: str,
+        method: Literal["function_calling", "json_schema"] = "function_calling",
+    ) -> StructuredCall:
+        runnable = model.with_structured_output(schema, include_raw=True, method=method)
 
         def invoke(prompt: str) -> Any:
             started = time.perf_counter()
@@ -213,7 +219,10 @@ def _llm_calls(
 
     return (
         tracked(fast, ParsedIntent, fast_name, "HCG_LLM_FAST"),
-        tracked(main, ExplanationDraft, main_name, "HCG_LLM"),
+        # Native schema-constrained generation keeps nested claims as arrays.
+        # Ordinary forced tool calling repeatedly returned invalid containers.
+        # Local schema and provenance validation still run on every response.
+        tracked(main, ExplanationDraft, main_name, "HCG_LLM", method="json_schema"),
     )
 
 

@@ -80,3 +80,35 @@ from invalid_tool_arguments to the accurate generic tool_parse code. A single
 CI fixture evaluation is proposed after reviewed release; its full $5 cap
 must be reserved before dispatch and reconciled from the final cost artifact.
 It will not substitute for production acceptance.
+
+
+## Native explanation output follow-up
+
+PR66 passed exact-head review and all five CI jobs in36837043243, merged as
+`370da12`, and deployed in `dpl_J7ZQLw1fDtV7oHXbHXSExJX4AiBT`. Public API
+verification confirms weak/strong sliders produce different scores and all
+weighted suggestions use the Intent ranked label. Production MIDI export also
+passed: downloaded C-G-F-C,191bytes,16notes, expected pitch classes and
+0/2/4/6-second starts at120BPM.
+
+[Live fixture recheck](ai-live-fixture-pr66-2026-10-01.md) passed40/40 configured
+thresholds with intent10/12, cost$1.421454 and no unknown-cost cases. However,
+31 responses fell back, specifically because claims was not a list. The task
+ledger now accounts for$3.256217 in total; no paid evaluation remains running.
+
+The explanation adapter now requests native JSON-schema output instead of
+ordinary forced tool calling. The intent parser is unchanged. This follows
+[LangChain's explicit native-output method](https://docs.langchain.com/oss/python/integrations/chat/anthropic#structured-output)
+and [Claude's schema support](https://platform.claude.com/docs/en/build-with-claude/structured-outputs),
+which lists Sonnet5 and warns about initial grammar-compilation latency.
+Local Pydantic length checks and citation/theory validation still apply; no
+limits or benchmark thresholds change. Generic parser errors now say
+output_parse because they can arise from either output path.
+
+A real SDK mock-transport regression verifies the outgoing schema declares
+claims as an array, does not use a tool call, preserves the1024-token output
+limit, parses valid citations, and still rejects overlong claims while
+accounting for both responses. The initial test used the wrong HTTP transport
+generation; it now selects the installed SDK's httpx/httpx2 transport. This was
+a test-harness failure, not a paid request. Independent reviewer passed all21
+workflow tests. Live improvement remains unverified until reviewed release.
