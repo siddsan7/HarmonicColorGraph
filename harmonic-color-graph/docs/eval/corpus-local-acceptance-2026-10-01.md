@@ -46,6 +46,21 @@ runtime commit. Local evidence: `.agent-logs/corpus-local-acceptance.json`,
 `.agent-logs/corpus-local-load-final.log`, and
 `.agent-logs/similarity-materialization-plan.json`.
 
-Production activation and HTTP acceptance, browser intent scenarios, monitoring,
-live AI evaluation, and human listening remain separate gates. No new paid AI
-evaluation was run for these checks.
+Real Chromium browser checks passed at 1440x1000 and 390x844 through the actual
+Next.js proxy and local API, without response fixtures: 5,000 map points,
+structural and surface rotation labels, exact point selection into Workbench,
+color results, recommendations, and no page errors. The map test first exposed
+an exact loop hidden after the picker's first 20 substring matches. Exact-case
+matches now rank first, followed by case-insensitive exact matches; six component
+tests pass, including a regression with 25 preceding longer matches and a
+`vi`/`VI` distinction. Full frontend lint, typecheck, tests, and build passed.
+
+All three real browser intent scenarios passed through that same proxy:
+nostalgic Fm in the top five, dark/dreamy Abmaj7 in the top five, and jazz G7 in
+the top three. Evidence: `.agent-logs/corpus-browser-acceptance.json`,
+`.agent-logs/corpus-live-intent-final.log`, and the desktop/mobile similarity
+screenshots. These are local corpus/UI checks, not deployed production results.
+
+Production activation and HTTP acceptance, monitoring, live AI evaluation, and
+human listening remain separate gates. No new paid AI evaluation was run for
+these checks.
