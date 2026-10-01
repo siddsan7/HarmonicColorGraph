@@ -275,6 +275,7 @@ def run(
         if accounted_cost + per_case_bound > max_cost_usd:
             break
         before = meter.cost_usd
+        unknown_before = meter.unknown_usage_calls
         uncertain_cost = False
         try:
             with _tool_scope(fixture=fixture) as delegate:
@@ -307,10 +308,10 @@ def run(
             row = {"error": type(exc).__name__}
             uncertain_cost = live
         actual_cost = meter.cost_usd - before
-        if uncertain_cost:
+        if uncertain_cost or (live and meter.unknown_usage_calls > unknown_before):
             # A timeout can be billed even when the provider returns no usage.
             # Reserve the whole request bound before allowing another case.
-            accounted_cost += per_case_bound
+            accounted_cost += max(per_case_bound, actual_cost)
             unknown_cost_cases.append(case["id"])
         else:
             accounted_cost += actual_cost

@@ -144,3 +144,25 @@ def test_intent_axis_uses_authoritative_recommendation_delta():
         "smooth",
         "dreamy",
     }
+
+
+def test_missing_usage_is_reserved_without_poisoning_later_cases(monkeypatch):
+    from app.ai.workflow import AssistantWorkflow
+
+    calls = 0
+
+    def workflow(tools, meter):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            meter.record(object(), "claude-sonnet-5")
+        return AssistantWorkflow(tools)
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    monkeypatch.setattr("tests.eval.ai.request_cost_bound", lambda: Decimal("0.90"))
+    monkeypatch.setattr("tests.eval.ai.AssistantWorkflow.from_environment", workflow)
+    report = run(cases=load_cases()[:3], live=True, fixture=True, max_cost_usd=Decimal("1.80"))
+    assert report["cases_completed"] == 3
+    assert report["unknown_cost_cases"] == ["recommend-01"]
+    assert Decimal(report["cost_usd"]) == Decimal("0.90")
+    assert Decimal(report["metered_cost_usd"]) == Decimal("0.25")
