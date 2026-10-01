@@ -12,7 +12,7 @@ from pathlib import Path
 from app.predict.ngram import InMemoryNgramStore, KNPredictor
 from app.recommend.candidates import Candidate, generate_candidates
 from app.recommend.features import FEATURE_NAMES, CandidateFeatures, extract_features
-from app.recommend.scorer import WEIGHTS_FILE, score_candidates
+from app.recommend.scorer import load_weights, score_candidates
 from tests.eval.sampling import SampledPosition, sample_test_positions
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -152,13 +152,45 @@ def evaluate(
     }
 
 
+def acceptance_checks(report: dict) -> dict[str, bool]:
+    """Fail closed on empty/incomplete benchmarks as well as measured regressions."""
+    intents = report["intent_benchmark"]
+    return {
+        "mrr": report["n"] > 0 and report["hybrid_mrr"] >= report["ngram_mrr"] - 0.02,
+        "coverage": report["coverage_hybrid"] > report["coverage_baseline"],
+        "novelty": report["novel_top5_per_query"] > 0,
+        "intent": all(
+            name in intents and intents[name]["total"] == 30 and intents[name]["passed"] >= 24
+            for name in ("darker", "brighter", "surprising", "smoother")
+        ),
+    }
+
+
+def save_candidate_weights(path: Path, payload: dict, report: dict) -> None:
+    """Publishing weights is explicit and requires every measured acceptance gate."""
+    checks = acceptance_checks(report)
+    if not all(checks.values()):
+        failed = ", ".join(name for name, passed in checks.items() if not passed)
+        raise ValueError(f"Candidate weights were not written; failed gates: {failed}")
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--train", default="eval-train-a")
     parser.add_argument("--eval", default="cv-mini-smoke")
     parser.add_argument("--dev-count", type=int, default=160)
     parser.add_argument("--test-count", type=int, default=40)
+    parser.add_argument("--report-output", type=Path)
+    parser.add_argument(
+        "--weights-input", type=Path, help="Evaluate frozen weights without refitting"
+    )
+    parser.add_argument(
+        "--weights-output", type=Path, help="Explicit destination; written only if all gates pass"
+    )
     args = parser.parse_args()
+    if args.dev_count <= 0 or args.test_count <= 0:
+        parser.error("dev-count and test-count must be positive")
     # The eval artifact is a deterministic mini slice of the full corpus;
     # its split labels are inherited from the same song-level hash.
     train_ids = set(
@@ -176,8 +208,12 @@ def main() -> None:
         raise AssertionError(f"Train/dev/test leakage: {len(overlap)} songs")
     store = InMemoryNgramStore.from_parquet(str(_source_dir(args.train) / "ngrams.parquet"))
     predictor = KNPredictor(store)
-    dev = _positions(args.eval, "dev", args.dev_count, 52)
-    weights, fit_info = fit(dev, predictor)
+    if args.weights_input:
+        weights = load_weights(args.weights_input)
+        fit_info = {"method": "frozen_weights", "source": args.weights_input.as_posix()}
+    else:
+        dev = _positions(args.eval, "dev", args.dev_count, 52)
+        weights, fit_info = fit(dev, predictor)
     test = _positions(args.eval, "test", args.test_count, 53)
     report = evaluate(test, predictor, weights)
     payload = {
@@ -191,8 +227,19 @@ def main() -> None:
         },
         "weights": {name: round(value, 8) for name, value in weights.items()},
     }
-    WEIGHTS_FILE.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"fit": fit_info, "test": report}, indent=2))
+    if args.weights_input:
+        # Preserve the actual training provenance of a frozen model.
+        payload = json.loads(args.weights_input.read_text(encoding="utf-8"))
+    checks = acceptance_checks(report)
+    result = {"fit": fit_info, "test": report, "checks": checks, "candidate": payload}
+    rendered = json.dumps(result, indent=2) + "\n"
+    if args.report_output:
+        args.report_output.write_text(rendered, encoding="utf-8")
+    print(rendered)
+    if args.weights_output:
+        save_candidate_weights(args.weights_output, payload, report)
+    if not all(checks.values()):
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":

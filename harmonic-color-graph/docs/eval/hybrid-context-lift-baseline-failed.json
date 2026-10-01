@@ -1,0 +1,69 @@
+{
+  "fit": {
+    "method": "frozen_weights",
+    "source": "app/recommend/weights/plausibility_v1.json"
+  },
+  "test": {
+    "n": 400,
+    "ngram_mrr": 0.6927,
+    "hybrid_mrr": 0.6716,
+    "coverage_baseline": 80,
+    "coverage_hybrid": 79,
+    "novel_top5_per_query": 0.412,
+    "intent_benchmark": {
+      "darker": {
+        "passed": 30,
+        "total": 30,
+        "rate": 1.0
+      },
+      "brighter": {
+        "passed": 29,
+        "total": 30,
+        "rate": 0.967
+      },
+      "surprising": {
+        "passed": 30,
+        "total": 30,
+        "rate": 1.0
+      },
+      "smoother": {
+        "passed": 27,
+        "total": 30,
+        "rate": 0.9
+      }
+    }
+  },
+  "checks": {
+    "mrr": false,
+    "coverage": false,
+    "novelty": true,
+    "intent": true
+  },
+  "candidate": {
+    "model": "candidate-softmax-v1",
+    "weights": {
+      "log_p_ngram": 6.37905905,
+      "log_p_global_bigram": 0.0,
+      "pmi": 0.0,
+      "diatonic": -0.03229782,
+      "borrowed": 0.40016146,
+      "applied": -0.51481689,
+      "tritone_sub": -0.00599005,
+      "chromatic_mediant": -0.26180132,
+      "vl_cost": 0.05423567,
+      "common_tones": 0.32659507,
+      "emb_cos": 0.0,
+      "tonal_distance": -0.0477257,
+      "surprise": -0.55467708,
+      "genre_section_fit": 0.0,
+      "graph_probability": 0.0,
+      "delta_brightness": -0.4173562,
+      "delta_tension": 0.01866385,
+      "delta_surprise": -0.55467708,
+      "delta_complexity": 0.08858646,
+      "delta_resolution": 0.77627843,
+      "delta_smoothness": -0.05423567
+    }
+  },
+  "provenance_note": "Frozen original committed weights; generated training metadata was misleading and omitted. Numeric results unchanged."
+}

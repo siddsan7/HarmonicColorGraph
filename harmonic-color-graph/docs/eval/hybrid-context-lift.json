@@ -1,0 +1,88 @@
+{
+  "fit": {
+    "method": "frozen_weights",
+    "source": "../.agent-logs/hybrid-selected-weights.json"
+  },
+  "test": {
+    "n": 400,
+    "ngram_mrr": 0.6927,
+    "hybrid_mrr": 0.6853,
+    "coverage_baseline": 80,
+    "coverage_hybrid": 87,
+    "novel_top5_per_query": 0.43,
+    "intent_benchmark": {
+      "darker": {
+        "passed": 30,
+        "total": 30,
+        "rate": 1.0
+      },
+      "brighter": {
+        "passed": 28,
+        "total": 30,
+        "rate": 0.933
+      },
+      "surprising": {
+        "passed": 30,
+        "total": 30,
+        "rate": 1.0
+      },
+      "smoother": {
+        "passed": 27,
+        "total": 30,
+        "rate": 0.9
+      }
+    }
+  },
+  "checks": {
+    "mrr": true,
+    "coverage": true,
+    "novelty": true,
+    "intent": true
+  },
+  "candidate": {
+    "model": "candidate-softmax-v1",
+    "training": {
+      "train_artifact": "eval-train-a",
+      "dev_artifact": "cv-eval-smoke",
+      "split": "dev",
+      "leak_overlap": 0,
+      "sampled": 160,
+      "usable": 160,
+      "epochs": 12,
+      "seed": 52,
+      "candidate_cap": 14
+    },
+    "weights": {
+      "log_p_ngram": 6.37905905,
+      "log_p_global_bigram": 0.0,
+      "pmi": 0.0,
+      "diatonic": -0.00807445,
+      "borrowed": 0.10004037,
+      "applied": -0.12870422,
+      "tritone_sub": -0.00149751,
+      "chromatic_mediant": -0.06545033,
+      "vl_cost": 0.01355892,
+      "common_tones": 0.08164877,
+      "emb_cos": 0.0,
+      "tonal_distance": -0.01193143,
+      "surprise": -0.13866927,
+      "genre_section_fit": 0.0,
+      "graph_probability": 0.0,
+      "delta_brightness": -0.10433905,
+      "delta_tension": 0.00466596,
+      "delta_surprise": -0.13866927,
+      "delta_complexity": 0.02214662,
+      "delta_resolution": 0.19406961,
+      "delta_smoothness": -0.01355892
+    },
+    "calibration": {
+      "artifact": "cv-eval-smoke-a01-20260927",
+      "split": "dev",
+      "seed": 54,
+      "sample_size": 400,
+      "non_ngram_scale": 0.25,
+      "selection_diversity": 0.8,
+      "selection": "highest dev MRR among passing development candidates"
+    }
+  }
+}

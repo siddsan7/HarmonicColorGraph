@@ -4,6 +4,23 @@ from app.recommend.features import FEATURE_NAMES, CandidateFeatures, extract_fea
 from app.recommend.scorer import intent_score, load_weights, score_candidates
 
 
+def test_list_diversity_preserves_first_choice_and_promotes_distinct_pitch_content():
+    from app.recommend.features import COLOR_AXES
+
+    rows = [
+        CandidateFeatures(token, dict.fromkeys(FEATURE_NAMES, 0.0), dict.fromkeys(COLOR_AXES, 0.0))
+        for token in ("M:I", "M:Imaj7", "M:bII")
+    ]
+    plain = score_candidates(rows, selection_diversity=0)
+    diverse = score_candidates(rows)
+    assert [row.token for row in plain] == ["M:I", "M:Imaj7", "M:bII"]
+    assert [row.token for row in diverse] == ["M:I", "M:bII", "M:Imaj7"]
+    assert diverse[0].score == plain[0].score
+    assert diverse[-1].score_breakdown["selection_diversity"] < 0
+    assert score_candidates(list(reversed(rows)), limit=2) == diverse[:2]
+    assert all(left.score >= right.score for left, right in zip(diverse, diverse[1:], strict=False))
+
+
 def _prediction(*items: tuple[str, float]) -> PredictionResult:
     return PredictionResult(
         history=("M:I",),
@@ -66,7 +83,7 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
         values["common_tones"] = 0.5
         rows.append(
             CandidateFeatures(
-                f"M:{index}",
+                ("M:I", "M:V", "M:ii", "M:IV", "M:vi")[index],
                 values,
                 dict.fromkeys(
                     ("brightness", "tension", "surprise", "complexity", "resolution", "smoothness"),
@@ -84,7 +101,13 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
             abs(
                 sum(
                     breakdown[name]
-                    for name in ("plausibility_z", "intent", "diversity", "surprise_bonus")
+                    for name in (
+                        "plausibility_z",
+                        "intent",
+                        "diversity",
+                        "surprise_bonus",
+                        "selection_diversity",
+                    )
                 )
                 - row.score
             )

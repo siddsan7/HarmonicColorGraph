@@ -15,6 +15,14 @@ song-id hash split, not the sample.
 Reproduce with `python -m tests.eval.recommender --train eval-train-a --eval
 cv-eval-smoke --dev-count 160 --test-count 40` from `backend/`.
 
+The evaluation command now leaves runtime weights unchanged by default. Use
+`--report-output <path>` to retain the candidate and its measured checks.
+`--weights-output <path>` explicitly writes a candidate only when MRR, coverage,
+novelty, and all four complete 30-input intent benchmarks pass. Failed checks
+return a nonzero exit status and preserve existing weights. The historical
+results below apply to their stated artifacts; corrected-corpus failures remain
+documented in [prediction-context-a01.md](prediction-context-a01.md).
+
 ## Leak check
 
 Train songs: `612,021`. `cv-eval-smoke` dev+test songs: `2,049` (`991` dev,
