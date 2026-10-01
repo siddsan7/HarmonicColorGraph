@@ -443,7 +443,7 @@ def _run_load(args: argparse.Namespace) -> None:
         return
     if not args.version:
         raise SystemExit("--version is required unless --gc is used")
-    report = load_corpus(_artifact_dir(args.version), db_url)
+    report = load_corpus(_artifact_dir(args.version), db_url, compact_indexes=args.compact_indexes)
     print(json.dumps(report.__dict__, sort_keys=True, indent=2))
 
 
@@ -528,6 +528,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--gc", action="store_true", help="Delete inactive versions after confirmation."
     )
     load.add_argument("--yes", action="store_true", help="Confirm --gc for noninteractive use.")
+    load.add_argument(
+        "--compact-indexes",
+        action="store_true",
+        help=(
+            "Maintenance only: pack bulk-loaded indexes; "
+            "requires an empty corpus schema and drained readers."
+        ),
+    )
     load.set_defaults(func=_run_load)
 
     return parser

@@ -51,6 +51,21 @@ been reclaimed. Use the existing `pipeline.cli load` command for the exact
 reviewed artifact directory. It validates artifacts and size and activates
 only after the entire new load passes in its transaction.
 
+For the full corrected corpus, apply migration `0013_compact_incoming_index.sql`
+and use `pipeline.cli load --version <version> --compact-indexes`. This option
+requires empty corpus-version, compact-edge, and ngram tables; it rejects even
+an existing identical version. It rebuilds the edge and ngram indexes after
+their bulk inserts without changing rows or outgoing-edge uniqueness. Use the
+ordinary load command without the option for the subsequent idempotency check.
+Do not use this option with live readers: maintenance locks last until commit.
+
+Sample physical `pg_database_size(current_database())` independently throughout
+loading and commit, including the temporary retained index files. Sampling
+`pg_total_relation_size` from another connection can block on the reindex locks;
+measure those `hcg` totals before and after instead. The loader checks both
+storage gates inside its transaction before activation. Record the sampling
+interval and distinguish sampled physical peaks from before/after catalog size.
+
 ## Recovery
 
 If loading or acceptance fails, keep maintenance enabled and the worker
