@@ -185,6 +185,8 @@ def _measure(
         "called_tools": calls,
         "validator_codes": violations,
         "fallback": response.fallback,
+        "error_codes": response.errors,
+        "parsed_intent_axes": parsed.intent_axes,
     }
 
 

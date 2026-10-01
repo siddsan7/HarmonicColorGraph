@@ -28,6 +28,37 @@ ROUTING_QUERIES = [
 ]
 
 
+def test_explanation_prompt_does_not_duplicate_candidate_color_profiles():
+    import json
+
+    from app.ai.state import AssistantCandidate
+
+    prompts = []
+
+    def explain(prompt):
+        prompts.append(prompt)
+        raise ValueError("capture only")
+
+    profile = {"summary": {"brightness": 0.5}, "arc": [{"detail": "x" * 5000}]}
+    candidate = AssistantCandidate(
+        chords=["C"], color=profile, source_tool="recommend_next", fact_ids=["fact:1"]
+    )
+    workflow = AssistantWorkflow(_tools(), explanation_model=explain)
+    workflow._explain(
+        {
+            "raw_user_query": "Explain C",
+            "route": "recommend",
+            "validated_candidates": [candidate],
+            "fact_pool": {"fact:1": {}},
+            "tool_results": {"color_profile:0": profile},
+        }
+    )
+    context = json.loads(prompts[0].split("Context: ", 1)[1])
+    assert "color" not in context["candidates"][0]
+    assert context["tool_results"]["color_profile:0"] == profile
+    assert candidate.color == profile
+
+
 def test_twenty_query_routing_suite_and_valid_outputs():
     tools = _tools()
     workflow = AssistantWorkflow(tools)
