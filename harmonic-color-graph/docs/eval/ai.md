@@ -32,3 +32,10 @@ The offline seeded fixture completed 40/40 cases with schema validity 100%, must
 If `ragas` and `anthropic` are installed, `--ragas` adds a separately billed [Ragas faithfulness](https://docs.ragas.io/en/latest/concepts/metrics/available_metrics/faithfulness/) judge for at most three bounded claim-bearing samples. It is excluded from the weekly workflow and its cost is not included in the main `$5` cap. The deterministic fact-coverage threshold remains authoritative.
 
 The production SSE endpoint retains its request reservation after model failures, workflow errors, client disconnection, or missing/malformed provider usage. Audit `cost_usd` is conservative budget accounting in these cases, not a confirmed provider charge; known successful requests use observed token cost. Token counts must include nonnegative integer input and output counts.
+
+Standard uncached token estimates were checked on 2026-10-01 against the
+[official model pricing](https://platform.claude.com/docs/en/models/sonnet-5/overview):
+Haiku 4.5 uses $1/$5 and Sonnet 5 uses $2/$10 per million input/output tokens.
+The defaults, environment example, and weekly workflow agree. Historical reports
+retain their original rate assumptions; they are not billing statements.
+The existing missing-usage reserve can exceed the known-token bound.

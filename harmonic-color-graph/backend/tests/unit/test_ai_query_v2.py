@@ -117,14 +117,14 @@ def test_next_request_is_blocked_after_a_metered_query_spends_the_budget():
         meter.record(Raw(), "claude-sonnet-5")
         return AssistantWorkflow(_tools())
 
-    client, factory = _client(workflow_factory=metered_workflow, budget=Decimal("0.35"))
+    client, factory = _client(workflow_factory=metered_workflow, budget=Decimal("0.30"))
     try:
         assert client.post("/v2/ai/query", json={"query": "Explain C G"}).status_code == 200
         response = client.post("/v2/ai/query", json={"query": "Explain C G"})
         assert response.status_code == 429
         with factory() as session:
             costs = session.execute(select(ai_query_logs.c.cost_usd)).scalars().all()
-            assert Decimal("0.15") in costs
+            assert Decimal("0.10") in costs
     finally:
         app.dependency_overrides.clear()
 
@@ -182,7 +182,7 @@ def test_usage_meter_counts_both_models_and_estimates_cost():
     meter.record(Raw(), "claude-sonnet-5")
     assert meter.tokens_in == 2000
     assert meter.tokens_out == 200
-    assert meter.cost_usd == Decimal("0.006")
+    assert meter.cost_usd == Decimal("0.0045")
     assert meter.as_log()["model_usage"] == {
         "claude-haiku-4-5-20251001": {
             "calls": 1,
@@ -190,7 +190,7 @@ def test_usage_meter_counts_both_models_and_estimates_cost():
             "tokens_out": 100,
             "cost_usd": "0.0015",
         },
-        "claude-sonnet-5": {"calls": 1, "tokens_in": 1000, "tokens_out": 100, "cost_usd": "0.0045"},
+        "claude-sonnet-5": {"calls": 1, "tokens_in": 1000, "tokens_out": 100, "cost_usd": "0.003"},
     }
 
 
