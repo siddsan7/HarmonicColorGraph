@@ -143,6 +143,14 @@ class AIQueryRuntime:
             )
         return None
 
+    def _accounted_usage(self, meter: UsageMeter, *, uncertain: bool = False) -> dict[str, Any]:
+        usage = meter.as_log()
+        # Timeouts/disconnects can be billed without returning usage. Keep the
+        # request reservation until the outcome is known; do not report it free.
+        if uncertain or meter.unknown_usage_calls:
+            usage["cost_usd"] = max(meter.cost_usd, self.reservation_usd)
+        return usage
+
     def events(self, *, query: str, query_id: UUID) -> Iterator[str]:
         started = self.clock()
         meter = UsageMeter()
@@ -158,6 +166,9 @@ class AIQueryRuntime:
                         raise RuntimeError("Assistant model cost exceeded its reserved bound")
                     if kind == "final":
                         response = AssistantResponse.model_validate(payload["response"])
+                        usage = self._accounted_usage(
+                            meter, uncertain=any("model_failed" in code for code in response.errors)
+                        )
                         store.finish(
                             query_id=query_id,
                             parsed_intent=payload["parsed_intent"],
@@ -166,7 +177,7 @@ class AIQueryRuntime:
                             final=response.model_dump(mode="json"),
                             validation_errors=response.errors,
                             latency_ms=max(0, int((self.clock() - started) * 1000)),
-                            **meter.as_log(),
+                            **usage,
                         )
                         session.commit()
                         logged = True
@@ -181,7 +192,7 @@ class AIQueryRuntime:
                                     "corpus_version": get_settings().hcg_corpus_version,
                                     "tokens_in": meter.tokens_in,
                                     "tokens_out": meter.tokens_out,
-                                    "cost_usd": str(meter.cost_usd),
+                                    "cost_usd": str(usage["cost_usd"]),
                                     "error_category": None,
                                 },
                                 sort_keys=True,
@@ -206,7 +217,7 @@ class AIQueryRuntime:
                         query_id=query_id,
                         error_category=category,
                         latency_ms=max(0, int((self.clock() - started) * 1000)),
-                        **meter.as_log(),
+                        **self._accounted_usage(meter, uncertain=True),
                     )
                     session.commit()
                     logged = True
@@ -241,7 +252,7 @@ class AIQueryRuntime:
                             query_id=query_id,
                             error_category="client_disconnected",
                             latency_ms=max(0, int((self.clock() - started) * 1000)),
-                            **meter.as_log(),
+                            **self._accounted_usage(meter, uncertain=True),
                         )
                         session.commit()
                     except SQLAlchemyError:

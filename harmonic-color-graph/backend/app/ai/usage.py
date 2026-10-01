@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from dataclasses import dataclass, field
 from decimal import ROUND_UP, Decimal
 from typing import Any
@@ -74,6 +75,7 @@ class UsageMeter:
     tokens_out: int = 0
     cost_usd: Decimal = Decimal("0")
     model: str | None = None
+    unknown_usage_calls: int = 0
     by_model: dict[str, ModelTotals] = field(default_factory=dict)
 
     def record(
@@ -87,18 +89,27 @@ class UsageMeter:
         usage = getattr(raw, "usage_metadata", None) or {}
         if not usage:
             response_metadata = getattr(raw, "response_metadata", None) or {}
-            usage = response_metadata.get("usage") or response_metadata.get("token_usage") or {}
+            usage = (
+                response_metadata.get("usage") or response_metadata.get("token_usage") or {}
+                if isinstance(response_metadata, Mapping)
+                else {}
+            )
         self.model = model
         totals = self.by_model.setdefault(model, ModelTotals())
         totals.calls += 1
-        if not usage:
+        valid_usage = isinstance(usage, Mapping) and all(
+            type(usage.get(key)) is int and usage[key] >= 0
+            for key in ("input_tokens", "output_tokens")
+        )
+        if not valid_usage:
             # A model response without usage must never appear free to the
             # daily cap. Keep a conservative charge in the audit record.
+            self.unknown_usage_calls += 1
             self.cost_usd += MISSING_USAGE_CHARGE_USD
             totals.cost_usd += MISSING_USAGE_CHARGE_USD
             return
-        incoming = int(usage.get("input_tokens", 0))
-        outgoing = int(usage.get("output_tokens", 0))
+        incoming = usage["input_tokens"]
+        outgoing = usage["output_tokens"]
         self.tokens_in += incoming
         self.tokens_out += outgoing
         totals.tokens_in += incoming
