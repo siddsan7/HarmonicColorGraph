@@ -327,10 +327,9 @@ def estimate_song_keys(
     repetition_weights: list[int] | None = None,
     section_names: list[str] | None = None,
 ) -> SongKeyResult:
-    """Song key from every section's chords combined (repetition-weighted by
-    inclusion); a section's local key overrides the song key only when it is
-    both clearly stronger (>0.30 probability margin) and has enough chords
-    (>=4) to be evidence rather than noise.
+    """Estimate a song key from all chords, with section consensus resolving
+    an uncertain whole-song estimate. Local keys need a clear probability
+    margin and enough chords to establish a modulation.
     """
     if params is None:
         params = load_params()
@@ -355,15 +354,53 @@ def estimate_song_keys(
     song_estimate = estimate_keys(all_chords, params)
     song_key = song_estimate.best.key
 
+    estimates_by_section = [estimate_keys(section, params) for section in sections]
+    # A long section or a final tonic can dominate the flattened estimate even
+    # when most sections favor another key. Use the independent section votes
+    # only when the global estimate is uncertain and their consensus is clear.
+    if len(sections) >= 3 and song_estimate.best.probability < 0.5:
+        total_weight = sum(repetition_weights)
+        support = {
+            candidate.key: sum(
+                estimate.probability_of(candidate.key) * weight
+                for estimate, weight in zip(estimates_by_section, repetition_weights, strict=True)
+            )
+            / total_weight
+            for candidate in ALL_CANDIDATES
+        }
+        ranked = sorted(ALL_CANDIDATES, key=lambda candidate: support[candidate.key], reverse=True)
+        if support[ranked[0].key] > 1.3 * support[ranked[1].key]:
+            song_key = ranked[0].key
+            song_estimate = KeyEstimateResult(
+                estimates=[
+                    KeyEstimate(
+                        key=candidate.key,
+                        tonic_pc=candidate.tonic_pc,
+                        mode=candidate.mode,
+                        probability=support[candidate.key],
+                    )
+                    for candidate in ranked
+                ]
+            )
+
     section_keys: list[str] = []
     section_estimates: list[KeyEstimateResult] = []
     modulations: list[ModulationEvent] = []
 
-    for index, section in enumerate(sections):
-        section_estimate = estimate_keys(section, params)
+    song_candidate = next(candidate for candidate in ALL_CANDIDATES if candidate.key == song_key)
+    for index, (section, section_estimate) in enumerate(
+        zip(sections, estimates_by_section, strict=True)
+    ):
         local_best = section_estimate.best
         song_key_probability = section_estimate.probability_of(song_key)
         use_local_key = len(section) >= 4 and local_best.probability - song_key_probability > 0.30
+        # A chromatic reading that misclassifies ordinary chord tones should
+        # not displace a fully diatonic song-key reading solely on tonic bias.
+        if (
+            use_local_key
+            and _chord_fit_share(section, song_candidate.tonic_pc, song_candidate.mode) == 1.0
+        ):
+            use_local_key = _chord_fit_share(section, local_best.tonic_pc, local_best.mode) == 1.0
         chosen_key = local_best.key if use_local_key else song_key
         section_keys.append(chosen_key)
         section_estimates.append(section_estimate)

@@ -106,7 +106,7 @@ export function Generator() {
         return { label: choice.label, chord, progression: [...original, chord.chord] }
       })
       const comparisons = await Promise.all(selected.map((item) => compareColor({ a: original, b: item.progression, key: analysis.song_key, signal: controller.signal })))
-      if (!controller.signal.aborted) setVariants(selected.map((item, index) => ({ ...item, original: base, delta: comparisons[index].perceptual_deltas as Record<string, number> })))
+      if (!controller.signal.aborted) setVariants(selected.map((item, index) => ({ ...item, original: base, delta: comparisons[index].raw_deltas as Record<string, number> })))
     } catch (caught) {
       if (!controller.signal.aborted) setCompareError(caught instanceof Error ? caught.message : "Comparison failed.")
     } finally { if (!controller.signal.aborted) setCompareBusy(false) }

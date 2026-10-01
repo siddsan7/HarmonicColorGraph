@@ -7,33 +7,24 @@ analyzing chord progressions, converting them into Roman
 numerals, labeling harmonic relationships, and recommending
 next chords from a corpus-backed transition graph.
 
-The project is intentionally graph/theory-first. LLM features
-come later, after the symbolic music and data foundation can
-produce grounded, inspectable results.
+The project is graph/theory-first. Its grounded AI assistant uses the
+same inspectable harmonic services as the deterministic tools.
 
 ## Current Phase
 
-Phase 1 is the data, theory, and graph foundation.
-
-Implemented:
-
-- FastAPI backend for harmonic analysis.
-- Chord and progression normalization.
-- Key-aware Roman numeral analysis.
-- Rule-based harmonic relationship labels.
-- Supabase/Postgres schema for chords, songs, progressions,
-  transitions, labels, and metadata.
-- Full-library-capable Chordonomicon CSV/JSONL seed command.
-- Database-backed `/next-chords` and `/transition-stats`
-  endpoints with explicit demo fallback.
-- Next.js Phase 1 demo UI.
+The M0–M7 feature code is merged, including the graph explorer, generator,
+similarity view, playback, and grounded assistant. The current work is
+[M0–M7 completion verification](docs/m0-m7-completion-checklist.md): local
+checks support the implemented UI, while corpus-backed and live-model gates
+remain open. Production acceptance is tracked separately from merged code.
+The historical Phase 1 setup and seeding instructions remain below.
 
 ## Project Shape
 
 ```text
 harmonic-color-graph/
   app/                    Next.js App Router shell
-  components/             UI components and Phase 1 workbench
+  components/             Workbench, explorer, generator, similarity, and assistant UI
   backend/                FastAPI, theory, ingestion, database code
   context/                Persistent project memory
   data/                   Local raw/processed/sample data
@@ -44,7 +35,7 @@ harmonic-color-graph/
 
 ## Quick Start
 
-For a local full stack with Postgres, Redis, API, worker bootstrap, and
+For a local full stack with Postgres, Redis, API, durable job worker, and
 frontend, see [the Docker runbook](docs/runbooks/docker.md). Copy
 `.env.docker.example` to `.env.docker`, set the local database password
 in both `POSTGRES_PASSWORD` and `DATABASE_URL`, then run

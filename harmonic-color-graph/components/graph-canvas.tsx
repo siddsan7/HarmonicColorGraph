@@ -51,12 +51,23 @@ export function GraphCanvas({ graph, selected, pathNodes, pathEdges, colorAxis, 
           { selector: "edge", style: { width: "data(width)", "line-color": "data(color)", "target-arrow-color": "data(color)", "target-arrow-shape": "triangle", "curve-style": "bezier", opacity: .7 } },
           { selector: "edge.path", style: { "line-color": resolve("var(--accent-primary)"), "target-arrow-color": resolve("var(--accent-primary)"), opacity: 1, "z-index": 10 } },
         ],
-        layout: { name: "fcose", animate: false, randomize: false, quality: "default", fit: true, padding: 35 } as import("cytoscape").LayoutOptions,
+        layout: { name: "fcose", animate: false, randomize: false, quality: "default", fit: true, padding: 35,
+          stop: () => {
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              if (disposed || !graph.nodes.length) return
+              const ready = performance.getEntriesByName("hcg-explore-neighborhood-ready").at(-1) as PerformanceMark | undefined
+              if (!ready || typeof ready.detail?.elapsedMs !== "number") return
+              performance.mark("hcg-explore-layout-complete", { detail: {
+                elapsedMs: performance.now() - (ready.startTime - ready.detail.elapsedMs),
+                nodes: graph.nodes.length,
+              } })
+            }))
+          },
+        } as import("cytoscape").LayoutOptions,
       })
       instance.on("tap", "node", (event) => onSelect(event.target.id()))
       instance.on("mouseover", "edge", (event) => setHover(`${event.target.source().data("label")} → ${event.target.target().data("label")} · ${event.target.data("type")} · ${Math.round((event.target.data("prob") ?? 0) * 100)}% · tension Δ ${event.target.data("delta")?.toFixed(2) ?? "—"}`))
       instance.on("mouseout", "edge", () => setHover(""))
-      if (typeof performance !== "undefined") performance.mark("hcg-explore-layout-complete")
     }
     void draw()
     return () => { disposed = true; instance?.destroy() }
