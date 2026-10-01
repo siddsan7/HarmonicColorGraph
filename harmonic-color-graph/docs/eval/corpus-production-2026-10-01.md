@@ -133,3 +133,26 @@ analysis/color/song evidence, smooth-intent recommendations, active playback,
 and generation of three paths plus distinct A/B/C continuations. The 390 px
 Workbench layout has no page-wide overflow. These observations do not replace
 human listening, Safari/iOS, or the complete production UI acceptance set.
+
+
+### Coalesced export release: representative HTTP gate passes
+
+PR64 passed all five CI jobs in run 36831886915 and independent exact-head
+review, then merged as `247b0256f2d427dc7398b28602bda8511914e02c`.
+Production deployment `dpl_EMASMehhnrHTknYWbjyiA3Pmfcd3` serves that version
+with status `ok` and corpus label `cv-2026-10-b`.
+
+The unchanged verifier passed all correctness checks and 40 durable request
+log matches. Each query used two warmups and 20 measured back-to-back calls:
+
+| Query | Server p50 | Server p95 | Client p50 | Client p95 |
+| --- | ---: | ---: | ---: | ---: |
+| Function neighbors | 40.43 ms | 42.11 ms | 53.31 ms | 148.37 ms |
+| Structural patterns | 72.19 ms | 76.88 ms | 87.59 ms | 113.41 ms |
+
+Both server p95 values pass the unchanged 120 ms gate. These are two warm
+representative queries, not endpoint-wide or cold-start guarantees. Historical
+failures remain in `corpus-production-http-before-telemetry-fix.json` and
+`corpus-production-http-after-threadpool-fix.json`; the passing report is
+`corpus-production-http.json`. The live AI benchmark starts only after this
+pass and uses a separate durable spending ledger.

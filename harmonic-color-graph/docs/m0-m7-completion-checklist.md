@@ -13,25 +13,31 @@ Scope: finish the remaining M0–M7 implementation and automated acceptance,
 excluding human music/listening review and the separate frontend redesign.
 Representative Phase 3 prompts are approved. Free hosting/storage only; up to
 $10 total new paid AI evaluation on existing billing. New evaluation spending
-so far: $0. Independent reviewer approval plus required checks authorizes
+so far: $1.258135. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#62 are merged after independent review and required
+- PRs #48–#51 and #53–#64 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
   backup restoration, storage gates, exact colors/norms, vector retrieval,
   rotations, and public asset hashes passed. See the
   [production activation report](eval/corpus-production-2026-10-01.md).
-- API `3dcafb9` is healthy with maintenance off. Public HTTP correctness
-  passes, but back-to-back latency fails. The telemetry export fix passes
-  local backend checks and working-diff review; release and live recheck remain.
+- API `247b025` is healthy with maintenance off and the corrected corpus label.
+  Public HTTP correctness and representative warm latency pass: function
+  p95 42.11 ms, structural-pattern p95 76.88 ms against the 120 ms gate.
+  PR63/64 resolve event-loop blocking and export worker-pool contention.
 - [Mobile loading verification](eval/m6-local-ui-2026-10-01.md) records local
   scores of 90/91/91 performance and 100 accessibility, plus actual Chromium
   playback/MIDI. Production UI, Safari/iOS, and new production AI checks remain.
 - The temporary local worker is healthy and idle. Admin HTTP job verification
   needs the unconfigured admin token. Worker OTLP credentials and approved
   LangSmith workspace access remain needed. Monitoring is authorized.
+- The [production AI baseline](eval/ai-production-baseline-2026-10-01.json)
+  stopped failed/incomplete at 24/40: all 12 intent cases had completed and
+  only 8 passed. Twelve responses used labeled explanation fallbacks. The
+  remaining 16 calls were not run; the daily cap is restored to $2. This is
+  not a full acceptance pass. General context/prompt fixes are in review.
 - Human music/listening review remains explicitly pending. The database
   credential disclosed by a diagnostic must be rotated in coordinated API
   and worker configuration; its value is not recorded in these documents.
@@ -205,7 +211,7 @@ broken.
   [hybrid](eval/hybrid-context-lift.md), merged PR50. These frozen split
   checks do not establish acceptance of the rebuilt production corpus.
 
-- [ ] **A05 — Build and atomically activate a new real-corpus version.** Run
+- [x] **A05 — Build and atomically activate a new real-corpus version.** Run
   analysis/aggregates and the color, embedding, and snapshot stages from the
   verified source. Produce complete `color_norms`, `color_profiles`, 64D
   embeddings, and the 2D projection; run intrinsic embedding and color sanity
@@ -213,7 +219,8 @@ broken.
   (target `hcg` <= 300 MiB), loader idempotency, and rollback behavior before
   activating. Verify the active version and production row counts after the
   authorized load. Prerequisites: A01, H05; coordinate with A04.
-  Evidence: _pending_.
+  Evidence: [reviewed production activation](eval/corpus-production-2026-10-01.md),
+  frozen manifest, exact backup restoration, storage and idempotency proofs.
 
 - [ ] **A06 — Publish real-corpus browser assets.** Generate
   `public/snapshot/embedding-map.json` and replace the sample
@@ -240,11 +247,13 @@ broken.
   idempotency, bounded retry, and dead-letter/manual retry. Prerequisite: A07.
   Evidence: _pending_.
 
-- [ ] **L02 — Close M4/M5 corpus-backed gates.** Confirm complete stored
+- [x] **L02 — Close M4/M5 corpus-backed gates.** Confirm complete stored
   color-profile coverage and percentile norms, HNSW index use and p95
   similarity latency, related-but-distinct loop results, rotation flags,
   vector candidates in hybrid recommendations, and production structural
-  similarity. Prerequisite: A05. Evidence: _pending_.
+  similarity. Prerequisite: A05. Evidence:
+  [production corpus and HTTP acceptance](eval/corpus-production-2026-10-01.md),
+  runtime `247b025`; warm representative p95 42.11/76.88 ms.
 
 - [ ] **L03 — Close M6 production gate.** On desktop and mobile, enter
   `Cmaj7 - Em7 - Am7` with nostalgic/hopeful/smooth intent and verify multiple
@@ -287,4 +296,5 @@ visible until resolved.
 | A02 | 2026-10-01 | PR48 / PR54 | Local UI flows, mobile 90/91/91 and accessibility100, Chromium playback/MIDI | Production L03 pending; Windows WebKit lacks AudioContext; Lighthouse cleanup EPERM |
 | A03 | 2026-09-30 | PR48 | Entry points and milestone implementation status reconciled; docs check | Live gates remain open |
 | A04 | 2026-09-30 | PR50 | Frozen prediction and hybrid gates, zero split overlap | New production corpus acceptance pending |
-| A05 partial | 2026-10-01 | PR54 | Private full and selective rollback rehearsals | Full new build/load/activation pending |
+| A05 | 2026-10-01 | PR60–64 / cv-2026-10-b | Complete frozen build, exact recovery, reviewed activation, idempotency and storage gates | Narrow storage headroom; human listening separate |
+| L02 | 2026-10-01 | 247b025 | Exact profiles/norms, HNSW, rotations, vector candidates and warm HTTP p95 gate | Historical latency failures retained; not a cold-start guarantee |

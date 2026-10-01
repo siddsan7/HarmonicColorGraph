@@ -92,7 +92,10 @@ def intent_score(
     magnitude = sum(abs(value) for value in intent.values())
     if magnitude == 0:
         return 0.0
-    return sum(intent[name] * oriented[name] for name in intent) / magnitude
+    # Preserve the strength of a weak request; normalizing every nonzero
+    # vector to unit magnitude made a 0.1 slider identical to a 1.0 slider.
+    # Multiple strong axes still share the same bounded influence.
+    return sum(intent[name] * oriented[name] for name in intent) / max(1.0, magnitude)
 
 
 @lru_cache(maxsize=4096)
