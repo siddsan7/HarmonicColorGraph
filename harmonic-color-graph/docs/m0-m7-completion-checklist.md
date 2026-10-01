@@ -7,6 +7,34 @@ the milestone exit gates. It is not the workstream selector: read the Git-root
 before starting. Reconcile this checklist against current Git and deployment
 state if work has continued since this date.
 
+## Development update - 2026-09-30
+
+PR #50 now contains the tested context-lift predictor, calibrated recommendation
+list diversity, safe evaluation weight publication, Assistant repairs, temporary
+local worker launcher, and embedding-rebuild artifact jobs. See
+[prediction results](eval/prediction-context-lift.md),
+[recommendation results](eval/hybrid-context-lift.md),
+[final AI results](eval/ai-live-final-2026-09-30.md), and the
+[local worker runbook](runbooks/local-worker.md).
+
+- A04's bounded offline prediction and hybrid acceptance checks now pass. The
+  corrected brightness fallback also passes the frozen recommendation recheck.
+- The temporary worker authenticated to real Postgres/Redis, completed a sample
+  job, and recovered a job queued during a graceful restart. Its computer must
+  stay awake. Persistent Oracle hosting is still unavailable due to capacity.
+- Embedding rebuild jobs now prepare immutable, hashed artifacts using the real
+  pipeline. They do not activate a corpus. The Docker worker includes the ML
+  extras and a separate writable output volume.
+- The final live AI run passed every configured threshold across 40 seeded-service
+  cases, including 75% color intent. Twenty cases used labeled fallbacks.
+  CI passed backend unit, Postgres integration, frontend, docs/tooling and Docker
+  Compose checks. Seeded services do not prove production corpus integration.
+- Production corpus/embedding activation and associated L01-L06 checks remain
+  open, as do human music/listening review and review before merge/deployment.
+  No production corpus reload or deployment was performed in this update.
+
+Older baseline observations below are historical, not current health checks.
+
 ## How to use the checklist
 
 - Work through the **Ready now** items first. Continue independent work while

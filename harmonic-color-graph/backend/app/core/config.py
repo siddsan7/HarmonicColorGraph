@@ -26,6 +26,7 @@ class AppSettings(BaseSettings):
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
     hcg_jobs_admin_token: str | None = Field(default=None, alias="HCG_JOBS_ADMIN_TOKEN")
     hcg_artifact_root: str = Field(default="../data/artifacts", alias="HCG_ARTIFACT_ROOT")
+    hcg_embedding_output_root: str | None = Field(default=None, alias="HCG_EMBEDDING_OUTPUT_ROOT")
     hcg_evaluation_source: str = Field(
         default="../data/samples/mini_corpus.csv", alias="HCG_EVALUATION_SOURCE"
     )

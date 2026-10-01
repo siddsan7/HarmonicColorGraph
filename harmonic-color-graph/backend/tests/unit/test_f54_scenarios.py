@@ -26,6 +26,8 @@ _CASES = json.loads(
 
 
 class _FrozenPredictor:
+    context_lift = False  # The captured distribution predates the context-lift model.
+
     def __init__(self, scenario: dict):
         self.scenario = scenario
         self.store = self

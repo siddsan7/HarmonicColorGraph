@@ -4,6 +4,23 @@ from app.recommend.features import FEATURE_NAMES, CandidateFeatures, extract_fea
 from app.recommend.scorer import intent_score, load_weights, score_candidates
 
 
+def test_list_diversity_preserves_first_choice_and_promotes_distinct_pitch_content():
+    from app.recommend.features import COLOR_AXES
+
+    rows = [
+        CandidateFeatures(token, dict.fromkeys(FEATURE_NAMES, 0.0), dict.fromkeys(COLOR_AXES, 0.0))
+        for token in ("M:I", "M:Imaj7", "M:bII")
+    ]
+    plain = score_candidates(rows, selection_diversity=0)
+    diverse = score_candidates(rows)
+    assert [row.token for row in plain] == ["M:I", "M:Imaj7", "M:bII"]
+    assert [row.token for row in diverse] == ["M:I", "M:bII", "M:Imaj7"]
+    assert diverse[0].score == plain[0].score
+    assert diverse[-1].score_breakdown["selection_diversity"] < 0
+    assert score_candidates(list(reversed(rows)), limit=2) == diverse[:2]
+    assert all(left.score >= right.score for left, right in zip(diverse, diverse[1:], strict=False))
+
+
 def _prediction(*items: tuple[str, float]) -> PredictionResult:
     return PredictionResult(
         history=("M:I",),
@@ -43,6 +60,18 @@ def test_feature_vector_and_intent_are_complete_and_bounded():
     assert intent_score(features.color_delta, {"darker_brighter": -1}) > 0
 
 
+def test_raw_brightness_preserves_direction_between_two_negative_values():
+    from app.color.features import brightness
+    from app.theory.roman import analyze_v2
+
+    tokens = analyze_v2("Am Dm", "C major").tokens
+    previous, current = (brightness(token, "C major") for token in tokens)
+    assert current < previous < 0
+    features = extract_features(Candidate("M:ii", frozenset({"theory"})), ["M:vi"], "C major")
+    assert abs(features.color_delta["brightness"] - (current - previous) / 2.0) < 1e-9
+    assert intent_score(features.color_delta, {"darker_brighter": -1}, features) > 0
+
+
 def test_extended_borrowed_mediant_has_dreamy_fit_without_changing_raw_brightness():
     prior = ["M:Imaj7", "M:iii7", "M:vi7"]
     borrowed = extract_features(Candidate("M:bVImaj7", frozenset({"theory"})), prior, "C major")
@@ -66,7 +95,7 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
         values["common_tones"] = 0.5
         rows.append(
             CandidateFeatures(
-                f"M:{index}",
+                ("M:I", "M:V", "M:ii", "M:IV", "M:vi")[index],
                 values,
                 dict.fromkeys(
                     ("brightness", "tension", "surprise", "complexity", "resolution", "smoothness"),
@@ -84,7 +113,13 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
             abs(
                 sum(
                     breakdown[name]
-                    for name in ("plausibility_z", "intent", "diversity", "surprise_bonus")
+                    for name in (
+                        "plausibility_z",
+                        "intent",
+                        "diversity",
+                        "surprise_bonus",
+                        "selection_diversity",
+                    )
                 )
                 - row.score
             )

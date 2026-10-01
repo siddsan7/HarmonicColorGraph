@@ -46,6 +46,17 @@ def test_scoring_rejects_unsupported_claim_and_unexpected_tool():
     assert not row["tool_correct"]
     assert not row["theory_valid"]
     assert row["valid_claims"] == 0
+    assert row["parsed_intent_axes"] == {"darker_brighter": 0.7}
+    assert row["error_codes"] == []
+
+
+def test_intent_schema_documents_every_supported_axis_and_direction():
+    from app.recommend.scorer import INTENT_AXES
+
+    description = ParsedIntent.model_json_schema()["properties"]["intent_axes"]["description"]
+    assert all(axis in description for axis in INTENT_AXES)
+    assert "negative tense, positive relaxed" in description
+    assert "negative resolved, positive open" in description
 
 
 def test_thresholds_require_completed_cases_and_claims():

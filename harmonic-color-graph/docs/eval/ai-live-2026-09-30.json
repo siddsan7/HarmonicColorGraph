@@ -1,0 +1,231 @@
+{
+  "ran_at": "2026-10-01T00:47:02.468058+00:00",
+  "mode": "live",
+  "data_source": "seeded_fixture",
+  "max_cost_usd": "5",
+  "metered_cost_usd": "0.802066",
+  "unknown_cost_cases": [
+    "recommend-01",
+    "recommend-02",
+    "recommend-03",
+    "recommend-05",
+    "recommend-07"
+  ],
+  "model_usage": {
+    "claude-haiku-4-5-20251001": {
+      "calls": 7,
+      "tokens_in": 7295,
+      "tokens_out": 904,
+      "cost_usd": "0.011815"
+    },
+    "claude-sonnet-5": {
+      "calls": 11,
+      "tokens_in": 236742,
+      "tokens_out": 5335,
+      "cost_usd": "0.790251"
+    }
+  },
+  "cases_completed": 7,
+  "cases_total": 40,
+  "claims": 18,
+  "intent_cases": 7,
+  "cost_usd": "4.60333000",
+  "metrics": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 1.0,
+    "intent_match": 0.0,
+    "intent_parse_match": 0.0,
+    "color_axis_match": 0.0,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 1.0
+  },
+  "thresholds": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 0.9,
+    "intent_match": 0.75,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 0.95
+  },
+  "passed": false,
+  "cases": [
+    {
+      "id": "recommend-01",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true
+    },
+    {
+      "id": "recommend-02",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 5,
+      "claim_count": 5,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false
+    },
+    {
+      "id": "recommend-03",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true
+    },
+    {
+      "id": "recommend-04",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 2,
+      "claim_count": 2,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false
+    },
+    {
+      "id": "recommend-05",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 6,
+      "claim_count": 6,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false
+    },
+    {
+      "id": "recommend-06",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true
+    },
+    {
+      "id": "recommend-07",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": false,
+      "color_axis_match": false,
+      "measured_axis_deltas": {},
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 5,
+      "claim_count": 5,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": false
+    }
+  ]
+}

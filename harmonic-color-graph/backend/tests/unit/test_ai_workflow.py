@@ -28,6 +28,37 @@ ROUTING_QUERIES = [
 ]
 
 
+def test_explanation_prompt_does_not_duplicate_candidate_color_profiles():
+    import json
+
+    from app.ai.state import AssistantCandidate
+
+    prompts = []
+
+    def explain(prompt):
+        prompts.append(prompt)
+        raise ValueError("capture only")
+
+    profile = {"summary": {"brightness": 0.5}, "arc": [{"detail": "x" * 5000}]}
+    candidate = AssistantCandidate(
+        chords=["C"], color=profile, source_tool="recommend_next", fact_ids=["fact:1"]
+    )
+    workflow = AssistantWorkflow(_tools(), explanation_model=explain)
+    workflow._explain(
+        {
+            "raw_user_query": "Explain C",
+            "route": "recommend",
+            "validated_candidates": [candidate],
+            "fact_pool": {"fact:1": {}},
+            "tool_results": {"color_profile:0": profile},
+        }
+    )
+    context = json.loads(prompts[0].split("Context: ", 1)[1])
+    assert "color" not in context["candidates"][0]
+    assert context["tool_results"]["color_profile:0"] == profile
+    assert candidate.color == profile
+
+
 def test_twenty_query_routing_suite_and_valid_outputs():
     tools = _tools()
     workflow = AssistantWorkflow(tools)
@@ -100,6 +131,22 @@ def test_fallback_parser_clarifies_invalid_comparison_variants():
     assert parsed.chords == []
 
 
+def test_model_comparison_recovers_explicit_sequences_without_combining_them():
+    workflow = AssistantWorkflow(
+        _tools(),
+        intent_model=lambda _: ParsedIntent(
+            task_type="compare", chords=["G", "D", "Em", "C", "G", "C", "D", "G"], key="G major"
+        ),
+    )
+    parsed = workflow._intent_parser(
+        {"raw_user_query": "Compare G D Em C versus G C D G in G major."}
+    )["parsed_intent"]
+    assert parsed.variants == [["G", "D", "Em", "C"], ["G", "C", "D", "G"]]
+    assert parsed.chords == parsed.variants[0]
+    missing = workflow._intent_parser({"raw_user_query": "Compare G D Em C"})["parsed_intent"]
+    assert missing.variants == []
+
+
 def test_explanation_repairs_invalid_fact_reference_once():
     calls = 0
 
@@ -107,6 +154,8 @@ def test_explanation_repairs_invalid_fact_reference_once():
         nonlocal calls
         calls += 1
         fact_id = "made-up" if calls == 1 else "relationship:deceptive:1:2"
+        if calls == 2:
+            assert "claim:0:fact_coverage" in _prompt
         return {
             "claims": [{"text": "The transition is supported.", "fact_ids": [fact_id]}],
         }
@@ -150,6 +199,7 @@ def test_invented_chord_rejected_then_deterministic_fallback():
     assert calls == 2
     assert result.fallback
     assert "F#7" not in result.message
+    assert any("claim:0:chord_provenance" in code for code in result.errors)
 
 
 def test_invalid_explanation_schema_gets_one_repair():
@@ -267,3 +317,21 @@ def test_provider_failure_uses_deterministic_route_and_explanation():
     assert result.fallback
     assert "intent_model_failed:TimeoutError" in result.errors
     assert calls == 2  # one intent attempt, then immediate explanation fallback
+
+
+def test_explanation_failure_retains_analyzer_citations_and_registered_relationships():
+    from app.ai.validators import validate_claims
+
+    def unavailable(_):
+        raise TimeoutError("provider unavailable")
+
+    result = AssistantWorkflow(
+        _tools(),
+        intent_model=lambda _: ParsedIntent(task_type="explain", chords=["G", "Am"], key="C major"),
+        explanation_model=unavailable,
+    ).run("Explain this transition")
+    assert result.fallback  # Never represent a deterministic fallback as model success.
+    assert result.claims
+    assert "deceptive" in {label for claim in result.claims for label in claim.theory_labels}
+    assert validate_claims(result.claims, result.facts, result.tool_results) == []
+    assert all(set(claim.fact_ids) <= set(result.facts) for claim in result.claims)

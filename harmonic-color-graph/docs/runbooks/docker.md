@@ -4,7 +4,9 @@ This stack runs the Next.js frontend, FastAPI API, durable job worker,
 pgvector/Postgres 17, and Redis. It applies the same SQL files used for
 Supabase. The worker consumes Redis wakeups, reconciles queued jobs from the
 Postgres ledger, and retries recoverable work. Redis data is intentionally
-ephemeral.
+ephemeral. Embedding builds use the worker's ML dependencies and writable
+`worker_artifacts` volume; corpus inputs remain read-only. Completed
+embedding bundles require reviewed activation.
 
 ## Requirements and first start
 
@@ -96,8 +98,7 @@ than running destructive integration fixtures against the app database.
 
 The local stack starts with empty harmonic tables. Production corpus data
 is not bundled in images or copied from Supabase. See the pipeline
-runbook and active implementation plan for loading a corpus. The worker
-implementation is merged, but a fresh Compose startup and job execution have
-not been verified on this host. The Compose stack validates local packaging
-and networking when run; it does not establish production worker readiness.
+runbook and active implementation plan for loading a corpus. The Compose
+stack validates local packaging and networking; it does not establish
+production worker readiness.
 Vercel and Supabase deployment still follow their separate runbooks.
