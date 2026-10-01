@@ -416,7 +416,7 @@ class AssistantWorkflow:
         route = state["route"]
         data = (state.get("analysis") or {}).get("data", {})
         regions = data.get("key_regions") or []
-        key = intent.key or (regions[-1]["key"] if regions else data.get("song_key"))
+        key = intent.key or (regions[0]["key"] if regions else data.get("song_key"))
         calls: list[tuple[str, dict[str, Any]]] = []
         if route == "recommend":
             calls = [
@@ -449,7 +449,7 @@ class AssistantWorkflow:
             calls = [
                 (
                     "similar_progressions",
-                    {"progression": intent.chords[:8], "key": key, "k": intent.count},
+                    {"progression": intent.chords[:8], "key": intent.key, "k": intent.count},
                 )
             ]
         elif route == "compare":
@@ -513,7 +513,7 @@ class AssistantWorkflow:
                 variant = intent.variants[index]
                 try:
                     variant_analysis = self.tools.call(
-                        "analyze_progression", {"chords": variant, "key": key}
+                        "analyze_progression", {"chords": variant, "key": intent.key}
                     ).model_dump(mode="json")
                 except ToolError as exc:
                     errors.append(f"compare_analysis:{exc.code}")

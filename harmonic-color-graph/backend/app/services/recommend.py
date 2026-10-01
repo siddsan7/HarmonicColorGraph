@@ -350,6 +350,14 @@ def _context_value(value: str | None) -> str | None:
 def _input_tokens(
     progression: str | list[str], key: str | None
 ) -> tuple[list[str], str, list[RecommendWarning]]:
+    tokens, resolved_key, warnings, _ = _input_region(progression, key)
+    return tokens, resolved_key, warnings
+
+
+def _input_region(
+    progression: str | list[str], key: str | None, position: int | None = None
+) -> tuple[list[str], str, list[RecommendWarning], int]:
+    """Return the selected chord's region, or the final region for continuation."""
     if isinstance(progression, str):
         parts = [
             part for part in re.split(r"\s*(?:,|\s+-\s+|\n)\s*|\s+", progression.strip()) if part
@@ -368,7 +376,7 @@ def _input_tokens(
             raise ValueError("All core tokens must match the key's mode.")
         for part in parts:
             realize(part, normalized_key)
-        return list(parts), normalized_key, []
+        return list(parts), normalized_key, [], 0
     if any(_TOKEN.fullmatch(part) for part in parts):
         raise ValueError("Use either all chords or all core tokens in one progression.")
     analysis = analyze_v2(parts, key)
@@ -384,9 +392,16 @@ def _input_tokens(
         if analysis.ambiguous
         else []
     )
-    region = analysis.key_regions[-1]
+    if position is not None and not 0 <= position < len(parts):
+        raise ValueError("index must refer to a chord in the progression")
+    region = (
+        next(r for r in analysis.key_regions if r.start_index <= position < r.end_index)
+        if position is not None
+        else analysis.key_regions[-1]
+    )
     return (
         [token.core for token in analysis.tokens[region.start_index : region.end_index]],
         region.key,
         warnings,
+        region.start_index,
     )
