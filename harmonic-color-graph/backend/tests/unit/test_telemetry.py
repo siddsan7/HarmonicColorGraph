@@ -1,8 +1,10 @@
 """Request and database spans must join without exposing SQL or request data."""
 
+import asyncio
 import re
 import subprocess
 import sys
+import threading
 from contextlib import nullcontext
 from pathlib import Path
 from uuid import uuid4
@@ -35,6 +37,41 @@ class CapturingExporter(SpanExporter):
 
     def shutdown(self):
         pass
+
+
+def test_slow_export_keeps_request_event_loop_responsive(monkeypatch):
+    progress_during_export = []
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+
+        def stalled_export():
+            progressed = threading.Event()
+            loop.call_soon_threadsafe(progressed.set)
+            progress_during_export.append(progressed.wait(timeout=2))
+
+        async def endpoint(_scope, _receive, send):
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body", "body": b"ok"})
+
+        async def receive():
+            return {"type": "http.request", "body": b""}
+
+        sent = []
+
+        async def send(message):
+            sent.append(message)
+
+        monkeypatch.setattr(telemetry, "flush_telemetry", stalled_export)
+        monkeypatch.setattr(
+            telemetry, "get_settings", lambda: AppSettings(database_url="sqlite://")
+        )
+        middleware = telemetry.TelemetryMiddleware(endpoint)
+        await middleware({"type": "http", "method": "GET"}, receive, send)
+        assert sent[-1]["body"] == b"ok"
+
+    asyncio.run(scenario())
+    assert progress_during_export == [True]
 
 
 def test_health_db_trace_correlates_http_and_sql_without_sensitive_fields(caplog):

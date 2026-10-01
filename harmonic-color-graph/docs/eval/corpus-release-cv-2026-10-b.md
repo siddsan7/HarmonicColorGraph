@@ -1,8 +1,8 @@
-# Corrected corpus release candidate
+# Corrected corpus release
 
-Status: prepared and locally validated; **not activated in production**.
-Keep this asset change unmerged until the database replacement is reviewed
-and the corrected corpus passes production acceptance during maintenance.
+Status: activated in production on 2026-10-01 after independent review and
+verified recovery. See the [production report](corpus-production-2026-10-01.md)
+for acceptance results and remaining live gates.
 
 The release uses the entire previously verified Chordonomicon CSV: 679,807
 songs, 2,292,102 derived sections, and 44,500,844 tokens. No songs were skipped.

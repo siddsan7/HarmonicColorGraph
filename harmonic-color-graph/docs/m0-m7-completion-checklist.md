@@ -16,26 +16,25 @@ $10 total new paid AI evaluation on existing billing. New evaluation spending
 so far: $0. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53 are merged. PR53 fixes internal key changes and keeps
-  continuation, selected-chord substitutions, color, and evidence aligned with
-  local keys. CI 36806956681 passed all five jobs before merge.
-- Full corrected `cv-2026-10-b` build is running from the verified original
-  source (679,807 songs); it is not active in production.
-- [Mobile loading verification](eval/m6-local-ui-2026-10-01.md) now records
-  three passing local mobile runs (90/91/91 performance, 100 accessibility),
-  plus actual Chromium playback/MIDI. PR54 merged the implementation after independent review and all five CI
-  jobs passed.
-- [Rollback rehearsal](eval/rollout-rehearsal-2026-10-01.md) restored all
-  33 table counts and sequences, then proved selective corpus restoration
-  preserving jobs/logs. New-load storage and final activation review remain.
-- Production API at merge `02e4319`: `/health`, `/health/db`, `/health/redis`
-  returned 200. `/v2/admin/metrics` remains 503 because the admin token is
-  unconfigured. Health's configured corpus label is still `unversioned`;
-  database active version remains `cv-2026-09-a`.
-- Temporary local worker is accepted while free persistent capacity is
-  unavailable. Grafana/OTLP and approved-workspace LangSmith recording are
-  authorized; worker collector credentials and LangSmith workspace access
-  are still needed. Human review remains explicitly pending.
+- PRs #48–#51 and #53–#62 are merged after independent review and required
+  checks. Internal key changes, recommendations, corpus loading, similarity,
+  mobile loading, pricing, and browser assets have been corrected.
+- The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
+  backup restoration, storage gates, exact colors/norms, vector retrieval,
+  rotations, and public asset hashes passed. See the
+  [production activation report](eval/corpus-production-2026-10-01.md).
+- API `3dcafb9` is healthy with maintenance off. Public HTTP correctness
+  passes, but back-to-back latency fails. The telemetry export fix passes
+  local backend checks and working-diff review; release and live recheck remain.
+- [Mobile loading verification](eval/m6-local-ui-2026-10-01.md) records local
+  scores of 90/91/91 performance and 100 accessibility, plus actual Chromium
+  playback/MIDI. Production UI, Safari/iOS, and new production AI checks remain.
+- The temporary local worker is healthy and idle. Admin HTTP job verification
+  needs the unconfigured admin token. Worker OTLP credentials and approved
+  LangSmith workspace access remain needed. Monitoring is authorized.
+- Human music/listening review remains explicitly pending. The database
+  credential disclosed by a diagnostic must be rotated in coordinated API
+  and worker configuration; its value is not recorded in these documents.
 
 ## Development update - 2026-09-30
 
