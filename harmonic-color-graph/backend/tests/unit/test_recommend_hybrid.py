@@ -60,6 +60,18 @@ def test_feature_vector_and_intent_are_complete_and_bounded():
     assert intent_score(features.color_delta, {"darker_brighter": -1}) > 0
 
 
+def test_raw_brightness_preserves_direction_between_two_negative_values():
+    from app.color.features import brightness
+    from app.theory.roman import analyze_v2
+
+    tokens = analyze_v2("Am Dm", "C major").tokens
+    previous, current = (brightness(token, "C major") for token in tokens)
+    assert current < previous < 0
+    features = extract_features(Candidate("M:ii", frozenset({"theory"})), ["M:vi"], "C major")
+    assert abs(features.color_delta["brightness"] - (current - previous) / 2.0) < 1e-9
+    assert intent_score(features.color_delta, {"darker_brighter": -1}, features) > 0
+
+
 def test_extended_borrowed_mediant_has_dreamy_fit_without_changing_raw_brightness():
     prior = ["M:Imaj7", "M:iii7", "M:vi7"]
     borrowed = extract_features(Candidate("M:bVImaj7", frozenset({"theory"})), prior, "C major")

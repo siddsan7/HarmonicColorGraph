@@ -64,6 +64,10 @@ def _color_values(raw: object, norms: NormsTable | None) -> dict[str, float]:
             result[axis] = normalize(value, norms[(axis, "transition")])
         elif axis == "surprise":
             result[axis] = _clip(value / 16.0, 0.0, 1.0)
+        elif axis == "brightness":
+            # Raw brightness is signed. Clipping negative minor-chord values
+            # to zero erases darker/brighter differences when no norms exist.
+            result[axis] = (_clip(value) + 1.0) / 2.0
         else:
             result[axis] = _clip(value, 0.0, 1.0)
     return result

@@ -57,13 +57,24 @@ def test_health_db_trace_correlates_http_and_sql_without_sensitive_fields(caplog
     assert response.status_code == 200
     assert re.fullmatch(r"[0-9a-f]{32}", trace_id)
     spans = [span for span in exporter.spans if f"{span.context.trace_id:032x}" == trace_id]
-    assert {span.name for span in spans} == {"http.request", "db.query"}
+    assert {"http.request", "db.query"} <= {span.name for span in spans}
     root = next(span for span in spans if span.name == "http.request")
     database = next(span for span in spans if span.name == "db.query")
-    assert database.parent.span_id == root.context.span_id
+    # Newer FastAPI versions insert dependency/endpoint spans between the
+    # request and SQL. Require ancestry, not an exact framework span count.
+    by_id = {span.context.span_id: span for span in spans}
+    ancestor = database
+    visited = set()
+    while ancestor.context.span_id != root.context.span_id:
+        assert ancestor.context.span_id not in visited
+        visited.add(ancestor.context.span_id)
+        assert ancestor.parent is not None
+        assert ancestor.parent.span_id in by_id
+        ancestor = by_id[ancestor.parent.span_id]
     assert database.attributes["db.operation.name"] == "SELECT"
-    assert "secret-token" not in str(spans) + caplog.text
-    assert "select 1" not in str(spans) + caplog.text
+    exported = str([(span.attributes, span.events, span.status) for span in spans]) + caplog.text
+    assert "secret-token" not in exported
+    assert "select 1" not in exported
 
 
 def test_browser_origin_can_read_trace_header():

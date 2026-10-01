@@ -1,4 +1,4 @@
-# Hybrid recommendation correction — 2026-09-30
+# Hybrid recommendation correction â€” 2026-09-30
 
 After the context-lift predictor change, frozen original weights failed the 400-position test: hybrid MRR 0.6716 versus n-gram 0.6927, and top-five vocabulary coverage 79 versus 80. [Failed baseline](hybrid-context-lift-baseline-failed.json) is retained.
 
@@ -15,3 +15,10 @@ The frozen selection then passed the existing held-out 400-position recheck (see
 [Full report](hybrid-context-lift.json). Train/dev/test song overlap is zero. The test sample had already exposed the earlier defect; this is a regression recheck, not a fresh blind benchmark. These bounded offline results do not establish production-corpus or human listening acceptance.
 
 The evaluation CLI now requires an explicit weights destination and refuses to write a failing candidate. Frozen weight input preserves the original training metadata.
+
+
+## Signed brightness correction
+
+The no-norms fallback previously clipped signed raw brightness to [0,1], collapsing all negative minor-chord values to zero. It now maps [-1,1] affinely onto [0,1], preserving order and differences. The Am-to-Dm regression verifies a darker step even though both raw values are negative. Existing F54 musical scenarios pass.
+
+With the already frozen weights and diversity policy, all gates passed again on dev and the same test sample; no retuning occurred. Test MRR is 0.6832 versus baseline 0.6927; coverage 87 versus 80; intent darker/brighter/surprising/smoother pass 27/27/30/28 of 30. This supersedes the earlier numeric result while retaining its report. [Normalization recheck](hybrid-brightness-recheck.json).
