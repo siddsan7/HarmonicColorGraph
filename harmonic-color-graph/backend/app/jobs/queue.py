@@ -8,6 +8,7 @@ from app.core import telemetry
 from app.core.metrics import emit_metric
 
 QUEUE_KEY = "hcg:jobs:ready"
+IDLE_RECEIVE_TIMEOUT_S = 15
 _ENQUEUE_SCRIPT = """
 if redis.call('SET', KEYS[1], '1', 'NX', 'EX', 60) then
   redis.call('LPUSH', KEYS[2], ARGV[1])
@@ -22,8 +23,14 @@ class JobQueue:
         self.redis = redis
 
     @classmethod
-    def from_url(cls, url: str) -> JobQueue:
-        return cls(Redis.from_url(url, socket_connect_timeout=3, socket_timeout=3))
+    def from_url(cls, url: str, *, socket_timeout: int = 3) -> JobQueue:
+        return cls(
+            Redis.from_url(
+                url,
+                socket_connect_timeout=3,
+                socket_timeout=socket_timeout,
+            )
+        )
 
     def enqueue(self, job_id: str, *, force: bool = False) -> None:
         marker = f"hcg:jobs:queued:{job_id}"
@@ -36,7 +43,7 @@ class JobQueue:
                 return
             self.redis.eval(_ENQUEUE_SCRIPT, 2, marker, QUEUE_KEY, job_id)
 
-    def receive(self, timeout: int = 5) -> str | None:
+    def receive(self, timeout: int = IDLE_RECEIVE_TIMEOUT_S) -> str | None:
         with telemetry.safe_span("redis.queue_receive"):
             result = self.redis.brpop(QUEUE_KEY, timeout=timeout)
         return result[1].decode("ascii") if result is not None else None
