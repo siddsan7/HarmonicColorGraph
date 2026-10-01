@@ -11,7 +11,7 @@ from app.schemas.analysis_v2 import (
 )
 from app.schemas.harmony import CanonicalChord
 from app.theory.chord_normalizer import normalize_chord
-from app.theory.keys import estimate_keys, estimate_song_keys
+from app.theory.keys import estimate_song_keys
 from app.theory.progression_normalizer import _tokenize_progression, normalize_progression
 from app.theory.relationships_v2 import analyze_relationships
 from app.theory.spelling import NOTE_TO_PITCH_CLASS
@@ -385,9 +385,9 @@ def analyze_v2(
         local_keys = [song_key] * len(sections)
         modulations: list[Modulation] = []
     else:
-        estimates = estimate_keys(normalized_chords)
         song = estimate_song_keys([part.chords for part in sections])
         song_key = song.song_key
+        estimates = song.song_key_estimate
         key_distribution = [
             KeyProbability(key=item.key, probability=item.probability) for item in estimates.top(5)
         ]
