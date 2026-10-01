@@ -7,7 +7,7 @@ import sys
 import time
 from pathlib import Path
 
-from pipeline.manifest import Manifest, content_hash, git_sha, sha256_file
+from pipeline.manifest import Manifest, git_sha, parquet_content_hash, sha256_file
 from pipeline.memory_guard import MemoryGuard
 from pipeline.stages.vocab_report import build_vocab_report, render_vocab_report_markdown
 from pipeline.synth import write_mini_corpus
@@ -30,6 +30,88 @@ STAGE_ORDER = [
     "export",
 ]
 
+STAGE_OUTPUTS = {
+    "ingest": ("ingest.parquet",),
+    "analyze": ("sections.parquet",),
+    "aggregate": ("transitions.parquet", "functions.parquet", "abs_transitions.parquet"),
+    "voice_leading": ("voice_leads.parquet",),
+    "ngrams": ("ngrams.parquet",),
+    "patterns": ("patterns.parquet",),
+    "examples": ("pattern_examples.parquet", "transition_examples.parquet", "song_refs.parquet"),
+    "color": ("color.parquet", "color_profiles.parquet"),
+    "embeddings": ("embeddings.parquet", "embedding_projection.parquet"),
+    "snapshot": ("snapshot.json",),
+    "export": (),
+}
+STAGE_COUNTS = {
+    "ingest": ("songs_ingested", "sections_before_dedupe", "sections_after_dedupe"),
+    "analyze": (
+        "songs_analyzed",
+        "songs_skipped_no_chords",
+        "sections_analyzed",
+        "tokens_analyzed",
+        "labels_analyzed",
+        "ambiguous_songs",
+    ),
+    "aggregate": (
+        "transitions_rows",
+        "functions_rows",
+        "abs_transitions_rows",
+        "contexts_kept",
+        "contexts_dropped_small",
+    ),
+    "voice_leading": ("voice_leads_rows",),
+    "ngrams": ("ngrams_rows", "ngrams_rows_pruned"),
+    "patterns": ("patterns_rows", "patterns_windows_seen", "patterns_below_min_support"),
+    "examples": (
+        "pattern_examples_rows",
+        "transition_examples_rows",
+        "song_refs_rows",
+        "patterns_with_no_example",
+        "transitions_with_no_example",
+    ),
+    "color": ("color_norms_rows", "color_profiles_rows"),
+    "embeddings": ("embeddings_rows", "embedding_projection_rows"),
+}
+STAGE_BUDGETS = {
+    "aggregate": ("transitions", "functions", "abs_transitions"),
+    "voice_leading": ("voice_leads",),
+    "ngrams": ("ngrams",),
+    "patterns": ("patterns",),
+    "color": ("color_norms", "color_profiles"),
+}
+STAGE_PARAMS = {
+    "ingest": ("ingest_file_sha256", "reused_ingest_from"),
+    "analyze": ("analysis_recovery",),
+    "embeddings": ("embedding_default_model", "embedding_models", "embedding_triplet_scores"),
+}
+
+
+def _prepare_resume(manifest: Manifest, artifact_dir: Path, from_stage: str) -> None:
+    start = STAGE_ORDER.index(from_stage)
+    for stage in STAGE_ORDER[:start]:
+        for filename in STAGE_OUTPUTS[stage]:
+            path = artifact_dir / filename
+            expected = manifest.output_hashes.get(filename)
+            if not expected or not path.is_file():
+                raise ValueError(f"Cannot resume at {from_stage}: missing prerequisite {filename}")
+            actual = sha256_file(path) if path.suffix == ".json" else parquet_content_hash(path)
+            if actual != expected:
+                raise ValueError(f"Cannot resume at {from_stage}: changed prerequisite {filename}")
+    # Old files can remain on disk, but their completion evidence must not survive
+    # an upstream rebuild. The loader requires every current artifact hash/count.
+    for stage in STAGE_ORDER[start:]:
+        manifest.stage_timings_s.pop(stage, None)
+        for filename in STAGE_OUTPUTS[stage]:
+            manifest.output_hashes.pop(filename, None)
+        for key in STAGE_COUNTS.get(stage, ()):
+            manifest.row_counts.pop(key, None)
+        for key in STAGE_BUDGETS.get(stage, ()):
+            manifest.budget_estimate_mb.pop(key, None)
+        for key in STAGE_PARAMS.get(stage, ()):
+            manifest.params.pop(key, None)
+    _recompute_budget_total(manifest)
+
 
 def _artifact_dir(version: str) -> Path:
     return REPO_ROOT / "data" / "artifacts" / version
@@ -47,8 +129,6 @@ def _recompute_budget_total(manifest: Manifest) -> None:
 
 
 def _run_build(args: argparse.Namespace) -> None:
-    import polars as pl
-
     from pipeline.stages.aggregate import run_aggregate
     from pipeline.stages.analyze import run_analyze
     from pipeline.stages.color import run_color, run_color_profiles
@@ -83,8 +163,11 @@ def _run_build(args: argparse.Namespace) -> None:
             source_sha256=sha256_file(args.source),
         )
     )
+    _prepare_resume(manifest, artifact_dir, from_stage)
     manifest.params.update({"limit": args.limit, "workers": args.workers, "split": args.split})
     manifest.git_sha = git_sha(REPO_ROOT)
+    manifest.params["build_status"] = "running"
+    manifest.write(manifest_path)
 
     def execute_stage(stage: str) -> None:
         if stage == "ingest":
@@ -94,7 +177,7 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["songs_ingested"] = summary.songs_processed
             manifest.row_counts["sections_before_dedupe"] = summary.sections_total
             manifest.row_counts["sections_after_dedupe"] = summary.sections_after_dedupe
-            manifest.output_hashes["ingest.parquet"] = content_hash(pl.read_parquet(ingest_path))
+            manifest.output_hashes["ingest.parquet"] = parquet_content_hash(ingest_path)
             print(
                 f"ingest: {summary.songs_processed:,} songs, "
                 f"{summary.sections_after_dedupe:,} sections "
@@ -108,9 +191,7 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["tokens_analyzed"] = summary.tokens_total
             manifest.row_counts["labels_analyzed"] = summary.labels_total
             manifest.row_counts["ambiguous_songs"] = summary.ambiguous_songs
-            manifest.output_hashes["sections.parquet"] = content_hash(
-                pl.read_parquet(sections_path)
-            )
+            manifest.output_hashes["sections.parquet"] = parquet_content_hash(sections_path)
             print(
                 f"analyze: {summary.songs_analyzed:,} songs, "
                 f"{summary.sections_written:,} sections, {summary.tokens_total:,} tokens, "
@@ -130,7 +211,7 @@ def _run_build(args: argparse.Namespace) -> None:
             )
             _recompute_budget_total(manifest)
             for name in ("transitions.parquet", "functions.parquet", "abs_transitions.parquet"):
-                manifest.output_hashes[name] = content_hash(pl.read_parquet(artifact_dir / name))
+                manifest.output_hashes[name] = parquet_content_hash(artifact_dir / name)
             print(
                 f"aggregate: {summary.transitions_rows:,} transitions across "
                 f"{len(summary.contexts_kept)} contexts, {summary.functions_rows:,} functions, "
@@ -144,8 +225,8 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["voice_leads_rows"] = summary.rows_written
             manifest.budget_estimate_mb["voice_leads"] = summary.budget_estimate_mb
             _recompute_budget_total(manifest)
-            manifest.output_hashes["voice_leads.parquet"] = content_hash(
-                pl.read_parquet(artifact_dir / "voice_leads.parquet")
+            manifest.output_hashes["voice_leads.parquet"] = parquet_content_hash(
+                artifact_dir / "voice_leads.parquet"
             )
             print(
                 f"voice_leading: {summary.rows_written:,} VOICE_LEADS_TO edges from "
@@ -159,8 +240,8 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["ngrams_rows_pruned"] = summary.rows_pruned
             manifest.budget_estimate_mb["ngrams"] = summary.budget_estimate_mb
             _recompute_budget_total(manifest)
-            manifest.output_hashes["ngrams.parquet"] = content_hash(
-                pl.read_parquet(artifact_dir / "ngrams.parquet")
+            manifest.output_hashes["ngrams.parquet"] = parquet_content_hash(
+                artifact_dir / "ngrams.parquet"
             )
             print(
                 f"ngrams: {summary.rows_written:,} (context, order, history) rows across "
@@ -174,8 +255,8 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["patterns_below_min_support"] = summary.patterns_below_min_support
             manifest.budget_estimate_mb["patterns"] = summary.budget_estimate_mb
             _recompute_budget_total(manifest)
-            manifest.output_hashes["patterns.parquet"] = content_hash(
-                pl.read_parquet(artifact_dir / "patterns.parquet")
+            manifest.output_hashes["patterns.parquet"] = parquet_content_hash(
+                artifact_dir / "patterns.parquet"
             )
             print(
                 f"patterns: {summary.rows_written:,} frequent patterns from "
@@ -195,7 +276,7 @@ def _run_build(args: argparse.Namespace) -> None:
                 "transition_examples.parquet",
                 "song_refs.parquet",
             ):
-                manifest.output_hashes[name] = content_hash(pl.read_parquet(artifact_dir / name))
+                manifest.output_hashes[name] = parquet_content_hash(artifact_dir / name)
             print(
                 f"examples: {summary.pattern_examples_rows:,} pattern examples, "
                 f"{summary.transition_examples_rows:,} transition examples, "
@@ -208,8 +289,8 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["color_norms_rows"] = summary.axes_written
             manifest.budget_estimate_mb["color_norms"] = summary.budget_estimate_mb
             _recompute_budget_total(manifest)
-            manifest.output_hashes["color.parquet"] = content_hash(
-                pl.read_parquet(artifact_dir / "color.parquet")
+            manifest.output_hashes["color.parquet"] = parquet_content_hash(
+                artifact_dir / "color.parquet"
             )
             print(
                 f"color: {summary.axes_written} axis/subject_type norm rows from "
@@ -229,8 +310,8 @@ def _run_build(args: argparse.Namespace) -> None:
             manifest.row_counts["color_profiles_rows"] = profiles_summary.rows_written
             manifest.budget_estimate_mb["color_profiles"] = profiles_summary.budget_estimate_mb
             _recompute_budget_total(manifest)
-            manifest.output_hashes["color_profiles.parquet"] = content_hash(
-                pl.read_parquet(artifact_dir / "color_profiles.parquet")
+            manifest.output_hashes["color_profiles.parquet"] = parquet_content_hash(
+                artifact_dir / "color_profiles.parquet"
             )
             print(
                 f"color_profiles: {profiles_summary.functions_profiled:,} functions, "
@@ -257,7 +338,7 @@ def _run_build(args: argparse.Namespace) -> None:
                 for item in evaluations
             }
             for name in ("embeddings.parquet", "embedding_projection.parquet"):
-                manifest.output_hashes[name] = content_hash(pl.read_parquet(artifact_dir / name))
+                manifest.output_hashes[name] = parquet_content_hash(artifact_dir / name)
             print(
                 f"embeddings: {summary.function_rows:,} function, "
                 f"{summary.pattern_rows:,} pattern vectors; "
@@ -291,7 +372,9 @@ def _run_build(args: argparse.Namespace) -> None:
         with MemoryGuard(label=stage):
             execute_stage(stage)
         manifest.stage_timings_s[stage] = round(time.monotonic() - started, 3)
+        manifest.write(manifest_path)
 
+    manifest.params["build_status"] = "complete"
     manifest.write(manifest_path)
     print(f"Wrote {manifest_path}")
 

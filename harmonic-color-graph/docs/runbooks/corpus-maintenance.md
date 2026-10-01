@@ -8,6 +8,9 @@ new loader transaction. It is not a zero-downtime version switch.
 ## Preconditions
 
 - Full build complete; manifest hashes and color/embedding checks pass.
+- Freeze a private copy of the reviewed artifact directory and record its
+  manifest/file hashes. Stop builders targeting that copy: the loader validates
+  files before opening its transaction and rereads them during loading.
 - Rehearse the new load, idempotency, forced failure recovery, and rollback on
   a private local restore with the production PostgreSQL major version and
   pgvector version. Measure both the 300 MiB `hcg` and 400 MiB database gates.
@@ -23,6 +26,11 @@ new loader transaction. It is not a zero-downtime version switch.
   old immutable/preview deployment URLs and standalone MCP processes: the
   flag applies only to the deployment/process configured with it. Verify no
   corpus-writing database session remains active before reclamation.
+- Inspect queued/retrying `graph_rebuild` jobs and ensure no other operator,
+  worker, or process can start a loader until replacement is complete. The
+  loader's advisory transaction lock does not cover the committed
+  reclamation-to-load gap. Use evaluation jobs for queue smoke tests;
+  `graph_rebuild` performs activation and is not a harmless health check.
 
 ## Exact replacement scope
 
@@ -65,3 +73,7 @@ maintenance disabled, restart the reviewed temporary worker, then verify the
 public API, job authentication/idempotency, UI flows, and telemetry. Retain
 the private archive and old browser assets until post-activation acceptance
 passes. Human music/listening review remains separate.
+
+Verify the active corpus through `select hcg.v()` and returned corpus-backed
+data. `/health.corpus_version` reflects deployment configuration, not a database
+lookup, and cannot independently prove activation.

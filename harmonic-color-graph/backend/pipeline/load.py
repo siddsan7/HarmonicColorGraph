@@ -20,7 +20,7 @@ from typing import Any
 from psycopg import Connection, connect
 from psycopg.types.json import Jsonb
 
-from pipeline.manifest import Manifest
+from pipeline.manifest import Manifest, parquet_content_hash
 
 BATCH_ROWS = 4096
 MAX_HCG_BYTES = 300 * 1024 * 1024
@@ -160,13 +160,7 @@ def _artifact_rows(path: Path, columns: list[str] | None = None) -> Iterator[dic
 
 def _artifact_content_hash(path: Path) -> str:
     """Reproduce ``content_hash`` without collecting a full corpus frame."""
-    import polars as pl
-    import pyarrow.parquet as pq
-
-    digest = hashlib.sha256()
-    for batch in pq.ParquetFile(path).iter_batches(batch_size=BATCH_ROWS):
-        digest.update(pl.from_arrow(batch).write_ndjson().encode("utf-8"))
-    return digest.hexdigest()
+    return parquet_content_hash(path, batch_size=BATCH_ROWS)
 
 
 def _validate_artifacts(artifact_dir: Path, manifest: Manifest) -> dict[str, int]:
@@ -174,6 +168,8 @@ def _validate_artifacts(artifact_dir: Path, manifest: Manifest) -> dict[str, int
 
     if not manifest.version or manifest.version != artifact_dir.name:
         raise ValueError("Manifest version must match the artifact directory")
+    if manifest.params.get("build_status") == "running":
+        raise ValueError("Pipeline build has not completed")
     if not manifest.output_hashes:
         raise ValueError("Manifest has no output hashes")
     counts: dict[str, int] = {}
