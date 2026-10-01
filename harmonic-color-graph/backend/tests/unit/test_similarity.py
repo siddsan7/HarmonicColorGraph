@@ -86,3 +86,51 @@ def test_surface_mode_uses_token_overlap_and_color_filter():
     assert len(response.results) == 2
     assert response.results[0].similarity == 1.0
     assert _parse_tokens(request) == ["M:I", "M:V", "M:vi", "M:IV"]
+
+
+def test_rotated_query_uses_canonical_vector_even_when_ann_omits_counterpart():
+    canonical = "M:I M:V M:vi M:IV"
+
+    class CanonicalStore(FakeStore):
+        def vector(self, kind, subject, *, model):
+            assert (kind, subject, model) == ("pattern", canonical, "chord2vec")
+            return [0.5] * 64
+
+        def neighbors_by_vector(self, kind, vector, *, model, limit, exclude):
+            assert vector == [0.5] * 64
+            # Many equal-vector repetitions must not hide the four-chord loop.
+            return [
+                {"subject_id": canonical + " " + canonical, "similarity": 1.0},
+                {"subject_id": "M:I M:vi M:V M:IV", "similarity": 1.0},
+            ]
+
+    response = SimilarityService(CanonicalStore()).progressions(
+        SimilarProgressionRequest(progression="vi IV I V", k=2)
+    )
+    assert [item.subject_id for item in response.results] == ["M:I M:vi M:V M:IV", canonical]
+    assert response.results[1].rotation_of == response.query
+
+
+def test_missing_stored_rotation_is_not_fabricated_and_filters_still_apply():
+    class MissingStore(FakeStore):
+        def pattern_metadata(self, ids):
+            return {}
+
+    for mode in ("structural", "surface"):
+        request = SimilarProgressionRequest(progression="vi IV I V", mode=mode)
+        assert SimilarityService(MissingStore()).progressions(request).results == []
+        request.filters.genre = "missing"
+        assert SimilarityService(FakeStore()).progressions(request).results == []
+
+
+def test_surface_mode_finds_stored_rotation_beyond_popular_candidates():
+    class RareStore(FakeStore):
+        def popular_patterns(self):
+            return []
+
+    response = SimilarityService(RareStore()).progressions(
+        SimilarProgressionRequest(progression="vi IV I V", mode="surface")
+    )
+    assert len(response.results) == 1
+    assert response.results[0].subject_id == "M:I M:V M:vi M:IV"
+    assert response.results[0].rotation_of == response.query

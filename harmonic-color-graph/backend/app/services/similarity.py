@@ -126,9 +126,13 @@ class SimilarityService:
         version = self._version()
         tokens = _parse_tokens(request)
         query = " ".join(tokens)
+        canonical = " ".join(
+            min(tokens[offset:] + tokens[:offset] for offset in range(len(tokens)))
+        )
         model = self.store.default_model()
         if request.mode == "structural":
-            vector = self.store.vector("pattern", query, model="chord2vec")
+            vector = self.store.vector("pattern", canonical, model="chord2vec")
+            stored_pattern = vector is not None
             if vector is None:
                 vectors = [
                     self.store.vector("function", token, model="chord2vec") for token in tokens
@@ -142,9 +146,16 @@ class SimilarityService:
             candidates = self.store.neighbors_by_vector(
                 "pattern", vector, model="chord2vec", limit=160, exclude=query
             )
+            # Approximate retrieval can omit even an exact stored counterpart.
+            # A rotated query shares its canonical pattern's stored vector.
+            if stored_pattern and canonical != query:
+                candidates = [row for row in candidates if row["subject_id"] != canonical]
+                candidates.append({"subject_id": canonical, "similarity": 1.0})
             metadata = self.store.pattern_metadata([row["subject_id"] for row in candidates])
         else:
             metadata = {row["subject_id"]: row for row in self.store.popular_patterns()}
+            if canonical != query:
+                metadata.update(self.store.pattern_metadata([canonical]))
             candidates = [
                 {"subject_id": pattern, "similarity": _overlap(tokens, pattern.split())}
                 for pattern in metadata
@@ -177,6 +188,7 @@ class SimilarityService:
         results.sort(
             key=lambda item: (
                 -item.similarity,
+                abs(len(item.subject_id.split()) - len(tokens)),
                 item.rotation_of is not None,
                 -(item.support or 0),
                 item.subject_id,
