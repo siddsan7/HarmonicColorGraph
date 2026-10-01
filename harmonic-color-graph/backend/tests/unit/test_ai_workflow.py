@@ -152,6 +152,49 @@ def test_provider_parse_failure_preserves_usage_and_reports_token_limit(monkeypa
     assert meter.cost_usd > 0
 
 
+def test_real_tool_parser_failure_codes_are_sanitized():
+    from langchain_core.messages import AIMessage
+    from langchain_core.output_parsers.openai_tools import PydanticToolsParser
+    from langchain_core.outputs import ChatGeneration
+
+    from app.ai.state import ExplanationDraft
+    from app.ai.workflow import StructuredOutputError
+
+    parser = PydanticToolsParser(tools=[ExplanationDraft], first_tool_only=True)
+    for args, expected in (
+        ({"claims": [{"text": "safe"}]}, "claims.fact_ids:missing"),
+        ({"claims": [{"text": "safe", "fact_ids": []}]}, "claims.fact_ids:too_short"),
+        ({"claims": [{"text": "x" * 501, "fact_ids": ["f"]}]}, "claims.text:string_too_long"),
+        ({"claims": ["private generated content"]}, "claims:model_type"),
+        (
+            {"claims": [{"text": "safe", "fact_ids": ["f"], "private field": "secret"}]},
+            "structured_parse",
+        ),
+    ):
+        raw = AIMessage(
+            content="", tool_calls=[{"name": "ExplanationDraft", "args": args, "id": "test"}]
+        )
+        try:
+            parser.parse_result([ChatGeneration(message=raw)])
+        except Exception as exc:
+            code = StructuredOutputError(raw, exc).code
+        else:
+            raise AssertionError("Malformed provider payload unexpectedly parsed")
+        assert expected in code
+        assert "private" not in code and "secret" not in code and "xxxxx" not in code
+    empty = AIMessage(content="private prose")
+    assert parser.parse_result([ChatGeneration(message=empty)]) is None
+    assert StructuredOutputError(empty, missing=True).code == "missing_structured_output"
+    assert StructuredOutputError(empty, KeyError("private tool")).code == "structured_parse"
+    unknown = AIMessage(content="", tool_calls=[{"name": "private tool", "args": {}, "id": "test"}])
+    try:
+        parser.parse_result([ChatGeneration(message=unknown)])
+    except Exception as exc:
+        assert StructuredOutputError(unknown, exc).code == "tool_parse"
+    else:
+        raise AssertionError("Unknown tool unexpectedly parsed")
+
+
 def test_twenty_query_routing_suite_and_valid_outputs():
     tools = _tools()
     workflow = AssistantWorkflow(tools)

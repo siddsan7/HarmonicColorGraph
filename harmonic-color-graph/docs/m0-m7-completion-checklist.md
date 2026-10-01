@@ -13,17 +13,17 @@ Scope: finish the remaining M0–M7 implementation and automated acceptance,
 excluding human music/listening review and the separate frontend redesign.
 Representative Phase 3 prompts are approved. Free hosting/storage only; up to
 $10 total new paid AI evaluation on existing billing. New evaluation spending
-so far: $1.258135. Independent reviewer approval plus required checks authorizes
+so far: $1.834763. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#64 are merged after independent review and required
+- PRs #48–#51 and #53–#65 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
   backup restoration, storage gates, exact colors/norms, vector retrieval,
   rotations, and public asset hashes passed. See the
   [production activation report](eval/corpus-production-2026-10-01.md).
-- API `247b025` is healthy with maintenance off and the corrected corpus label.
+- API `540c4e7` is healthy with maintenance off and the corrected corpus label.
   Public HTTP correctness and representative warm latency pass: function
   p95 42.11 ms, structural-pattern p95 76.88 ms against the 120 ms gate.
   PR63/64 resolve event-loop blocking and export worker-pool contention.
@@ -37,7 +37,10 @@ merge/deploy and validated corpus activation with rollback prepared.
   stopped failed/incomplete at 24/40: all 12 intent cases had completed and
   only 8 passed. Twelve responses used labeled explanation fallbacks. The
   remaining 16 calls were not run; the daily cap is restored to $2. This is
-  not a full acceptance pass. General context/prompt fixes are in review.
+  not a full acceptance pass. PR65 corrected contextual deltas and weak-slider strength.
+  The [second partial run](eval/ai-production-pr65-2026-10-01.json) stopped
+  at 15/40 with intent8/12; an absolute-motion dreamy correction and more
+  precise sanitized schema diagnostics are in review.
 - Human music/listening review remains explicitly pending. The database
   credential disclosed by a diagnostic must be rotated in coordinated API
   and worker configuration; its value is not recorded in these documents.
