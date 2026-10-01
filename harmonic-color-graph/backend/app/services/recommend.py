@@ -169,7 +169,11 @@ class RecommendationService:
             data=RecommendData(input_tokens=tokens, key=key, recommendations=recommendations),
             meta=RecommendMeta(
                 corpus_version=version,
-                model_versions={"predictor": "interpolated-kn-v2"},
+                model_versions={
+                    "predictor": "context-lift-kn-v2"
+                    if self.predictor.context_lift
+                    else "interpolated-kn-v2"
+                },
                 latency_ms=round((time.perf_counter() - started) * 1000, 2),
                 context_used=ContextUsed(
                     genre=genre, section=section, backoff=list(prediction.context_chain)

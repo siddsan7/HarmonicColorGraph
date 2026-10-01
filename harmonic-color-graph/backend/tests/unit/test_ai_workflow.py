@@ -317,3 +317,21 @@ def test_provider_failure_uses_deterministic_route_and_explanation():
     assert result.fallback
     assert "intent_model_failed:TimeoutError" in result.errors
     assert calls == 2  # one intent attempt, then immediate explanation fallback
+
+
+def test_explanation_failure_retains_analyzer_citations_and_registered_relationships():
+    from app.ai.validators import validate_claims
+
+    def unavailable(_):
+        raise TimeoutError("provider unavailable")
+
+    result = AssistantWorkflow(
+        _tools(),
+        intent_model=lambda _: ParsedIntent(task_type="explain", chords=["G", "Am"], key="C major"),
+        explanation_model=unavailable,
+    ).run("Explain this transition")
+    assert result.fallback  # Never represent a deterministic fallback as model success.
+    assert result.claims
+    assert "deceptive" in {label for claim in result.claims for label in claim.theory_labels}
+    assert validate_claims(result.claims, result.facts, result.tool_results) == []
+    assert all(set(claim.fact_ids) <= set(result.facts) for claim in result.claims)

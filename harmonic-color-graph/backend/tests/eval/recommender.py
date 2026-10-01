@@ -98,7 +98,11 @@ def fit(
 
 
 def evaluate(
-    positions: list[SampledPosition], predictor: KNPredictor, weights: dict[str, float]
+    positions: list[SampledPosition],
+    predictor: KNPredictor,
+    weights: dict[str, float],
+    *,
+    selection_diversity: float = 0.8,
 ) -> dict:
     reciprocal_hybrid = reciprocal_ngram = 0.0
     baseline_tokens: set[str] = set()
@@ -117,7 +121,9 @@ def evaluate(
         if not features:
             continue
         baseline = sorted(features, key=lambda row: (-row.values["log_p_ngram"], row.token))
-        ranked = score_candidates(features, weights=weights, preset="plausible")
+        ranked = score_candidates(
+            features, weights=weights, preset="plausible", selection_diversity=selection_diversity
+        )
         baseline_top = [row.token for row in baseline[:5]]
         hybrid_top = [row.token for row in ranked[:5]]
         baseline_tokens.update(baseline_top)
@@ -128,10 +134,19 @@ def evaluate(
             reciprocal_hybrid += 1 / (1 + [row.token for row in ranked].index(position.actual))
         novelty += len(set(hybrid_top) - set(baseline_top))
         if intent_total < 30:
-            neutral = score_candidates(features, weights=weights, preset="balanced")[:5]
+            neutral = score_candidates(
+                features,
+                weights=weights,
+                preset="balanced",
+                selection_diversity=selection_diversity,
+            )[:5]
             for name, (intent, axis, direction) in intents.items():
                 intended = score_candidates(
-                    features, weights=weights, intent=intent, preset="balanced"
+                    features,
+                    weights=weights,
+                    intent=intent,
+                    preset="balanced",
+                    selection_diversity=selection_diversity,
                 )[:5]
                 neutral_delta = sum(row.features.color_delta[axis] for row in neutral) / 5
                 intended_delta = sum(row.features.color_delta[axis] for row in intended) / 5
@@ -182,6 +197,7 @@ def main() -> None:
     parser.add_argument("--dev-count", type=int, default=160)
     parser.add_argument("--test-count", type=int, default=40)
     parser.add_argument("--report-output", type=Path)
+    parser.add_argument("--selection-diversity", type=float, default=0.8)
     parser.add_argument(
         "--weights-input", type=Path, help="Evaluate frozen weights without refitting"
     )
@@ -191,6 +207,8 @@ def main() -> None:
     args = parser.parse_args()
     if args.dev_count <= 0 or args.test_count <= 0:
         parser.error("dev-count and test-count must be positive")
+    if not math.isfinite(args.selection_diversity) or args.selection_diversity < 0:
+        parser.error("selection-diversity must be finite and nonnegative")
     # The eval artifact is a deterministic mini slice of the full corpus;
     # its split labels are inherited from the same song-level hash.
     train_ids = set(
@@ -215,7 +233,7 @@ def main() -> None:
         dev = _positions(args.eval, "dev", args.dev_count, 52)
         weights, fit_info = fit(dev, predictor)
     test = _positions(args.eval, "test", args.test_count, 53)
-    report = evaluate(test, predictor, weights)
+    report = evaluate(test, predictor, weights, selection_diversity=args.selection_diversity)
     payload = {
         "model": "candidate-softmax-v1",
         "training": {
@@ -231,7 +249,13 @@ def main() -> None:
         # Preserve the actual training provenance of a frozen model.
         payload = json.loads(args.weights_input.read_text(encoding="utf-8"))
     checks = acceptance_checks(report)
-    result = {"fit": fit_info, "test": report, "checks": checks, "candidate": payload}
+    result = {
+        "fit": fit_info,
+        "test": report,
+        "checks": checks,
+        "candidate": payload,
+        "selection_diversity": args.selection_diversity,
+    }
     rendered = json.dumps(result, indent=2) + "\n"
     if args.report_output:
         args.report_output.write_text(rendered, encoding="utf-8")

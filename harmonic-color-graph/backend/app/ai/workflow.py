@@ -18,6 +18,7 @@ from app.ai.state import (
     AssistantCandidate,
     AssistantResponse,
     AssistantState,
+    Claim,
     ExplanationDraft,
     ParsedIntent,
     Route,
@@ -33,7 +34,7 @@ from app.ai.usage import (
     UsageMeter,
     configured_rates,
 )
-from app.ai.validators import ClaimValidationError, validate_draft
+from app.ai.validators import ClaimValidationError, validate_claims, validate_draft
 from app.core import telemetry
 from app.core.metrics import emit_metric
 
@@ -657,8 +658,23 @@ class AssistantWorkflow:
             else "Provide a chord progression so I can give a grounded explanation.",
             "clarify": "Please provide a valid chord progression or a clearer request.",
         }[route]
+        deterministic = []
+        if route == "explain":
+            # The analyzer already supplies registered, cited explanations.
+            # Preserve that useful answer when generated prose is unavailable.
+            analysis = (state.get("analysis") or {}).get("data", {})
+            for relationship in analysis.get("relationships", []):
+                claim = Claim(
+                    text=relationship["short_explanation"],
+                    fact_ids=relationship["fact_ids"],
+                    theory_labels=[relationship["id"]],
+                )
+                if not validate_claims([claim], facts, state.get("tool_results", {})):
+                    deterministic.append(claim)
+                if len(deterministic) == 8:
+                    break
         return {
-            "explanation": None,
+            "explanation": ExplanationDraft(claims=deterministic) if deterministic else None,
             "fallback_message": message,
             "fallback": True,
             "errors": [*state.get("errors", []), error_code]
