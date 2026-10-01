@@ -384,4 +384,9 @@ def _input_tokens(
         if analysis.ambiguous
         else []
     )
-    return [token.core for token in analysis.tokens], analysis.song_key, warnings
+    region = analysis.key_regions[-1]
+    return (
+        [token.core for token in analysis.tokens[region.start_index : region.end_index]],
+        region.key,
+        warnings,
+    )

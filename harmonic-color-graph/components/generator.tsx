@@ -97,7 +97,8 @@ export function Generator() {
         { label: "B · Darker", preset: "balanced" as const, intent: { darker_brighter: -1 } },
         { label: "C · Surprising", preset: "adventurous" as const, intent: { common_surprising: 1 } },
       ]
-      const responses = await Promise.all(choices.map((choice) => recommendNextChords({ progression: analysis.tokens.map((token) => token.core), key: analysis.song_key, genre: shared.genre || undefined, section: shared.section || undefined, preset: choice.preset, intent: choice.intent, limit: 20, signal: controller.signal })))
+      const finalRegion = analysis.key_regions?.at(-1)
+      const responses = await Promise.all(choices.map((choice) => recommendNextChords({ progression: analysis.tokens.slice(finalRegion?.start_index ?? 0).map((token) => token.core), key: finalRegion?.key ?? analysis.song_key, genre: shared.genre || undefined, section: shared.section || undefined, preset: choice.preset, intent: choice.intent, limit: 20, signal: controller.signal })))
       const used = new Set<string>()
       const selected = choices.map((choice, index) => {
         const chord = responses[index].data.recommendations.find((candidate) => !used.has(candidate.chord))
@@ -105,7 +106,7 @@ export function Generator() {
         used.add(chord.chord)
         return { label: choice.label, chord, progression: [...original, chord.chord] }
       })
-      const comparisons = await Promise.all(selected.map((item) => compareColor({ a: original, b: item.progression, key: analysis.song_key, signal: controller.signal })))
+      const comparisons = await Promise.all(selected.map((item) => compareColor({ a: original, b: item.progression, key: shared.key || undefined, signal: controller.signal })))
       if (!controller.signal.aborted) setVariants(selected.map((item, index) => ({ ...item, original: base, delta: comparisons[index].raw_deltas as Record<string, number> })))
     } catch (caught) {
       if (!controller.signal.aborted) setCompareError(caught instanceof Error ? caught.message : "Comparison failed.")

@@ -21,7 +21,7 @@ numbers and their rationale.
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from app.color.features import AXES as RAW_AXES
 from app.color.features import ChordColorRaw, compute_chord_color
@@ -160,7 +160,15 @@ def build_summary_and_drivers(
 
 def compute_color_profile(progression: str | list[str], key: str | None) -> ColorProfileResponse:
     analysis = analyze_v2(progression, key)
-    arc_data = build_arc(analysis.chords, analysis.tokens, analysis.song_key)
+    arc_data = [
+        replace(point, position=point.position + region.start_index)
+        for region in analysis.key_regions
+        for point in build_arc(
+            analysis.chords[region.start_index : region.end_index],
+            analysis.tokens[region.start_index : region.end_index],
+            region.key,
+        )
+    ]
     if not arc_data:
         raise ValueError("Progression has no chords to score")
     raw_summary, drivers = build_summary_and_drivers(arc_data)

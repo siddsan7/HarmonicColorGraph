@@ -477,3 +477,24 @@ assessment is an automated recheck against the prior model review; H04's
 independent human music review is still pending, including any judgment on
 the remaining modulation and the two borderline songs.
 
+
+## Internal key-region implementation — 2026-10-01
+
+The analyzer now detects sustained internal key regions in unmarked sections.
+The previously retained synthetic expected failure passes for E major → Ab major
+→ C major and transposed major/minor equivalents. The unchanged source for
+`381262` yields G major (chords 1–17), A major (18–34), and C major (35–62);
+secondary dominants are now interpreted within those regions. This is automated
+analysis, not the excluded independent human musical review.
+
+The API exposes half-open `key_regions` and global `chord_index` modulation
+boundaries. Explicit user keys retain one-key interpretation. Continuations use
+the final region; substitutions use the selected region; color uses local keys.
+Theory relationships and corpus transition examples do not cross key changes.
+Corpus analysis splits derived regions while preserving source section ordinal,
+chord offset, repetition count, and train/dev/test assignment.
+
+Verification: full backend non-Postgres unit suite, frontend lint/typecheck/31
+unit tests/build, and five Chromium scenarios passed, including a major-to-minor
+continuation and automatic reanalysis after appending. Formatting and diff checks
+passed after corrections. Production data has not yet been rebuilt or activated.

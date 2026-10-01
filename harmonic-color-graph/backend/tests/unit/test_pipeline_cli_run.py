@@ -96,3 +96,14 @@ def test_from_stage_after_to_stage_is_rejected(tmp_path, mini_corpus, monkeypatc
 
     with pytest.raises(SystemExit):
         cli._run_build(args)
+
+
+def test_resumed_build_preserves_stage_owned_model_metadata(tmp_path, mini_corpus, monkeypatch):
+    monkeypatch.setattr(cli, "REPO_ROOT", tmp_path)
+    cli._run_build(_make_args(tmp_path, mini_corpus, "cv-test-a"))
+    path = tmp_path / "data/artifacts/cv-test-a/manifest.json"
+    manifest = json.loads(path.read_text())
+    manifest["params"]["embedding_default_model"] = "test-model"
+    path.write_text(json.dumps(manifest))
+    cli._run_build(_make_args(tmp_path, mini_corpus, "cv-test-a", from_stage="analyze"))
+    assert json.loads(path.read_text())["params"]["embedding_default_model"] == "test-model"

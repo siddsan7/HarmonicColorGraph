@@ -62,8 +62,18 @@ def run_examples(
     transition_candidates: dict[tuple[str, str], list[dict]] = defaultdict(list)
     song_meta: dict[str, dict] = {}
 
+    provenance_columns = [
+        name for name in ("source_ordinal", "start_chord_index") if name in sections_frame.columns
+    ]
     for row in sections_frame.select(
-        "song_id", "section", "ordinal", "genre", "decade", "spotify_id", "tokens"
+        "song_id",
+        "section",
+        "ordinal",
+        "genre",
+        "decade",
+        "spotify_id",
+        "tokens",
+        *provenance_columns,
     ).iter_rows(named=True):
         song_id = row["song_id"]
         tokens: list[str] = row["tokens"]
@@ -88,8 +98,10 @@ def run_examples(
                         {
                             "song_id": song_id,
                             "section": row["section"],
-                            "ordinal": row["ordinal"],
-                            "position": start,
+                            "ordinal": row["source_ordinal"]
+                            if row.get("source_ordinal") is not None
+                            else row["ordinal"],
+                            "position": start + (row.get("start_chord_index") or 0),
                         }
                     )
 
@@ -102,8 +114,10 @@ def run_examples(
                     {
                         "song_id": song_id,
                         "section": row["section"],
-                        "ordinal": row["ordinal"],
-                        "position": position,
+                        "ordinal": row["source_ordinal"]
+                        if row.get("source_ordinal") is not None
+                        else row["ordinal"],
+                        "position": position + (row.get("start_chord_index") or 0),
                     }
                 )
 

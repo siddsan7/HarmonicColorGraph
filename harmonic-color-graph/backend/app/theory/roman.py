@@ -3,6 +3,7 @@
 from collections.abc import Sequence
 
 from app.schemas.analysis_v2 import (
+    AnalysisKeyRegion,
     AnalysisV2,
     AnalysisWarning,
     KeyProbability,
@@ -11,7 +12,7 @@ from app.schemas.analysis_v2 import (
 )
 from app.schemas.harmony import CanonicalChord
 from app.theory.chord_normalizer import normalize_chord
-from app.theory.keys import estimate_song_keys
+from app.theory.keys import KeyRegion, estimate_song_keys
 from app.theory.progression_normalizer import _tokenize_progression, normalize_progression
 from app.theory.relationships_v2 import analyze_relationships
 from app.theory.spelling import NOTE_TO_PITCH_CLASS
@@ -383,6 +384,7 @@ def analyze_v2(
         key_distribution = [KeyProbability(key=song_key, probability=1.0)]
         ambiguous = False
         local_keys = [song_key] * len(sections)
+        section_regions = [[KeyRegion(0, len(part.chords), song_key, 1.0)] for part in sections]
         modulations: list[Modulation] = []
     else:
         song = estimate_song_keys([part.chords for part in sections])
@@ -393,9 +395,11 @@ def analyze_v2(
         ]
         ambiguous = estimates.ambiguous
         local_keys = song.section_keys
+        section_regions = song.section_regions
         modulations = [
             Modulation(
                 section_index=event.section_index,
+                chord_index=event.chord_index,
                 from_key=event.from_key,
                 to_key=event.to_key,
                 semitones=event.semitones,
@@ -405,29 +409,42 @@ def analyze_v2(
         ]
 
     tokens: list[RomanToken] = []
+    key_regions: list[AnalysisKeyRegion] = []
+    key_boundaries: set[int] = set()
     offset = 0
-    for section, local_key in zip(sections, local_keys, strict=True):
-        for index, chord in enumerate(section.chords):
-            tokens.append(
-                romanize_chord(
-                    chord,
-                    local_key,
-                    next_chord=section.chords[index + 1]
-                    if index + 1 < len(section.chords)
-                    else None,
-                    previous_chord=section.chords[index - 1] if index else None,
-                    chord_index=offset + index,
+    for section_index, (section, regions) in enumerate(zip(sections, section_regions, strict=True)):
+        for region in regions:
+            if key_regions and key_regions[-1].key != region.key:
+                key_boundaries.add(offset + region.start)
+            key_regions.append(
+                AnalysisKeyRegion(
+                    section_index=section_index,
+                    start_index=offset + region.start,
+                    end_index=offset + region.end,
+                    key=region.key,
+                    confidence=region.confidence,
                 )
             )
+            for index in range(region.start, region.end):
+                tokens.append(
+                    romanize_chord(
+                        section.chords[index],
+                        region.key,
+                        next_chord=section.chords[index + 1] if index + 1 < region.end else None,
+                        previous_chord=section.chords[index - 1] if index > region.start else None,
+                        chord_index=offset + index,
+                    )
+                )
         offset += len(section.chords)
     return AnalysisV2(
         key_distribution=key_distribution,
         song_key=song_key,
         ambiguous=ambiguous,
         local_keys=local_keys,
+        key_regions=key_regions,
         modulations=modulations,
         tokens=tokens,
-        relationships=analyze_relationships(tokens),
+        relationships=analyze_relationships(tokens, key_boundaries),
         chords=normalized_chords,
         warnings=warnings,
     )

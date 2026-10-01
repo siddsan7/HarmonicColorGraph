@@ -310,6 +310,107 @@ class ModulationEvent:
     to_key: str
     semitones: int
     description: str
+    chord_index: int = 0
+
+
+@dataclass(frozen=True)
+class KeyRegion:
+    """Half-open chord range within one source section."""
+
+    start: int
+    end: int
+    key: str
+    confidence: float
+
+
+def estimate_key_regions(
+    chords: list[CanonicalChord], fallback_key: str, params: dict
+) -> list[KeyRegion]:
+    """Conservative, transposition-invariant segmentation of sustained keys.
+
+    Viterbi states require four chords per region. Non-diatonic triads cost
+    two points, matching tonics contribute 0.7 and authentic cadences 1.5;
+    changing key costs four points. Every proposed region must independently
+    contain a cadence and at least 75% diatonic triads. These are structural
+    safeguards, not parameters fitted to the evaluation corpus. A single
+    region never overrides the existing calibrated section-key estimator.
+    """
+    fallback = [KeyRegion(0, len(chords), fallback_key, 0.0)]
+    if len(chords) < 8:
+        return fallback
+    minimum = 4
+    states: dict[tuple[int, int], float] = {}
+    history: list[dict[tuple[int, int], tuple[int, int] | None]] = []
+    fits = {
+        chord.symbol: [
+            _chord_fit_share([chord], candidate.tonic_pc, candidate.mode) == 1.0
+            for candidate in ALL_CANDIDATES
+        ]
+        for chord in chords
+    }
+    for index, chord in enumerate(chords):
+        updated: dict[tuple[int, int], float] = {}
+        links: dict[tuple[int, int], tuple[int, int] | None] = {}
+        mature = sorted(
+            ((score, key) for (key, age), score in states.items() if age == minimum),
+            key=lambda item: item[0],
+            reverse=True,
+        )[:2]
+        for key, candidate in enumerate(ALL_CANDIDATES):
+            tonic = chord.root_pc == candidate.tonic_pc and chord.quality_class in (
+                {"maj", "maj7"} if candidate.mode == "major" else {"min", "min7"}
+            )
+            cadence = (
+                index > 0
+                and tonic
+                and (chords[index - 1].root_pc - candidate.tonic_pc) % 12 == 7
+                and chords[index - 1].quality_class in {"maj", "dom7", "aug"}
+            )
+            emission = (0.0 if fits[chord.symbol][key] else -2.0) + 0.7 * tonic + 1.5 * cadence
+            if index == 0:
+                updated[key, 1] = emission
+                links[key, 1] = None
+                continue
+            for age in range(1, minimum + 1):
+                previous = (key, age)
+                if previous not in states:
+                    continue
+                state = (key, min(minimum, age + 1))
+                score = states[previous] + emission
+                if score > updated.get(state, -math.inf):
+                    updated[state] = score
+                    links[state] = previous
+            switch = next(((score, other) for score, other in mature if other != key), None)
+            if switch is not None:
+                updated[key, 1] = switch[0] - 4.0 + emission
+                links[key, 1] = (switch[1], minimum)
+        states = updated
+        history.append(links)
+    state = max((state for state in states if state[1] == minimum), key=states.__getitem__)
+    labels: list[int] = []
+    for links in reversed(history):
+        labels.append(state[0])
+        previous = links[state]
+        if previous is not None:
+            state = previous
+    labels.reverse()
+    starts = [0] + [index for index in range(1, len(labels)) if labels[index] != labels[index - 1]]
+    if len(starts) == 1:
+        return fallback
+    regions = []
+    for start, end in zip(starts, starts[1:] + [len(chords)], strict=True):
+        candidate = ALL_CANDIDATES[labels[start]]
+        part = chords[start:end]
+        if (
+            _cadence_features(part, candidate.tonic_pc)[0] < 1
+            or _chord_fit_share(part, candidate.tonic_pc, candidate.mode) < 0.75
+        ):
+            return fallback
+        estimate = estimate_keys(part, params)
+        if estimate.best.key != candidate.key:
+            return fallback
+        regions.append(KeyRegion(start, end, candidate.key, estimate.best.probability))
+    return regions
 
 
 @dataclass(frozen=True)
@@ -319,6 +420,7 @@ class SongKeyResult:
     section_keys: list[str]
     section_estimates: list[KeyEstimateResult]
     modulations: list[ModulationEvent]
+    section_regions: list[list[KeyRegion]]
 
 
 def estimate_song_keys(
@@ -388,9 +490,7 @@ def estimate_song_keys(
     modulations: list[ModulationEvent] = []
 
     song_candidate = next(candidate for candidate in ALL_CANDIDATES if candidate.key == song_key)
-    for index, (section, section_estimate) in enumerate(
-        zip(sections, estimates_by_section, strict=True)
-    ):
+    for section, section_estimate in zip(sections, estimates_by_section, strict=True):
         local_best = section_estimate.best
         song_key_probability = section_estimate.probability_of(song_key)
         use_local_key = len(section) >= 4 and local_best.probability - song_key_probability > 0.30
@@ -404,24 +504,55 @@ def estimate_song_keys(
         chosen_key = local_best.key if use_local_key else song_key
         section_keys.append(chosen_key)
         section_estimates.append(section_estimate)
-        if use_local_key and chosen_key != song_key:
-            shift = (local_best.tonic_pc - song_estimate.best.tonic_pc) % 12
-            signed_shift = shift if shift <= 6 else shift - 12
-            location = section_names[index] if section_names else f"section {index + 1}"
-            modulations.append(
-                ModulationEvent(
-                    section_index=index,
-                    from_key=song_key,
-                    to_key=chosen_key,
-                    semitones=signed_shift,
-                    description=f"{signed_shift:+d} semitones in {location}",
+
+    section_regions = []
+    for index, (section, chosen_key) in enumerate(zip(sections, section_keys, strict=True)):
+        regions = estimate_key_regions(section, chosen_key, params)
+        if len(regions) > 1:
+            section_keys[index] = regions[0].key
+        else:
+            regions = [
+                KeyRegion(
+                    0, len(section), chosen_key, section_estimates[index].probability_of(chosen_key)
                 )
-            )
+            ]
+        section_regions.append(regions)
+
+    # Events describe actual consecutive regions, including entry into a
+    # segmented source section and return to a preceding song key.
+    modulations = []
+    previous_key = None
+    chord_offset = 0
+    for index, (section, regions) in enumerate(zip(sections, section_regions, strict=True)):
+        for region in regions:
+            if region.end == region.start:
+                continue
+            if previous_key is not None and previous_key != region.key:
+                before = next(c for c in ALL_CANDIDATES if c.key == previous_key)
+                after = next(c for c in ALL_CANDIDATES if c.key == region.key)
+                shift = (after.tonic_pc - before.tonic_pc) % 12
+                signed_shift = shift if shift <= 6 else shift - 12
+                location = section_names[index] if section_names else f"section {index + 1}"
+                modulations.append(
+                    ModulationEvent(
+                        section_index=index,
+                        from_key=previous_key,
+                        to_key=region.key,
+                        semitones=signed_shift,
+                        chord_index=chord_offset + region.start,
+                        description=(
+                            f"{signed_shift:+d} semitones in {location} at chord {region.start + 1}"
+                        ),
+                    )
+                )
+            previous_key = region.key
+        chord_offset += len(section)
 
     return SongKeyResult(
         song_key=song_key,
         song_key_estimate=song_estimate,
         section_keys=section_keys,
         section_estimates=section_estimates,
-        modulations=modulations,
+        modulations=sorted(modulations, key=lambda event: event.chord_index),
+        section_regions=section_regions,
     )
