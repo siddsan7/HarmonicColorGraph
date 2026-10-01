@@ -47,6 +47,25 @@ def test_transition_deltas_compare_adjacent_arrivals_with_available_context():
     assert intent_score(item.color_delta, {"resolved_open": 1}, item) > 0
 
 
+def test_dreamy_fit_uses_incoming_motion_while_smooth_slider_uses_change():
+    import pytest
+
+    for key in ("D major", "E major"):
+        candidate = Candidate("M:bVImaj7", frozenset({"theory"}))
+        rows = [
+            extract_features(candidate, [predecessor, "M:I"], key)
+            for predecessor in ("M:V7", "M:IV")
+        ]
+        assert rows[0].values["vl_cost"] == rows[1].values["vl_cost"]
+        assert rows[0].color_delta["smoothness"] != rows[1].color_delta["smoothness"]
+        scores = [intent_score(row.color_delta, {"dreamy": 1}, row) for row in rows]
+        assert scores[0] == pytest.approx(scores[1])
+        assert 0 <= scores[0] <= 1
+        assert intent_score(rows[0].color_delta, {"dreamy": 0.1}, rows[0]) == pytest.approx(
+            scores[0] / 10
+        )
+
+
 def test_list_diversity_preserves_first_choice_and_promotes_distinct_pitch_content():
     from app.recommend.features import COLOR_AXES
 

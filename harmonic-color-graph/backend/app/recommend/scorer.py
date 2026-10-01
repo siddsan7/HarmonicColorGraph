@@ -75,9 +75,14 @@ def intent_score(
         if candidate
         else 0.0
     )
+    # Dreaminess describes the incoming motion itself. The explicit smooth
+    # slider below instead asks for a change relative to the previous arrival.
+    incoming_smoothness = (
+        1.0 - candidate.values["vl_cost"] if candidate else color_delta["smoothness"]
+    )
     dreamy = (
         0.75 * borrowed * mediant * major_seventh
-        + 0.15 * max(0.0, color_delta["smoothness"])
+        + 0.15 * max(0.0, min(1.0, incoming_smoothness))
         + 0.10 * max(0.0, -color_delta["tension"])
     )
     oriented = {
