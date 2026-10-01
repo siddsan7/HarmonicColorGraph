@@ -19,6 +19,7 @@ from app.api.recommend_v2 import router as recommend_v2_router
 from app.api.similar_v2 import router as similar_v2_router
 from app.api.substitutes_v2 import router as substitutes_v2_router
 from app.core.config import get_settings
+from app.core.maintenance import MaintenanceMiddleware
 from app.core.redis import ping_redis
 from app.core.telemetry import TelemetryMiddleware, configure_telemetry
 from app.db.session import get_session
@@ -33,6 +34,7 @@ app = FastAPI(
 )
 
 app.add_middleware(TelemetryMiddleware)
+app.add_middleware(MaintenanceMiddleware, enabled=settings.hcg_maintenance_mode)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -62,7 +64,7 @@ app.include_router(substitutes_v2_router)
 @app.get("/health", tags=["system"])
 def health_check() -> dict[str, str]:
     return {
-        "status": "ok",
+        "status": "maintenance" if settings.hcg_maintenance_mode else "ok",
         "version": settings.vercel_git_commit_sha,
         "corpus_version": settings.hcg_corpus_version,
     }

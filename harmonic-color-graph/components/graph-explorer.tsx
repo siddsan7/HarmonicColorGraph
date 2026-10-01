@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { hrefWithProgression, readProgression } from "@/lib/progression-url"
 import { filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphEdge, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
 import { usePlayback } from "@/lib/hooks/use-playback"
-import * as Tone from "tone"
+import { unlockAudio } from "@/lib/music/unlock-audio"
 
 const GraphCanvas = dynamic(() => import("@/components/graph-canvas").then((mod) => mod.GraphCanvas), { ssr: false })
 const ROOT = "function:M:I"
@@ -140,7 +140,7 @@ export function GraphExplorer() {
   async function playNodes(nodes: string[]) {
     try {
       // Unlock audio within the click gesture before the realization request.
-      void Tone.start().catch(() => undefined)
+      void unlockAudio().catch(() => undefined)
       const data = await api<{ chords: { label: string; pitch_classes: number[] }[] }>("/realize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nodes, key: shared.key || "C major" }) })
       await playback.play([{ label: "Graph path", chords: data.chords.map((chord) => ({ label: chord.label, pitchClasses: chord.pitch_classes })) }], { bpm: 100, loop: false, instrument: "synth" })
     } catch (caught) { setPathError((caught as Error).message) }

@@ -21,7 +21,7 @@ def _stop(_signum: int, _frame: object) -> None:
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    configure_telemetry()
+    configure_telemetry("harmonic-color-graph-worker")
     signal.signal(signal.SIGTERM, _stop)
     signal.signal(signal.SIGINT, _stop)
     check_dependencies()

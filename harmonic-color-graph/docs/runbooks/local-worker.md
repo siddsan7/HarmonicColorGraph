@@ -72,3 +72,9 @@ local files; retain the process ID for status checks.
 The worker uses a 15-second blocking receive with a 20-second socket timeout;
 API enqueue calls retain the 3-second socket timeout. Run only one worker while
 using the free Redis command allowance. See PR #51 for the polling changes.
+
+Worker exports identify `service.name=harmonic-color-graph-worker`; the API
+uses `harmonic-color-graph-api`. `OTEL_SERVICE_NAME` can override the process
+name explicitly. Configure the same approved OTLP endpoint and headers in
+the private worker environment before restarting. A local span ID alone does
+not establish successful remote Grafana ingestion.

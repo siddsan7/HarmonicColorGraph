@@ -1,4 +1,4 @@
-import * as Tone from "tone"
+import { unlockAudio } from "@/lib/music/unlock-audio"
 
 export type PlaybackChord = {
   label: string
@@ -11,7 +11,7 @@ export type PlaybackSequence = { label: string; chords: PlaybackChord[] }
 export type Instrument = "synth" | "piano"
 export type PlaybackPosition = { sequence: number; chord: number } | null
 
-type ToneModule = typeof Tone
+type ToneModule = typeof import("tone")
 type Player = import("tone").PolySynth | import("tone").Sampler
 
 /** Prefer the F40 voicing when present; otherwise keep each voice near its predecessor. */
@@ -55,9 +55,8 @@ export class PlaybackEngine {
     if (!sequences.some((item) => item.chords.length)) return
     if (!Number.isFinite(options.bpm) || options.bpm < 30 || options.bpm > 240) throw new Error("Tempo must be between 30 and 240 BPM.")
     const generation = this.generation
-    // Call Tone.start synchronously within the click gesture for Safari/iOS unlock.
-    const tone = Tone
-    await tone.start()
+    // unlockAudio resumes the native context before loading the audio library.
+    const tone = await unlockAudio()
     if (generation !== this.generation) return
     this.tone = tone
     const player: Player = options.instrument === "piano"

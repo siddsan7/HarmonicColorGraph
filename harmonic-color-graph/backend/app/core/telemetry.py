@@ -52,13 +52,13 @@ def safe_span(name: str):
     return tracer.start_as_current_span(name, record_exception=False, set_status_on_exception=False)
 
 
-def configure_telemetry() -> None:
+def configure_telemetry(service_name: str = "harmonic-color-graph-api") -> None:
     """Set up process-level providers. No key or endpoint is required to run."""
     global _configured, _export_traces, _export_metrics, tracer, meter
     if _configured:
         return
     _configured = True
-    resource = Resource.create({"service.name": "harmonic-color-graph-api"})
+    resource = Resource.create({"service.name": os.getenv("OTEL_SERVICE_NAME", service_name)})
     provider = TracerProvider(resource=resource)
     endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "").rstrip("/")
     trace_endpoint = os.getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")

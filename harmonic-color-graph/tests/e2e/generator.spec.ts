@@ -18,7 +18,7 @@ test("generate, play, and export a parseable MIDI file", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Path 1" })).toBeVisible()
   expect(requests[0]).toMatchObject({ key: "C major", length: 4, tension_curve: "custom", custom_curve: [0.2, 0.75, 0.8, 0.2] })
   await page.getByRole("article").getByRole("button", { name: "Play" }).click()
-  await expect(page.getByRole("region", { name: "Playback transport" })).toContainText(/Playing|Playback stopped/)
+  await expect(page.getByRole("region", { name: "Playback transport" })).toContainText("Playing")
   const downloadPromise = page.waitForEvent("download")
   await page.getByRole("button", { name: "Export MIDI" }).click()
   const download = await downloadPromise
