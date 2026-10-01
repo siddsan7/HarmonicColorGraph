@@ -43,3 +43,24 @@ def test_section_markers_emit_local_keys_and_modulations():
     data = response.json()
     assert len(data["local_keys"]) == 2
     assert len(data["tokens"]) == 8
+
+
+def test_internal_key_regions_drive_roman_tokens_and_fact_boundaries():
+    text = "E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C"
+    response = client.post("/v2/analyze", json={"chords": text})
+    assert response.status_code == 200
+    result = AnalysisV2.model_validate(response.json())
+    assert [r.key for r in result.key_regions] == ["E major", "Ab major", "C major"]
+    assert [t.figure for t in result.tokens] == ["I", "V7", "I", "IV", "I"] * 3
+    assert [t.chord_index for t in result.tokens] == list(range(15))
+    assert [event.chord_index for event in result.modulations] == [5, 10]
+    assert all(
+        not (fact.from_index < boundary <= fact.to_index)
+        for fact in result.relationships
+        for boundary in (5, 10)
+    )
+    explicit = AnalysisV2.model_validate(
+        client.post("/v2/analyze", json={"chords": text, "key": "E major"}).json()
+    )
+    assert explicit.modulations == []
+    assert [r.key for r in explicit.key_regions] == ["E major"]

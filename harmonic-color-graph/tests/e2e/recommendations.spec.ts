@@ -1,8 +1,37 @@
 import { expect, test } from "@playwright/test"
+import modulatedAnalysis from "../fixtures/internal-modulation.json"
 
 const chords = ["C", "G", "Am"]
 const figures = ["I", "V", "vi"]
 const cores = ["M:I", "M:V", "M:vi"]
+
+test("modulated continuation uses final key while append keeps automatic analysis", async ({ page }) => {
+  const requests: Array<{ progression: string[]; key?: string }> = []
+  const analysisRequests: Array<{ key?: string | null }> = []
+  await page.route("**/api/hcg/v2/analyze", async (route) => {
+    analysisRequests.push(route.request().postDataJSON())
+    await route.fulfill({ json: modulatedAnalysis })
+  })
+  await page.route("**/api/hcg/v2/recommend-next-chords", async (route) => {
+    const request = route.request().postDataJSON()
+    requests.push(request)
+    await route.fulfill({ json: {
+      data: { input_tokens: request.progression, key: request.key, recommendations: [candidate("F", "VI", 1)] },
+      meta: { corpus_version: "test", model_versions: {}, latency_ms: 1, ranking_mode: "statistical", context_used: { backoff: [] } },
+      warnings: [],
+    } })
+  })
+  await page.goto("/")
+  await page.getByLabel("Chord progression").fill("C F G C C F G C Am Dm E Am Am Dm E Am")
+  await page.getByLabel("Key (optional)").fill("")
+  await page.getByRole("button", { name: "Analyze" }).click()
+  await expect(page.getByRole("button", { name: "Append F", exact: true })).toBeVisible()
+  expect(requests.at(-1)).toMatchObject({ key: "A minor", progression: ["m:i", "m:iv", "m:V", "m:i", "m:i", "m:iv", "m:V", "m:i"] })
+  await expect(page.getByText("C major (chords 1-8) / A minor (chords 9-16)")).toBeVisible()
+  await page.getByRole("button", { name: "Append F", exact: true }).click()
+  await expect.poll(() => analysisRequests.length).toBe(2)
+  expect(analysisRequests[1].key).toBeNull()
+})
 
 function candidate(chord: string, figure: string, score: number) {
   return {

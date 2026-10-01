@@ -17,6 +17,45 @@
         "title": "AIQueryRequest",
         "type": "object"
       },
+      "AnalysisKeyRegion": {
+        "additionalProperties": false,
+        "properties": {
+          "confidence": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Confidence",
+            "type": "number"
+          },
+          "end_index": {
+            "minimum": 0.0,
+            "title": "End Index",
+            "type": "integer"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "section_index": {
+            "minimum": 0.0,
+            "title": "Section Index",
+            "type": "integer"
+          },
+          "start_index": {
+            "minimum": 0.0,
+            "title": "Start Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "section_index",
+          "start_index",
+          "end_index",
+          "key",
+          "confidence"
+        ],
+        "title": "AnalysisKeyRegion",
+        "type": "object"
+      },
       "AnalysisV2": {
         "additionalProperties": false,
         "properties": {
@@ -36,6 +75,13 @@
               "$ref": "#/components/schemas/KeyProbability"
             },
             "title": "Key Distribution",
+            "type": "array"
+          },
+          "key_regions": {
+            "items": {
+              "$ref": "#/components/schemas/AnalysisKeyRegion"
+            },
+            "title": "Key Regions",
             "type": "array"
           },
           "local_keys": {
@@ -1348,6 +1394,12 @@
       "Modulation": {
         "additionalProperties": false,
         "properties": {
+          "chord_index": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Chord Index",
+            "type": "integer"
+          },
           "description": {
             "title": "Description",
             "type": "string"

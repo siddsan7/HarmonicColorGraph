@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
-from itertools import groupby
+from itertools import groupby, islice
 from pathlib import Path
 
 import polars as pl
@@ -23,6 +23,8 @@ SECTIONS_SCHEMA = {
     "ordinal": pl.Int64,
     "section": pl.Utf8,
     "local_key": pl.Utf8,
+    "source_ordinal": pl.Int64,
+    "start_chord_index": pl.Int64,
     "key_conf": pl.Float64,
     "ambiguous": pl.Boolean,
     "tokens": pl.List(pl.Utf8),
@@ -72,46 +74,51 @@ def _analyze_song(song_rows: list[dict]) -> list[dict]:
     output_rows: list[dict] = []
     section_tokens: list[list] = []
     offset = 0
+    has_regions = any(len(regions) > 1 for regions in key_result.section_regions)
+    key_boundaries: set[int] = set()
+    previous_key: str | None = None
     for index, row in enumerate(song_rows):
         section_chords = chords_per_section[index]
-        local_key = key_result.section_keys[index]
-        key_conf = key_result.section_estimates[index].probability_of(local_key)
-
-        tokens = [
-            romanize_chord(
-                chord,
-                local_key,
-                next_chord=section_chords[position + 1]
-                if position + 1 < len(section_chords)
-                else None,
-                previous_chord=section_chords[position - 1] if position else None,
-                chord_index=offset + position,
+        for region in key_result.section_regions[index]:
+            if previous_key is not None and previous_key != region.key:
+                key_boundaries.add(offset + region.start)
+            previous_key = region.key
+            tokens = [
+                romanize_chord(
+                    section_chords[position],
+                    region.key,
+                    next_chord=section_chords[position + 1] if position + 1 < region.end else None,
+                    previous_chord=section_chords[position - 1]
+                    if position > region.start
+                    else None,
+                    chord_index=offset + position,
+                )
+                for position in range(region.start, region.end)
+            ]
+            section_tokens.append(tokens)
+            output_rows.append(
+                {
+                    "song_index": row["song_index"],
+                    "song_id": row["song_id"],
+                    "ordinal": len(output_rows) if has_regions else row["ordinal"],
+                    "source_ordinal": row["ordinal"],
+                    "start_chord_index": region.start,
+                    "section": row["section"],
+                    "local_key": region.key,
+                    "key_conf": region.confidence,
+                    "ambiguous": ambiguous,
+                    "tokens": [token.core for token in tokens],
+                    "figures": [token.figure for token in tokens],
+                    "chords": [chord.symbol for chord in section_chords[region.start : region.end]],
+                    "labels": [],
+                    "genre": row["genre"],
+                    "decade": row["decade"],
+                    "spotify_id": row["spotify_id"],
+                    "split": row["split"],
+                    "repeat_count": row["repeat_count"],
+                }
             )
-            for position, chord in enumerate(section_chords)
-        ]
         offset += len(section_chords)
-        section_tokens.append(tokens)
-
-        output_rows.append(
-            {
-                "song_index": row["song_index"],
-                "song_id": row["song_id"],
-                "ordinal": row["ordinal"],
-                "section": row["section"],
-                "local_key": local_key,
-                "key_conf": key_conf,
-                "ambiguous": ambiguous,
-                "tokens": [token.core for token in tokens],
-                "figures": [token.figure for token in tokens],
-                "chords": [chord.symbol for chord in section_chords],
-                "labels": [],
-                "genre": row["genre"],
-                "decade": row["decade"],
-                "spotify_id": row["spotify_id"],
-                "split": row["split"],
-                "repeat_count": row["repeat_count"],
-            }
-        )
 
     all_tokens = [token for tokens in section_tokens for token in tokens]
     boundaries: list[tuple[int, int]] = []
@@ -120,7 +127,7 @@ def _analyze_song(song_rows: list[dict]) -> list[dict]:
         boundaries.append((cumulative, cumulative + len(tokens)))
         cumulative += len(tokens)
 
-    for fact in analyze_relationships(all_tokens):
+    for fact in analyze_relationships(all_tokens, key_boundaries):
         for section_position, (start, end) in enumerate(boundaries):
             if start <= fact.from_index < end:
                 output_rows[section_position]["labels"].append(fact.id)
@@ -152,10 +159,8 @@ def run_analyze(
     import pyarrow.parquet as pq
 
     frame = pl.read_parquet(ingest_path).sort(["song_index", "ordinal"])
-    songs = [
-        list(group) for _, group in groupby(frame.to_dicts(), key=lambda row: row["song_index"])
-    ]
-    del frame
+    rows = (row for batch in frame.iter_slices(10_000) for row in batch.iter_rows(named=True))
+    songs = (list(group) for _, group in groupby(rows, key=lambda row: row["song_index"]))
 
     summary = AnalyzeSummary()
     pending_rows: list[dict] = []
@@ -176,10 +181,14 @@ def run_analyze(
     try:
         if workers > 1:
             with ProcessPoolExecutor(max_workers=workers) as pool:
-                for result_rows in pool.map(_analyze_song, songs, chunksize=32):
-                    _fold_song_result(result_rows, summary, pending_rows)
-                    if len(pending_rows) >= flush_every_rows:
-                        flush()
+                # Executor.map eagerly submits its iterable on Python 3.12.
+                # Bound submitted input/results instead of materializing the
+                # full corpus as millions of Python dictionaries and futures.
+                while batch := list(islice(songs, 256)):
+                    for result_rows in pool.map(_analyze_song, batch, chunksize=32):
+                        _fold_song_result(result_rows, summary, pending_rows)
+                        if len(pending_rows) >= flush_every_rows:
+                            flush()
         else:
             for song_rows in songs:
                 _fold_song_result(_analyze_song(song_rows), summary, pending_rows)

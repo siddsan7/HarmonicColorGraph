@@ -110,16 +110,75 @@ def test_section_consensus_keeps_natural_minor_bridge_diatonic():
     assert result.section_keys == ["A minor", "A minor", "A minor", "C major"]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="unmarked sections cannot report internal modulation, as exposed by song 381262",
-)
 def test_unsectioned_progression_reports_internal_modulation():
-    # Three invented cadence regions in one source section. The missing
-    # key-change event remains visible until intra-section keys are modeled.
+    # Three invented cadence regions in one source section.
     chords = _chords("E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C".split())
     result = estimate_song_keys([chords])
-    assert any(event.to_key in {"Ab major", "C major"} for event in result.modulations)
+    assert [(r.start, r.end, r.key) for r in result.section_regions[0]] == [
+        (0, 5, "E major"),
+        (5, 10, "Ab major"),
+        (10, 15, "C major"),
+    ]
+    assert [(e.chord_index, e.from_key, e.to_key) for e in result.modulations] == [
+        (5, "E major", "Ab major"),
+        (10, "Ab major", "C major"),
+    ]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "C F G C Am D7 G C C F G C",
+        "C Am F G C Am F G C Am F G",
+        "Am Dm E7 Am F Dm E7 Am",
+        "C F Fm C G C F Fm C G C",
+    ],
+)
+def test_tonicizations_and_borrowed_chords_do_not_split_keys(text):
+    result = estimate_song_keys([_chords(text.split())])
+    assert len(result.section_regions[0]) == 1
+    assert result.modulations == []
+
+
+@pytest.mark.parametrize("minor", [False, True])
+def test_internal_regions_are_transposition_invariant(minor):
+    template = (
+        "Am E7 Am Dm Am Cm G7 Cm Fm Cm Em B7 Em Am Em"
+        if minor
+        else "E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C"
+    )
+    reference = estimate_song_keys([_chords(template.split())]).section_regions[0]
+    assert len(reference) == 3
+    for shift in range(12):
+        symbols = []
+        for symbol in template.split():
+            match = re.fullmatch(r"([A-G][#b]?)(.*)", symbol)
+            root, quality = match.groups()
+            symbols.append(CANONICAL_TONIC_NAME[(NOTE_TO_PITCH_CLASS[root] + shift) % 12] + quality)
+        result = estimate_song_keys([_chords(symbols)]).section_regions[0]
+        assert [(r.start, r.end) for r in result] == [(0, 5), (5, 10), (10, 15)]
+        for before, after in zip(reference, result, strict=True):
+            assert after.key.split()[1] == before.key.split()[1]
+            assert (
+                NOTE_TO_PITCH_CLASS[after.key.split()[0]]
+                == (NOTE_TO_PITCH_CLASS[before.key.split()[0]] + shift) % 12
+            )
+            assert after.confidence == pytest.approx(before.confidence, abs=1e-9)
+
+
+def test_modulations_include_section_entry_and_return_after_internal_change():
+    result = estimate_song_keys(
+        [
+            _chords("C F G C".split() * 2),
+            _chords("D G A D".split() * 2 + "E A B E".split() * 2),
+            _chords("C F G C".split() * 2),
+        ]
+    )
+    assert [(e.chord_index, e.from_key, e.to_key) for e in result.modulations] == [
+        (8, "C major", "D major"),
+        (16, "D major", "E major"),
+        (24, "E major", "C major"),
+    ]
 
 
 @pytest.mark.parametrize("template", [["C", "F", "G", "C"], ["Am", "Dm", "E7", "Am"]])

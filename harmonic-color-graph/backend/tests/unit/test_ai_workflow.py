@@ -335,3 +335,29 @@ def test_explanation_failure_retains_analyzer_citations_and_registered_relations
     assert "deceptive" in {label for claim in result.claims for label in claim.theory_labels}
     assert validate_claims(result.claims, result.facts, result.tool_results) == []
     assert all(set(claim.fact_ids) <= set(result.facts) for claim in result.claims)
+
+
+def test_modulating_similarity_and_generation_use_opening_context():
+    from app.ai.tools import ToolError
+
+    calls = []
+
+    class CapturingTools:
+        def call(self, name, arguments):
+            calls.append((name, arguments))
+            raise ToolError("test_capture", "Captured")
+
+    chords = ["C", "F", "G", "C"] * 2 + ["Am", "Dm", "E", "Am"] * 2
+    workflow = AssistantWorkflow(CapturingTools())
+    for route in ("similar", "generate"):
+        workflow._retrieve(
+            {
+                "parsed_intent": ParsedIntent(task_type=route, chords=chords),
+                "route": route,
+                "analysis": {"data": {"key_regions": [{"key": "C major"}, {"key": "A minor"}]}},
+            }
+        )
+    assert calls[0][1]["progression"] == chords[:8]
+    assert calls[0][1]["key"] is None
+    assert calls[1][1]["start"] == "C"
+    assert calls[1][1]["key"] == "C major"

@@ -594,6 +594,19 @@ export interface components {
             /** Query */
             query: string;
         };
+        /** AnalysisKeyRegion */
+        AnalysisKeyRegion: {
+            /** Confidence */
+            confidence: number;
+            /** End Index */
+            end_index: number;
+            /** Key */
+            key: string;
+            /** Section Index */
+            section_index: number;
+            /** Start Index */
+            start_index: number;
+        };
         /** AnalysisV2 */
         AnalysisV2: {
             /** Ambiguous */
@@ -602,6 +615,8 @@ export interface components {
             chords: components["schemas"]["CanonicalChord"][];
             /** Key Distribution */
             key_distribution: components["schemas"]["KeyProbability"][];
+            /** Key Regions */
+            key_regions?: components["schemas"]["AnalysisKeyRegion"][];
             /** Local Keys */
             local_keys: string[];
             /** Modulations */
@@ -1032,6 +1047,11 @@ export interface components {
         };
         /** Modulation */
         Modulation: {
+            /**
+             * Chord Index
+             * @default 0
+             */
+            chord_index: number;
             /** Description */
             description: string;
             /** From Key */

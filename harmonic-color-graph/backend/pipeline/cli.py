@@ -83,7 +83,7 @@ def _run_build(args: argparse.Namespace) -> None:
             source_sha256=sha256_file(args.source),
         )
     )
-    manifest.params = {"limit": args.limit, "workers": args.workers, "split": args.split}
+    manifest.params.update({"limit": args.limit, "workers": args.workers, "split": args.split})
     manifest.git_sha = git_sha(REPO_ROOT)
 
     def execute_stage(stage: str) -> None:

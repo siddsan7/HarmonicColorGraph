@@ -145,3 +145,14 @@ def test_intent_contract_rejects_unknown_and_out_of_range_axes():
         assert response.status_code == 422
     finally:
         app.dependency_overrides.clear()
+
+
+def test_chord_continuation_uses_final_key_region():
+    from app.services.recommend import _input_tokens
+
+    tokens, key, _ = _input_tokens("C F G C C F G C Am Dm E Am Am Dm E Am", None)
+    assert key == "A minor"
+    assert tokens == ["m:i", "m:iv", "m:V", "m:i"] * 2
+    tokens, key, _ = _input_tokens("E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C", None)
+    assert key == "C major"
+    assert tokens == ["M:I", "M:V7", "M:I", "M:IV", "M:I"]
