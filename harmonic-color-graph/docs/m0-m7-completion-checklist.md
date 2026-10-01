@@ -13,23 +13,25 @@ Scope: finish the remaining M0–M7 implementation and automated acceptance,
 excluding human music/listening review and the separate frontend redesign.
 Representative Phase 3 prompts are approved. Free hosting/storage only; up to
 $10 total new paid AI evaluation on existing billing. New evaluation spending
-so far: $3.256217. Independent reviewer approval plus required checks authorizes
+so far: $4.652728. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#66 are merged after independent review and required
+- PRs #48–#51 and #53–#67 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
   backup restoration, storage gates, exact colors/norms, vector retrieval,
   rotations, and public asset hashes passed. See the
   [production activation report](eval/corpus-production-2026-10-01.md).
-- API `370da12` is healthy with maintenance off and the corrected corpus label.
+- API `bd42171` is healthy with maintenance off and the corrected corpus label.
   Public HTTP correctness and representative warm latency pass: function
   p95 42.11 ms, structural-pattern p95 76.88 ms against the 120 ms gate.
   PR63/64 resolve event-loop blocking and export worker-pool contention.
 - [Mobile loading verification](eval/m6-local-ui-2026-10-01.md) records local
   scores of 90/91/91 performance and 100 accessibility, plus actual Chromium
-  playback/MIDI. Production UI, Safari/iOS, and new production AI checks remain.
+  playback/MIDI. [Production browser checks](eval/production-ui-2026-10-01.md)
+  pass actual corpus flows and snapshot fallback; first-load graph timing,
+  Safari/iOS, human listening, and new production AI checks remain.
 - The temporary local worker is healthy and idle. Admin HTTP job verification
   needs the unconfigured admin token. Worker OTLP credentials and approved
   LangSmith workspace access remain needed. Monitoring is authorized.
@@ -43,7 +45,10 @@ merge/deploy and validated corpus activation with rollback prepared.
   precise sanitized schema diagnostics shipped in PR66. The
   [40-case live fixture recheck](eval/ai-live-fixture-pr66-2026-10-01.md) passes
   all thresholds (intent10/12), but31 labeled fallbacks identify claims:list_type.
-  Native-schema generation is in review; production acceptance remains open.
+  Native-schema generation shipped in reviewed PR67. The
+  [native fixture recheck](eval/ai-live-native-pr67-2026-10-01.md) passes 40/40
+  with nine fallbacks and no container-format failures. Production acceptance
+  remains open.
 - Human music/listening review remains explicitly pending. The database
   credential disclosed by a diagnostic must be rotated in coordinated API
   and worker configuration; its value is not recorded in these documents.
@@ -228,12 +233,13 @@ broken.
   Evidence: [reviewed production activation](eval/corpus-production-2026-10-01.md),
   frozen manifest, exact backup restoration, storage and idempotency proofs.
 
-- [ ] **A06 — Publish real-corpus browser assets.** Generate
+- [x] **A06 — Publish real-corpus browser assets.** Generate
   `public/snapshot/embedding-map.json` and replace the sample
   `graph-core.json` from A05's active corpus. Verify size limits, attribution,
   public 200 responses, a real map point opening in Workbench, and graph
   fallback with the API blocked. Prerequisite: A05.
-  Evidence: _pending_.
+  Evidence: [production browser verification](eval/production-ui-2026-10-01.md)
+  and [published asset hashes](eval/corpus-production-2026-10-01.md).
 
 - [ ] **A07 — Connect Redis, worker, and private assistant configuration.**
   Apply H01/H02's choices, run the approved temporary local worker, and configure the API,
@@ -266,7 +272,9 @@ broken.
   ranked suggestions with playable audio, color, and theory explanations;
   exercise explorer paths, generator, compare, MIDI export, real embedding map,
   URL restoration, and degraded snapshot. Include H04 listening evidence.
-  Prerequisites: A02, A05, A06, H04. Evidence: _pending_.
+  Prerequisites: A02, A05, A06, H04. Evidence:
+  [production browser checks](eval/production-ui-2026-10-01.md); human listening,
+  Safari/iOS and first-load graph timing remain open.
 
 - [ ] **L04 — Close F71–F74 live assistant gates.** Run the 20-query live route
   set and supplied Phase 3 §5 prompts, grounding/adversarial cases, production

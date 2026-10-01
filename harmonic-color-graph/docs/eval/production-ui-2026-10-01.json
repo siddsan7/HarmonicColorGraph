@@ -1,0 +1,196 @@
+{
+  "date": "2026-10-01",
+  "frontend_url": "https://harmonic-color-graph.vercel.app",
+  "api_commit": "bd4217149cc8ef326b8965d13ef033f11e697e69",
+  "actual_corpus": {
+    "passed": true,
+    "environment": "production actual corpus and API; no response fixtures",
+    "reports": [
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "points": 5000,
+        "modes": [
+          "structural",
+          "surface"
+        ],
+        "rotation": true,
+        "mapToWorkbench": true,
+        "color": true,
+        "recommendations": true,
+        "pageErrors": []
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "points": 5000,
+        "modes": [
+          "structural",
+          "surface"
+        ],
+        "rotation": true,
+        "mapToWorkbench": true,
+        "color": true,
+        "recommendations": true,
+        "pageErrors": []
+      }
+    ]
+  },
+  "ui_flow_checks": {
+    "deployment_commit": "3dcafb9cda6940b7eeab8bf133d1cc7ffc85cf3c",
+    "method": "Codex in-app browser on public frontend",
+    "passed": [
+      "5000 point map loaded",
+      "Structural search Am-F-C-G returns cv-2026-10-b and canonical rotation",
+      "Surface search returns token_overlap with rotation",
+      "Exact mapped M:I M:V M:vi M:IV is first picker result",
+      "Map click navigates /?p=C-G-Am-F&k=C-major",
+      "Analyze returns I V vi IV, colors, song evidence and ten next-chord suggestions",
+      "390x844 layout: document scrollWidth378 <= innerWidth390",
+      "Cmaj7-Em7-Am7 smooth0.75 returns ten intent-ranked suggestions with color deltas and support",
+      "Recommendation playback reaches Playing Progression: Cmaj7, no browser console errors",
+      "Generator returns three paths with tension arcs and Explorer/Workbench links",
+      "A/B/C returns distinct common Cmaj7, darker Fm and surprising Fdim7 with explicit source labeling",
+      "Explorer loads150nodes150edges; I-to-bVI path search returns3paths",
+      "Workbench health badge now shows cv-2026-10-b after reviewed config deployment",
+      "Darker/smoother and brighter/relaxed/resolving slider combinations return multiple ranked recommendations; control flow only, no claim all targets satisfied",
+      "Production generator Path2 Export MIDI downloads hcg-c-g-f-c.mid; @tonejs/midi parses16notes with expected C/G/F/C pitchclasses, starts0/2/4/6s,120BPM; SHA04b3a28f10f6c100c03524ea73c6e4af7c41beb64f4d8529c6a61e7bb9eb9b6a"
+    ],
+    "not_claimed": [
+      "Safari/iOS",
+      "Human listening",
+      "Production performance gate"
+    ],
+    "known_issue": "Human intent fulfillment separately measured by live benchmark; weighted intent does not guarantee target attainment.",
+    "historical_verifier_failures": [
+      "In-app browser download event timed out although file was saved; resolved by verifying fresh downloaded file."
+    ]
+  },
+  "performance": {
+    "url": "https://harmonic-color-graph.vercel.app",
+    "date": "2026-10-01T09:07:44.419Z",
+    "viewports": [
+      {
+        "viewport": {
+          "width": 1440,
+          "height": 1000
+        },
+        "accessibility": [
+          {
+            "route": "/similar",
+            "violations": []
+          },
+          {
+            "route": "/explore",
+            "violations": []
+          }
+        ],
+        "mapInteractionMs": [
+          0,
+          0
+        ],
+        "graph": {
+          "network": [
+            {
+              "elapsedMs": 137.29999995231628
+            }
+          ],
+          "layout": [
+            {
+              "elapsedMs": 621.2999999523163,
+              "nodes": 150
+            }
+          ]
+        }
+      },
+      {
+        "viewport": {
+          "width": 390,
+          "height": 844
+        },
+        "accessibility": [
+          {
+            "route": "/similar",
+            "violations": []
+          },
+          {
+            "route": "/explore",
+            "violations": []
+          }
+        ],
+        "mapInteractionMs": [
+          0,
+          0
+        ],
+        "graph": {
+          "network": [
+            {
+              "elapsedMs": 112.19999992847443
+            }
+          ],
+          "layout": [
+            {
+              "elapsedMs": 577.8999999761581,
+              "nodes": 150
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "degraded_snapshot": {
+    "passed": true,
+    "method": "Existing graph-explorer.spec.ts blocked API test against public frontend, scoped Playwright 503 db_unavailable interception",
+    "seconds": 4.1,
+    "checks": [
+      "snapshot banner",
+      "mobile list view/count parity",
+      "I-to-bVI path"
+    ]
+  },
+  "limitations": [
+    "No human listening or Safari/iOS proof",
+    "First observed desktop graph load took1319.3ms, with812ms network; repeat warm desktop621.3ms/mobile577.9ms. Universal sub-second production gate remains unproven.",
+    "Map timing marks measure pointer-handler execution, not end-to-end input-to-paint latency."
+  ],
+  "historical_verifier_errors": [
+    "Axe requires explicit browser context; corrected harness",
+    "Mobile canvas selector was Graph view; corrected to actual Canvas label"
+  ],
+  "desktop_preload": {
+    "rendererChunks": [
+      "0g-_iq3bg8vqf.js",
+      "3qv8h-_dplv9i.js"
+    ],
+    "apiDelayMs": 800,
+    "source": "Actual production 150-node neighborhood replayed with800ms test delay",
+    "runs": [
+      {
+        "width": 1440,
+        "apiMs": 800.4408999999999,
+        "chunkRequestMsRelativeToApi": [
+          -0.7272000000000389,
+          -0.34410000000002583
+        ],
+        "marks": [
+          {
+            "elapsedMs": 1272.3999999761581,
+            "nodes": 150
+          }
+        ],
+        "pageErrors": []
+      },
+      {
+        "width": 390,
+        "apiMs": 803.0675999999999,
+        "chunkRequestMsRelativeToApi": [],
+        "marks": [],
+        "pageErrors": []
+      }
+    ]
+  }
+}
