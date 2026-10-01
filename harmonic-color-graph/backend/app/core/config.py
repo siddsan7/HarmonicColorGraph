@@ -31,6 +31,7 @@ class AppSettings(BaseSettings):
         default="../data/samples/mini_corpus.csv", alias="HCG_EVALUATION_SOURCE"
     )
     hcg_env: str = Field(default="development", alias="HCG_ENV")
+    hcg_maintenance_mode: bool = Field(default=False, alias="HCG_MAINTENANCE_MODE")
     hcg_daily_ai_budget_usd: Decimal = Field(
         default=Decimal("2.00"), gt=0, alias="HCG_DAILY_AI_BUDGET_USD"
     )

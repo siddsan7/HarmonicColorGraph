@@ -176,8 +176,10 @@ def test_worker_creates_trace_for_claimed_job(monkeypatch):
 def test_worker_bootstrap_configures_tracing_without_importing_api():
     script = """
 from types import SimpleNamespace
+import os
 from app.core import telemetry
 import app.worker as worker
+os.environ.pop("OTEL_SERVICE_NAME", None)
 
 class Queue:
     @classmethod
@@ -191,6 +193,8 @@ class StubWorker:
     def __init__(self, _factory, _queue, _settings):
         pass
     def run_forever(self, _stop):
+        resource = telemetry.trace.get_tracer_provider().resource
+        assert resource.attributes['service.name'] == 'harmonic-color-graph-worker'
         with telemetry.safe_span('job.process'):
             print(telemetry.current_trace_id())
 
