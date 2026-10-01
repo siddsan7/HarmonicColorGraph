@@ -1941,6 +1941,13 @@
             "title": "Figure",
             "type": "string"
           },
+          "generators": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Generators",
+            "type": "array"
+          },
           "labels": {
             "items": {
               "type": "string"
