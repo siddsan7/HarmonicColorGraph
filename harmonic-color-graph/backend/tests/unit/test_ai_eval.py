@@ -105,7 +105,7 @@ def test_provider_failure_reserves_request_bound(monkeypatch):
     report = run(cases=load_cases()[:2], live=True, max_cost_usd=Decimal("1"))
     assert report["cases_completed"] == 1
     assert report["unknown_cost_cases"] == ["recommend-01"]
-    assert Decimal(report["cost_usd"]) > Decimal("0.8")
+    assert Decimal(report["cost_usd"]) >= Decimal("0.75")
     assert report["metered_cost_usd"] == "0"
 
 

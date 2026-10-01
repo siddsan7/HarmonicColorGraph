@@ -8,11 +8,12 @@ from dataclasses import dataclass, field
 from decimal import ROUND_UP, Decimal
 from typing import Any
 
-# Standard, uncached API rates in USD per million tokens as of September 2026.
+# Standard, uncached API rates in USD per million tokens verified October 1, 2026.
+# https://platform.claude.com/docs/en/models/sonnet-5/overview
 # Override when a deployment uses a different model or contract.
 MODEL_RATES = {
     "claude-haiku-4-5-20251001": (Decimal("1"), Decimal("5")),
-    "claude-sonnet-5": (Decimal("3"), Decimal("15")),
+    "claude-sonnet-5": (Decimal("2"), Decimal("10")),
 }
 
 FAST_MAX_PROMPT_BYTES = 12_000
