@@ -66,13 +66,17 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        HCG_PYTHON_EXTRAS: pipeline,ml
     command: ["python", "-m", "app.worker"]
     env_file: .env.docker
     environment:
       HCG_ARTIFACT_ROOT: /data/artifacts
+      HCG_EMBEDDING_OUTPUT_ROOT: /worker-artifacts
       HCG_EVALUATION_SOURCE: /data/samples/mini_corpus.csv
     volumes:
       - ./data:/data:ro
+      - worker_artifacts:/worker-artifacts
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -110,3 +114,4 @@ services:
 
 volumes:
   postgres_data:
+  worker_artifacts:

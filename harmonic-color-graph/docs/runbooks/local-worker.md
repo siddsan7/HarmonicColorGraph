@@ -43,6 +43,13 @@ and integrate the bundle into a reviewed corpus build before loading it.
 Failed builds do not replace prior outputs. Temporary copies of the three
 inputs require corresponding free disk space.
 
+Install the backend's `pipeline,ml` extras on worker hosts that run embedding
+jobs. Set `HCG_EMBEDDING_OUTPUT_ROOT` to a separate writable directory when
+source artifacts are read-only; otherwise output defaults to
+`HCG_ARTIFACT_ROOT/embedding-rebuilds/`. The result's `artifact_bundle`
+is the directory name within that output root. Compose installs the ML extras
+only in its worker image and stores bundles in the `worker_artifacts` volume.
+
 Start one worker:
 
 ```powershell

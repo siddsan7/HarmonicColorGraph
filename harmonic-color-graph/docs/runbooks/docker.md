@@ -1,9 +1,11 @@
 # Local Docker stack
 
-This stack runs the Next.js frontend, FastAPI API, a worker bootstrap,
+This stack runs the Next.js frontend, FastAPI API, a queue worker,
 pgvector/Postgres 17, and Redis. It applies the same SQL files used for
-Supabase. The worker validates Postgres and Redis connectivity; queue
-consumption is added in F27. Redis data is intentionally ephemeral.
+Supabase. The worker consumes jobs from Redis with a durable Postgres ledger.
+Redis data is intentionally ephemeral. Embedding builds use the worker's ML
+dependencies and writable `worker_artifacts` volume; corpus inputs remain
+read-only. Completed embedding bundles require reviewed activation.
 
 ## Requirements and first start
 
@@ -91,7 +93,6 @@ than running destructive integration fixtures against the app database.
 
 The local stack starts with empty harmonic tables. Production corpus data
 is not bundled in images or copied from Supabase. See the pipeline
-runbook and active implementation plan for loading a corpus. The worker
-is a connectivity bootstrap until F27 adds persistent jobs and queue
-consumption. The Compose stack validates local packaging and networking;
+runbook and active implementation plan for loading a corpus. The Compose
+stack validates local packaging and networking;
 Vercel and Supabase deployment still follow their separate runbooks.

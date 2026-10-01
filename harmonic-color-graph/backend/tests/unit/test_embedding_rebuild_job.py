@@ -9,7 +9,10 @@ from pipeline.manifest import sha256_file
 from tests.unit.test_pipeline_embeddings import _write_fixture
 
 
-def test_embedding_job_publishes_complete_bundle_without_replacing_source(tmp_path):
+@pytest.mark.parametrize("separate_output", [False, True])
+def test_embedding_job_publishes_complete_bundle_without_replacing_source(
+    tmp_path, separate_output
+):
     version = "cv-2026-09-test"
     source = tmp_path / version
     source.mkdir()
@@ -18,13 +21,17 @@ def test_embedding_job_publishes_complete_bundle_without_replacing_source(tmp_pa
     sentinel.write_bytes(b"existing corpus output")
     before = {path.name: sha256_file(path) for path in source.iterdir()}
     events = []
+    output_root = tmp_path / "outputs" if separate_output else tmp_path / "embedding-rebuilds"
     report = run_job(
         "embedding_rebuild",
         {"corpus_version": version},
-        AppSettings(HCG_ARTIFACT_ROOT=str(tmp_path)),
+        AppSettings(
+            HCG_ARTIFACT_ROOT=str(tmp_path),
+            HCG_EMBEDDING_OUTPUT_ROOT=str(output_root) if separate_output else None,
+        ),
         lambda *args: events.append(args),
     )
-    output = tmp_path / report["artifact_bundle"]
+    output = output_root / report["artifact_bundle"]
     assert output.is_dir()
     assert report["activation_required"] is True
     assert report["summary"]["rows_written"] > 0
@@ -40,7 +47,7 @@ def test_embedding_job_publishes_complete_bundle_without_replacing_source(tmp_pa
         sha256_file(output / name) == digest for name, digest in report["output_sha256"].items()
     )
     assert events[-1][1] == "embedding_artifacts_ready"
-    assert not list((tmp_path / "embedding-rebuilds").glob(".building-*"))
+    assert not list(output_root.glob(".building-*"))
 
 
 def test_failed_embedding_build_does_not_publish_partial_outputs(tmp_path, monkeypatch):

@@ -13,7 +13,9 @@ from pipeline.manifest import sha256_file
 from pipeline.memory_guard import MemoryGuard
 
 
-def prepare_embedding_rebuild(root: Path, version: str, progress) -> dict:
+def prepare_embedding_rebuild(
+    root: Path, version: str, progress, *, output_root: Path | None = None
+) -> dict:
     from pipeline.embedding_eval import evaluate_embeddings
     from pipeline.projection_export import export_projection
     from pipeline.stages.embeddings import run_embeddings
@@ -30,10 +32,10 @@ def prepare_embedding_rebuild(root: Path, version: str, progress) -> dict:
         inputs[name] = path
     # Publish only a complete bundle. A failed/retried build cannot overwrite
     # the source corpus or a previously completed bundle.
-    rebuild_root = (root / "embedding-rebuilds").resolve()
-    if rebuild_root.parent != root:
+    rebuild_root = (output_root or root / "embedding-rebuilds").resolve()
+    if output_root is None and rebuild_root.parent != root:
         raise ValueError("Embedding output must remain inside the artifact root")
-    rebuild_root.mkdir(exist_ok=True)
+    rebuild_root.mkdir(parents=True, exist_ok=True)
     build_id = f"{version}-{uuid4().hex}"
     destination = rebuild_root / build_id
     progress(0.05, "preparing_embedding_inputs", 0, 3)
@@ -56,7 +58,7 @@ def prepare_embedding_rebuild(root: Path, version: str, progress) -> dict:
         outputs = ("embeddings.parquet", "embedding_projection.parquet", "embedding-map.json")
         report = {
             "corpus_version": version,
-            "artifact_bundle": f"embedding-rebuilds/{build_id}",
+            "artifact_bundle": build_id,
             "activation_required": True,
             "summary": asdict(summary),
             "default_model": default_model,
