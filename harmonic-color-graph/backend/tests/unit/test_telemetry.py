@@ -170,7 +170,8 @@ import app.worker as worker
 
 class Queue:
     @classmethod
-    def from_url(cls, _url):
+    def from_url(cls, _url, *, socket_timeout):
+        assert socket_timeout > 15
         return cls()
     def close(self):
         pass
