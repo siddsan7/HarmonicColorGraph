@@ -113,7 +113,9 @@ class TelemetryMiddleware:
         try:
             await self._trace_http(scope, receive, send)
         finally:
-            flush_telemetry()
+            # Exporters perform blocking network I/O. Await completion for the
+            # serverless lifetime, but let other requests use the event loop.
+            await run_in_threadpool(flush_telemetry)
 
     async def _trace_http(self, scope: Scope, receive: Receive, send: Send) -> None:
         request_id = str(uuid4())
