@@ -24,8 +24,13 @@ function parseProjection(value: unknown): Projection {
 function MapPointPicker({ points, onSelect }: { points: Point[]; onSelect: (point: Point) => void }) {
   const [query, setQuery] = useState("")
   const matches = useMemo(() => {
-    const term = query.trim().toLowerCase()
-    return points.filter((point) => term ? point.id.toLowerCase().includes(term) : point.type === "pattern").slice(0, 20)
+    const exact = query.trim()
+    const term = exact.toLowerCase()
+    const filtered = points.filter((point) => term ? point.id.toLowerCase().includes(term) : point.type === "pattern")
+    if (term) filtered.sort((a, b) =>
+      Number(b.id === exact) - Number(a.id === exact) ||
+      Number(b.id.toLowerCase() === term) - Number(a.id.toLowerCase() === term))
+    return filtered.slice(0, 20)
   }, [points, query])
   return <div className="mt-4 border-t border-[var(--border-default)] pt-4">
     <label className="block text-sm">Find a mapped progression or function

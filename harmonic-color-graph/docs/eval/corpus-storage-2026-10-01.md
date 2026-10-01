@@ -51,9 +51,23 @@ Only 0.719 MiB of `hcg` headroom remains; exact production sizing is required.
   corpus acceptance checks; function-neighbor p95 was 1.62 ms. That acceptance
   run then failed because canonical progression rotations were omitted from
   similarity results. This separate defect must be corrected before activation.
-- Full-corpus forced failure and old-corpus restoration are being rehearsed;
-  production activation, deployed corpus acceptance, and human listening remain
-  pending. No new paid AI calls were made.
+- Full-corpus forced failure, reclamation, and old-corpus restoration passed as
+  one recovery sequence with 129 continuous physical-size samples (maximum
+  381,867,699 bytes). Logical rollback left zero corpus rows, but approximately
+  314.6 MiB of allocated `hcg` storage. The original rollback-only storage check
+  failed and is retained. Required allowlisted reclamation reduced `hcg` to
+  1,155,072 bytes before restoring all 33 baseline table counts/content digests,
+  sequences, and active version. Restored `hcg` was 255,746,048 bytes and the
+  database 265,262,771 bytes. This verifies recovery, not a claim that rollback
+  alone reclaims disk space.
+- Repeated loading exposed stale-statistics planning in similarity-edge
+  construction. A slow local rehearsal was canceled and retained as interrupted
+  evidence. Refreshing corpus, node, and embedding statistics before that join
+  produced 2,980 edges in 149.7 ms, with 298 lateral HNSW lookups rather than
+  plans based on one-row estimates and repeated broad node scans. The final
+  successful recovery sequence used this correction.
+- Production activation, deployed corpus acceptance, and human listening
+  remain pending. No new paid AI calls were made.
 
 Detailed local logs: `.agent-logs/corpus-local-load-compacted.log`,
 `.agent-logs/incoming-index-acceptance.json`, and

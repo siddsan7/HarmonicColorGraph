@@ -75,6 +75,24 @@ describe("similarity explorer", () => {
     expect(await screen.findByText(/50% token overlap/)).toBeInTheDocument()
   })
 
+  it("keeps an exact mapped loop ahead of longer substring matches and case variants", async () => {
+    const target = "M:I M:V M:vi M:IV"
+    const points = [
+      ...Array.from({ length: 25 }, (_, index) => ({
+        type: "pattern", id: `M:${index} ${target}`, x: index, y: 0,
+      })),
+      { type: "pattern", id: "M:I M:V M:VI M:IV", x: 26, y: 0 },
+      { type: "pattern", id: target, x: 27, y: 0 },
+    ]
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({ model: "chord2vec", points }) }))
+    render(<SimilarityExplorer />)
+    const picker = await screen.findByRole("textbox", { name: "Find a mapped progression or function" })
+    fireEvent.change(picker, { target: { value: target } })
+    const choices = screen.getAllByRole("button", { name: /^Open mapped/ })
+    expect(choices).toHaveLength(20)
+    expect(choices[0]).toHaveAccessibleName(`Open mapped pattern ${target} in Workbench`)
+  })
+
   it("updates the hover label within 50 ms with 5,000 points", async () => {
     const points = Array.from({ length: 5000 }, (_, index) => ({
       type: "pattern", id: `M:I M:V M:${index}`, x: index, y: index % 100,
