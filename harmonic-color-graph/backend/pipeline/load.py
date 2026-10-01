@@ -631,7 +631,14 @@ def _size_report(conn: Connection) -> tuple[int, int]:
     return hcg_bytes, database_bytes
 
 
-def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
+def load_corpus(
+    artifact_dir: str | Path, db_url: str, *, compact_indexes: bool = False
+) -> LoadReport:
+    """Load a corpus; index compaction requires an empty, offline corpus schema.
+
+    Maintenance callers must drain readers first. REINDEX holds exclusive locks
+    until commit and temporarily retains the original index files on disk.
+    """
     artifact_dir = Path(artifact_dir)
     manifest_path = artifact_dir / "manifest.json"
     manifest = Manifest.read(manifest_path)
@@ -652,6 +659,17 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
             # the fully-qualified `extensions.vector` type itself.
             conn.execute("set local search_path = hcg, extensions, public")
             conn.execute("select pg_advisory_xact_lock(hashtext('hcg.corpus_loader'))")
+            if compact_indexes:
+                conn.execute(
+                    "lock table hcg.corpus_versions, hcg.edges_compact, "
+                    "hcg.ngram_histories in access exclusive mode"
+                )
+                if conn.execute(
+                    "select exists(select 1 from hcg.corpus_versions) "
+                    "or exists(select 1 from hcg.edges_compact) "
+                    "or exists(select 1 from hcg.ngram_histories)"
+                ).fetchone()[0]:
+                    raise ValueError("Index compaction requires an empty corpus schema")
             current = conn.execute(
                 "select manifest, active from hcg.corpus_versions where version = %s for update",
                 (version,),
@@ -731,6 +749,8 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                         artifact_dir, version, version_key, contexts, nodes, node_keys
                     ),
                 )
+                if compact_indexes:
+                    conn.execute("reindex table hcg.edges_compact")
                 _copy_rows(
                     conn,
                     "ngram_histories",
@@ -760,6 +780,8 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     ),
                 )
                 _populate_ngram_discount_stats(conn, version)
+                if compact_indexes:
+                    conn.execute("reindex table hcg.ngram_histories")
                 _copy_rows(
                     conn,
                     "patterns",

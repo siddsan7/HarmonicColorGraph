@@ -123,12 +123,13 @@ class EmbeddingStore(_ActiveStore):
                  join hcg.edges_compact e on e.version_key = cv.version_key
                       and e.src_key = n.node_key and e.type_code = 2
                  where n.version = hcg.v() and n.id = :node
-                 order by e.count desc limit 4
+                 order by e.count desc, e.dst_key limit 4
                ), candidates as (
                  select distinct e.src_key
                  from seed s join hcg.corpus_versions cv on cv.version = hcg.v()
                  join hcg.edges_compact e on e.version_key = cv.version_key
                       and e.dst_key = s.dst_key and e.type_code = 2
+                 order by e.src_key
                  limit :limit
                )
                select n.label as chord, f.label as token, e.count
@@ -137,7 +138,8 @@ class EmbeddingStore(_ActiveStore):
                join hcg.corpus_versions cv on cv.version = n.version
                join hcg.edges_compact e on e.version_key = cv.version_key
                     and e.src_key = n.node_key and e.type_code = 2
-               join hcg.nodes f on f.node_key = e.dst_key and f.version = n.version""",
+               join hcg.nodes f on f.node_key = e.dst_key and f.version = n.version
+               order by n.id, f.id""",
             node=f"chord:{chord}",
             limit=limit,
         )
