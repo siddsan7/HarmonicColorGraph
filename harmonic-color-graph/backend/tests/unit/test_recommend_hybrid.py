@@ -125,3 +125,50 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
             )
             < 1e-9
         )
+
+
+def test_scoring_bound_retains_each_discovery_source():
+    from app.predict.realize import realize
+
+    vocabulary = []
+    for degree in (
+        "I",
+        "ii",
+        "iii",
+        "IV",
+        "V",
+        "vi",
+        "vii",
+        "bI",
+        "bII",
+        "biii",
+        "bIV",
+        "bV",
+        "bvi",
+        "bVII",
+        "#I",
+        "#ii",
+        "#IV",
+        "#V",
+        "#vi",
+        "#vii",
+    ):
+        for quality in ("", "7", "maj7", "o", "o7", "h7", "+", "sus2", "sus4", "5"):
+            token = f"M:{degree}{quality}"
+            try:
+                realize(token, "C major")
+            except ValueError:
+                continue
+            vocabulary.append(token)
+    assert len(vocabulary) >= 80
+    pool = generate_candidates(
+        ["M:I"],
+        "C major",
+        _prediction(*[(token, 0.02) for token in vocabulary[:30]]),
+        graph_neighbors=[(token, 0.1) for token in vocabulary[30:55]],
+        embedding_neighbors=[(token, 0.8) for token in vocabulary[55:]],
+    )
+    assert len(pool) > 64
+    assert any(item.generators == {"graph"} for item in pool[:64])
+    assert any(item.generators == {"embedding"} for item in pool[:64])
+    assert {"M:ii", "M:iv", "M:vi", "M:bVII"} <= {item.token for item in pool[:64]}

@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import time
 from collections import OrderedDict
+from dataclasses import replace
 from math import exp
 from threading import Lock
 from typing import Any, Protocol
@@ -14,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.core import telemetry
 from app.core.metrics import emit_metric
 from app.db.stores.graph import FactStore, NgramStore, PatternStore
+from app.db.stores.recommendation_candidates import CandidateReader
 from app.predict.ngram import KNPredictor, NgramHistory, PredictionResult, TokenPrediction
 from app.predict.realize import realize
 from app.recommend.candidates import generate_candidates
@@ -102,15 +104,25 @@ class SessionNgramReader:
 
 
 class RecommendationService:
-    def __init__(self, predictor: KNPredictor, examples: ExampleReader, facts: FactReader):
+    def __init__(
+        self,
+        predictor: KNPredictor,
+        examples: ExampleReader,
+        facts: FactReader,
+        candidate_reader: CandidateReader | None = None,
+    ):
         self.predictor = predictor
         self.examples = examples
         self.facts = facts
+        self.candidate_reader = candidate_reader
 
     @classmethod
     def from_session(cls, session: Session) -> RecommendationService:
         return cls(
-            KNPredictor(SessionNgramReader(session)), PatternStore(session), FactStore(session)
+            KNPredictor(SessionNgramReader(session)),
+            PatternStore(session),
+            FactStore(session),
+            CandidateReader(session),
         )
 
     def recommend(self, request: RecommendRequest) -> RecommendResponse:
@@ -187,9 +199,25 @@ class RecommendationService:
         self, prediction: PredictionResult, history: list[str], key: str, request: RecommendRequest
     ) -> list[Recommendation]:
         with telemetry.safe_span("recommend.candidate_generation"):
-            pool = generate_candidates(history, key, prediction)
+            graph, embeddings = ([], [])
+            if self.candidate_reader is not None:
+                graph, embeddings = self.candidate_reader.read(
+                    history, [item.token for item in prediction.predictions[:5]]
+                )
+            pool = generate_candidates(
+                history, key, prediction, graph_neighbors=graph, embedding_neighbors=embeddings
+            )[:64]
+            if self.candidate_reader is not None:
+                similarities = self.candidate_reader.similarities(
+                    history[-1], [item.token for item in pool]
+                )
+                pool = [
+                    replace(item, embedding_similarity=similarities.get(item.token))
+                    for item in pool
+                ]
+            sources = {item.token: item.generators for item in pool}
         emit_metric("recommend_candidate_count", len(pool))
-        features = [extract_features(candidate, history, key) for candidate in pool[:64]]
+        features = [extract_features(candidate, history, key) for candidate in pool]
         rerank_started = time.perf_counter()
         with telemetry.safe_span("recommend.rerank"):
             scored = score_candidates(
@@ -224,16 +252,40 @@ class RecommendationService:
         for item in base:
             row = by_token[item.token]
             supported = item.evidence.count > 0
-            labels = (["Intent match"] if request.intent else ["Preset ranked"]) + [
-                "Corpus supported" if supported else "Theory option"
-            ]
+            provenance = sources[item.token]
+            origin_labels = (
+                ["Corpus supported"]
+                if supported
+                else [
+                    label
+                    for source, label in (
+                        ("graph", "Graph option"),
+                        ("embedding", "Embedding option"),
+                        ("theory", "Theory option"),
+                        ("ngram", "Statistical option"),
+                    )
+                    if source in provenance
+                ]
+            )
+            labels = (["Intent match"] if request.intent else ["Preset ranked"]) + origin_labels
             explanation = None
             if request.include_explanations:
                 origin = (
                     f"{item.evidence.count} observed continuations support this option."
                     if supported
                     else (
-                        "This option comes from the theory candidate set; "
+                        "This option comes from "
+                        + ", ".join(
+                            description
+                            for source, description in (
+                                ("graph", "corpus graph relationships"),
+                                ("embedding", "similar corpus functions"),
+                                ("theory", "theory rules"),
+                                ("ngram", "statistical predictions"),
+                            )
+                            if source in provenance
+                        )
+                        + "; "
                         "no exact corpus continuation is claimed."
                     )
                 )
@@ -253,6 +305,7 @@ class RecommendationService:
                     update={
                         "score": weights[item.token] / total,
                         "labels": labels,
+                        "generators": sorted(provenance),
                         "color": row.features.color_delta,
                         "explanation": explanation,
                     }

@@ -156,3 +156,56 @@ def test_chord_continuation_uses_final_key_region():
     tokens, key, _ = _input_tokens("E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C", None)
     assert key == "C major"
     assert tokens == ["M:I", "M:V7", "M:I", "M:IV", "M:I"]
+
+
+def test_intent_service_passes_corpus_neighbors_to_scoring(monkeypatch):
+    from app.services import recommend as module
+
+    class Neighbors:
+        def read(self, history, seeds):
+            assert history[-1] == "M:vi"
+            assert seeds == ["M:IV", "M:I", "M:V"]
+            return [("M:IV", 0.7)], [("M:ivmaj7", 0.99)]
+
+        def similarities(self, previous, tokens):
+            assert previous == "M:vi"
+            assert "M:IV" in tokens and "M:ivmaj7" in tokens
+            return {"M:IV": 0.4, "M:ivmaj7": 0.85}
+
+    captured = {}
+    original = module.extract_features
+
+    def record(candidate, *args, **kwargs):
+        captured[candidate.token] = candidate
+        return original(candidate, *args, **kwargs)
+
+    monkeypatch.setattr(module, "extract_features", record)
+    service = _service()
+    service.candidate_reader = Neighbors()
+    result = service.recommend(
+        RecommendRequest(
+            progression=["C", "G", "Am"], key="C major", intent={"darker_brighter": -1}, limit=20
+        )
+    )
+    vector_option = next(item for item in result.data.recommendations if item.token == "M:ivmaj7")
+    assert vector_option.generators == ["embedding"]
+    assert (
+        "Embedding option" in vector_option.labels and "Theory option" not in vector_option.labels
+    )
+    assert vector_option.evidence.count == 0
+    assert "similar corpus functions" in vector_option.explanation
+    assert captured["M:IV"].graph_probability == 0.7
+    assert captured["M:IV"].embedding_similarity == 0.4
+    assert captured["M:ivmaj7"].embedding_similarity == 0.85
+    assert "embedding" in captured["M:ivmaj7"].generators
+
+
+def test_statistical_path_does_not_retrieve_extra_neighbors():
+    class NoReads:
+        def read(self, *_):
+            raise AssertionError("Statistical recommendations must not retrieve neighbors")
+
+    service = _service()
+    service.candidate_reader = NoReads()
+    result = service.recommend(RecommendRequest(progression=["C", "G", "Am"], key="C major"))
+    assert result.data.recommendations[0].chord == "F"

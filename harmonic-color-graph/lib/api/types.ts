@@ -1246,6 +1246,8 @@ export interface components {
             fact_ids: string[];
             /** Figure */
             figure: string;
+            /** Generators */
+            generators?: string[];
             /** Labels */
             labels: string[];
             /** Pitch Classes */
