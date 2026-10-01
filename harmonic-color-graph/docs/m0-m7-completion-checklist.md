@@ -7,6 +7,36 @@ the milestone exit gates. It is not the workstream selector: read the Git-root
 before starting. Reconcile this checklist against current Git and deployment
 state if work has continued since this date.
 
+## Authorized completion update — 2026-10-01
+
+Scope: finish the remaining M0–M7 implementation and automated acceptance,
+excluding human music/listening review and the separate frontend redesign.
+Representative Phase 3 prompts are approved. Free hosting/storage only; up to
+$10 total new paid AI evaluation on existing billing. New evaluation spending
+so far: $0. Independent reviewer approval plus required checks authorizes
+merge/deploy and validated corpus activation with rollback prepared.
+
+- PRs #48–#51 and #53 are merged. PR53 fixes internal key changes and keeps
+  continuation, selected-chord substitutions, color, and evidence aligned with
+  local keys. CI 36806956681 passed all five jobs before merge.
+- Full corrected `cv-2026-10-b` build is running from the verified original
+  source (679,807 songs); it is not active in production.
+- [Mobile loading verification](eval/m6-local-ui-2026-10-01.md) now records
+  three passing local mobile runs (90/91/91 performance, 100 accessibility),
+  plus actual Chromium playback/MIDI. PR54 merged the implementation after independent review and all five CI
+  jobs passed.
+- [Rollback rehearsal](eval/rollout-rehearsal-2026-10-01.md) restored all
+  33 table counts and sequences, then proved selective corpus restoration
+  preserving jobs/logs. New-load storage and final activation review remain.
+- Production API at merge `02e4319`: `/health`, `/health/db`, `/health/redis`
+  returned 200. `/v2/admin/metrics` remains 503 because the admin token is
+  unconfigured. Health's configured corpus label is still `unversioned`;
+  database active version remains `cv-2026-09-a`.
+- Temporary local worker is accepted while free persistent capacity is
+  unavailable. Grafana/OTLP and approved-workspace LangSmith recording are
+  authorized; worker collector credentials and LangSmith workspace access
+  are still needed. Human review remains explicitly pending.
+
 ## Development update - 2026-09-30
 
 PR #50 now contains the tested context-lift predictor, calibrated recommendation
@@ -83,7 +113,7 @@ broken.
 
 ## Ready now: agent implementation and local verification
 
-- [ ] **A01 — Repair the relative-key/section analysis defect (M1/M2).**
+- [x] **A01 — Repair the relative-key/section analysis defect (M1/M2).**
   Reproduce the documented `51575`, `112249`, and `381262` failures from
   [corpus-cv-2026-09-a.md](eval/corpus-cv-2026-09-a.md) as focused regression
   cases. Form and test a concrete hypothesis in the key and section analysis
@@ -92,9 +122,10 @@ broken.
   against the corrected logic. Target at least 18/20 musically defensible
   readings. Record any remaining judgment calls for H04. A change to gold
   expectations needs a documented musical reason.
-  Evidence: _pending_.
+  Evidence: [A01 recheck and internal regions](eval/corpus-cv-2026-09-a.md);
+  automated 19/20 recheck and PR53 regressions. Human judgments remain H04.
 
-- [ ] **A02 — Exercise and repair the local M6 UI gates.** Run the existing
+- [x] **A02 — Exercise and repair the local M6 UI gates.** Run the existing
   shareable-state, graph explorer, generator/MIDI, similarity, and assistant
   browser checks; inspect desktop and mobile flows. Measure the M6 Lighthouse
   targets (accessibility >= 90, mobile performance >= 80), explorer load
@@ -103,9 +134,11 @@ broken.
   control flow but do not prove production data. Fix concrete failures, then
   rerun the affected frontend and browser checks. Leave production-dependent
   checks in L03 open.
-  Evidence: _pending_.
+  Evidence: [earlier local flows](eval/m6-local-ui-2026-09-28.md) and
+  [repeatable mobile/playback checks](eval/m6-local-ui-2026-10-01.md).
+  Production and Safari/iOS human checks remain open.
 
-- [ ] **A03 — Reconcile stale plan and entry-point documentation after A02.**
+- [x] **A03 — Reconcile stale plan and entry-point documentation after A02.**
   Update F09 and F62–F65 checkboxes in [M0](../feature-specs/v2/M0.md) and
   [M6](../feature-specs/v2/M6.md) only for requirements supported by code and
   checks; leave live checks open. Correct the stale current-phase and worker
@@ -113,14 +146,16 @@ broken.
   [Docker runbook](runbooks/docker.md). Preserve the distinction between code
   merged, locally verified, and production accepted. Run the docs check and
   inspect the diff.
-  Evidence: _pending_.
+  Evidence: merged PR48 updated README, tracker, Docker runbook and feature
+  status. Documentation integrity checks pass; live acceptance stays separate.
 
 ## Needs human input or external state
 
 - [ ] **H01 — Choose and provision production Redis and a persistent worker
   host.** Confirm the service/host, expected cost, access method, and who owns
-  credentials. Production Redis is currently unavailable. This unlocks A07
-  and L01. Decision/evidence: _pending_.
+  credentials. Decision: existing Upstash Redis and temporary local worker
+  approved; production Redis health passed on 2026-10-01. Persistent free
+  hosting remains unavailable and is an accepted temporary exception.
 
 - [ ] **H02 — Configure deployment secrets and telemetry destination.** Put
   `ANTHROPIC_API_KEY`, `HCG_IP_HASH_SECRET`, and `HCG_JOBS_ADMIN_TOKEN` in the
@@ -128,12 +163,15 @@ broken.
   its endpoint/headers. Decide whether to enable LangSmith in an approved
   workspace; it may record prompts and tool data. Do not place values in this
   document, Git, or chat. This unlocks A07 and L04–L06.
-  Decision/evidence (names and scopes only): _pending_.
+  Decision: Grafana/OTLP and approved-workspace LangSmith prompt/tool-data
+  recording authorized. API production has Anthropic, IP-hash and OTLP
+  configuration; admin token is absent, worker collector and LangSmith access
+  remain pending. No secret values are recorded here.
 
-- [ ] **H03 — Provide Phase 3 §5 prompts and §16 production demo script, or
+- [x] **H03 — Provide Phase 3 §5 prompts and §16 production demo script, or
   approve representative replacements.** Neither referenced source is in
   this checkout. This unlocks the exact F71 and F74 scripted checks.
-  Decision/evidence: _pending_.
+  Decision: user approved representative replacements before implementation.
 
 - [ ] **H04 — Complete human music and listening review.** A musician reviews
   the key/Roman gold sets and A01's corrected 20-song sample. Siddharth checks
@@ -143,18 +181,20 @@ broken.
   agent. This cannot be ticked from automated or model-only review.
   Evidence: _pending_.
 
-- [ ] **H05 — Make the full-corpus source and load authorization available.**
+- [x] **H05 — Make the full-corpus source and load authorization available.**
   This checkout contains no `data/raw/chordonomicon_v2.csv` and no
   `data/artifacts/` build. Identify the licensed source or verified
   train/dev/test artifacts for A04, and the full-corpus source/artifacts and
   machine/storage budget for A05. Explicitly authorize and scope the production
   reload before A05. If the 300 MiB `hcg` budget cannot be met by pruning,
   choose whether to change storage plan. Do not copy raw corpus content into
-  Git. Decision/evidence: _pending_.
+  Git. Decision: verified original source reused; free storage only, reviewed
+  activation with tested rollback authorized. Source and rehearsal evidence
+  are recorded above. No paid storage upgrade is authorized.
 
 ## Agent work after dependencies are ready
 
-- [ ] **A04 — Tune prediction context and recheck hybrid coverage.** With the
+- [x] **A04 — Tune prediction context and recheck hybrid coverage.** With the
   real train/dev/test artifacts available, tune `DEFAULT_MIXING_K` on dev only;
   compare context-aware against context-free prediction without test leakage.
   Re-run the F31 and F52 reports after the current borrowed/mediant scoring
@@ -162,7 +202,9 @@ broken.
   prior hybrid top-five token coverage was 38 versus baseline 39 on 40 cases.
   Change scoring only when the measured result supports it. Prerequisite: H05's
   verified train/dev/test input; production reload authorization is not needed
-  for this offline work. Evidence: _pending_.
+  for this offline work. Evidence: [prediction](eval/prediction-context-lift.md),
+  [hybrid](eval/hybrid-context-lift.md), merged PR50. These frozen split
+  checks do not establish acceptance of the rebuilt production corpus.
 
 - [ ] **A05 — Build and atomically activate a new real-corpus version.** Run
   analysis/aggregates and the color, embedding, and snapshot stages from the
@@ -182,7 +224,7 @@ broken.
   Evidence: _pending_.
 
 - [ ] **A07 — Connect Redis, worker, and private assistant configuration.**
-  Apply H01/H02's choices, start a persistent worker, and configure the API,
+  Apply H01/H02's choices, run the approved temporary local worker, and configure the API,
   CI evaluation workflow, OTLP, admin metrics, and optional LangSmith. Check
   that deterministic routes still work when model/LangSmith are disabled and
   that secrets are absent from logs and public responses. Deployment needs
@@ -242,4 +284,8 @@ visible until resolved.
 
 | ID | Date | Commit/PR or deployment | Passed evidence | Failed / skipped / unverified |
 |---|---|---|---|---|
-| — | — | — | — | — |
+| A01 | 2026-10-01 | PR50 / PR53 | Automated sample correction; key-region, transposition and API regressions; all CI | Human music/listening pending |
+| A02 | 2026-10-01 | PR48 / PR54 | Local UI flows, mobile 90/91/91 and accessibility100, Chromium playback/MIDI | Production L03 pending; Windows WebKit lacks AudioContext; Lighthouse cleanup EPERM |
+| A03 | 2026-09-30 | PR48 | Entry points and milestone implementation status reconciled; docs check | Live gates remain open |
+| A04 | 2026-09-30 | PR50 | Frozen prediction and hybrid gates, zero split overlap | New production corpus acceptance pending |
+| A05 partial | 2026-10-01 | PR54 | Private full and selective rollback rehearsals | Full new build/load/activation pending |
