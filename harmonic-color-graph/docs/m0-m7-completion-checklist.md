@@ -1,4 +1,4 @@
-# M0â€“M7 completion checklist
+# M0–M7 completion checklist
 
 Point-in-time handoff: 2026-09-27. Scope is the v2 plan through M7, not M8 or
 stretch features. This document tracks the gap between merged feature code and
@@ -7,14 +7,14 @@ the milestone exit gates. It is not the workstream selector: read the Git-root
 before starting. Reconcile this checklist against current Git and deployment
 state if work has continued since this date.
 
-## Development update — 2026-09-30
+## Development update - 2026-09-30
 
 PR #50 now contains the tested context-lift predictor, calibrated recommendation
 list diversity, safe evaluation weight publication, Assistant repairs, temporary
 local worker launcher, and embedding-rebuild artifact jobs. See
 [prediction results](eval/prediction-context-lift.md),
 [recommendation results](eval/hybrid-context-lift.md),
-[AI repair results](eval/ai-live-repair-2026-09-30.md), and the
+[final AI results](eval/ai-live-final-2026-09-30.md), and the
 [local worker runbook](runbooks/local-worker.md).
 
 - A04's bounded offline prediction and hybrid acceptance checks now pass. The
@@ -25,10 +25,10 @@ local worker launcher, and embedding-rebuild artifact jobs. See
 - Embedding rebuild jobs now prepare immutable, hashed artifacts using the real
   pipeline. They do not activate a corpus. The Docker worker includes the ML
   extras and a separate writable output volume.
-- The latest recorded live AI run completed all 40 seeded-service cases with
-  parser, routing, tool, theory, tag and citation checks passing; color intent
-  still failed before the subsequent brightness correction. Its live recheck
-  is pending. Seeded services do not prove production corpus integration.
+- The final live AI run passed every configured threshold across 40 seeded-service
+  cases, including 75% color intent. Twenty cases used labeled fallbacks.
+  CI passed backend unit, Postgres integration, frontend, docs/tooling and Docker
+  Compose checks. Seeded services do not prove production corpus integration.
 - Production corpus/embedding activation and associated L01-L06 checks remain
   open, as do human music/listening review and review before merge/deployment.
   No production corpus reload or deployment was performed in this update.
@@ -54,14 +54,14 @@ Older baseline observations below are historical, not current health checks.
 
 ## Verified baseline; do not reimplement
 
-- [x] F00â€“F08, F10â€“F76 feature implementations are merged, including F70.5 MCP,
+- [x] F00–F08, F10–F76 feature implementations are merged, including F70.5 MCP,
   subject to the live gaps below. Evidence: milestone files
   [M0](../feature-specs/v2/M0.md) through [M7](../feature-specs/v2/M7.md),
   merged PRs through #46, and the root resume packet.
-- [x] F09 Docker/Compose code and F62â€“F65 UI code exist despite unchecked plan
+- [x] F09 Docker/Compose code and F62–F65 UI code exist despite unchecked plan
   boxes. Evidence: `compose.yaml`, both Dockerfiles, the `app/` routes,
   `components/graph-explorer.tsx`, `components/generator.tsx`,
-  `components/similarity-explorer.tsx`, and PRs #1 and #33â€“#36. Their remaining
+  `components/similarity-explorer.tsx`, and PRs #1 and #33–#36. Their remaining
   *acceptance* checks are tracked below.
 - [x] Public API `/health` and `/health/db` returned 200 on 2026-09-27. The
   active production corpus was `cv-2026-09-a` with 32,640 nodes, 791,074
@@ -83,7 +83,7 @@ broken.
 
 ## Ready now: agent implementation and local verification
 
-- [ ] **A01 â€” Repair the relative-key/section analysis defect (M1/M2).**
+- [ ] **A01 — Repair the relative-key/section analysis defect (M1/M2).**
   Reproduce the documented `51575`, `112249`, and `381262` failures from
   [corpus-cv-2026-09-a.md](eval/corpus-cv-2026-09-a.md) as focused regression
   cases. Form and test a concrete hypothesis in the key and section analysis
@@ -94,7 +94,7 @@ broken.
   expectations needs a documented musical reason.
   Evidence: _pending_.
 
-- [ ] **A02 â€” Exercise and repair the local M6 UI gates.** Run the existing
+- [ ] **A02 — Exercise and repair the local M6 UI gates.** Run the existing
   shareable-state, graph explorer, generator/MIDI, similarity, and assistant
   browser checks; inspect desktop and mobile flows. Measure the M6 Lighthouse
   targets (accessibility >= 90, mobile performance >= 80), explorer load
@@ -105,8 +105,8 @@ broken.
   checks in L03 open.
   Evidence: _pending_.
 
-- [ ] **A03 â€” Reconcile stale plan and entry-point documentation after A02.**
-  Update F09 and F62â€“F65 checkboxes in [M0](../feature-specs/v2/M0.md) and
+- [ ] **A03 — Reconcile stale plan and entry-point documentation after A02.**
+  Update F09 and F62–F65 checkboxes in [M0](../feature-specs/v2/M0.md) and
   [M6](../feature-specs/v2/M6.md) only for requirements supported by code and
   checks; leave live checks open. Correct the stale current-phase and worker
   bootstrap descriptions in `README.md`, `context/progress-tracker.md`, and
@@ -117,25 +117,25 @@ broken.
 
 ## Needs human input or external state
 
-- [ ] **H01 â€” Choose and provision production Redis and a persistent worker
+- [ ] **H01 — Choose and provision production Redis and a persistent worker
   host.** Confirm the service/host, expected cost, access method, and who owns
   credentials. Production Redis is currently unavailable. This unlocks A07
   and L01. Decision/evidence: _pending_.
 
-- [ ] **H02 â€” Configure deployment secrets and telemetry destination.** Put
+- [ ] **H02 — Configure deployment secrets and telemetry destination.** Put
   `ANTHROPIC_API_KEY`, `HCG_IP_HASH_SECRET`, and `HCG_JOBS_ADMIN_TOKEN` in the
   appropriate private deployment/CI stores. Choose an OTLP collector and set
   its endpoint/headers. Decide whether to enable LangSmith in an approved
   workspace; it may record prompts and tool data. Do not place values in this
-  document, Git, or chat. This unlocks A07 and L04â€“L06.
+  document, Git, or chat. This unlocks A07 and L04–L06.
   Decision/evidence (names and scopes only): _pending_.
 
-- [ ] **H03 â€” Provide Phase 3 Â§5 prompts and Â§16 production demo script, or
+- [ ] **H03 — Provide Phase 3 §5 prompts and §16 production demo script, or
   approve representative replacements.** Neither referenced source is in
   this checkout. This unlocks the exact F71 and F74 scripted checks.
   Decision/evidence: _pending_.
 
-- [ ] **H04 â€” Complete human music and listening review.** A musician reviews
+- [ ] **H04 — Complete human music and listening review.** A musician reviews
   the key/Roman gold sets and A01's corrected 20-song sample. Siddharth checks
   the three M5 listening comparisons listed in `context/HANDOFF.md` and F61
   playback on Chrome and Safari/iOS, including AudioContext unlock and console
@@ -143,7 +143,7 @@ broken.
   agent. This cannot be ticked from automated or model-only review.
   Evidence: _pending_.
 
-- [ ] **H05 â€” Make the full-corpus source and load authorization available.**
+- [ ] **H05 — Make the full-corpus source and load authorization available.**
   This checkout contains no `data/raw/chordonomicon_v2.csv` and no
   `data/artifacts/` build. Identify the licensed source or verified
   train/dev/test artifacts for A04, and the full-corpus source/artifacts and
@@ -154,7 +154,7 @@ broken.
 
 ## Agent work after dependencies are ready
 
-- [ ] **A04 â€” Tune prediction context and recheck hybrid coverage.** With the
+- [ ] **A04 — Tune prediction context and recheck hybrid coverage.** With the
   real train/dev/test artifacts available, tune `DEFAULT_MIXING_K` on dev only;
   compare context-aware against context-free prediction without test leakage.
   Re-run the F31 and F52 reports after the current borrowed/mediant scoring
@@ -164,7 +164,7 @@ broken.
   verified train/dev/test input; production reload authorization is not needed
   for this offline work. Evidence: _pending_.
 
-- [ ] **A05 â€” Build and atomically activate a new real-corpus version.** Run
+- [ ] **A05 — Build and atomically activate a new real-corpus version.** Run
   analysis/aggregates and the color, embedding, and snapshot stages from the
   verified source. Produce complete `color_norms`, `color_profiles`, 64D
   embeddings, and the 2D projection; run intrinsic embedding and color sanity
@@ -174,14 +174,14 @@ broken.
   authorized load. Prerequisites: A01, H05; coordinate with A04.
   Evidence: _pending_.
 
-- [ ] **A06 â€” Publish real-corpus browser assets.** Generate
+- [ ] **A06 — Publish real-corpus browser assets.** Generate
   `public/snapshot/embedding-map.json` and replace the sample
   `graph-core.json` from A05's active corpus. Verify size limits, attribution,
   public 200 responses, a real map point opening in Workbench, and graph
   fallback with the API blocked. Prerequisite: A05.
   Evidence: _pending_.
 
-- [ ] **A07 â€” Connect Redis, worker, and private assistant configuration.**
+- [ ] **A07 — Connect Redis, worker, and private assistant configuration.**
   Apply H01/H02's choices, start a persistent worker, and configure the API,
   CI evaluation workflow, OTLP, admin metrics, and optional LangSmith. Check
   that deterministic routes still work when model/LangSmith are disabled and
@@ -191,7 +191,7 @@ broken.
 
 ## Live acceptance; tick only with recorded production evidence
 
-- [ ] **L01 â€” Close M0/M2 operations gates.** Run clean Compose startup,
+- [ ] **L01 — Close M0/M2 operations gates.** Run clean Compose startup,
   dependency health, restart persistence, and Redis-removal tests on a Docker
   host (Docker was unavailable on the 2026-09-27 audit host; Compose CI smoke
   previously passed). In production, verify Redis/cache, a durable
@@ -199,35 +199,35 @@ broken.
   idempotency, bounded retry, and dead-letter/manual retry. Prerequisite: A07.
   Evidence: _pending_.
 
-- [ ] **L02 â€” Close M4/M5 corpus-backed gates.** Confirm complete stored
+- [ ] **L02 — Close M4/M5 corpus-backed gates.** Confirm complete stored
   color-profile coverage and percentile norms, HNSW index use and p95
   similarity latency, related-but-distinct loop results, rotation flags,
   vector candidates in hybrid recommendations, and production structural
   similarity. Prerequisite: A05. Evidence: _pending_.
 
-- [ ] **L03 â€” Close M6 production gate.** On desktop and mobile, enter
+- [ ] **L03 — Close M6 production gate.** On desktop and mobile, enter
   `Cmaj7 - Em7 - Am7` with nostalgic/hopeful/smooth intent and verify multiple
   ranked suggestions with playable audio, color, and theory explanations;
   exercise explorer paths, generator, compare, MIDI export, real embedding map,
   URL restoration, and degraded snapshot. Include H04 listening evidence.
   Prerequisites: A02, A05, A06, H04. Evidence: _pending_.
 
-- [ ] **L04 â€” Close F71â€“F74 live assistant gates.** Run the 20-query live route
-  set and supplied Phase 3 Â§5 prompts, grounding/adversarial cases, production
+- [ ] **L04 — Close F71–F74 live assistant gates.** Run the 20-query live route
+  set and supplied Phase 3 §5 prompts, grounding/adversarial cases, production
   SSE route types, 21st-request/rate and budget behavior, success/failure log
-  writes, and ten production queries with p50 < 8 s. Run the Phase 3 Â§16
+  writes, and ten production queries with p50 < 8 s. Run the Phase 3 §16
   production demo and accessibility scan. Confirm cited/playable results on
   the active corpus. Prerequisites: A05, A07, H03.
   Evidence: _pending_.
 
-- [ ] **L05 â€” Close F75 observability gates.** Follow one trace ID across
+- [ ] **L05 — Close F75 observability gates.** Follow one trace ID across
   HTTP, Postgres, Redis, LangGraph/tool/model, and worker spans. Verify model
   latency/tokens, p50/p95/p99, Redis hit rate, queue depth/retry/dead letters,
   authenticated `/admin` metrics, OTLP export, secret-safe logs, LangSmith
   when configured, and normal operation when disabled. Prerequisite: A07.
   Evidence: _pending_.
 
-- [ ] **L06 â€” Close F76 and the M7 exit gate.** Run all 40 live Claude cases
+- [ ] **L06 — Close F76 and the M7 exit gate.** Run all 40 live Claude cases
   with the bounded budget; require schema-valid 100%, must-not 100%, routing
   >= 90%, intent match >= 75%, fact coverage >= 95%, and the additional
   tool/theory rules in [ai.md](eval/ai.md). Commit the dated report, verify the
@@ -242,4 +242,4 @@ visible until resolved.
 
 | ID | Date | Commit/PR or deployment | Passed evidence | Failed / skipped / unverified |
 |---|---|---|---|---|
-| â€” | â€” | â€” | â€” | â€” |
+| — | — | — | — | — |

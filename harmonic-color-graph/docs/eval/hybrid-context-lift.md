@@ -1,4 +1,4 @@
-# Hybrid recommendation correction â€” 2026-09-30
+# Hybrid recommendation correction — 2026-09-30
 
 After the context-lift predictor change, frozen original weights failed the 400-position test: hybrid MRR 0.6716 versus n-gram 0.6927, and top-five vocabulary coverage 79 versus 80. [Failed baseline](hybrid-context-lift-baseline-failed.json) is retained.
 
