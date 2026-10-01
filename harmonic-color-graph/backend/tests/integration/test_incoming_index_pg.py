@@ -74,6 +74,8 @@ def test_incoming_and_limited_chord_candidates_are_deterministic_and_version_sco
                 assert len(incoming) == 6
                 assert {row["version"] for row in incoming} == {"cv-index-active"}
             assert results[0] == results[1]
+            late_seed = EmbeddingStore(session).chord_candidates("C5", limit=3)
+            assert sorted({row["chord"] for row in late_seed}) == ["C0", "C1", "C5"]
             all_candidates = EmbeddingStore(session).chord_candidates("C0")
             assert "C6" not in {row["chord"] for row in all_candidates}
         finally:

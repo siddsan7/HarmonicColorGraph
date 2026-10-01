@@ -125,11 +125,13 @@ class EmbeddingStore(_ActiveStore):
                  where n.version = hcg.v() and n.id = :node
                  order by e.count desc, e.dst_key limit 4
                ), candidates as (
-                 select distinct e.src_key
+                 select distinct e.src_key,
+                     e.src_key = (select node_key from hcg.nodes
+                                  where version = hcg.v() and id = :node) as is_seed
                  from seed s join hcg.corpus_versions cv on cv.version = hcg.v()
                  join hcg.edges_compact e on e.version_key = cv.version_key
                       and e.dst_key = s.dst_key and e.type_code = 2
-                 order by e.src_key
+                 order by is_seed desc, e.src_key
                  limit :limit
                )
                select n.label as chord, f.label as token, e.count
