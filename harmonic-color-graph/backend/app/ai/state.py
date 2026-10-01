@@ -32,7 +32,11 @@ class ParsedIntent(StrictModel):
     section: str | None = Field(default=None, max_length=80)
     intent_axes: dict[str, float] = Field(default_factory=dict, description=INTENT_AXIS_GUIDE)
     count: int = Field(default=3, ge=1, le=5)
-    variants: list[list[Chord]] = Field(default_factory=list, max_length=2)
+    variants: list[list[Chord]] = Field(
+        default_factory=list,
+        max_length=2,
+        description="For compare, exactly two separate chord sequences in input order.",
+    )
     export: bool = False
     key_confidence: float | None = Field(default=None, ge=0, le=1)
 

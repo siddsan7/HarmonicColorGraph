@@ -131,6 +131,22 @@ def test_fallback_parser_clarifies_invalid_comparison_variants():
     assert parsed.chords == []
 
 
+def test_model_comparison_recovers_explicit_sequences_without_combining_them():
+    workflow = AssistantWorkflow(
+        _tools(),
+        intent_model=lambda _: ParsedIntent(
+            task_type="compare", chords=["G", "D", "Em", "C", "G", "C", "D", "G"], key="G major"
+        ),
+    )
+    parsed = workflow._intent_parser(
+        {"raw_user_query": "Compare G D Em C versus G C D G in G major."}
+    )["parsed_intent"]
+    assert parsed.variants == [["G", "D", "Em", "C"], ["G", "C", "D", "G"]]
+    assert parsed.chords == parsed.variants[0]
+    missing = workflow._intent_parser({"raw_user_query": "Compare G D Em C"})["parsed_intent"]
+    assert missing.variants == []
+
+
 def test_explanation_repairs_invalid_fact_reference_once():
     calls = 0
 
@@ -138,6 +154,8 @@ def test_explanation_repairs_invalid_fact_reference_once():
         nonlocal calls
         calls += 1
         fact_id = "made-up" if calls == 1 else "relationship:deceptive:1:2"
+        if calls == 2:
+            assert "claim:0:fact_coverage" in _prompt
         return {
             "claims": [{"text": "The transition is supported.", "fact_ids": [fact_id]}],
         }
@@ -181,6 +199,7 @@ def test_invented_chord_rejected_then_deterministic_fallback():
     assert calls == 2
     assert result.fallback
     assert "F#7" not in result.message
+    assert any("claim:0:chord_provenance" in code for code in result.errors)
 
 
 def test_invalid_explanation_schema_gets_one_repair():

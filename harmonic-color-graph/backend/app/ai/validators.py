@@ -196,6 +196,14 @@ def validate_claims(
     return list(dict.fromkeys(violations))
 
 
+class ClaimValidationError(ValueError):
+    """Stable, prose-free diagnostics safe for model repair and telemetry."""
+
+    def __init__(self, codes: list[str]) -> None:
+        self.codes = tuple(codes)
+        super().__init__(",".join(codes))
+
+
 def validate_draft(
     draft: ExplanationDraft,
     fact_pool: Mapping[str, Any],
@@ -204,4 +212,4 @@ def validate_draft(
     """Reject a draft before any model-written text reaches the response."""
     violations = validate_claims(draft.claims, fact_pool, tool_results)
     if violations:
-        raise ValueError(",".join(violations))
+        raise ClaimValidationError(violations)

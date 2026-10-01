@@ -33,7 +33,7 @@ from app.ai.usage import (
     UsageMeter,
     configured_rates,
 )
-from app.ai.validators import validate_draft
+from app.ai.validators import ClaimValidationError, validate_draft
 from app.core import telemetry
 from app.core.metrics import emit_metric
 
@@ -321,11 +321,23 @@ class AssistantWorkflow:
                 "Choose one task_type: recommend, explain, generate, similar, compare, clarify. "
                 "Return chords, key, genre, section, intent axes, count, variants and export flag. "
                 f"{INTENT_AXIS_GUIDE} "
+                "More tension means tense_relaxed=-1; more relaxed means +1. "
+                "More resolved means resolved_open=-1; more open means +1. "
+                "For compare, put the two separate chord sequences in variants, "
+                "and the first sequence in chords. Do not concatenate both sequences. "
                 f"User query: {query}"
             )
             if len(prompt.encode("utf-8")) > FAST_MAX_PROMPT_BYTES:
                 raise ValueError("Intent prompt exceeds cost bound")
             parsed = ParsedIntent.model_validate(self.intent_model(prompt))
+            if parsed.task_type == "compare" and len(parsed.variants) != 2:
+                # Recover explicitly separated input sequences when the model
+                # returns the route but omits its required variants.
+                literal = heuristic_intent(query)
+                if literal.task_type == "compare" and len(literal.variants) == 2:
+                    parsed = parsed.model_copy(
+                        update={"variants": literal.variants, "chords": literal.variants[0]}
+                    )
             return {"parsed_intent": parsed}
         except Exception as exc:
             # Provider failures and malformed structured output use the safe parser.
@@ -622,8 +634,12 @@ class AssistantWorkflow:
                     if attempt + 1 < MAIN_MAX_CALLS:
                         emit_metric("ai_repair_attempt_count", 1)
                     error_code = f"explanation_validation_failed:{type(exc).__name__}"
+                    repair_detail = type(exc).__name__
+                    if isinstance(exc, ClaimValidationError):
+                        repair_detail = ",".join(exc.codes)
+                        error_code += ":" + repair_detail
                     prompt += (
-                        f"\nRepair attempt {attempt + 1}: {type(exc).__name__}. "
+                        f"\nRepair attempt {attempt + 1}: {repair_detail}. "
                         "Use only listed facts, symbols, and registered theory labels."
                     )
                 except Exception as exc:
