@@ -9,14 +9,42 @@ state if work has continued since this date.
 
 ## Authorized completion update — 2026-10-01
 
+Latest reconciliation (after PR #69): local owner HEAD is `1c0cd59`; the
+production API and frontend deployments for that commit are READY, and the API
+health endpoint reports `cv-2026-10-b`. GitHub reports no open PRs. The local
+worker is running and reaches Postgres, the jobs table, and Redis. After
+independent review and five successful CI jobs, the API was redeployed at the
+same commit with its private jobs-admin token and corrected OTLP headers.
+Production admin metrics now return 403 unauthenticated and 200 authenticated.
+The [production operations recheck](eval/operations-live-2026-10-01.md) verifies
+three completed live jobs, duplicate submission, progress, restart recovery,
+and manual retry after a safe invalid-artifact failure. Grafana ingestion is
+not yet confirmed in its UI. The initial LangSmith 403 was resolved by using
+the correct approved workspace ID. Production export is enabled, and one live
+assistant SSE query delivered a final frame with exact audit and model/tool
+traces; its root trace reported `GeneratorExit` on client close. A focused fix
+and local trace verification are pending review and release. Docker
+is unavailable on this host. Vercel's runtime-log query for
+the interrupted SSE window returns `ExceedsBillingLimitError`; it cannot
+establish the cause or delivery. The weekly AI workflow is configured and its
+latest manual run passed on `bd42171`; a scheduled run has not yet been
+observed. Its successful run is not production-corpus acceptance. Focused AI,
+job-policy, worker-launcher, admin-metrics, and telemetry
+unit checks pass (46 tests). A fast graph-layout experiment remained above one
+second and made nodes overlap; it was reverted. The exposed database password
+was rotated in Supabase, Vercel production/preview configuration, and the
+temporary worker; the new direct/pooler connections and a fresh live job pass.
+A07 and L01/L03–L06 remain open, with H01 and H04 explicitly pending as
+described below.
+
 Scope: finish the remaining M0–M7 implementation and automated acceptance,
 excluding human music/listening review and the separate frontend redesign.
 Representative Phase 3 prompts are approved. Free hosting/storage only; up to
 $10 total new paid AI evaluation on existing billing. New evaluation spending
-so far: $4.709505. Independent reviewer approval plus required checks authorizes
+so far: $4.731855. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#68 are merged after independent review and required
+- PRs #48–#51 and #53–#69 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
@@ -32,9 +60,9 @@ merge/deploy and validated corpus activation with rollback prepared.
   playback/MIDI. [Production browser checks](eval/production-ui-2026-10-01.md)
   pass actual corpus flows and snapshot fallback; first-load graph timing,
   Safari/iOS, human listening, and new production AI checks remain.
-- The temporary local worker is healthy and idle. Admin HTTP job verification
-  needs the unconfigured admin token. Worker OTLP credentials and approved
-  LangSmith workspace access remain needed. Monitoring is authorized.
+- The temporary local worker is healthy and idle. Admin HTTP jobs and worker
+  OTLP collector acceptance now pass as described in the operations recheck.
+  LangSmith root-trace completion and actual Grafana ingestion remain needed.
 - The [production AI baseline](eval/ai-production-baseline-2026-10-01.json)
   stopped failed/incomplete at 24/40: all 12 intent cases had completed and
   only 8 passed. Twelve responses used labeled explanation fallbacks. The
@@ -51,8 +79,8 @@ merge/deploy and validated corpus activation with rollback prepared.
   remains open. The [production stream interruption](eval/assistant-stream-completion-2026-10-01.md)
   is reconciled for cost, with HTTP delivery unverified; the daily cap is $2.
 - Human music/listening review remains explicitly pending. The database
-  credential disclosed by a diagnostic must be rotated in coordinated API
-  and worker configuration; its value is not recorded in these documents.
+  credential disclosed by a diagnostic was rotated across Supabase, API, and
+  worker configuration. Its value is not recorded in these documents.
 
 ## Development update - 2026-09-30
 
@@ -181,9 +209,12 @@ broken.
   workspace; it may record prompts and tool data. Do not place values in this
   document, Git, or chat. This unlocks A07 and L04–L06.
   Decision: Grafana/OTLP and approved-workspace LangSmith prompt/tool-data
-  recording authorized. API production has Anthropic, IP-hash and OTLP
-  configuration; admin token is absent, worker collector and LangSmith access
-  remain pending. No secret values are recorded here.
+  recording authorized. API production has Anthropic, IP-hash, jobs-admin and
+  OTLP configuration. The temporary worker exports to the approved collector;
+  remote ingestion is unverified. The existing free LangSmith workspace and
+  service key passed a synthetic trace write after correcting the private
+  workspace ID; production export is enabled, with root-trace completion fix
+  pending release. No secret values are recorded here.
 
 - [x] **H03 — Provide Phase 3 §5 prompts and §16 production demo script, or
   approve representative replacements.** Neither referenced source is in
@@ -248,7 +279,8 @@ broken.
   that deterministic routes still work when model/LangSmith are disabled and
   that secrets are absent from logs and public responses. Deployment needs
   review and required gates. Prerequisites: H01, H02.
-  Evidence: _pending_.
+  Evidence: [production operations recheck](eval/operations-live-2026-10-01.md);
+  LangSmith and full tracing acceptance remain pending.
 
 ## Live acceptance; tick only with recorded production evidence
 
@@ -258,7 +290,8 @@ broken.
   previously passed). In production, verify Redis/cache, a durable
   API -> queue -> worker -> completed job, progress, restart recovery,
   idempotency, bounded retry, and dead-letter/manual retry. Prerequisite: A07.
-  Evidence: _pending_.
+  Evidence: [production operations recheck](eval/operations-live-2026-10-01.md);
+  bounded live retry/dead-letter, Redis outage and Docker operations remain.
 
 - [x] **L02 — Close M4/M5 corpus-backed gates.** Confirm complete stored
   color-profile coverage and percentile norms, HNSW index use and p95

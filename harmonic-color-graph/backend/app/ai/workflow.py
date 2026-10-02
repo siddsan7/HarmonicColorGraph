@@ -347,6 +347,7 @@ class AssistantWorkflow:
             "explain": "format_playback",
             "format_playback": "final",
         }
+        final_payload: dict[str, Any] | None = None
         for update in self._graph_updates(state):
             for node, delta in update.items():
                 state.update(delta or {})
@@ -362,19 +363,20 @@ class AssistantWorkflow:
                         yield "partial", {"text": message}
                 if node == "final":
                     response = AssistantResponse.model_validate(state["response"])
-                    yield (
-                        "final",
-                        {
-                            "response": response.model_dump(mode="json"),
-                            "parsed_intent": state["parsed_intent"].model_dump(mode="json"),
-                            "tools": sorted(state.get("tool_results", {})),
-                        },
-                    )
-                    return
+                    final_payload = {
+                        "response": response.model_dump(mode="json"),
+                        "parsed_intent": state["parsed_intent"].model_dump(mode="json"),
+                        "tools": sorted(state.get("tool_results", {})),
+                    }
+                    continue
                 next_node = (
                     "final" if node == "router" and state["route"] == "clarify" else sequence[node]
                 )
                 yield "step", {"node": next_node, "status": "started"}
+        # Closing the SSE reader on its final frame must not abort LangGraph's
+        # tracing context. Exhaust the graph iterator before yielding final.
+        if final_payload is not None:
+            yield "final", final_payload
 
     def _graph_updates(self, state: AssistantState) -> Iterator[dict[str, Any]]:
         with tracing_context(enabled=self._langsmith_enabled()):
