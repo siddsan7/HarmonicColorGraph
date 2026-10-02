@@ -5,7 +5,7 @@ import re
 import subprocess
 import sys
 import threading
-from contextlib import nullcontext
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from uuid import uuid4
 
@@ -274,6 +274,24 @@ def test_langsmith_without_key_keeps_workflow_available(monkeypatch):
     workflow = AssistantWorkflow(_tools())
     assert workflow._langsmith_enabled() is False
     assert workflow.run("Explain C G Am F").route == "explain"
+
+
+def test_langsmith_context_carries_http_trace_id(monkeypatch):
+    captured = []
+
+    @contextmanager
+    def capture_context(**kwargs):
+        captured.append(kwargs["metadata"]["hcg_trace_id"])
+        yield
+
+    monkeypatch.setattr("app.ai.workflow.tracing_context", capture_context)
+    workflow = AssistantWorkflow(_tools())
+    monkeypatch.setattr(workflow, "_langsmith_enabled", lambda: True)
+    with trace.get_tracer("test").start_as_current_span("test.request") as root:
+        assert workflow.run("Explain C G Am F").route == "explain"
+        assert list(workflow.stream("Explain C G Am F"))[-1][0] == "final"
+    expected = f"{root.get_span_context().trace_id:032x}"
+    assert captured == [expected, expected]
 
 
 def test_worker_creates_trace_for_claimed_job(monkeypatch):

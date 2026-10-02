@@ -7,62 +7,61 @@ the milestone exit gates. It is not the workstream selector: read the Git-root
 before starting. Reconcile this checklist against current Git and deployment
 state if work has continued since this date.
 
-## Authorized completion update — 2026-10-01
+## Authorized completion update — 2026-10-01/02
 
-Latest reconciliation (after PR #69): local owner HEAD is `1c0cd59`; the
-production API and frontend deployments for that commit are READY, and the API
-health endpoint reports `cv-2026-10-b`. GitHub reports no open PRs. The local
-worker is running and reaches Postgres, the jobs table, and Redis. After
-independent review and five successful CI jobs, the API was redeployed at the
-same commit with its private jobs-admin token and corrected OTLP headers.
-Production admin metrics now return 403 unauthenticated and 200 authenticated.
-The [production operations recheck](eval/operations-live-2026-10-01.md) verifies
-three completed live jobs, duplicate submission, progress, restart recovery,
-and manual retry after a safe invalid-artifact failure. Grafana ingestion is
-not yet confirmed in its UI. The initial LangSmith 403 was resolved by using
-the correct approved workspace ID. Production export is enabled, and one live
-assistant SSE query delivered a final frame with exact audit and model/tool
-traces; its root trace reported `GeneratorExit` on client close. A focused fix
-and local trace verification are pending review and release. Docker
-is unavailable on this host. Vercel's runtime-log query for
-the interrupted SSE window returns `ExceedsBillingLimitError`; it cannot
-establish the cause or delivery. The weekly AI workflow is configured and its
-latest manual run passed on `bd42171`; a scheduled run has not yet been
-observed. Its successful run is not production-corpus acceptance. Focused AI,
-job-policy, worker-launcher, admin-metrics, and telemetry
-unit checks pass (46 tests). A fast graph-layout experiment remained above one
-second and made nodes overlap; it was reverted. The exposed database password
-was rotated in Supabase, Vercel production/preview configuration, and the
-temporary worker; the new direct/pooler connections and a fresh live job pass.
-A07 and L01/L03–L06 remain open, with H01 and H04 explicitly pending as
-described below.
+Latest reconciliation: PR #72 merged at `b60222b` after independent review
+and five passing CI checks. Production API and frontend are READY, API/DB/Redis
+health pass, and `cv-2026-10-b` remains active. PR #72 passed independent
+review and five CI checks, merged as `b60222b` after the production AI
+evaluation, and its frontend deployment is READY.
+The [production operations recheck](eval/operations-live-2026-10-01.md) records
+live queue completion, duplicate submission, progress, restart recovery,
+bounded retry, dead letters, manual retry, and an isolated Redis failure with
+durable recovery. PR #71's Docker-host CI passed startup, restart persistence,
+and Redis removal/recovery. Shared Upstash was not stopped. Private admin,
+OTLP, LangSmith, and rotated database configuration are active. Grafana
+ingestion, an audited 43-span assistant trace, and worker/Redis spans are
+confirmed. They remain separate causal traces. The temporary
+local worker remains necessary while this computer is awake.
+
+The weekly AI workflow's manual fixture run passed on `bd42171`; no scheduled
+run has occurred yet. Production Claude HTTP/SSE evaluation delivered and
+audited all 40 distinct cases across version-pinned private ledgers and met
+every specified quality threshold. The predeclared route-balanced ten-query
+p50 was 7.25 seconds; the recommend-only ten-query diagnostic was 10.7
+seconds. The old interrupted SSE attempt remains delivery-unverified with its
+cost accounted. The exposed database password was rotated again across
+Supabase, Vercel production and preview, and the temporary worker. The API
+uses the transaction pooler and the worker uses the session pooler. H02, A07,
+and L01 pass; L03–L06 and the H01/H04 exceptions remain open as described below.
 
 Scope: finish the remaining M0–M7 implementation and automated acceptance,
 excluding human music/listening review and the separate frontend redesign.
 Representative Phase 3 prompts are approved. Free hosting/storage only; up to
 $10 total new paid AI evaluation on existing billing. New evaluation spending
-so far: $4.731855. Independent reviewer approval plus required checks authorizes
+so far: $6.091257. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#69 are merged after independent review and required
+- PRs #48–#51 and #53–#72 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
   backup restoration, storage gates, exact colors/norms, vector retrieval,
   rotations, and public asset hashes passed. See the
   [production activation report](eval/corpus-production-2026-10-01.md).
-- API `bd42171` is healthy with maintenance off and the corrected corpus label.
+- API `351a7db` is healthy with maintenance off and the corrected corpus label.
   Public HTTP correctness and representative warm latency pass: function
   p95 42.11 ms, structural-pattern p95 76.88 ms against the 120 ms gate.
   PR63/64 resolve event-loop blocking and export worker-pool contention.
 - [Mobile loading verification](eval/m6-local-ui-2026-10-01.md) records local
   scores of 90/91/91 performance and 100 accessibility, plus actual Chromium
   playback/MIDI. [Production browser checks](eval/production-ui-2026-10-01.md)
-  pass actual corpus flows and snapshot fallback; first-load graph timing,
-  Safari/iOS, human listening, and new production AI checks remain.
-- The temporary local worker is healthy and idle. Admin HTTP jobs and worker
-  OTLP collector acceptance now pass as described in the operations recheck.
-  LangSmith root-trace completion and actual Grafana ingestion remain needed.
+  pass actual corpus flows, snapshot fallback, and the deployed first-load
+  graph target in five Chromium runs. Safari/iOS and human listening remain.
+- The temporary local worker is healthy and idle. Admin HTTP jobs, bounded
+  retries, dead letters, manual retry, Docker-host operations, and worker OTLP
+  collector acceptance pass as described in the operations recheck.
+  API and worker/Redis destination traces pass; cross-path correlation remains.
 - The [production AI baseline](eval/ai-production-baseline-2026-10-01.json)
   stopped failed/incomplete at 24/40: all 12 intent cases had completed and
   only 8 passed. Twelve responses used labeled explanation fallbacks. The
@@ -78,6 +77,13 @@ merge/deploy and validated corpus activation with rollback prepared.
   with nine fallbacks and no container-format failures. Production acceptance
   remains open. The [production stream interruption](eval/assistant-stream-completion-2026-10-01.md)
   is reconciled for cost, with HTTP delivery unverified; the daily cap is $2.
+- The [completed production HTTP/SSE run](eval/ai-production-2026-10-02.md)
+  has 40/40 final frames exactly matching durable audits, passes all specified
+  quality thresholds, and cost $1.269658 including the earlier uncertain
+  delivery. The route-balanced ten-query p50 is 7.25 seconds; the first ten
+  recommend-only queries remain a failing 10.7-second diagnostic. All task
+  evaluation spend is $6.091257 after one real UI demo. The daily cap was
+  restored to $2 after that request.
 - Human music/listening review remains explicitly pending. The database
   credential disclosed by a diagnostic was rotated across Supabase, API, and
   worker configuration. Its value is not recorded in these documents.
@@ -202,7 +208,7 @@ broken.
   approved; production Redis health passed on 2026-10-01. Persistent free
   hosting remains unavailable and is an accepted temporary exception.
 
-- [ ] **H02 — Configure deployment secrets and telemetry destination.** Put
+- [x] **H02 — Configure deployment secrets and telemetry destination.** Put
   `ANTHROPIC_API_KEY`, `HCG_IP_HASH_SECRET`, and `HCG_JOBS_ADMIN_TOKEN` in the
   appropriate private deployment/CI stores. Choose an OTLP collector and set
   its endpoint/headers. Decide whether to enable LangSmith in an approved
@@ -211,10 +217,11 @@ broken.
   Decision: Grafana/OTLP and approved-workspace LangSmith prompt/tool-data
   recording authorized. API production has Anthropic, IP-hash, jobs-admin and
   OTLP configuration. The temporary worker exports to the approved collector;
-  remote ingestion is unverified. The existing free LangSmith workspace and
+  remote Grafana ingestion later passed in L05's production recheck. The
+  existing free LangSmith workspace and
   service key passed a synthetic trace write after correcting the private
-  workspace ID; production export is enabled, with root-trace completion fix
-  pending release. No secret values are recorded here.
+  workspace ID; production export and a completed root trace passed after
+  reviewed PR #70. No secret values are recorded here.
 
 - [x] **H03 — Provide Phase 3 §5 prompts and §16 production demo script, or
   approve representative replacements.** Neither referenced source is in
@@ -227,7 +234,7 @@ broken.
   playback on Chrome and Safari/iOS, including AudioContext unlock and console
   errors. Record findings; route concrete defects back to the implementing
   agent. This cannot be ticked from automated or model-only review.
-  Evidence: _pending_.
+  Evidence: _pending human review_.
 
 - [x] **H05 — Make the full-corpus source and load authorization available.**
   This checkout contains no `data/raw/chordonomicon_v2.csv` and no
@@ -273,25 +280,30 @@ broken.
   Evidence: [production browser verification](eval/production-ui-2026-10-01.md)
   and [published asset hashes](eval/corpus-production-2026-10-01.md).
 
-- [ ] **A07 — Connect Redis, worker, and private assistant configuration.**
+- [x] **A07 — Connect Redis, worker, and private assistant configuration.**
   Apply H01/H02's choices, run the approved temporary local worker, and configure the API,
   CI evaluation workflow, OTLP, admin metrics, and optional LangSmith. Check
   that deterministic routes still work when model/LangSmith are disabled and
   that secrets are absent from logs and public responses. Deployment needs
   review and required gates. Prerequisites: H01, H02.
   Evidence: [production operations recheck](eval/operations-live-2026-10-01.md);
-  LangSmith and full tracing acceptance remain pending.
+  production configuration, disabled-tracing deterministic routes, admin
+  authentication, and known-secret scans pass. Grafana ingested metrics and
+  traces; full cross-path correlation remains an L05 acceptance check.
 
 ## Live acceptance; tick only with recorded production evidence
 
-- [ ] **L01 — Close M0/M2 operations gates.** Run clean Compose startup,
+- [x] **L01 — Close M0/M2 operations gates.** Run clean Compose startup,
   dependency health, restart persistence, and Redis-removal tests on a Docker
   host (Docker was unavailable on the 2026-09-27 audit host; Compose CI smoke
   previously passed). In production, verify Redis/cache, a durable
   API -> queue -> worker -> completed job, progress, restart recovery,
   idempotency, bounded retry, and dead-letter/manual retry. Prerequisite: A07.
   Evidence: [production operations recheck](eval/operations-live-2026-10-01.md);
-  bounded live retry/dead-letter, Redis outage and Docker operations remain.
+  live bounded retry/dead-letter, manual retry, and isolated API Redis-outage
+  recovery pass; Docker-host startup, restart persistence, and Redis-removal
+  checks passed in required PR #71 CI. Shared production Upstash was not taken
+  offline. The local worker remains temporary under H01.
 
 - [x] **L02 — Close M4/M5 corpus-backed gates.** Confirm complete stored
   color-profile coverage and percentile norms, HNSW index use and p95
@@ -308,7 +320,8 @@ broken.
   URL restoration, and degraded snapshot. Include H04 listening evidence.
   Prerequisites: A02, A05, A06, H04. Evidence:
   [production browser checks](eval/production-ui-2026-10-01.md); human listening,
-  Safari/iOS and first-load graph timing remain open.
+  Safari/iOS remain open; the deployed graph met <1 s in five fresh Chromium
+  runs after PR #72.
 
 - [ ] **L04 — Close F71–F74 live assistant gates.** Run the 20-query live route
   set and supplied Phase 3 §5 prompts, grounding/adversarial cases, production
@@ -316,14 +329,22 @@ broken.
   writes, and ten production queries with p50 < 8 s. Run the Phase 3 §16
   production demo and accessibility scan. Confirm cited/playable results on
   the active corpus. Prerequisites: A05, A07, H03.
-  Evidence: _pending_.
+  Evidence: [completed production evaluation](eval/ai-production-2026-10-02.md)
+  passes 20/20 routes, 40/40 schemas/must-not cases, routing/tool/theory rules,
+  and the predeclared ten-query latency sample. A real production Chromium
+  demo rendered three cited, playable candidate options with an active Stop
+  control; server-side playback flag repair awaits reviewed deployment.
+  Mocked SSE accessibility passed.
 
 - [ ] **L05 — Close F75 observability gates.** Follow one trace ID across
   HTTP, Postgres, Redis, LangGraph/tool/model, and worker spans. Verify model
   latency/tokens, p50/p95/p99, Redis hit rate, queue depth/retry/dead letters,
   authenticated `/admin` metrics, OTLP export, secret-safe logs, LangSmith
   when configured, and normal operation when disabled. Prerequisite: A07.
-  Evidence: _pending_.
+  Evidence: [production operations recheck](eval/operations-live-2026-10-01.md)
+  shows exact API/DB/model/tool and worker/Redis destination traces, admin
+  metrics, LangSmith, safe logs, and disabled-tracing operation. A single
+  shared trace through assistant and a separate worker job is not produced.
 
 - [ ] **L06 — Close F76 and the M7 exit gate.** Run all 40 live Claude cases
   with the bounded budget; require schema-valid 100%, must-not 100%, routing
@@ -331,7 +352,11 @@ broken.
   tool/theory rules in [ai.md](eval/ai.md). Commit the dated report, verify the
   weekly workflow, and assess against the production corpus separately from
   the seeded fixture. Only then reconcile [M7's exit gate](../feature-specs/v2/M7.md).
-  Prerequisites: A05, A07, L04, L05. Evidence: _pending_.
+  Prerequisites: A05, A07, L04, L05. Evidence:
+  [dated production evaluation](eval/ai-production-2026-10-02.md) passes all
+  40 production quality thresholds. The weekly workflow passed a manual
+  seeded run but has not yet fired on schedule. L04/L05 prerequisites and
+  committed report remain open.
 
 ## Verification ledger
 
