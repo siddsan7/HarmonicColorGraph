@@ -9,11 +9,12 @@ state if work has continued since this date.
 
 ## Authorized completion update — 2026-10-01/02
 
-Latest reconciliation: PR #72 merged at `b60222b` after independent review
-and five passing CI checks. Production API and frontend are READY, API/DB/Redis
-health pass, and `cv-2026-10-b` remains active. PR #72 passed independent
-review and five CI checks, merged as `b60222b` after the production AI
-evaluation, and its frontend deployment is READY.
+Latest reconciliation: PR #73 merged at `bb82911` after independent review
+and five passing CI checks. Production API deployment
+`dpl_9qybs1mFdmMxELgGHqti3qdVQYNg` and frontend deployment
+`dpl_6LnpyoE2iVtcswqnVMZk5t6jPBw2` are READY at that merge; API,
+database, and Redis health return 200, and `cv-2026-10-b` remains active.
+PR #72 had already passed its five checks and deployed the graph change.
 The [production operations recheck](eval/operations-live-2026-10-01.md) records
 live queue completion, duplicate submission, progress, restart recovery,
 bounded retry, dead letters, manual retry, and an isolated Redis failure with
@@ -42,7 +43,7 @@ $10 total new paid AI evaluation on existing billing. New evaluation spending
 so far: $6.091257. Independent reviewer approval plus required checks authorizes
 merge/deploy and validated corpus activation with rollback prepared.
 
-- PRs #48–#51 and #53–#72 are merged after independent review and required
+- PRs #48–#51 and #53–#73 are merged after independent review and required
   checks. Internal key changes, recommendations, corpus loading, similarity,
   mobile loading, pricing, and browser assets have been corrected.
 - The complete verified 679,807-song corpus `cv-2026-10-b` is active. Fresh
@@ -333,7 +334,8 @@ broken.
   passes 20/20 routes, 40/40 schemas/must-not cases, routing/tool/theory rules,
   and the predeclared ten-query latency sample. A real production Chromium
   demo rendered three cited, playable candidate options with an active Stop
-  control; server-side playback flag repair awaits reviewed deployment.
+  control. The server-side playback flag repair is deployed in PR #73; a paid
+  post-release response check remains unverified under the restored daily cap.
   Mocked SSE accessibility passed.
 
 - [ ] **L05 — Close F75 observability gates.** Follow one trace ID across
@@ -355,8 +357,8 @@ broken.
   Prerequisites: A05, A07, L04, L05. Evidence:
   [dated production evaluation](eval/ai-production-2026-10-02.md) passes all
   40 production quality thresholds. The weekly workflow passed a manual
-  seeded run but has not yet fired on schedule. L04/L05 prerequisites and
-  committed report remain open.
+  seeded run but has not yet fired on schedule. The report was committed in
+  PR #73; L04/L05 prerequisites remain open.
 
 ## Verification ledger
 
