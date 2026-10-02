@@ -306,6 +306,31 @@ def test_twenty_query_routing_suite_and_valid_outputs():
         )
 
 
+def test_stream_closes_graph_trace_before_final_frame(monkeypatch):
+    """Clients stop reading on final; trace completion must precede that frame."""
+    workflow = AssistantWorkflow(_tools())
+    closed = []
+
+    def updates(_state):
+        try:
+            yield {
+                "final": {
+                    "parsed_intent": ParsedIntent(task_type="explain"),
+                    "response": AssistantResponse(route="explain", message="Done."),
+                }
+            }
+        finally:
+            closed.append(True)
+
+    monkeypatch.setattr(workflow, "_graph_updates", updates)
+    stream = workflow.stream("Explain C")
+    assert next(stream)[0] == "step"
+    assert next(stream)[0] == "step"
+    assert next(stream)[0] == "final"
+    assert closed == [True]
+    stream.close()
+
+
 def test_low_key_confidence_returns_two_analyses():
     workflow = AssistantWorkflow(
         _tools(),
