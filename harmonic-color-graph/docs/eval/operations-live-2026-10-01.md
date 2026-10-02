@@ -160,7 +160,11 @@ redeployed READY as `dpl_35BWeZAfgeeGoW3Wv5DoSzog565e`; API/database/Redis
 health returned 200 again. Both cap changes were verified by read-only Vercel
 environment metadata. A later, independently reviewed temporary $3 window
 allowed one real UI demo with a $0.064958 audited cost; the cap returned to
-$2 immediately afterward. Total task evaluation spend is $6.091257 of $10.
+$2 immediately afterward. PR #73's reviewed fix passed all five CI jobs and
+merged as `bb82911`; API and frontend deployments are READY at that commit.
+API, database, and Redis health each returned 200 after deployment, and the
+production cap is confirmed at $2. Total task evaluation spend is $6.091257
+of $10.
 
 ## Open or unverified
 
