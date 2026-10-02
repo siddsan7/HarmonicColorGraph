@@ -1,6 +1,5 @@
 "use client"
 
-import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -8,8 +7,8 @@ import { hrefWithProgression, readProgression } from "@/lib/progression-url"
 import { filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphEdge, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
 import { usePlayback } from "@/lib/hooks/use-playback"
 import { unlockAudio } from "@/lib/music/unlock-audio"
+import { GraphCanvas } from "@/components/graph-canvas"
 
-const GraphCanvas = dynamic(() => import("@/components/graph-canvas").then((mod) => mod.GraphCanvas), { ssr: false })
 const ROOT = "function:M:I"
 const EMPTY: GraphData = { nodes: [], edges: [], context: "global" }
 const EDGE_TYPES = ["TRANSITIONS_TO", "FUNCTIONS_AS", "ABS_TRANSITIONS_TO", "BELONGS_TO", "HAS_PATTERN"]
@@ -71,10 +70,9 @@ export function GraphExplorer() {
     const update = () => {
       if (media.matches) setView("list")
       else {
-        // Fetch the desktop renderer while the neighborhood request is in
-        // flight, instead of adding its download to the API response time.
-        // Mobile's default list view keeps these optional chunks deferred.
-        void Promise.all([import("@/components/graph-canvas"), import("cytoscape"), import("cytoscape-fcose")]).catch(() => undefined)
+        // Fetch the desktop layout libraries while the neighborhood request
+        // is in flight. Mobile's list view keeps them deferred.
+        void Promise.all([import("cytoscape"), import("cytoscape-fcose")]).catch(() => undefined)
       }
     }
     update(); media.addEventListener("change", update)
@@ -90,7 +88,7 @@ export function GraphExplorer() {
       try {
         if (degraded && snapshot) setGraph(snapshotNeighborhood(snapshot, root, filters))
         else {
-          const params = new URLSearchParams({ id: root, context, min_prob: String(minProb), limit: "150" })
+          const params = new URLSearchParams({ id: root, context, min_prob: String(minProb), limit: "80" })
           if (edgeTypes.length) params.set("edge_types", edgeTypes.join(","))
           const data = parseGraph(await api<unknown>(`/neighborhood?${params}`, { signal: controller.signal }))
           if (!controller.signal.aborted) { setGraph(data); setDegraded(false) }
