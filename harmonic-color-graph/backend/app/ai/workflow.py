@@ -41,6 +41,18 @@ from app.core.metrics import emit_metric
 
 StructuredCall = Callable[[str], Any]
 _KEY = re.compile(r"\bin\s+([A-G](?:#|b)?\s+(?:major|minor))\b", re.IGNORECASE)
+_PLAYBACK_REQUEST = re.compile(
+    r"\b(?:export|midi|playback|make\s+(?:\w+\s+){0,2}playable|play\s+(?:it|this|that|the|these|those|my|a|an))\b",
+    re.IGNORECASE,
+)
+_NEGATED_PLAYBACK = re.compile(
+    r"\b(?:do\s+not|don't|never|without|avoid|no|not)\s+(?:\w+\s+){0,3}(?:export|midi|playback|playable|play)\b",
+    re.IGNORECASE,
+)
+
+
+def _requests_playback(query: str) -> bool:
+    return bool(_PLAYBACK_REQUEST.search(query)) and not bool(_NEGATED_PLAYBACK.search(query))
 
 
 class StructuredOutputError(ValueError):
@@ -140,7 +152,7 @@ def heuristic_intent(query: str) -> ParsedIntent:
         chords=chords[:16],
         key=key_match.group(1) if key_match else None,
         variants=variants,
-        export=bool(re.search(r"\b(export|midi|playback)\b", lower)),
+        export=_requests_playback(query),
     )
 
 
@@ -321,7 +333,10 @@ class AssistantWorkflow:
     def run(self, query: str) -> AssistantResponse:
         if not 1 <= len(query.strip()) <= 2000:
             raise ValueError("Query must contain 1–2000 characters")
-        with tracing_context(enabled=self._langsmith_enabled()):
+        with tracing_context(
+            enabled=self._langsmith_enabled(),
+            metadata={"hcg_trace_id": telemetry.current_trace_id()},
+        ):
             state = self.graph.invoke(self._initial_state(query))
         return AssistantResponse.model_validate(state["response"])
 
@@ -379,7 +394,10 @@ class AssistantWorkflow:
             yield "final", final_payload
 
     def _graph_updates(self, state: AssistantState) -> Iterator[dict[str, Any]]:
-        with tracing_context(enabled=self._langsmith_enabled()):
+        with tracing_context(
+            enabled=self._langsmith_enabled(),
+            metadata={"hcg_trace_id": telemetry.current_trace_id()},
+        ):
             yield from self.graph.stream(state, stream_mode="updates")
 
     def _intent_parser(self, state: AssistantState) -> dict[str, Any]:
@@ -404,6 +422,14 @@ class AssistantWorkflow:
             if len(prompt.encode("utf-8")) > FAST_MAX_PROMPT_BYTES:
                 raise ValueError("Intent prompt exceeds cost bound")
             parsed = ParsedIntent.model_validate(self.intent_model(prompt))
+            if (
+                parsed.task_type in {"generate", "recommend"}
+                and _requests_playback(query)
+                and not parsed.export
+            ):
+                # Explicit playback wording is safe to recover when the fast
+                # model omits its optional export flag.
+                parsed = parsed.model_copy(update={"export": True})
             if parsed.task_type == "compare" and len(parsed.variants) != 2:
                 # Recover explicitly separated input sequences when the model
                 # returns the route but omits its required variants.

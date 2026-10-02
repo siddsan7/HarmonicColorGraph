@@ -533,6 +533,28 @@ def test_export_uses_playback_tool_and_invalid_chord_clarifies():
     assert "analyze:invalid_input" in invalid.errors
 
 
+def test_playable_request_recovers_missed_model_export_flag():
+    query = "Generate a progression in D minor and make it playable."
+    assert heuristic_intent(query).export is True
+    assert heuristic_intent("Generate a playful progression in D minor.").export is False
+    assert (
+        heuristic_intent("Generate a progression in D minor, but do not play it.").export is False
+    )
+    assert heuristic_intent("Generate a progression in D minor without MIDI.").export is False
+    assert heuristic_intent("Explain what 'play' means here.").export is False
+    workflow = AssistantWorkflow(
+        _tools(),
+        intent_model=lambda _: ParsedIntent(task_type="generate", key="D minor", export=False),
+    )
+    result = workflow.run(query)
+    assert result.route == "generate"
+    assert result.candidates
+    assert result.playback and result.playback["chords"]
+    no_play = workflow.run("Generate a progression in D minor, but do not play it.")
+    assert no_play.route == "generate"
+    assert no_play.playback is None
+
+
 def test_provider_failure_uses_deterministic_route_and_explanation():
     calls = 0
 
