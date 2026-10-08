@@ -12,6 +12,16 @@ from app.recommend.scorer import INTENT_AXES
 from app.schemas.harmony import StrictModel
 
 Route = Literal["recommend", "explain", "generate", "similar", "compare", "clarify"]
+INTENT_AXIS_GUIDE = (
+    "Use only these intent_axes keys, with values from -1 to 1: "
+    "darker_brighter (negative darker, positive brighter); "
+    "tense_relaxed (negative tense, positive relaxed); "
+    "common_surprising (negative common, positive surprising); "
+    "simple_complex (negative simple, positive complex); "
+    "resolved_open (negative resolved, positive open); "
+    "smooth (positive smoother, negative less smooth); "
+    "dreamy (positive more dreamlike). Omit axes the user did not request."
+)
 
 
 class ParsedIntent(StrictModel):
@@ -20,9 +30,13 @@ class ParsedIntent(StrictModel):
     key: str | None = None
     genre: str | None = Field(default=None, max_length=80)
     section: str | None = Field(default=None, max_length=80)
-    intent_axes: dict[str, float] = Field(default_factory=dict)
+    intent_axes: dict[str, float] = Field(default_factory=dict, description=INTENT_AXIS_GUIDE)
     count: int = Field(default=3, ge=1, le=5)
-    variants: list[list[Chord]] = Field(default_factory=list, max_length=2)
+    variants: list[list[Chord]] = Field(
+        default_factory=list,
+        max_length=2,
+        description="For compare, exactly two separate chord sequences in input order.",
+    )
     export: bool = False
     key_confidence: float | None = Field(default=None, ge=0, le=1)
 

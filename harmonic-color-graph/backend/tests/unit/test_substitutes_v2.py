@@ -91,3 +91,30 @@ def test_http_contract_and_bad_index():
         assert bad.json()["error"]["code"] == "parse_error"
     finally:
         app.dependency_overrides.clear()
+
+
+def test_http_modulation_substitutes_original_position_in_local_region():
+    progression = ["C", "F", "G", "C"] * 2 + ["Am", "Dm", "E", "Am"] * 2
+    seen = []
+
+    def candidates(history, key, prediction):
+        seen.append((history, key))
+        return []
+
+    service = SubstitutionService(_service().predictor, candidates)
+    app.dependency_overrides[substitution_service] = lambda: service
+    try:
+        client = TestClient(app)
+        for index, chord, key, history in (
+            (0, "C", "C major", []),
+            (12, "Am", "A minor", ["m:i", "m:iv", "m:V", "m:i"]),
+        ):
+            response = client.post(
+                "/v2/find-substitutes", json={"progression": progression, "index": index}
+            )
+            assert response.status_code == 200, response.text
+            data = response.json()["data"]
+            assert (data["index"], data["original_chord"], data["key"]) == (index, chord, key)
+            assert seen[-1] == (history, key)
+    finally:
+        app.dependency_overrides.clear()

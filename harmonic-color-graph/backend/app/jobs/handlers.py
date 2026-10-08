@@ -64,5 +64,14 @@ def run_job(kind: str, payload: dict, settings: AppSettings, progress: Progress)
     if isinstance(request, EvaluationRunRequest):
         return _evaluation_run(request, settings, progress)
     if isinstance(request, EmbeddingRebuildRequest):
-        raise JobTypeUnavailableError("Embedding rebuild becomes available in F50")
+        from pipeline.embedding_rebuild import prepare_embedding_rebuild
+
+        return prepare_embedding_rebuild(
+            Path(settings.hcg_artifact_root),
+            request.payload.corpus_version,
+            progress,
+            output_root=Path(settings.hcg_embedding_output_root)
+            if settings.hcg_embedding_output_root
+            else None,
+        )
     raise AssertionError("Unexpected allowlisted job request")

@@ -18,7 +18,7 @@ from app.core.config import AppSettings
 from app.core.metrics import emit_metric
 from app.jobs.handlers import JobTypeUnavailableError, run_job
 from app.jobs.policy import is_retryable
-from app.jobs.queue import JobQueue
+from app.jobs.queue import IDLE_RECEIVE_TIMEOUT_S, JobQueue
 from app.jobs.repository import JobRepository, parse_job_id
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class JobWorker:
             self.queue.enqueue(job_id, force=force)
         return len(queued_ids)
 
-    def process_one(self, timeout: int = 5) -> bool:
+    def process_one(self, timeout: int = IDLE_RECEIVE_TIMEOUT_S) -> bool:
         idle_started = time.perf_counter()
         raw_id = self.queue.receive(timeout=timeout)
         emit_metric("worker_idle_ms", (time.perf_counter() - idle_started) * 1000)
@@ -168,7 +168,7 @@ class JobWorker:
                         logger.info("Reconciled %d queued jobs", count)
                     recovered = True
                     next_reconcile = now + 30
-                self.process_one(timeout=5)
+                self.process_one()
             except RedisError:
                 logger.warning("Redis queue unavailable; retrying")
                 recovered = False

@@ -56,6 +56,28 @@ def test_analyzes_a_simple_song(tmp_path: Path):
     assert isinstance(row["labels"], list)
 
 
+def test_internal_regions_preserve_source_and_split_metadata(tmp_path: Path):
+    text = "E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C"
+    ingest = _write_ingest_fixture(
+        tmp_path / "ingest.parquet",
+        [
+            _row(0, "1", 7, None, text, repeat_count=3, split="test"),
+            _row(0, "1", 9, "outro", "C F G C", split="test"),
+        ],
+    )
+    output = tmp_path / "sections.parquet"
+    summary = run_analyze(ingest, output)
+    rows = pl.read_parquet(output).to_dicts()
+    assert summary.tokens_total == 19
+    assert [r["ordinal"] for r in rows] == [0, 1, 2, 3]
+    assert [r["source_ordinal"] for r in rows] == [7, 7, 7, 9]
+    assert [r["start_chord_index"] for r in rows] == [0, 5, 10, 0]
+    assert [r["local_key"] for r in rows] == ["E major", "Ab major", "C major", "C major"]
+    assert all(r["split"] == "test" for r in rows)
+    assert all(r["repeat_count"] == 3 for r in rows[:3])
+    assert all(r["figures"] == ["I", "V7", "I", "IV", "I"] for r in rows[:3])
+
+
 def test_skips_song_with_no_parseable_chords(tmp_path: Path):
     ingest_path = _write_ingest_fixture(
         tmp_path / "ingest.parquet",

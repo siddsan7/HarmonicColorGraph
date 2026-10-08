@@ -58,6 +58,7 @@ class Recommendation(StrictModel):
     score: float = Field(ge=0, le=1)
     score_breakdown: ScoreBreakdown
     labels: list[str]
+    generators: list[str] = Field(default_factory=list)
     fact_ids: list[str]
     evidence: Evidence
     color: dict[str, float] = Field(default_factory=dict)

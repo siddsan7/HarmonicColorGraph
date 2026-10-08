@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 import time
 from collections import OrderedDict
+from dataclasses import replace
 from math import exp
 from threading import Lock
 from typing import Any, Protocol
@@ -14,6 +15,7 @@ from sqlalchemy.orm import Session
 from app.core import telemetry
 from app.core.metrics import emit_metric
 from app.db.stores.graph import FactStore, NgramStore, PatternStore
+from app.db.stores.recommendation_candidates import CandidateReader
 from app.predict.ngram import KNPredictor, NgramHistory, PredictionResult, TokenPrediction
 from app.predict.realize import realize
 from app.recommend.candidates import generate_candidates
@@ -102,15 +104,25 @@ class SessionNgramReader:
 
 
 class RecommendationService:
-    def __init__(self, predictor: KNPredictor, examples: ExampleReader, facts: FactReader):
+    def __init__(
+        self,
+        predictor: KNPredictor,
+        examples: ExampleReader,
+        facts: FactReader,
+        candidate_reader: CandidateReader | None = None,
+    ):
         self.predictor = predictor
         self.examples = examples
         self.facts = facts
+        self.candidate_reader = candidate_reader
 
     @classmethod
     def from_session(cls, session: Session) -> RecommendationService:
         return cls(
-            KNPredictor(SessionNgramReader(session)), PatternStore(session), FactStore(session)
+            KNPredictor(SessionNgramReader(session)),
+            PatternStore(session),
+            FactStore(session),
+            CandidateReader(session),
         )
 
     def recommend(self, request: RecommendRequest) -> RecommendResponse:
@@ -169,7 +181,11 @@ class RecommendationService:
             data=RecommendData(input_tokens=tokens, key=key, recommendations=recommendations),
             meta=RecommendMeta(
                 corpus_version=version,
-                model_versions={"predictor": "interpolated-kn-v2"},
+                model_versions={
+                    "predictor": "context-lift-kn-v2"
+                    if self.predictor.context_lift
+                    else "interpolated-kn-v2"
+                },
                 latency_ms=round((time.perf_counter() - started) * 1000, 2),
                 context_used=ContextUsed(
                     genre=genre, section=section, backoff=list(prediction.context_chain)
@@ -183,9 +199,25 @@ class RecommendationService:
         self, prediction: PredictionResult, history: list[str], key: str, request: RecommendRequest
     ) -> list[Recommendation]:
         with telemetry.safe_span("recommend.candidate_generation"):
-            pool = generate_candidates(history, key, prediction)
+            graph, embeddings = ([], [])
+            if self.candidate_reader is not None:
+                graph, embeddings = self.candidate_reader.read(
+                    history, [item.token for item in prediction.predictions[:5]]
+                )
+            pool = generate_candidates(
+                history, key, prediction, graph_neighbors=graph, embedding_neighbors=embeddings
+            )[:64]
+            if self.candidate_reader is not None:
+                similarities = self.candidate_reader.similarities(
+                    history[-1], [item.token for item in pool]
+                )
+                pool = [
+                    replace(item, embedding_similarity=similarities.get(item.token))
+                    for item in pool
+                ]
+            sources = {item.token: item.generators for item in pool}
         emit_metric("recommend_candidate_count", len(pool))
-        features = [extract_features(candidate, history, key) for candidate in pool[:64]]
+        features = [extract_features(candidate, history, key) for candidate in pool]
         rerank_started = time.perf_counter()
         with telemetry.safe_span("recommend.rerank"):
             scored = score_candidates(
@@ -220,16 +252,42 @@ class RecommendationService:
         for item in base:
             row = by_token[item.token]
             supported = item.evidence.count > 0
-            labels = (["Intent match"] if request.intent else ["Preset ranked"]) + [
-                "Corpus supported" if supported else "Theory option"
-            ]
+            provenance = sources[item.token]
+            origin_labels = (
+                ["Corpus supported"]
+                if supported
+                else [
+                    label
+                    for source, label in (
+                        ("graph", "Graph option"),
+                        ("embedding", "Embedding option"),
+                        ("theory", "Theory option"),
+                        ("ngram", "Statistical option"),
+                    )
+                    if source in provenance
+                ]
+            )
+            # A weighted preference does not guarantee an attainable color
+            # change (for example, a triad cannot always become simpler).
+            labels = (["Intent ranked"] if request.intent else ["Preset ranked"]) + origin_labels
             explanation = None
             if request.include_explanations:
                 origin = (
                     f"{item.evidence.count} observed continuations support this option."
                     if supported
                     else (
-                        "This option comes from the theory candidate set; "
+                        "This option comes from "
+                        + ", ".join(
+                            description
+                            for source, description in (
+                                ("graph", "corpus graph relationships"),
+                                ("embedding", "similar corpus functions"),
+                                ("theory", "theory rules"),
+                                ("ngram", "statistical predictions"),
+                            )
+                            if source in provenance
+                        )
+                        + "; "
                         "no exact corpus continuation is claimed."
                     )
                 )
@@ -249,6 +307,7 @@ class RecommendationService:
                     update={
                         "score": weights[item.token] / total,
                         "labels": labels,
+                        "generators": sorted(provenance),
                         "color": row.features.color_delta,
                         "explanation": explanation,
                     }
@@ -346,6 +405,14 @@ def _context_value(value: str | None) -> str | None:
 def _input_tokens(
     progression: str | list[str], key: str | None
 ) -> tuple[list[str], str, list[RecommendWarning]]:
+    tokens, resolved_key, warnings, _ = _input_region(progression, key)
+    return tokens, resolved_key, warnings
+
+
+def _input_region(
+    progression: str | list[str], key: str | None, position: int | None = None
+) -> tuple[list[str], str, list[RecommendWarning], int]:
+    """Return the selected chord's region, or the final region for continuation."""
     if isinstance(progression, str):
         parts = [
             part for part in re.split(r"\s*(?:,|\s+-\s+|\n)\s*|\s+", progression.strip()) if part
@@ -364,7 +431,7 @@ def _input_tokens(
             raise ValueError("All core tokens must match the key's mode.")
         for part in parts:
             realize(part, normalized_key)
-        return list(parts), normalized_key, []
+        return list(parts), normalized_key, [], 0
     if any(_TOKEN.fullmatch(part) for part in parts):
         raise ValueError("Use either all chords or all core tokens in one progression.")
     analysis = analyze_v2(parts, key)
@@ -380,4 +447,16 @@ def _input_tokens(
         if analysis.ambiguous
         else []
     )
-    return [token.core for token in analysis.tokens], analysis.song_key, warnings
+    if position is not None and not 0 <= position < len(parts):
+        raise ValueError("index must refer to a chord in the progression")
+    region = (
+        next(r for r in analysis.key_regions if r.start_index <= position < r.end_index)
+        if position is not None
+        else analysis.key_regions[-1]
+    )
+    return (
+        [token.core for token in analysis.tokens[region.start_index : region.end_index]],
+        region.key,
+        warnings,
+        region.start_index,
+    )

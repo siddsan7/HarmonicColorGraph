@@ -4,11 +4,13 @@ from __future__ import annotations
 
 import json
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
+from functools import lru_cache
 from pathlib import Path
 from statistics import mean, pstdev
 from typing import Literal
 
+from app.predict.realize import realize
 from app.recommend.features import FEATURE_NAMES, CandidateFeatures
 
 WEIGHTS_FILE = Path(__file__).with_name("weights") / "plausibility_v1.json"
@@ -73,9 +75,14 @@ def intent_score(
         if candidate
         else 0.0
     )
+    # Dreaminess describes the incoming motion itself. The explicit smooth
+    # slider below instead asks for a change relative to the previous arrival.
+    incoming_smoothness = (
+        1.0 - candidate.values["vl_cost"] if candidate else color_delta["smoothness"]
+    )
     dreamy = (
         0.75 * borrowed * mediant * major_seventh
-        + 0.15 * max(0.0, color_delta["smoothness"])
+        + 0.15 * max(0.0, min(1.0, incoming_smoothness))
         + 0.10 * max(0.0, -color_delta["tension"])
     )
     oriented = {
@@ -90,7 +97,16 @@ def intent_score(
     magnitude = sum(abs(value) for value in intent.values())
     if magnitude == 0:
         return 0.0
-    return sum(intent[name] * oriented[name] for name in intent) / magnitude
+    # Preserve the strength of a weak request; normalizing every nonzero
+    # vector to unit magnitude made a 0.1 slider identical to a 1.0 slider.
+    # Multiple strong axes still share the same bounded influence.
+    return sum(intent[name] * oriented[name] for name in intent) / max(1.0, magnitude)
+
+
+@lru_cache(maxsize=4096)
+def _pitch_classes(token: str) -> frozenset[int]:
+    key = "C minor" if token.startswith("m:") else "C major"
+    return frozenset(realize(token, key).chord.pitch_classes)
 
 
 def score_candidates(
@@ -100,11 +116,14 @@ def score_candidates(
     preset: Preset = "balanced",
     weights: dict[str, float] | None = None,
     limit: int | None = None,
+    selection_diversity: float = 0.8,
 ) -> list[ScoredCandidate]:
     if preset not in PRESETS:
         raise ValueError(f"Unknown preset: {preset}")
     if limit is not None and limit < 1:
         raise ValueError("limit must be positive")
+    if not math.isfinite(selection_diversity) or selection_diversity < 0:
+        raise ValueError("selection_diversity must be finite and nonnegative")
     if not candidates:
         return []
     coefficients = weights or load_weights()
@@ -154,5 +173,35 @@ def score_candidates(
                 item,
             )
         )
-    results.sort(key=lambda item: (-item.score, item.token))
-    return results[:limit]
+    # Penalize redundancy within the returned list, not just similarity to
+    # the previous chord. The first choice retains its original utility.
+    selected: list[ScoredCandidate] = []
+    while results and (limit is None or len(selected) < limit):
+
+        def penalty(item: ScoredCandidate) -> float:
+            if not selection_diversity or not selected:
+                return 0.0
+            pitches = _pitch_classes(item.token)
+            return selection_diversity * max(
+                len(pitches & _pitch_classes(other.token))
+                / max(1, len(pitches | _pitch_classes(other.token)))
+                for other in selected
+            )
+
+        penalties = {item.token: penalty(item) for item in results}
+        choice = min(results, key=lambda item: (-(item.score - penalties[item.token]), item.token))
+        adjustment = -penalties[choice.token]
+        score = choice.score + adjustment
+        selected.append(
+            replace(
+                choice,
+                score=score,
+                score_breakdown={
+                    **choice.score_breakdown,
+                    "selection_diversity": adjustment,
+                    "total": score,
+                },
+            )
+        )
+        results.remove(choice)
+    return selected

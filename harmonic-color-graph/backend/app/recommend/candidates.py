@@ -114,7 +114,19 @@ def generate_candidates(
     first = ranked[:16]
     priority_rows = [row for row in ranked[16:] if row[0] in priority]
     rest = [row for row in ranked[16:] if row[0] not in priority]
-    ordered = first + priority_rows + rest
+    # Retain discoveries before optional theory-only tail entries so the
+    # service's 64-item scoring bound cannot erase graph/vector retrieval.
+    graph_rows = [row for row in rest if "graph" in row[1]["generators"]]
+    vector_rows = [row for row in rest if "embedding" in row[1]["generators"]]
+    discovered = []
+    seen = set()
+    for index in range(max(len(graph_rows), len(vector_rows))):
+        for rows in (graph_rows, vector_rows):
+            if index < len(rows) and rows[index][0] not in seen:
+                discovered.append(rows[index])
+                seen.add(rows[index][0])
+    remaining = [row for row in rest if row[0] not in seen]
+    ordered = first + priority_rows + discovered + remaining
     return [
         Candidate(
             token,

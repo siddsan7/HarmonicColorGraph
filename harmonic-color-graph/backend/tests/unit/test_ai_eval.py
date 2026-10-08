@@ -46,6 +46,17 @@ def test_scoring_rejects_unsupported_claim_and_unexpected_tool():
     assert not row["tool_correct"]
     assert not row["theory_valid"]
     assert row["valid_claims"] == 0
+    assert row["parsed_intent_axes"] == {"darker_brighter": 0.7}
+    assert row["error_codes"] == []
+
+
+def test_intent_schema_documents_every_supported_axis_and_direction():
+    from app.recommend.scorer import INTENT_AXES
+
+    description = ParsedIntent.model_json_schema()["properties"]["intent_axes"]["description"]
+    assert all(axis in description for axis in INTENT_AXES)
+    assert "negative tense, positive relaxed" in description
+    assert "negative resolved, positive open" in description
 
 
 def test_thresholds_require_completed_cases_and_claims():
@@ -94,7 +105,7 @@ def test_provider_failure_reserves_request_bound(monkeypatch):
     report = run(cases=load_cases()[:2], live=True, max_cost_usd=Decimal("1"))
     assert report["cases_completed"] == 1
     assert report["unknown_cost_cases"] == ["recommend-01"]
-    assert Decimal(report["cost_usd"]) > Decimal("0.8")
+    assert Decimal(report["cost_usd"]) >= Decimal("0.75")
     assert report["metered_cost_usd"] == "0"
 
 
@@ -133,3 +144,25 @@ def test_intent_axis_uses_authoritative_recommendation_delta():
         "smooth",
         "dreamy",
     }
+
+
+def test_missing_usage_is_reserved_without_poisoning_later_cases(monkeypatch):
+    from app.ai.workflow import AssistantWorkflow
+
+    calls = 0
+
+    def workflow(tools, meter):
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            meter.record(object(), "claude-sonnet-5")
+        return AssistantWorkflow(tools)
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    monkeypatch.setattr("tests.eval.ai.request_cost_bound", lambda: Decimal("0.90"))
+    monkeypatch.setattr("tests.eval.ai.AssistantWorkflow.from_environment", workflow)
+    report = run(cases=load_cases()[:3], live=True, fixture=True, max_cost_usd=Decimal("1.80"))
+    assert report["cases_completed"] == 3
+    assert report["unknown_cost_cases"] == ["recommend-01"]
+    assert Decimal(report["cost_usd"]) == Decimal("0.90")
+    assert Decimal(report["metered_cost_usd"]) == Decimal("0.25")

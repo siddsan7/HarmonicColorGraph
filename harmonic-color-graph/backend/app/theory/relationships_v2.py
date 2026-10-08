@@ -273,10 +273,16 @@ RULES: tuple[RelationshipRule, ...] = (
 )
 
 
-def analyze_relationships(tokens: Sequence[RomanToken]) -> list[RelationshipFact]:
+def analyze_relationships(
+    tokens: Sequence[RomanToken], key_boundaries: set[int] | None = None
+) -> list[RelationshipFact]:
     facts: list[RelationshipFact] = []
     for rule in RULES:
         for index in range(len(tokens) - rule.arity + 1):
+            if key_boundaries and any(
+                boundary in key_boundaries for boundary in range(index + 1, index + rule.arity)
+            ):
+                continue
             window = tokens[index : index + rule.arity]
             if window[0].mode not in rule.modes or any(t.mode != window[0].mode for t in window):
                 continue

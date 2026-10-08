@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from functools import wraps
 from typing import ParamSpec, TypeVar
 from uuid import uuid4
+from weakref import WeakKeyDictionary
 
 from opentelemetry import metrics, trace
 from opentelemetry.sdk.metrics import MeterProvider
@@ -52,13 +55,13 @@ def safe_span(name: str):
     return tracer.start_as_current_span(name, record_exception=False, set_status_on_exception=False)
 
 
-def configure_telemetry() -> None:
+def configure_telemetry(service_name: str = "harmonic-color-graph-api") -> None:
     """Set up process-level providers. No key or endpoint is required to run."""
     global _configured, _export_traces, _export_metrics, tracer, meter
     if _configured:
         return
     _configured = True
-    resource = Resource.create({"service.name": "harmonic-color-graph-api"})
+    resource = Resource.create({"service.name": os.getenv("OTEL_SERVICE_NAME", service_name)})
     provider = TracerProvider(resource=resource)
     endpoint = os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "").rstrip("/")
     trace_endpoint = os.getenv("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT")
@@ -100,11 +103,40 @@ def flush_telemetry() -> None:
             metrics.get_meter_provider().force_flush(timeout_millis=250)
 
 
+@dataclass
+class _FlushState:
+    requested: int = 0
+    completed: int = 0
+    task: asyncio.Task[None] | None = None
+
+
 class TelemetryMiddleware:
     """Trace whole ASGI responses, including streaming, without recording bodies."""
 
     def __init__(self, app: ASGIApp):
         self.app = app
+        self._flush_states: WeakKeyDictionary[asyncio.AbstractEventLoop, _FlushState] = (
+            WeakKeyDictionary()
+        )
+
+    async def _flush(self) -> None:
+        state = self._flush_states.setdefault(asyncio.get_running_loop(), _FlushState())
+        state.requested += 1
+        target = state.requested
+        while state.completed < target:
+            if state.task is None:
+                state.task = asyncio.create_task(self._flush_batch(state))
+            # A disconnected request must not cancel the export shared by others.
+            await asyncio.shield(state.task)
+
+    async def _flush_batch(self, state: _FlushState) -> None:
+        covered = state.requested
+        try:
+            # One export at a time, outside AnyIO's synchronous endpoint pool.
+            await asyncio.to_thread(flush_telemetry)
+            state.completed = covered
+        finally:
+            state.task = None
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -113,7 +145,9 @@ class TelemetryMiddleware:
         try:
             await self._trace_http(scope, receive, send)
         finally:
-            flush_telemetry()
+            # Exporters perform blocking network I/O. Await completion for the
+            # serverless lifetime, but let other requests use the event loop.
+            await self._flush()
 
     async def _trace_http(self, scope: Scope, receive: Receive, send: Send) -> None:
         request_id = str(uuid4())

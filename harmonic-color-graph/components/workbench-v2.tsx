@@ -115,8 +115,9 @@ export function WorkbenchV2() {
     setActiveSequences(items)
     void playback.play(items, { bpm, loop, instrument })
   }
-  const evidenceTransitions = analysis ? [...new Set(analysis.tokens.slice(0, -1).map(
-    (token, index) => `${token.core}->${analysis.tokens[index + 1].core}`
+  const keyBoundaries = new Set(analysis?.key_regions?.filter((region, index, regions) => index > 0 && regions[index - 1].key !== region.key).map((region) => region.start_index))
+  const evidenceTransitions = analysis ? [...new Set(analysis.tokens.slice(0, -1).flatMap(
+    (token, index) => keyBoundaries.has(index + 1) ? [] : [`${token.core}->${analysis.tokens[index + 1].core}`]
   ))] : []
 
   function loadRecommendations(result: AnalysisV2, requestedGenre: string, requestedSection: string, requestedIntent = intent, requestedPreset = preset) {
@@ -125,9 +126,10 @@ export function WorkbenchV2() {
     recommendationController.current = controller
     setRecommendationBusy(true)
     setRecommendationError(null)
+    const finalRegion = result.key_regions?.at(-1)
     recommendNextChords({
-      progression: result.tokens.map((token) => token.core),
-      key: result.song_key,
+      progression: result.tokens.slice(finalRegion?.start_index ?? 0).map((token) => token.core),
+      key: finalRegion?.key ?? result.song_key,
       ...(requestedGenre ? { genre: requestedGenre } : {}),
       ...(requestedSection ? { section: requestedSection } : {}),
       ...(Object.keys(requestedIntent).length ? { intent: requestedIntent } : {}),
@@ -142,16 +144,16 @@ export function WorkbenchV2() {
     })
   }
 
-  function loadColor(chords: string[], songKey: string) {
+  function loadColor(chords: string[], requestedKey?: string) {
     colorController.current?.abort()
     setColorError(null)
-      const colorRequest = new AbortController()
-      colorController.current = colorRequest
-      setColorBusy(true)
-      fetchColorProfile({ progression: chords, key: songKey, signal: colorRequest.signal })
-        .then((profile) => { if (!colorRequest.signal.aborted) setColor(profile) })
-        .catch((caught) => { if (!colorRequest.signal.aborted) setColorError(caught instanceof Error ? caught.message : "Color analysis failed.") })
-        .finally(() => { if (!colorRequest.signal.aborted) setColorBusy(false) })
+    const colorRequest = new AbortController()
+    colorController.current = colorRequest
+    setColorBusy(true)
+    fetchColorProfile({ progression: chords, key: requestedKey, signal: colorRequest.signal })
+      .then((profile) => { if (!colorRequest.signal.aborted) setColor(profile) })
+      .catch((caught) => { if (!colorRequest.signal.aborted) setColorError(caught instanceof Error ? caught.message : "Color analysis failed.") })
+      .finally(() => { if (!colorRequest.signal.aborted) setColorBusy(false) })
   }
 
   async function runAnalysis(chords: string[], requestedKey: string) {
@@ -179,7 +181,7 @@ export function WorkbenchV2() {
       setAnalysis(result)
       setActiveSequences([])
       setAnalysisContext(captured)
-      loadColor(chords, result.song_key)
+      loadColor(chords, requestedKey.trim() || undefined)
       loadRecommendations(result, genre, section)
     } catch (caught) {
       if (requestId !== analysisRequest.current) return
@@ -199,7 +201,7 @@ export function WorkbenchV2() {
     const chords = [...rawTokens, chord]
     updateShared({ input: chords.join(" - ") })
     setAnalysis(null)
-    void runAnalysis(chords, key || analysis?.song_key || "")
+    void runAnalysis(chords, key)
   }
 
   function openSubstitutes(index: number) {
@@ -217,10 +219,12 @@ export function WorkbenchV2() {
     setSubstitutes(null)
     setSubstitutionError(null)
     setSubstitutionBusy(true)
+    const region = analysis.key_regions?.find((item) => item.start_index <= index && index < item.end_index)
+    const start = region?.start_index ?? 0
     findSubstitutes({
-      progression: analysis.tokens.map((token) => token.core),
-      index,
-      key: analysis.song_key,
+      progression: analysis.tokens.slice(start, region?.end_index).map((token) => token.core),
+      index: index - start,
+      key: region?.key ?? analysis.song_key,
       k: 8,
       signal: controller.signal,
     }).then(setSubstitutes).catch((caught) => {
@@ -241,7 +245,7 @@ export function WorkbenchV2() {
     if (staleAnalysis) return
     const chords = rawTokens.map((item, position) => position === index ? chord : item)
     updateShared({ input: chords.join(" - ") })
-    void runAnalysis(chords, key || analysis?.song_key || "")
+    void runAnalysis(chords, key)
   }
 
   return (
@@ -382,7 +386,7 @@ export function WorkbenchV2() {
             </div>
 
             <aside className="space-y-5">
-              <ColorProfilePanel profile={color} busy={colorBusy} error={colorError} onRetry={() => loadColor(inputTokens(analysisContext?.input ?? input), analysis.song_key)} />
+              <ColorProfilePanel profile={color} busy={colorBusy} error={colorError} onRetry={() => loadColor(inputTokens(analysisContext?.input ?? input), analysisContext?.key || undefined)} />
               <EvidencePanel key={evidenceTransitions.join("|")} transitions={evidenceTransitions} />
               <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Key distribution</h2>
@@ -392,10 +396,10 @@ export function WorkbenchV2() {
                     <div className="h-2 overflow-hidden rounded-sm bg-[var(--bg-subtle)]"><div className="h-full bg-[var(--accent-primary)]" style={{ width: `${candidate.probability * 100}%` }} /></div>
                   </div>)}
                 </div>
-                {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.modulations?.length} local modulation{analysis.modulations?.length === 1 ? "" : "s"} detected.</p>}
+                {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.key_regions?.map((region) => `${region.key} (chords ${region.start_index + 1}-${region.end_index})`).join(" / ") ?? `${analysis.modulations?.length} local modulations detected.`}</p>}
               </section>
 
-              <div inert={staleAnalysis || undefined} aria-label={staleAnalysis ? "Analyze the current sketch to use recommendations" : undefined}><RecommendationsPanel onRetry={() => loadRecommendations(analysis, analysisContext?.genre ?? genre, analysisContext?.section ?? section)} result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={inputTokens(analysisContext?.input ?? "")} keySignature={analysis.song_key} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPlay={playSequences} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} /></div>
+              <div inert={staleAnalysis || undefined} aria-label={staleAnalysis ? "Analyze the current sketch to use recommendations" : undefined}><RecommendationsPanel onRetry={() => loadRecommendations(analysis, analysisContext?.genre ?? genre, analysisContext?.section ?? section)} result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={inputTokens(analysisContext?.input ?? "")} keySignature={analysisContext?.key || undefined} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPlay={playSequences} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} /></div>
 
               {(analysis.warnings?.length ?? 0) > 0 && <section className="rounded-lg border border-[var(--state-warning)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Parse warnings</h2>

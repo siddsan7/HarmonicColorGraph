@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
+import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -33,6 +35,19 @@ def content_hash(df) -> str:  # noqa: ANN001 - polars.DataFrame, kept untyped to
     because CSV can't represent the list columns some pipeline outputs have.
     """
     return sha256_text(df.write_ndjson())
+
+
+def parquet_content_hash(path: str | Path, batch_size: int = 4096) -> str:
+    """Hash the same ordered NDJSON content without collecting the whole corpus."""
+    import polars as pl
+    import pyarrow.parquet as pq
+
+    if batch_size < 1:
+        raise ValueError("batch_size must be positive")
+    digest = hashlib.sha256()
+    for batch in pq.ParquetFile(path).iter_batches(batch_size=batch_size):
+        digest.update(pl.from_arrow(batch).write_ndjson().encode("utf-8"))
+    return digest.hexdigest()
 
 
 # hcg.edges/hcg.ngram_histories/hcg.patterns' own btree indexes: a rough
@@ -98,10 +113,25 @@ class Manifest:
         }
 
     def write(self, path: str | Path) -> None:
-        Path(path).write_text(
-            json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
+        path = Path(path)
+        temporary = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=path.parent,
+                prefix=f".{path.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as handle:
+                temporary = Path(handle.name)
+                handle.write(json.dumps(self.to_dict(), indent=2, sort_keys=True) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.replace(temporary, path)
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
 
     @classmethod
     def read(cls, path: str | Path) -> Manifest:

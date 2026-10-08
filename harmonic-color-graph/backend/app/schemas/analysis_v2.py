@@ -46,10 +46,19 @@ class RomanToken(StrictModel):
 
 class Modulation(StrictModel):
     section_index: int = Field(ge=0)
+    chord_index: int = Field(default=0, ge=0)
     from_key: str
     to_key: str
     semitones: int
     description: str
+
+
+class AnalysisKeyRegion(StrictModel):
+    section_index: int = Field(ge=0)
+    start_index: int = Field(ge=0)
+    end_index: int = Field(ge=0)
+    key: str
+    confidence: float = Field(ge=0, le=1)
 
 
 class RelationshipFact(StrictModel):
@@ -74,6 +83,7 @@ class AnalysisV2(StrictModel):
     song_key: str
     ambiguous: bool
     local_keys: list[str]
+    key_regions: list[AnalysisKeyRegion] = Field(default_factory=list)
     modulations: list[Modulation] = Field(default_factory=list)
     tokens: list[RomanToken]
     relationships: list[RelationshipFact] = Field(default_factory=list)

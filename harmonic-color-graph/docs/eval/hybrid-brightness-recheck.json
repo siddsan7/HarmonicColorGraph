@@ -1,0 +1,95 @@
+{
+  "leak_check": {
+    "train_song_count": 612021,
+    "checked_splits": [
+      "dev",
+      "test"
+    ],
+    "overlap": 0,
+    "passed": true,
+    "dev_song_count": 991,
+    "test_song_count": 1058
+  },
+  "frozen_weights": true,
+  "normalization": "brightness signed raw [-1,1] mapped affinely to [0,1]",
+  "reports": {
+    "dev": {
+      "seed": 54,
+      "results": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.7048,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 86,
+        "novel_top5_per_query": 0.37,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 24,
+            "total": 30,
+            "rate": 0.8
+          },
+          "brighter": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "surprising": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "smoother": {
+            "passed": 28,
+            "total": 30,
+            "rate": 0.933
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    },
+    "test": {
+      "seed": 53,
+      "results": {
+        "n": 400,
+        "ngram_mrr": 0.6927,
+        "hybrid_mrr": 0.6832,
+        "coverage_baseline": 80,
+        "coverage_hybrid": 87,
+        "novel_top5_per_query": 0.435,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 27,
+            "total": 30,
+            "rate": 0.9
+          },
+          "brighter": {
+            "passed": 27,
+            "total": 30,
+            "rate": 0.9
+          },
+          "surprising": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "smoother": {
+            "passed": 28,
+            "total": 30,
+            "rate": 0.933
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    }
+  }
+}

@@ -1,0 +1,1391 @@
+{
+  "key_distribution": [
+    {
+      "key": "A minor",
+      "probability": 0.6162943116951567
+    },
+    {
+      "key": "C major",
+      "probability": 0.25244328256822246
+    },
+    {
+      "key": "F major",
+      "probability": 0.07036730253228714
+    },
+    {
+      "key": "G major",
+      "probability": 0.01562444500700551
+    },
+    {
+      "key": "E minor",
+      "probability": 0.01482539263164348
+    }
+  ],
+  "song_key": "A minor",
+  "ambiguous": false,
+  "local_keys": [
+    "C major"
+  ],
+  "key_regions": [
+    {
+      "section_index": 0,
+      "start_index": 0,
+      "end_index": 8,
+      "key": "C major",
+      "confidence": 0.996829585337365
+    },
+    {
+      "section_index": 0,
+      "start_index": 8,
+      "end_index": 16,
+      "key": "A minor",
+      "confidence": 0.9972497158612615
+    }
+  ],
+  "modulations": [
+    {
+      "section_index": 0,
+      "chord_index": 8,
+      "from_key": "C major",
+      "to_key": "A minor",
+      "semitones": -3,
+      "description": "-3 semitones in section 1 at chord 9"
+    }
+  ],
+  "tokens": [
+    {
+      "figure": "I",
+      "display_figure": "I",
+      "core": "M:I",
+      "mode": "major",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 0,
+      "bass_pc": 0,
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "chord_index": 0
+    },
+    {
+      "figure": "IV",
+      "display_figure": "IV",
+      "core": "M:IV",
+      "mode": "major",
+      "degree": 4,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "PD",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 5,
+      "bass_pc": 5,
+      "pitch_classes": [
+        5,
+        9,
+        0
+      ],
+      "chord_index": 1
+    },
+    {
+      "figure": "V",
+      "display_figure": "V",
+      "core": "M:V",
+      "mode": "major",
+      "degree": 5,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "D",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 7,
+      "bass_pc": 7,
+      "pitch_classes": [
+        7,
+        11,
+        2
+      ],
+      "chord_index": 2
+    },
+    {
+      "figure": "I",
+      "display_figure": "I",
+      "core": "M:I",
+      "mode": "major",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 0,
+      "bass_pc": 0,
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "chord_index": 3
+    },
+    {
+      "figure": "I",
+      "display_figure": "I",
+      "core": "M:I",
+      "mode": "major",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 0,
+      "bass_pc": 0,
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "chord_index": 4
+    },
+    {
+      "figure": "IV",
+      "display_figure": "IV",
+      "core": "M:IV",
+      "mode": "major",
+      "degree": 4,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "PD",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 5,
+      "bass_pc": 5,
+      "pitch_classes": [
+        5,
+        9,
+        0
+      ],
+      "chord_index": 5
+    },
+    {
+      "figure": "V",
+      "display_figure": "V",
+      "core": "M:V",
+      "mode": "major",
+      "degree": 5,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "D",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 7,
+      "bass_pc": 7,
+      "pitch_classes": [
+        7,
+        11,
+        2
+      ],
+      "chord_index": 6
+    },
+    {
+      "figure": "I",
+      "display_figure": "I",
+      "core": "M:I",
+      "mode": "major",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 0,
+      "bass_pc": 0,
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "chord_index": 7
+    },
+    {
+      "figure": "i",
+      "display_figure": "i",
+      "core": "m:i",
+      "mode": "minor",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "min",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 9,
+      "bass_pc": 9,
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "chord_index": 8
+    },
+    {
+      "figure": "iv",
+      "display_figure": "iv",
+      "core": "m:iv",
+      "mode": "minor",
+      "degree": 4,
+      "accidental": "",
+      "quality_class": "min",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "PD",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 2,
+      "bass_pc": 2,
+      "pitch_classes": [
+        2,
+        5,
+        9
+      ],
+      "chord_index": 9
+    },
+    {
+      "figure": "V",
+      "display_figure": "V",
+      "core": "m:V",
+      "mode": "minor",
+      "degree": 5,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "D",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 4,
+      "bass_pc": 4,
+      "pitch_classes": [
+        4,
+        8,
+        11
+      ],
+      "chord_index": 10
+    },
+    {
+      "figure": "i",
+      "display_figure": "i",
+      "core": "m:i",
+      "mode": "minor",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "min",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 9,
+      "bass_pc": 9,
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "chord_index": 11
+    },
+    {
+      "figure": "i",
+      "display_figure": "i",
+      "core": "m:i",
+      "mode": "minor",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "min",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 9,
+      "bass_pc": 9,
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "chord_index": 12
+    },
+    {
+      "figure": "iv",
+      "display_figure": "iv",
+      "core": "m:iv",
+      "mode": "minor",
+      "degree": 4,
+      "accidental": "",
+      "quality_class": "min",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "PD",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 2,
+      "bass_pc": 2,
+      "pitch_classes": [
+        2,
+        5,
+        9
+      ],
+      "chord_index": 13
+    },
+    {
+      "figure": "V",
+      "display_figure": "V",
+      "core": "m:V",
+      "mode": "minor",
+      "degree": 5,
+      "accidental": "",
+      "quality_class": "maj",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "D",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 4,
+      "bass_pc": 4,
+      "pitch_classes": [
+        4,
+        8,
+        11
+      ],
+      "chord_index": 14
+    },
+    {
+      "figure": "i",
+      "display_figure": "i",
+      "core": "m:i",
+      "mode": "minor",
+      "degree": 1,
+      "accidental": "",
+      "quality_class": "min",
+      "inversion": "root",
+      "extensions": [],
+      "applied_to": null,
+      "applied_role": null,
+      "is_borrowed": false,
+      "borrowed_from": null,
+      "is_chromatic": false,
+      "function": "T",
+      "confidence": 1.0,
+      "tags": [],
+      "unresolved": false,
+      "root_pc": 9,
+      "bass_pc": 9,
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "chord_index": 15
+    }
+  ],
+  "relationships": [
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 0,
+      "to_index": 1,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:0:1"
+      ]
+    },
+    {
+      "id": "stepwise_bass",
+      "name": "stepwise bass motion",
+      "category": "voice_leading",
+      "from_index": 1,
+      "to_index": 2,
+      "short_explanation": "The bass moves by step between these chords.",
+      "technical_explanation": "The bass pitch classes are separated by one or two semitones.",
+      "fact_ids": [
+        "relationship:stepwise_bass:1:2"
+      ]
+    },
+    {
+      "id": "authentic",
+      "name": "authentic cadence",
+      "category": "cadence",
+      "from_index": 2,
+      "to_index": 3,
+      "short_explanation": "Dominant harmony tends to settle on the tonic here.",
+      "technical_explanation": "A V or leading-tone chord resolves to the tonic in this key.",
+      "fact_ids": [
+        "relationship:authentic:2:3"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 2,
+      "to_index": 3,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:2:3"
+      ]
+    },
+    {
+      "id": "common_tone",
+      "name": "common-tone motion",
+      "category": "voice_leading",
+      "from_index": 3,
+      "to_index": 4,
+      "short_explanation": "The chords retain at least two common tones.",
+      "technical_explanation": "Their pitch-class sets overlap in at least two places.",
+      "fact_ids": [
+        "relationship:common_tone:3:4"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 4,
+      "to_index": 5,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:4:5"
+      ]
+    },
+    {
+      "id": "stepwise_bass",
+      "name": "stepwise bass motion",
+      "category": "voice_leading",
+      "from_index": 5,
+      "to_index": 6,
+      "short_explanation": "The bass moves by step between these chords.",
+      "technical_explanation": "The bass pitch classes are separated by one or two semitones.",
+      "fact_ids": [
+        "relationship:stepwise_bass:5:6"
+      ]
+    },
+    {
+      "id": "authentic",
+      "name": "authentic cadence",
+      "category": "cadence",
+      "from_index": 6,
+      "to_index": 7,
+      "short_explanation": "Dominant harmony tends to settle on the tonic here.",
+      "technical_explanation": "A V or leading-tone chord resolves to the tonic in this key.",
+      "fact_ids": [
+        "relationship:authentic:6:7"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 6,
+      "to_index": 7,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:6:7"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 8,
+      "to_index": 9,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:8:9"
+      ]
+    },
+    {
+      "id": "stepwise_bass",
+      "name": "stepwise bass motion",
+      "category": "voice_leading",
+      "from_index": 9,
+      "to_index": 10,
+      "short_explanation": "The bass moves by step between these chords.",
+      "technical_explanation": "The bass pitch classes are separated by one or two semitones.",
+      "fact_ids": [
+        "relationship:stepwise_bass:9:10"
+      ]
+    },
+    {
+      "id": "authentic",
+      "name": "authentic cadence",
+      "category": "cadence",
+      "from_index": 10,
+      "to_index": 11,
+      "short_explanation": "Dominant harmony tends to settle on the tonic here.",
+      "technical_explanation": "A V or leading-tone chord resolves to the tonic in this key.",
+      "fact_ids": [
+        "relationship:authentic:10:11"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 10,
+      "to_index": 11,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:10:11"
+      ]
+    },
+    {
+      "id": "common_tone",
+      "name": "common-tone motion",
+      "category": "voice_leading",
+      "from_index": 11,
+      "to_index": 12,
+      "short_explanation": "The chords retain at least two common tones.",
+      "technical_explanation": "Their pitch-class sets overlap in at least two places.",
+      "fact_ids": [
+        "relationship:common_tone:11:12"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 12,
+      "to_index": 13,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:12:13"
+      ]
+    },
+    {
+      "id": "stepwise_bass",
+      "name": "stepwise bass motion",
+      "category": "voice_leading",
+      "from_index": 13,
+      "to_index": 14,
+      "short_explanation": "The bass moves by step between these chords.",
+      "technical_explanation": "The bass pitch classes are separated by one or two semitones.",
+      "fact_ids": [
+        "relationship:stepwise_bass:13:14"
+      ]
+    },
+    {
+      "id": "authentic",
+      "name": "authentic cadence",
+      "category": "cadence",
+      "from_index": 14,
+      "to_index": 15,
+      "short_explanation": "Dominant harmony tends to settle on the tonic here.",
+      "technical_explanation": "A V or leading-tone chord resolves to the tonic in this key.",
+      "fact_ids": [
+        "relationship:authentic:14:15"
+      ]
+    },
+    {
+      "id": "circle_fifths",
+      "name": "circle-of-fifths motion",
+      "category": "functional",
+      "from_index": 14,
+      "to_index": 15,
+      "short_explanation": "The roots move by a descending fifth.",
+      "technical_explanation": "The second root lies a perfect fifth below the first modulo octave.",
+      "fact_ids": [
+        "relationship:circle_fifths:14:15"
+      ]
+    }
+  ],
+  "chords": [
+    {
+      "raw_symbol": "C",
+      "symbol": "C:maj",
+      "root": "C",
+      "quality": "maj",
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 0,
+      "bass_pc": 0,
+      "inversion": "root",
+      "tones_spelled": [
+        "C",
+        "E",
+        "G"
+      ],
+      "pc_set_mask": 145,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "F",
+      "symbol": "F:maj",
+      "root": "F",
+      "quality": "maj",
+      "pitch_classes": [
+        5,
+        9,
+        0
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 5,
+      "bass_pc": 5,
+      "inversion": "root",
+      "tones_spelled": [
+        "F",
+        "A",
+        "C"
+      ],
+      "pc_set_mask": 545,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "G",
+      "symbol": "G:maj",
+      "root": "G",
+      "quality": "maj",
+      "pitch_classes": [
+        7,
+        11,
+        2
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 7,
+      "bass_pc": 7,
+      "inversion": "root",
+      "tones_spelled": [
+        "G",
+        "B",
+        "D"
+      ],
+      "pc_set_mask": 2180,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "C",
+      "symbol": "C:maj",
+      "root": "C",
+      "quality": "maj",
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 0,
+      "bass_pc": 0,
+      "inversion": "root",
+      "tones_spelled": [
+        "C",
+        "E",
+        "G"
+      ],
+      "pc_set_mask": 145,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "C",
+      "symbol": "C:maj",
+      "root": "C",
+      "quality": "maj",
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 0,
+      "bass_pc": 0,
+      "inversion": "root",
+      "tones_spelled": [
+        "C",
+        "E",
+        "G"
+      ],
+      "pc_set_mask": 145,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "F",
+      "symbol": "F:maj",
+      "root": "F",
+      "quality": "maj",
+      "pitch_classes": [
+        5,
+        9,
+        0
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 5,
+      "bass_pc": 5,
+      "inversion": "root",
+      "tones_spelled": [
+        "F",
+        "A",
+        "C"
+      ],
+      "pc_set_mask": 545,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "G",
+      "symbol": "G:maj",
+      "root": "G",
+      "quality": "maj",
+      "pitch_classes": [
+        7,
+        11,
+        2
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 7,
+      "bass_pc": 7,
+      "inversion": "root",
+      "tones_spelled": [
+        "G",
+        "B",
+        "D"
+      ],
+      "pc_set_mask": 2180,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "C",
+      "symbol": "C:maj",
+      "root": "C",
+      "quality": "maj",
+      "pitch_classes": [
+        0,
+        4,
+        7
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 0,
+      "bass_pc": 0,
+      "inversion": "root",
+      "tones_spelled": [
+        "C",
+        "E",
+        "G"
+      ],
+      "pc_set_mask": 145,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "Am",
+      "symbol": "A:min",
+      "root": "A",
+      "quality": "min",
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "intervals": [
+        0,
+        3,
+        7
+      ],
+      "bass": null,
+      "warnings": [
+        {
+          "code": "alias_normalized",
+          "message": "Normalized quality alias m to min.",
+          "raw_value": "Am"
+        }
+      ],
+      "root_pc": 9,
+      "bass_pc": 9,
+      "inversion": "root",
+      "tones_spelled": [
+        "A",
+        "C",
+        "E"
+      ],
+      "pc_set_mask": 529,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "min",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "Dm",
+      "symbol": "D:min",
+      "root": "D",
+      "quality": "min",
+      "pitch_classes": [
+        2,
+        5,
+        9
+      ],
+      "intervals": [
+        0,
+        3,
+        7
+      ],
+      "bass": null,
+      "warnings": [
+        {
+          "code": "alias_normalized",
+          "message": "Normalized quality alias m to min.",
+          "raw_value": "Dm"
+        }
+      ],
+      "root_pc": 2,
+      "bass_pc": 2,
+      "inversion": "root",
+      "tones_spelled": [
+        "D",
+        "F",
+        "A"
+      ],
+      "pc_set_mask": 548,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "min",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "E",
+      "symbol": "E:maj",
+      "root": "E",
+      "quality": "maj",
+      "pitch_classes": [
+        4,
+        8,
+        11
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 4,
+      "bass_pc": 4,
+      "inversion": "root",
+      "tones_spelled": [
+        "E",
+        "G#",
+        "B"
+      ],
+      "pc_set_mask": 2320,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "Am",
+      "symbol": "A:min",
+      "root": "A",
+      "quality": "min",
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "intervals": [
+        0,
+        3,
+        7
+      ],
+      "bass": null,
+      "warnings": [
+        {
+          "code": "alias_normalized",
+          "message": "Normalized quality alias m to min.",
+          "raw_value": "Am"
+        }
+      ],
+      "root_pc": 9,
+      "bass_pc": 9,
+      "inversion": "root",
+      "tones_spelled": [
+        "A",
+        "C",
+        "E"
+      ],
+      "pc_set_mask": 529,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "min",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "Am",
+      "symbol": "A:min",
+      "root": "A",
+      "quality": "min",
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "intervals": [
+        0,
+        3,
+        7
+      ],
+      "bass": null,
+      "warnings": [
+        {
+          "code": "alias_normalized",
+          "message": "Normalized quality alias m to min.",
+          "raw_value": "Am"
+        }
+      ],
+      "root_pc": 9,
+      "bass_pc": 9,
+      "inversion": "root",
+      "tones_spelled": [
+        "A",
+        "C",
+        "E"
+      ],
+      "pc_set_mask": 529,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "min",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "Dm",
+      "symbol": "D:min",
+      "root": "D",
+      "quality": "min",
+      "pitch_classes": [
+        2,
+        5,
+        9
+      ],
+      "intervals": [
+        0,
+        3,
+        7
+      ],
+      "bass": null,
+      "warnings": [
+        {
+          "code": "alias_normalized",
+          "message": "Normalized quality alias m to min.",
+          "raw_value": "Dm"
+        }
+      ],
+      "root_pc": 2,
+      "bass_pc": 2,
+      "inversion": "root",
+      "tones_spelled": [
+        "D",
+        "F",
+        "A"
+      ],
+      "pc_set_mask": 548,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "min",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "E",
+      "symbol": "E:maj",
+      "root": "E",
+      "quality": "maj",
+      "pitch_classes": [
+        4,
+        8,
+        11
+      ],
+      "intervals": [
+        0,
+        4,
+        7
+      ],
+      "bass": null,
+      "warnings": [],
+      "root_pc": 4,
+      "bass_pc": 4,
+      "inversion": "root",
+      "tones_spelled": [
+        "E",
+        "G#",
+        "B"
+      ],
+      "pc_set_mask": 2320,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "maj",
+      "extensions": []
+    },
+    {
+      "raw_symbol": "Am",
+      "symbol": "A:min",
+      "root": "A",
+      "quality": "min",
+      "pitch_classes": [
+        9,
+        0,
+        4
+      ],
+      "intervals": [
+        0,
+        3,
+        7
+      ],
+      "bass": null,
+      "warnings": [
+        {
+          "code": "alias_normalized",
+          "message": "Normalized quality alias m to min.",
+          "raw_value": "Am"
+        }
+      ],
+      "root_pc": 9,
+      "bass_pc": 9,
+      "inversion": "root",
+      "tones_spelled": [
+        "A",
+        "C",
+        "E"
+      ],
+      "pc_set_mask": 529,
+      "interval_vector": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0
+      ],
+      "quality_class": "min",
+      "extensions": []
+    }
+  ],
+  "warnings": [
+    {
+      "code": "alias_normalized",
+      "message": "Normalized quality alias m to min.",
+      "raw_value": "Am",
+      "token_index": 8
+    },
+    {
+      "code": "alias_normalized",
+      "message": "Normalized quality alias m to min.",
+      "raw_value": "Dm",
+      "token_index": 9
+    },
+    {
+      "code": "alias_normalized",
+      "message": "Normalized quality alias m to min.",
+      "raw_value": "Am",
+      "token_index": 11
+    },
+    {
+      "code": "alias_normalized",
+      "message": "Normalized quality alias m to min.",
+      "raw_value": "Am",
+      "token_index": 12
+    },
+    {
+      "code": "alias_normalized",
+      "message": "Normalized quality alias m to min.",
+      "raw_value": "Dm",
+      "token_index": 13
+    },
+    {
+      "code": "alias_normalized",
+      "message": "Normalized quality alias m to min.",
+      "raw_value": "Am",
+      "token_index": 15
+    }
+  ]
+}

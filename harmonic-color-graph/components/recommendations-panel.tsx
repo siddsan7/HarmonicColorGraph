@@ -10,7 +10,7 @@ import { compareColor, type ColorComparison, type IntentAxis, type IntentPreset,
 import type { PlaybackSequence } from "@/lib/music/engine"
 import { RequestError } from "@/components/studio-primitives"
 
-function RecommendationRow({ item, onAppend, progression, keySignature, pitchClasses, rankingMode, onPlay }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature: string; pitchClasses: number[][]; rankingMode: "statistical" | "intent"; onPlay: (sequences: PlaybackSequence[]) => void }) {
+function RecommendationRow({ item, onAppend, progression, keySignature, pitchClasses, rankingMode, onPlay }: { item: Recommendation; onAppend: (chord: string) => void; progression: string[]; keySignature?: string; pitchClasses: number[][]; rankingMode: "statistical" | "intent"; onPlay: (sequences: PlaybackSequence[]) => void }) {
   const [comparison, setComparison] = useState<ColorComparison | null>(null)
   const [compareBusy, setCompareBusy] = useState(false)
   const [compareError, setCompareError] = useState<string | null>(null)
@@ -77,14 +77,14 @@ export function RecommendationsPanel({ result, busy, error, onAppend, progressio
   onRetry?: () => void
   onAppend: (chord: string) => void
   progression: string[]
-  keySignature: string
+  keySignature?: string
   pitchClasses: number[][]
   onPlay: (sequences: PlaybackSequence[]) => void
   onPreferencesChange: (intent: Partial<Record<IntentAxis, number>>, preset: IntentPreset | null) => void
 }) {
   return <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5" aria-busy={busy}>
     <h2 className="text-base font-semibold">Possible next chords</h2>
-    <p className="mt-1 text-xs text-[var(--text-secondary)]">Suggestions from the full progression, with optional color intent.</p>
+    <p className="mt-1 text-xs text-[var(--text-secondary)]">Next-chord suggestions, with optional color intent.</p>
     <IntentControls onApply={onPreferencesChange} busy={busy} />
     {busy && <p className="mt-4 text-sm text-[var(--text-muted)]">Finding next chords…</p>}
     {error && <RequestError action="recommend" detail={error} onRetry={onRetry ?? (() => onPreferencesChange({}, null))} />}

@@ -334,6 +334,8 @@ def test_loader_activates_once_and_preserves_previous_on_failed_stage(
         assert first.table_rows["patterns"] == 1
         second = load_corpus(artifact_dir, db_url)
         assert second.status == "no-op"
+        with pytest.raises(ValueError, match="empty corpus schema"):
+            load_corpus(artifact_dir, db_url, compact_indexes=True)
 
         changed = json.loads((artifact_dir / "manifest.json").read_text(encoding="utf-8"))
         changed["params"]["changed"] = True
@@ -378,3 +380,42 @@ def test_loader_activates_once_and_preserves_previous_on_failed_stage(
                         "update hcg.corpus_versions set active = true where version = %s",
                         (previous,),
                     )
+
+
+@pytest.mark.pg
+@pytest.mark.skipif(not os.getenv("TEST_DATABASE_URL"), reason="TEST_DATABASE_URL is not set")
+def test_maintenance_compaction_rolls_back_and_preserves_unique_index(artifact_dir, monkeypatch):
+    import psycopg
+
+    import pipeline.load as loader
+
+    db_url = os.environ["TEST_DATABASE_URL"]
+    native = loader._psycopg_url(db_url)
+    with psycopg.connect(native) as conn:
+        if conn.execute("select exists(select 1 from hcg.corpus_versions)").fetchone()[0]:
+            pytest.skip("Maintenance compaction test needs an empty corpus database")
+    try:
+        with monkeypatch.context() as patch:
+            patch.setattr(loader, "MAX_HCG_BYTES", 1)
+            with pytest.raises(ValueError, match="storage gate"):
+                load_corpus(artifact_dir, db_url, compact_indexes=True)
+        with psycopg.connect(native) as conn:
+            for table in ("corpus_versions", "edges_compact", "ngram_histories"):
+                assert conn.execute(f"select count(*) from hcg.{table}").fetchone()[0] == 0
+        report = load_corpus(artifact_dir, db_url, compact_indexes=True)
+        assert report.active_version == artifact_dir.name
+        assert report.edge_types["FUNCTIONS_AS"] == 2
+        with psycopg.connect(native) as conn:
+            indexes = conn.execute(
+                "select i.indisvalid, i.indisready from pg_index i "
+                "where i.indrelid in ('hcg.edges_compact'::regclass, "
+                "'hcg.ngram_histories'::regclass)"
+            ).fetchall()
+            assert indexes and all(valid and ready for valid, ready in indexes)
+            with pytest.raises(psycopg.errors.UniqueViolation), conn.transaction():
+                conn.execute(
+                    "insert into hcg.edges_compact select * from hcg.edges_compact limit 1"
+                )
+    finally:
+        with psycopg.connect(native) as conn:
+            conn.execute("delete from hcg.corpus_versions where version=%s", (artifact_dir.name,))

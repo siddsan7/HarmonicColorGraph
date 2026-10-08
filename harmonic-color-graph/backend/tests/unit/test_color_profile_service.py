@@ -22,6 +22,14 @@ def test_build_arc_one_point_per_chord():
     assert arc[1].raw.smoothness is not None
 
 
+def test_modulated_color_uses_each_region_key():
+    profile = compute_color_profile("E B7 E A E Ab Eb7 Ab Db Ab C G7 C F C", None)
+    assert [point.position for point in profile.arc] == list(range(15))
+    assert [point.token for point in profile.arc] == ["M:I", "M:V7", "M:I", "M:IV", "M:I"] * 3
+    expected = compute_color_profile("Ab Eb7 Ab Db Ab", "Ab major")
+    assert [point.raw for point in profile.arc[5:10]] == [point.raw for point in expected.arc]
+
+
 def test_build_arc_perceptual_axes_are_prefix_based():
     """Position i's perceptual read should match compute_perceptual_color
     over just the prefix up to i, not the whole progression."""

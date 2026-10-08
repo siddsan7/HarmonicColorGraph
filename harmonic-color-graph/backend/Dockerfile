@@ -4,14 +4,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
 
 WORKDIR /app
+ARG HCG_PYTHON_EXTRAS=pipeline
 
 COPY pyproject.toml ./
 COPY app ./app
 COPY pipeline ./pipeline
 
-RUN pip install --no-cache-dir '.[pipeline]' \
+RUN pip install --no-cache-dir ".[${HCG_PYTHON_EXTRAS}]" \
     && useradd --uid 10001 --create-home --shell /usr/sbin/nologin hcg \
-    && chown -R hcg:hcg /app
+    && mkdir /worker-artifacts \
+    && chown -R hcg:hcg /app /worker-artifacts
 
 USER hcg
 EXPOSE 8000

@@ -20,9 +20,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
+import os
 from pathlib import Path
 
-from app.predict.ngram import InMemoryNgramStore
+from app.predict.ngram import InMemoryNgramStore, KNPredictor
 from tests.eval.baselines import V2_FULL_NAME, build_baselines
 from tests.eval.metrics import aggregate, evaluate_position, slice_metrics
 from tests.eval.sampling import SampledPosition, sample_test_positions
@@ -30,46 +32,68 @@ from tests.eval.sampling import SampledPosition, sample_test_positions
 REPO_ROOT = Path(__file__).resolve().parents[3]
 REQUIRED_MRR_DELTA = 0.05  # the plan's check: v2 (order 5 + context) MRR >= v1 MRR + 0.05
 SLICE_DIMENSIONS = ("genre", "section", "mode", "context_depth")
+MIXING_K_GRID = (10.0, 30.0, 100.0, 300.0, 1000.0, 3000.0, 10000.0)
 
 
-def _artifact_dir(version: str) -> Path:
-    return REPO_ROOT / "data" / "artifacts" / version
+def _artifact_dir(version: str, artifact_root: Path | None = None) -> Path:
+    root = artifact_root or Path(
+        os.environ.get("HCG_EVAL_ARTIFACT_ROOT", REPO_ROOT / "data/artifacts")
+    )
+    return root / version
 
 
-def _read_sections(version: str, *, split: str | None = None) -> list[dict]:
+def _read_sections(
+    version: str, *, split: str | None = None, artifact_root: Path | None = None
+) -> list[dict]:
     import polars as pl
 
-    frame = pl.read_parquet(_artifact_dir(version) / "sections.parquet")
+    frame = pl.read_parquet(_artifact_dir(version, artifact_root) / "sections.parquet")
     if split is not None:
         frame = frame.filter(pl.col("split") == split)
     return frame.to_dicts()
 
 
-def assert_no_leakage(train_version: str, eval_version: str, eval_split: str) -> dict:
-    """F31's dev-split-tuning-only check: no song sampled from
-    `eval_version`'s `eval_split` rows may appear in the train artifact's
-    ingested songs. Returns a small report dict; raises if it fails --
-    this is a hard gate, not a warning, since a leak invalidates every
-    metric below it.
+def assert_no_leakage(
+    train_version: str,
+    eval_version: str,
+    eval_split: str,
+    *,
+    artifact_root: Path | None = None,
+    check_test_split: bool = False,
+) -> dict:
+    """Verify train-song disjointness from the requested held-out song IDs.
+
+    Tuning checks both dev and test IDs before scoring dev positions. Only
+    song IDs and split labels are read here; the test positions stay unseen.
     """
     import polars as pl
 
     train_song_ids = set(
-        pl.read_parquet(_artifact_dir(train_version) / "ingest.parquet")["song_id"].to_list()
+        pl.read_parquet(
+            _artifact_dir(train_version, artifact_root) / "ingest.parquet", columns=["song_id"]
+        )["song_id"].to_list()
     )
-    eval_song_ids = {row["song_id"] for row in _read_sections(eval_version, split=eval_split)}
-    overlap = train_song_ids & eval_song_ids
-    if overlap:
-        raise AssertionError(
-            f"Leak detected: {len(overlap)} {eval_split}-split song(s) from {eval_version!r} "
-            f"appear in {train_version!r}'s train artifact, e.g. {sorted(overlap)[:5]!r}"
-        )
-    return {
+    splits = (eval_split, "test") if check_test_split and eval_split != "test" else (eval_split,)
+    eval_frame = pl.read_parquet(
+        _artifact_dir(eval_version, artifact_root) / "sections.parquet",
+        columns=["song_id", "split"],
+    )
+    report = {
         "train_song_count": len(train_song_ids),
-        f"{eval_split}_song_count": len(eval_song_ids),
+        "checked_splits": list(splits),
         "overlap": 0,
         "passed": True,
     }
+    for split in splits:
+        eval_song_ids = set(eval_frame.filter(pl.col("split") == split)["song_id"].to_list())
+        overlap = train_song_ids & eval_song_ids
+        if overlap:
+            raise AssertionError(
+                f"Leak detected: {len(overlap)} {split}-split song(s) from {eval_version!r} "
+                f"appear in {train_version!r}'s train artifact, e.g. {sorted(overlap)[:5]!r}"
+            )
+        report[f"{split}_song_count"] = len(eval_song_ids)
+    return report
 
 
 def _position_context(position: SampledPosition) -> dict[str, str]:
@@ -89,13 +113,18 @@ def run_evaluation(
     sample_size: int = 50_000,
     seed: int = 20260924,
     top_n_slice_values: int = 10,
+    artifact_root: Path | None = None,
 ) -> dict:
-    leak_report = assert_no_leakage(train_version, eval_version, eval_split)
+    leak_report = assert_no_leakage(
+        train_version, eval_version, eval_split, artifact_root=artifact_root
+    )
 
-    store = InMemoryNgramStore.from_parquet(str(_artifact_dir(train_version) / "ngrams.parquet"))
+    store = InMemoryNgramStore.from_parquet(
+        str(_artifact_dir(train_version, artifact_root) / "ngrams.parquet")
+    )
     baselines = build_baselines(store)
 
-    eval_rows = _read_sections(eval_version, split=eval_split)
+    eval_rows = _read_sections(eval_version, split=eval_split, artifact_root=artifact_root)
     positions = sample_test_positions(eval_rows, sample_size=sample_size, seed=seed)
     contexts = [_position_context(position) for position in positions]
 
@@ -137,6 +166,94 @@ def run_evaluation(
         "slices": slices,
         "check": check,
     }
+
+
+def tune_mixing_k(
+    *,
+    train_version: str,
+    eval_version: str,
+    sample_size: int = 5_000,
+    seed: int = 20260924,
+    mixing_k_values: tuple[float, ...] = MIXING_K_GRID,
+    artifact_root: Path | None = None,
+) -> dict:
+    """Choose context-mixing K on dev after checking dev/test song-ID isolation."""
+    if not mixing_k_values or any(not math.isfinite(k) or k <= 0 for k in mixing_k_values):
+        raise ValueError("mixing K candidates must be finite positive numbers")
+    if len(set(mixing_k_values)) != len(mixing_k_values):
+        raise ValueError("mixing K candidates must be unique")
+    if sample_size <= 0:
+        raise ValueError("sample size must be positive")
+
+    leak_report = assert_no_leakage(
+        train_version, eval_version, "dev", artifact_root=artifact_root, check_test_split=True
+    )
+    store = InMemoryNgramStore.from_parquet(
+        str(_artifact_dir(train_version, artifact_root) / "ngrams.parquet")
+    )
+    dev_rows = _read_sections(eval_version, split="dev", artifact_root=artifact_root)
+    positions = sample_test_positions(dev_rows, sample_size=sample_size, seed=seed)
+    if not positions:
+        raise ValueError("dev split has no prediction positions")
+
+    def mrr(predictor: KNPredictor, *, context: bool) -> float:
+        return sum(
+            evaluate_position(
+                predictor.distribution(
+                    position.history,
+                    genre=position.genre if context else None,
+                    section=position.section if context else None,
+                ),
+                position.actual,
+            ).reciprocal_rank
+            for position in positions
+        ) / len(positions)
+
+    context_free_mrr = mrr(KNPredictor(store, max_order_cap=5), context=False)
+    scores = [
+        (k, mrr(KNPredictor(store, max_order_cap=5, mixing_k=k), context=True))
+        for k in mixing_k_values
+    ]
+    best_k, best_mrr = min(scores, key=lambda result: (-result[1], result[0]))
+    return {
+        "versions": {"train": train_version, "eval_source": eval_version, "eval_split": "dev"},
+        "sample": {"requested_size": sample_size, "actual_size": len(positions), "seed": seed},
+        "leak_check": leak_report,
+        "context_free_mrr": round(context_free_mrr, 6),
+        "candidates": [{"mixing_k": k, "context_mrr": round(score, 6)} for k, score in scores],
+        "selected_mixing_k": best_k,
+        "selected_context_mrr": round(best_mrr, 6),
+        "selected_delta_vs_context_free": round(best_mrr - context_free_mrr, 6),
+    }
+
+
+def render_tuning_markdown(report: dict) -> str:
+    versions = report["versions"]
+    sample = report["sample"]
+    lines = [
+        "# Dev-only prediction context tuning",
+        "",
+        f"Train: `{versions['train']}`. Dev source: `{versions['eval_source']}`. "
+        f"Positions: `{sample['actual_size']}` (seed `{sample['seed']}`).",
+        f"Train overlap with dev/test song IDs: `{report['leak_check']['overlap']}`.",
+        "",
+        f"Context-free MRR: `{report['context_free_mrr']}`.",
+        "",
+        "| mixing K | context MRR |",
+        "|---:|---:|",
+    ]
+    lines.extend(f"| {item['mixing_k']} | {item['context_mrr']} |" for item in report["candidates"])
+    lines.extend(
+        [
+            "",
+            f"Selected K: `{report['selected_mixing_k']}`; "
+            f"dev MRR `{report['selected_context_mrr']}` "
+            f"(delta `{report['selected_delta_vs_context_free']}` vs. context-free).",
+            "",
+            "Selection scored only dev rows. Held-out test evidence requires a separate run.",
+        ]
+    )
+    return "\n".join(lines)
 
 
 _METRIC_COLUMNS = ("n", "top1", "top3", "top5", "mrr", "ndcg5", "perplexity", "coverage", "ece")
@@ -243,9 +360,44 @@ def main(argv: list[str] | None = None) -> None:
     prediction.add_argument("--sample-size", type=int, default=50_000)
     prediction.add_argument("--seed", type=int, default=20260924)
     prediction.add_argument("--top-n-slice-values", type=int, default=10)
+    prediction.add_argument("--artifact-root", type=Path, default=None)
     prediction.add_argument("--output-dir", type=Path, default=REPO_ROOT / "docs" / "eval")
 
+    tuning = subparsers.add_parser(
+        "tune-mixing-k", help="Select context-mixing K from a dev split only."
+    )
+    tuning.add_argument("--train-version", required=True)
+    tuning.add_argument("--eval-version", required=True)
+    tuning.add_argument("--sample-size", type=int, default=5_000)
+    tuning.add_argument("--seed", type=int, default=20260924)
+    tuning.add_argument("--mixing-k", type=float, action="append", dest="mixing_k_values")
+    tuning.add_argument("--artifact-root", type=Path, default=None)
+    tuning.add_argument(
+        "--output-dir", type=Path, default=REPO_ROOT / ".agent-logs" / "prediction-tuning"
+    )
+
     args = parser.parse_args(argv)
+    if args.command == "tune-mixing-k":
+        report = tune_mixing_k(
+            train_version=args.train_version,
+            eval_version=args.eval_version,
+            sample_size=args.sample_size,
+            seed=args.seed,
+            mixing_k_values=tuple(args.mixing_k_values or MIXING_K_GRID),
+            artifact_root=args.artifact_root,
+        )
+        args.output_dir.mkdir(parents=True, exist_ok=True)
+        (args.output_dir / "prediction-k-tuning.json").write_text(
+            json.dumps(report, indent=2, sort_keys=True), encoding="utf-8"
+        )
+        (args.output_dir / "prediction-k-tuning.md").write_text(
+            render_tuning_markdown(report), encoding="utf-8"
+        )
+        print(
+            f"Selected K {report['selected_mixing_k']} on dev; MRR {report['selected_context_mrr']}"
+        )
+        return
+
     report = run_evaluation(
         train_version=args.train_version,
         eval_version=args.eval_version,
@@ -253,6 +405,7 @@ def main(argv: list[str] | None = None) -> None:
         sample_size=args.sample_size,
         seed=args.seed,
         top_n_slice_values=args.top_n_slice_values,
+        artifact_root=args.artifact_root,
     )
 
     args.output_dir.mkdir(parents=True, exist_ok=True)

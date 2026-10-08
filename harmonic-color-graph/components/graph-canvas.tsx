@@ -293,7 +293,13 @@ export function GraphCanvas(props: Props) {
             const camera = engine.graph.camera() as PerspectiveCamera; camera.far = controls.maxDistance * 4; camera.updateProjectionMatrix()
             engine.graph.cameraPosition(view.camera.position, view.camera.target, 0); controls.update(); engine.refresh()
           } else engine.fit("reset")
-          performance.mark("hcg-explore-layout-complete")
+          const nodes = latest.current.graph.nodes.length
+          requestAnimationFrame(() => requestAnimationFrame(() => {
+            if (runtime.current !== engine || !nodes) return
+            const ready = performance.getEntriesByName("hcg-explore-neighborhood-ready").at(-1) as PerformanceMark | undefined
+            if (!ready || typeof ready.detail?.elapsedMs !== "number") return
+            performance.mark("hcg-explore-layout-complete", { detail: { elapsedMs: performance.now() - (ready.startTime - ready.detail.elapsedMs), nodes } })
+          }))
         }
       })
     }

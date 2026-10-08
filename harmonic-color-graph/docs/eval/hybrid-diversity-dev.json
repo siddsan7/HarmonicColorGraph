@@ -1,0 +1,257 @@
+{
+  "split": "dev",
+  "seed": 54,
+  "leak": {
+    "train_song_count": 612021,
+    "checked_splits": [
+      "dev",
+      "test"
+    ],
+    "overlap": 0,
+    "passed": true,
+    "dev_song_count": 991,
+    "test_song_count": 1058
+  },
+  "candidates": [
+    {
+      "scale": 0.25,
+      "alpha": 0.4,
+      "report": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.7047,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 82,
+        "novel_top5_per_query": 0.207,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "brighter": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          },
+          "surprising": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "smoother": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    },
+    {
+      "scale": 0.25,
+      "alpha": 0.8,
+      "report": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.7057,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 87,
+        "novel_top5_per_query": 0.372,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "brighter": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          },
+          "surprising": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "smoother": {
+            "passed": 28,
+            "total": 30,
+            "rate": 0.933
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    },
+    {
+      "scale": 0.5,
+      "alpha": 0.4,
+      "report": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.7012,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 82,
+        "novel_top5_per_query": 0.307,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "brighter": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          },
+          "surprising": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          },
+          "smoother": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    },
+    {
+      "scale": 0.5,
+      "alpha": 0.8,
+      "report": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.7013,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 85,
+        "novel_top5_per_query": 0.388,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "brighter": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          },
+          "surprising": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "smoother": {
+            "passed": 28,
+            "total": 30,
+            "rate": 0.933
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    },
+    {
+      "scale": 1.0,
+      "alpha": 0.4,
+      "report": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.6958,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 85,
+        "novel_top5_per_query": 0.412,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "brighter": {
+            "passed": 28,
+            "total": 30,
+            "rate": 0.933
+          },
+          "surprising": {
+            "passed": 29,
+            "total": 30,
+            "rate": 0.967
+          },
+          "smoother": {
+            "passed": 27,
+            "total": 30,
+            "rate": 0.9
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    },
+    {
+      "scale": 1.0,
+      "alpha": 0.8,
+      "report": {
+        "n": 400,
+        "ngram_mrr": 0.7048,
+        "hybrid_mrr": 0.695,
+        "coverage_baseline": 81,
+        "coverage_hybrid": 86,
+        "novel_top5_per_query": 0.482,
+        "intent_benchmark": {
+          "darker": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "brighter": {
+            "passed": 28,
+            "total": 30,
+            "rate": 0.933
+          },
+          "surprising": {
+            "passed": 30,
+            "total": 30,
+            "rate": 1.0
+          },
+          "smoother": {
+            "passed": 25,
+            "total": 30,
+            "rate": 0.833
+          }
+        }
+      },
+      "checks": {
+        "mrr": true,
+        "coverage": true,
+        "novelty": true,
+        "intent": true
+      }
+    }
+  ]
+}

@@ -4,6 +4,85 @@ from app.recommend.features import FEATURE_NAMES, CandidateFeatures, extract_fea
 from app.recommend.scorer import intent_score, load_weights, score_candidates
 
 
+def test_intent_strength_scales_weak_requests_without_amplifying_multiple_axes():
+    import pytest
+
+    from app.recommend.features import COLOR_AXES
+
+    delta = dict.fromkeys(COLOR_AXES, 0.0)
+    delta.update(brightness=0.6, tension=-0.4)
+    strong = intent_score(delta, {"darker_brighter": 1})
+    assert intent_score(delta, {"darker_brighter": 0.1}) == pytest.approx(strong / 10)
+    assert intent_score(delta, {"darker_brighter": -0.1}) == pytest.approx(-strong / 10)
+    assert intent_score(delta, {"darker_brighter": 0}) == 0
+    assert intent_score(delta, {"darker_brighter": 1, "tense_relaxed": 1}) == 0.5
+
+
+def test_transition_deltas_compare_adjacent_arrivals_with_available_context():
+    import pytest
+
+    from app.color.features import compute_chord_color
+    from app.theory.roman import analyze_v2
+
+    analysis = analyze_v2("A7 D G", "D major")
+    colors = [
+        compute_chord_color(
+            analysis.chords[index],
+            analysis.tokens[index],
+            "D major",
+            previous_chord=analysis.chords[index - 1],
+            previous_token=analysis.tokens[index - 1],
+        )
+        for index in (1, 2)
+    ]
+    item = extract_features(Candidate("M:IV", frozenset({"theory"})), ["M:V7", "M:I"], "D major")
+    assert colors[0].resolution > colors[1].resolution
+    assert item.color_delta["resolution"] == pytest.approx(
+        colors[1].resolution - colors[0].resolution
+    )
+    assert item.color_delta["smoothness"] == pytest.approx(
+        colors[1].smoothness - colors[0].smoothness
+    )
+    assert item.values["vl_cost"] == pytest.approx(1 - colors[1].smoothness)
+    assert intent_score(item.color_delta, {"resolved_open": 1}, item) > 0
+
+
+def test_dreamy_fit_uses_incoming_motion_while_smooth_slider_uses_change():
+    import pytest
+
+    for key in ("D major", "E major"):
+        candidate = Candidate("M:bVImaj7", frozenset({"theory"}))
+        rows = [
+            extract_features(candidate, [predecessor, "M:I"], key)
+            for predecessor in ("M:V7", "M:IV")
+        ]
+        assert rows[0].values["vl_cost"] == rows[1].values["vl_cost"]
+        assert rows[0].color_delta["smoothness"] != rows[1].color_delta["smoothness"]
+        scores = [intent_score(row.color_delta, {"dreamy": 1}, row) for row in rows]
+        assert scores[0] == pytest.approx(scores[1])
+        assert 0 <= scores[0] <= 1
+        assert intent_score(rows[0].color_delta, {"dreamy": 0.1}, rows[0]) == pytest.approx(
+            scores[0] / 10
+        )
+
+
+def test_list_diversity_preserves_first_choice_and_promotes_distinct_pitch_content():
+    from app.recommend.features import COLOR_AXES
+
+    rows = [
+        CandidateFeatures(token, dict.fromkeys(FEATURE_NAMES, 0.0), dict.fromkeys(COLOR_AXES, 0.0))
+        for token in ("M:I", "M:Imaj7", "M:bII")
+    ]
+    plain = score_candidates(rows, selection_diversity=0)
+    diverse = score_candidates(rows)
+    assert [row.token for row in plain] == ["M:I", "M:Imaj7", "M:bII"]
+    assert [row.token for row in diverse] == ["M:I", "M:bII", "M:Imaj7"]
+    assert diverse[0].score == plain[0].score
+    assert diverse[-1].score_breakdown["selection_diversity"] < 0
+    assert score_candidates(list(reversed(rows)), limit=2) == diverse[:2]
+    assert all(left.score >= right.score for left, right in zip(diverse, diverse[1:], strict=False))
+
+
 def _prediction(*items: tuple[str, float]) -> PredictionResult:
     return PredictionResult(
         history=("M:I",),
@@ -43,6 +122,18 @@ def test_feature_vector_and_intent_are_complete_and_bounded():
     assert intent_score(features.color_delta, {"darker_brighter": -1}) > 0
 
 
+def test_raw_brightness_preserves_direction_between_two_negative_values():
+    from app.color.features import brightness
+    from app.theory.roman import analyze_v2
+
+    tokens = analyze_v2("Am Dm", "C major").tokens
+    previous, current = (brightness(token, "C major") for token in tokens)
+    assert current < previous < 0
+    features = extract_features(Candidate("M:ii", frozenset({"theory"})), ["M:vi"], "C major")
+    assert abs(features.color_delta["brightness"] - (current - previous) / 2.0) < 1e-9
+    assert intent_score(features.color_delta, {"darker_brighter": -1}, features) > 0
+
+
 def test_extended_borrowed_mediant_has_dreamy_fit_without_changing_raw_brightness():
     prior = ["M:Imaj7", "M:iii7", "M:vi7"]
     borrowed = extract_features(Candidate("M:bVImaj7", frozenset({"theory"})), prior, "C major")
@@ -66,7 +157,7 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
         values["common_tones"] = 0.5
         rows.append(
             CandidateFeatures(
-                f"M:{index}",
+                ("M:I", "M:V", "M:ii", "M:IV", "M:vi")[index],
                 values,
                 dict.fromkeys(
                     ("brightness", "tension", "surprise", "complexity", "resolution", "smoothness"),
@@ -84,9 +175,62 @@ def test_softmax_plausibility_floor_and_transparent_breakdown():
             abs(
                 sum(
                     breakdown[name]
-                    for name in ("plausibility_z", "intent", "diversity", "surprise_bonus")
+                    for name in (
+                        "plausibility_z",
+                        "intent",
+                        "diversity",
+                        "surprise_bonus",
+                        "selection_diversity",
+                    )
                 )
                 - row.score
             )
             < 1e-9
         )
+
+
+def test_scoring_bound_retains_each_discovery_source():
+    from app.predict.realize import realize
+
+    vocabulary = []
+    for degree in (
+        "I",
+        "ii",
+        "iii",
+        "IV",
+        "V",
+        "vi",
+        "vii",
+        "bI",
+        "bII",
+        "biii",
+        "bIV",
+        "bV",
+        "bvi",
+        "bVII",
+        "#I",
+        "#ii",
+        "#IV",
+        "#V",
+        "#vi",
+        "#vii",
+    ):
+        for quality in ("", "7", "maj7", "o", "o7", "h7", "+", "sus2", "sus4", "5"):
+            token = f"M:{degree}{quality}"
+            try:
+                realize(token, "C major")
+            except ValueError:
+                continue
+            vocabulary.append(token)
+    assert len(vocabulary) >= 80
+    pool = generate_candidates(
+        ["M:I"],
+        "C major",
+        _prediction(*[(token, 0.02) for token in vocabulary[:30]]),
+        graph_neighbors=[(token, 0.1) for token in vocabulary[30:55]],
+        embedding_neighbors=[(token, 0.8) for token in vocabulary[55:]],
+    )
+    assert len(pool) > 64
+    assert any(item.generators == {"graph"} for item in pool[:64])
+    assert any(item.generators == {"embedding"} for item in pool[:64])
+    assert {"M:ii", "M:iv", "M:vi", "M:bVII"} <= {item.token for item in pool[:64]}

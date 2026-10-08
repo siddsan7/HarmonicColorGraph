@@ -19,8 +19,8 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       HCG_LLM_FAST_INPUT_USD_PER_MTOK: '1'
       HCG_LLM_FAST_OUTPUT_USD_PER_MTOK: '5'
-      HCG_LLM_INPUT_USD_PER_MTOK: '3'
-      HCG_LLM_OUTPUT_USD_PER_MTOK: '15'
+      HCG_LLM_INPUT_USD_PER_MTOK: '2'
+      HCG_LLM_OUTPUT_USD_PER_MTOK: '10'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

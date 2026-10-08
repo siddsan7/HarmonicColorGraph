@@ -20,7 +20,7 @@ from typing import Any
 from psycopg import Connection, connect
 from psycopg.types.json import Jsonb
 
-from pipeline.manifest import Manifest
+from pipeline.manifest import Manifest, parquet_content_hash
 
 BATCH_ROWS = 4096
 MAX_HCG_BYTES = 300 * 1024 * 1024
@@ -160,13 +160,7 @@ def _artifact_rows(path: Path, columns: list[str] | None = None) -> Iterator[dic
 
 def _artifact_content_hash(path: Path) -> str:
     """Reproduce ``content_hash`` without collecting a full corpus frame."""
-    import polars as pl
-    import pyarrow.parquet as pq
-
-    digest = hashlib.sha256()
-    for batch in pq.ParquetFile(path).iter_batches(batch_size=BATCH_ROWS):
-        digest.update(pl.from_arrow(batch).write_ndjson().encode("utf-8"))
-    return digest.hexdigest()
+    return parquet_content_hash(path, batch_size=BATCH_ROWS)
 
 
 def _validate_artifacts(artifact_dir: Path, manifest: Manifest) -> dict[str, int]:
@@ -174,6 +168,8 @@ def _validate_artifacts(artifact_dir: Path, manifest: Manifest) -> dict[str, int
 
     if not manifest.version or manifest.version != artifact_dir.name:
         raise ValueError("Manifest version must match the artifact directory")
+    if manifest.params.get("build_status") == "running":
+        raise ValueError("Pipeline build has not completed")
     if not manifest.output_hashes:
         raise ValueError("Manifest has no output hashes")
     counts: dict[str, int] = {}
@@ -635,7 +631,14 @@ def _size_report(conn: Connection) -> tuple[int, int]:
     return hcg_bytes, database_bytes
 
 
-def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
+def load_corpus(
+    artifact_dir: str | Path, db_url: str, *, compact_indexes: bool = False
+) -> LoadReport:
+    """Load a corpus; index compaction requires an empty, offline corpus schema.
+
+    Maintenance callers must drain readers first. REINDEX holds exclusive locks
+    until commit and temporarily retains the original index files on disk.
+    """
     artifact_dir = Path(artifact_dir)
     manifest_path = artifact_dir / "manifest.json"
     manifest = Manifest.read(manifest_path)
@@ -656,6 +659,17 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
             # the fully-qualified `extensions.vector` type itself.
             conn.execute("set local search_path = hcg, extensions, public")
             conn.execute("select pg_advisory_xact_lock(hashtext('hcg.corpus_loader'))")
+            if compact_indexes:
+                conn.execute(
+                    "lock table hcg.corpus_versions, hcg.edges_compact, "
+                    "hcg.ngram_histories in access exclusive mode"
+                )
+                if conn.execute(
+                    "select exists(select 1 from hcg.corpus_versions) "
+                    "or exists(select 1 from hcg.edges_compact) "
+                    "or exists(select 1 from hcg.ngram_histories)"
+                ).fetchone()[0]:
+                    raise ValueError("Index compaction requires an empty corpus schema")
             current = conn.execute(
                 "select manifest, active from hcg.corpus_versions where version = %s for update",
                 (version,),
@@ -701,6 +715,11 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                 loaded_embeddings = _load_embeddings(conn, artifact_dir, version, nodes)
                 if loaded_embeddings != artifact_counts["embeddings.parquet"]:
                     raise ValueError("Loaded embedding count differs from artifact")
+                # Replacement loads can retain statistics for the old version.
+                # Refresh before planning the correlated nearest-neighbor join,
+                # or a one-row estimate can cause thousands of broad node scans.
+                for table in ("corpus_versions", "nodes", "embeddings"):
+                    conn.execute(f"analyze hcg.{table}")
                 _materialize_similar_edges(
                     conn, version, manifest.params["embedding_default_model"]
                 )
@@ -735,6 +754,8 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                         artifact_dir, version, version_key, contexts, nodes, node_keys
                     ),
                 )
+                if compact_indexes:
+                    conn.execute("reindex table hcg.edges_compact")
                 _copy_rows(
                     conn,
                     "ngram_histories",
@@ -764,6 +785,8 @@ def load_corpus(artifact_dir: str | Path, db_url: str) -> LoadReport:
                     ),
                 )
                 _populate_ngram_discount_stats(conn, version)
+                if compact_indexes:
+                    conn.execute("reindex table hcg.ngram_histories")
                 _copy_rows(
                     conn,
                     "patterns",

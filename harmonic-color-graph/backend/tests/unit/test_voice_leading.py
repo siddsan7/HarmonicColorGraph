@@ -1,7 +1,10 @@
 """F40 voicing, motion, parallel-perfect, and playback checks."""
 
+from itertools import combinations_with_replacement, permutations, product
+
 import pytest
 
+import app.theory.voice_leading as voice_leading
 from app.theory.voice_leading import (
     generate_voicings,
     transition_metrics,
@@ -93,3 +96,48 @@ def test_metrics_are_nonnegative_and_support_five_voices():
     assert metrics.total_motion >= 0
     assert metrics.max_voice_motion >= 0
     assert metrics.bass_motion >= 0
+
+
+def _exhaustive_assignment(source, target):
+    return min(
+        permutations(target[1:]),
+        key=lambda upper: (
+            sum(abs(a - b) for a, b in zip(source[1:], upper, strict=True)),
+            max(abs(a - b) for a, b in zip(source[1:], upper, strict=True)),
+            upper,
+        ),
+    )
+
+
+def test_ordered_assignment_matches_exhaustive_with_ties_and_crossed_targets():
+    # Include repeated pitches, crossed targets, tied motions, and every
+    # supported voice count. Compare the assigned notes, not just the cost.
+    pitches = (48, 60, 64, 67)
+    for size in range(1, 5):
+        for upper_source in combinations_with_replacement(pitches, size):
+            for upper_target in product(pitches, repeat=size):
+                source, target = (40, *upper_source), (43, *upper_target)
+                assert voice_leading._best_assignment(source, target) == _exhaustive_assignment(
+                    source, target
+                )
+
+
+def test_crossed_source_keeps_exhaustive_assignment():
+    for source_upper in permutations((60, 64, 67, 72)):
+        for target_upper in permutations((59, 65, 69, 74)):
+            source, target = (48, *source_upper), (50, *target_upper)
+            assert voice_leading._best_assignment(source, target) == _exhaustive_assignment(
+                source, target
+            )
+
+
+def test_smooth_paths_match_exhaustive_assignment(monkeypatch):
+    progressions = [
+        ["Cmaj7", "Am7", "Dm7", "G7", "Cmaj7"],
+        ["C/E", "Fm/Ab", "G7/B", "C"],
+        ["F#dim7", "Gm", "Ebmaj7", "D7"],
+        ["Csus2", "Dsus4", "G", "C"],
+    ]
+    optimized = [voice_lead(chords) for chords in progressions]
+    monkeypatch.setattr(voice_leading, "_best_assignment", _exhaustive_assignment)
+    assert optimized == [voice_lead(chords) for chords in progressions]

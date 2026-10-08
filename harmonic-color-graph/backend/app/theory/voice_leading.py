@@ -94,6 +94,12 @@ def generate_voicings(chord: CanonicalChord | str, style: VoicingStyle = "all") 
 def _best_assignment(source: tuple[int, ...], target: tuple[int, ...]) -> tuple[int, ...]:
     if len(source) != len(target) or not 2 <= len(source) <= 5:
         raise ValueError("Voicings must have equal size between 2 and 5")
+    # For ordered upper voices, monotone matching minimizes both total and
+    # maximum absolute motion. Sorted target pitches are also the smallest
+    # lexicographic permutation, preserving the exhaustive search's tie break.
+    # Generated voicings have this order; public callers may pass crossed ones.
+    if all(a <= b for a, b in zip(source[1:], source[2:], strict=False)):
+        return tuple(sorted(target[1:]))
     # Bass is its own voice; exhaustively assign the remaining 1–4 voices.
     return min(
         permutations(target[1:]),

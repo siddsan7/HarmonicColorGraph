@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("tone", () => ({
   start: mocks.start,
+  setContext: vi.fn(),
   loaded: vi.fn(async () => {}),
   getTransport: () => mocks.transport,
   getDraw: () => ({ schedule: (callback: () => void) => callback() }),
@@ -46,6 +47,9 @@ const progression: PlaybackSequence = {
 beforeEach(() => {
   mocks.events.length = 0
   vi.clearAllMocks()
+  vi.stubGlobal("AudioContext", class {
+    resume = mocks.start
+  })
 })
 
 describe("playback scheduling", () => {

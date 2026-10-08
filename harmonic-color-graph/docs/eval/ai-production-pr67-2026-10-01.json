@@ -1,0 +1,71 @@
+{
+  "status": "stopped_after_two_requests_http_delivery_unverified",
+  "api_version": "bd4217149cc8ef326b8965d13ef033f11e697e69",
+  "corpus": "cv-2026-10-b",
+  "total_task_cost_usd": "4.70950500",
+  "new_accounted_cost_usd": "0.05677700",
+  "unknown_cost_usd": "0",
+  "http_completed_cases": 1,
+  "server_completed_cases": 2,
+  "cases_total": 40,
+  "rows": [
+    {
+      "id": "recommend-01",
+      "started_at": "2026-10-01T09:18:04.981942+00:00",
+      "status": "completed",
+      "accounted_cost_usd": "0.02490100",
+      "http_status": 200,
+      "query_id": "526c5ce7-cee5-44b1-ab5b-9bcb5ae2c2d4",
+      "http_latency_ms": 9265,
+      "tokens_in": 11213,
+      "tokens_out": 441,
+      "model_usage": {
+        "claude-sonnet-5": {
+          "calls": 1,
+          "cost_usd": "0.022966",
+          "tokens_in": 9888,
+          "tokens_out": 319
+        },
+        "claude-haiku-4-5-20251001": {
+          "calls": 1,
+          "cost_usd": "0.001935",
+          "tokens_in": 1325,
+          "tokens_out": 122
+        }
+      },
+      "error_codes": []
+    },
+    {
+      "id": "recommend-02",
+      "started_at": "2026-10-01T09:18:14.618195+00:00",
+      "status": "server_completed_http_delivery_unverified",
+      "accounted_cost_usd": "0.03187600",
+      "http_status": 200,
+      "query_id": "a363195a-865a-4c94-8b38-9361378f102e",
+      "error": "RemoteProtocolError",
+      "tokens_in": 11331,
+      "tokens_out": 1115,
+      "model_usage": {
+        "claude-sonnet-5": {
+          "calls": 1,
+          "cost_usd": "0.02994",
+          "tokens_in": 10005,
+          "tokens_out": 993
+        },
+        "claude-haiku-4-5-20251001": {
+          "calls": 1,
+          "cost_usd": "0.001936",
+          "tokens_in": 1326,
+          "tokens_out": 122
+        }
+      },
+      "server_latency_ms": 12301,
+      "reconciliation": "Exact query ID audit has final and complete model usage; original stream failed. No HTTP acceptance claim."
+    }
+  ],
+  "original_unknown_ledger_sha256": "c2bd3c0483ee2cbbcb8307cafe868c6a25017d303ece6a59fe7a8c0518bf699f",
+  "daily_cap_restored": "2",
+  "restoration_deployment": "dpl_AnmqoyFpjHUegbUbKo34mMhB84U9",
+  "runtime_logs": "Query failed with ExceedsBillingLimitError; no absence-of-logs claim",
+  "cause": "Not established. Server audit confirms final response, but client did not establish complete delivery."
+}

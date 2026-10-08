@@ -13,7 +13,7 @@ from app.core.config import AppSettings, get_settings
 from app.db.session import get_session
 from app.jobs.queue import JobQueue
 from app.jobs.repository import IdempotencyConflictError, JobRepository, parse_job_id
-from app.jobs.schemas import EmbeddingRebuildRequest, JobRequest
+from app.jobs.schemas import JobRequest
 
 router = APIRouter(prefix="/v2/jobs", tags=["jobs-v2"])
 
@@ -46,8 +46,6 @@ def create_job(
 ) -> dict | JSONResponse:
     if isinstance(settings, JSONResponse):
         return settings
-    if isinstance(request, EmbeddingRebuildRequest):
-        return _error("job_type_unavailable", "Embedding rebuild becomes available in F50.", 409)
     if not settings.redis_url:
         return _error("queue_unavailable", "The queue is not configured.", 503)
     if idempotency_key is not None and not re.fullmatch(r"[A-Za-z0-9._:-]{1,128}", idempotency_key):

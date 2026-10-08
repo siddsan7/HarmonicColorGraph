@@ -17,7 +17,7 @@ from app.schemas.substitutes_v2 import (
     SubstituteResponse,
     SubstituteScore,
 )
-from app.services.recommend import SessionNgramReader, _input_tokens
+from app.services.recommend import SessionNgramReader, _input_region
 from app.theory.roman import analyze_v2
 from app.theory.voice_leading import transition_metrics, voice_lead
 
@@ -64,11 +64,13 @@ class SubstitutionService:
         version = self.predictor.store.active_version()
         if version is None:
             raise LookupError("No corpus version is active")
-        tokens, key, warnings = _input_tokens(request.progression, request.key)
-        if request.index >= len(tokens):
+        tokens, key, warnings, offset = _input_region(
+            request.progression, request.key, request.index
+        )
+        index = request.index - offset
+        if index >= len(tokens):
             raise ValueError("index must refer to a chord in the progression")
         chords = [realize(token, key).chord.raw_symbol for token in tokens]
-        index = request.index
         original = tokens[index]
         left = tokens[:index]
         right = tokens[index + 1 :]
@@ -139,7 +141,7 @@ class SubstitutionService:
         ranked.sort(key=lambda item: (-item.score, item.token))
         return SubstituteResponse(
             data=SubstituteData(
-                index=index,
+                index=request.index,
                 original_chord=chords[index],
                 key=key,
                 substitutes=ranked[: request.k],

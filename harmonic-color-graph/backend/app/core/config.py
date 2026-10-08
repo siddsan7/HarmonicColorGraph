@@ -26,10 +26,12 @@ class AppSettings(BaseSettings):
     redis_url: str | None = Field(default=None, alias="REDIS_URL")
     hcg_jobs_admin_token: str | None = Field(default=None, alias="HCG_JOBS_ADMIN_TOKEN")
     hcg_artifact_root: str = Field(default="../data/artifacts", alias="HCG_ARTIFACT_ROOT")
+    hcg_embedding_output_root: str | None = Field(default=None, alias="HCG_EMBEDDING_OUTPUT_ROOT")
     hcg_evaluation_source: str = Field(
         default="../data/samples/mini_corpus.csv", alias="HCG_EVALUATION_SOURCE"
     )
     hcg_env: str = Field(default="development", alias="HCG_ENV")
+    hcg_maintenance_mode: bool = Field(default=False, alias="HCG_MAINTENANCE_MODE")
     hcg_daily_ai_budget_usd: Decimal = Field(
         default=Decimal("2.00"), gt=0, alias="HCG_DAILY_AI_BUDGET_USD"
     )

@@ -1,19 +1,18 @@
 "use client"
 
-import dynamic from "next/dynamic"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { hrefWithProgression, readProgression } from "@/lib/progression-url"
 import { edgeKey, filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
 import { usePlayback } from "@/lib/hooks/use-playback"
-import * as Tone from "tone"
+import { unlockAudio } from "@/lib/music/unlock-audio"
+import { GraphCanvas } from "@/components/graph-canvas"
 import { ContextSummary } from "@/components/studio-primitives"
 import { GraphLegend } from "@/components/graph-legend"
 import { TeachingComposer } from "@/components/teaching-composer"
 import { functionExplanation, type AtlasView } from "@/lib/graph/presentation"
 
-const GraphCanvas = dynamic(() => import("@/components/graph-canvas").then((mod) => mod.GraphCanvas), { ssr: false })
 const ROOT = "function:M:I"
 const EMPTY: GraphData = { nodes: [], edges: [], context: "global" }
 const EDGE_TYPES = ["TRANSITIONS_TO", "FUNCTIONS_AS", "ABS_TRANSITIONS_TO", "BELONGS_TO", "HAS_PATTERN"]
@@ -91,7 +90,11 @@ export function GraphExplorer() {
 
   useEffect(() => {
     // Choose a mobile default once, then preserve the user's view through resizes.
-    const frame = requestAnimationFrame(() => { if (window.matchMedia("(max-width: 640px)").matches) { setView("list"); setRouteEditorOpen(false) } })
+    const frame = requestAnimationFrame(() => {
+      if (window.matchMedia("(max-width: 640px)").matches) { setView("list"); setRouteEditorOpen(false) }
+      // Fetch the WebGL renderer while the neighborhood request is in flight. Mobile's list view keeps it deferred.
+      else void Promise.all([import("three"), import("3d-force-graph")]).catch(() => undefined)
+    })
     return () => cancelAnimationFrame(frame)
   }, [])
   useEffect(() => {
@@ -118,7 +121,7 @@ export function GraphExplorer() {
       try {
         if (degraded && snapshot) setGraph(snapshotNeighborhood(snapshot, root, filters))
         else {
-          const params = new URLSearchParams({ id: root, context, min_prob: String(minProb), limit: "150" })
+          const params = new URLSearchParams({ id: root, context, min_prob: String(minProb), limit: "80" })
           if (edgeTypes.length) params.set("edge_types", edgeTypes.join(","))
           const data = parseGraph(await api<unknown>(`/neighborhood?${params}`, { signal: controller.signal }))
           if (!controller.signal.aborted) { setGraph(data); setDegraded(false) }
@@ -189,7 +192,7 @@ export function GraphExplorer() {
     const controller = new AbortController(); audioRequest.current = controller
     try {
       // Unlock audio within the click gesture before the realization request.
-      void Tone.start().catch(() => undefined)
+      void unlockAudio().catch(() => undefined)
       const data = await api<{ chords: { label: string; pitch_classes: number[] }[] }>("/realize", { signal: controller.signal, method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nodes, key: shared.key || "C major" }) })
       if (controller.signal.aborted) return
       setPlayingNodes(nodes)

@@ -1,12 +1,16 @@
 """Request and database spans must join without exposing SQL or request data."""
 
+import asyncio
 import re
 import subprocess
 import sys
-from contextlib import nullcontext
+import threading
+from contextlib import contextmanager, nullcontext
 from pathlib import Path
 from uuid import uuid4
 
+import anyio
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from opentelemetry import trace
@@ -37,6 +41,142 @@ class CapturingExporter(SpanExporter):
         pass
 
 
+def test_slow_export_keeps_request_event_loop_responsive(monkeypatch):
+    progress_during_export = []
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+
+        def stalled_export():
+            progressed = threading.Event()
+            loop.call_soon_threadsafe(progressed.set)
+            progress_during_export.append(progressed.wait(timeout=2))
+
+        async def endpoint(_scope, _receive, send):
+            await send({"type": "http.response.start", "status": 200, "headers": []})
+            await send({"type": "http.response.body", "body": b"ok"})
+
+        async def receive():
+            return {"type": "http.request", "body": b""}
+
+        sent = []
+
+        async def send(message):
+            sent.append(message)
+
+        monkeypatch.setattr(telemetry, "flush_telemetry", stalled_export)
+        monkeypatch.setattr(
+            telemetry, "get_settings", lambda: AppSettings(database_url="sqlite://")
+        )
+        middleware = telemetry.TelemetryMiddleware(endpoint)
+        await middleware({"type": "http", "method": "GET"}, receive, send)
+        assert sent[-1]["body"] == b"ok"
+
+    asyncio.run(scenario())
+    assert progress_during_export == [True]
+
+
+def test_export_does_not_consume_endpoint_worker_capacity(monkeypatch):
+    progressed = threading.Event()
+    progress_during_export = []
+
+    async def scenario():
+        loop = asyncio.get_running_loop()
+        exporting = asyncio.Event()
+        limiter = anyio.to_thread.current_default_thread_limiter()
+        original = limiter.total_tokens
+        limiter.total_tokens = 1
+
+        def stalled_export():
+            loop.call_soon_threadsafe(exporting.set)
+            progress_during_export.append(progressed.wait(timeout=2))
+
+        async def endpoint(_scope, _receive, _send):
+            pass
+
+        monkeypatch.setattr(telemetry, "flush_telemetry", stalled_export)
+        monkeypatch.setattr(
+            telemetry, "get_settings", lambda: AppSettings(database_url="sqlite://")
+        )
+        middleware = telemetry.TelemetryMiddleware(endpoint)
+        try:
+            request = asyncio.create_task(middleware({"type": "http", "method": "GET"}, None, None))
+            await exporting.wait()
+            await telemetry.run_in_threadpool(progressed.set)
+            await request
+        finally:
+            limiter.total_tokens = original
+
+    asyncio.run(scenario())
+    assert progress_during_export == [True]
+
+
+def test_export_batches_cover_late_arrivals_and_survive_cancellation(monkeypatch):
+    calls = []
+    active = 0
+    maximum = 0
+
+    async def scenario():
+        nonlocal active, maximum
+        loop = asyncio.get_running_loop()
+        started = [asyncio.Event(), asyncio.Event()]
+        release = [threading.Event(), threading.Event()]
+
+        def export():
+            nonlocal active, maximum
+            index = len(calls)
+            calls.append(index)
+            active += 1
+            maximum = max(maximum, active)
+            try:
+                loop.call_soon_threadsafe(started[index].set)
+                assert release[index].wait(timeout=5)
+            finally:
+                active -= 1
+
+        monkeypatch.setattr(telemetry, "flush_telemetry", export)
+        middleware = telemetry.TelemetryMiddleware(None)
+        first = asyncio.create_task(middleware._flush())
+        await asyncio.wait_for(started[0].wait(), timeout=2)
+        late = [asyncio.create_task(middleware._flush()) for _ in range(50)]
+        # Ensure the arrivals register while the first export is still blocked.
+        await asyncio.sleep(0)
+        first.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await first
+        assert not any(task.done() for task in late)
+        release[0].set()
+        await asyncio.wait_for(started[1].wait(), timeout=2)
+        assert not any(task.done() for task in late)
+        release[1].set()
+        await asyncio.wait_for(asyncio.gather(*late), timeout=2)
+
+    asyncio.run(scenario())
+    assert calls == [0, 1]
+    assert maximum == 1
+
+
+def test_failed_export_can_retry_and_middleware_supports_a_new_loop(monkeypatch):
+    calls = []
+
+    def export():
+        calls.append(1)
+        if len(calls) == 1:
+            raise RuntimeError("collector unavailable")
+
+    monkeypatch.setattr(telemetry, "flush_telemetry", export)
+    middleware = telemetry.TelemetryMiddleware(None)
+
+    async def scenario():
+        with pytest.raises(RuntimeError, match="collector unavailable"):
+            await middleware._flush()
+        await middleware._flush()
+
+    asyncio.run(scenario())
+    asyncio.run(middleware._flush())
+    assert len(calls) == 3
+
+
 def test_health_db_trace_correlates_http_and_sql_without_sensitive_fields(caplog):
     exporter = CapturingExporter()
     trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(exporter))
@@ -57,13 +197,24 @@ def test_health_db_trace_correlates_http_and_sql_without_sensitive_fields(caplog
     assert response.status_code == 200
     assert re.fullmatch(r"[0-9a-f]{32}", trace_id)
     spans = [span for span in exporter.spans if f"{span.context.trace_id:032x}" == trace_id]
-    assert {span.name for span in spans} == {"http.request", "db.query"}
+    assert {"http.request", "db.query"} <= {span.name for span in spans}
     root = next(span for span in spans if span.name == "http.request")
     database = next(span for span in spans if span.name == "db.query")
-    assert database.parent.span_id == root.context.span_id
+    # Newer FastAPI versions insert dependency/endpoint spans between the
+    # request and SQL. Require ancestry, not an exact framework span count.
+    by_id = {span.context.span_id: span for span in spans}
+    ancestor = database
+    visited = set()
+    while ancestor.context.span_id != root.context.span_id:
+        assert ancestor.context.span_id not in visited
+        visited.add(ancestor.context.span_id)
+        assert ancestor.parent is not None
+        assert ancestor.parent.span_id in by_id
+        ancestor = by_id[ancestor.parent.span_id]
     assert database.attributes["db.operation.name"] == "SELECT"
-    assert "secret-token" not in str(spans) + caplog.text
-    assert "select 1" not in str(spans) + caplog.text
+    exported = str([(span.attributes, span.events, span.status) for span in spans]) + caplog.text
+    assert "secret-token" not in exported
+    assert "select 1" not in exported
 
 
 def test_browser_origin_can_read_trace_header():
@@ -125,6 +276,24 @@ def test_langsmith_without_key_keeps_workflow_available(monkeypatch):
     assert workflow.run("Explain C G Am F").route == "explain"
 
 
+def test_langsmith_context_carries_http_trace_id(monkeypatch):
+    captured = []
+
+    @contextmanager
+    def capture_context(**kwargs):
+        captured.append(kwargs["metadata"]["hcg_trace_id"])
+        yield
+
+    monkeypatch.setattr("app.ai.workflow.tracing_context", capture_context)
+    workflow = AssistantWorkflow(_tools())
+    monkeypatch.setattr(workflow, "_langsmith_enabled", lambda: True)
+    with trace.get_tracer("test").start_as_current_span("test.request") as root:
+        assert workflow.run("Explain C G Am F").route == "explain"
+        assert list(workflow.stream("Explain C G Am F"))[-1][0] == "final"
+    expected = f"{root.get_span_context().trace_id:032x}"
+    assert captured == [expected, expected]
+
+
 def test_worker_creates_trace_for_claimed_job(monkeypatch):
     exporter = CapturingExporter()
     trace.get_tracer_provider().add_span_processor(SimpleSpanProcessor(exporter))
@@ -165,12 +334,15 @@ def test_worker_creates_trace_for_claimed_job(monkeypatch):
 def test_worker_bootstrap_configures_tracing_without_importing_api():
     script = """
 from types import SimpleNamespace
+import os
 from app.core import telemetry
 import app.worker as worker
+os.environ.pop("OTEL_SERVICE_NAME", None)
 
 class Queue:
     @classmethod
-    def from_url(cls, _url):
+    def from_url(cls, _url, *, socket_timeout):
+        assert socket_timeout > 15
         return cls()
     def close(self):
         pass
@@ -179,6 +351,8 @@ class StubWorker:
     def __init__(self, _factory, _queue, _settings):
         pass
     def run_forever(self, _stop):
+        resource = telemetry.trace.get_tracer_provider().resource
+        assert resource.attributes['service.name'] == 'harmonic-color-graph-worker'
         with telemetry.safe_span('job.process'):
             print(telemetry.current_trace_id())
 
