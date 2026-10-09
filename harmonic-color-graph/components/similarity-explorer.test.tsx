@@ -59,7 +59,7 @@ describe("similarity explorer", () => {
     render(<SimilarityExplorer />)
     const picker = await screen.findByRole("textbox", { name: "Find a mapped progression or function" })
     fireEvent.change(picker, { target: { value: "M:vi M:IV" } })
-    const choice = screen.getByRole("button", { name: "Open mapped pattern M:vi M:IV M:V in Workbench" })
+    const choice = screen.getByRole("button", { name: "Open mapped pattern M:vi M:IV M:V in your sketch" })
     expect(choice).toHaveAttribute("type", "button")
     fireEvent.click(choice)
     await waitFor(() => expect(push).toHaveBeenCalledWith("/?p=Am-F-G&k=C-major"))
@@ -94,7 +94,7 @@ describe("similarity explorer", () => {
     fireEvent.change(picker, { target: { value: target } })
     const choices = screen.getAllByRole("button", { name: /^Open mapped/ })
     expect(choices).toHaveLength(20)
-    expect(choices[0]).toHaveAccessibleName(`Open mapped pattern ${target} in Workbench`)
+    expect(choices[0]).toHaveAccessibleName(`Open mapped pattern ${target} in your sketch`)
   })
 
   it("updates the hover label within 50 ms with 5,000 points", async () => {

@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Harmonic Color Graph",
+  title: { default: "Harmonic Color Graph", template: "%s · Harmonic Color Graph" },
   description: "Key-aware harmonic analysis, functional Roman numerals, and grounded relationship evidence.",
 };
 

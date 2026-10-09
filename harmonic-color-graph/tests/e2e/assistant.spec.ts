@@ -66,7 +66,7 @@ for (const route of ["recommend", "explain", "generate", "similar", "compare", "
       await expect(page.getByRole("heading", { name: "Progressions to explore" })).toBeVisible()
       await expect(page.getByText("Four chords lead back to C.")).toBeVisible()
       await expect(page.getByRole("button", { name: "Play option 1" })).toBeEnabled()
-      await expect(page.getByRole("link", { name: "Open in explorer" })).toHaveAttribute("href", /\/explore\?p=C-Am-F-G/)
+      await expect(page.getByRole("main").getByRole("link", { name: "Explore harmony" })).toHaveAttribute("href", /\/explore\?p=C-Am-F-G/)
       await expect(page.getByRole("link", { name: "Compare" })).toHaveAttribute("href", /\/generate\?p=C-Am-F-G/)
     }
     if (route === "similar") await expect(page.getByText("M:I-M:V-M:vi")).toBeVisible()

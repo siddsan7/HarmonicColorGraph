@@ -43,7 +43,7 @@ test("mobile similarity map has a keyboard-reachable point picker", async ({ pag
   const picker = page.getByRole("textbox", { name: "Find a mapped progression or function" })
   await expect(picker).toBeVisible()
   await picker.fill("M:I M:V")
-  const point = page.getByRole("button", { name: "Open mapped pattern M:I M:V M:vi in Workbench" })
+  const point = page.getByRole("button", { name: "Open mapped pattern M:I M:V M:vi in your sketch" })
   await expect(point).toBeVisible()
   await point.focus()
   await expect(point).toBeFocused()

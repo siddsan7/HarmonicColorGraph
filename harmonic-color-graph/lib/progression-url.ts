@@ -14,11 +14,14 @@ export const defaultProgression: SharedProgression = {
 
 const fields = ["p", "k", "g", "s"] as const
 
+export const emptyProgression: SharedProgression = { input: "", key: "", genre: "", section: "" }
+
+/** Reads the shared sketch from a URL. Missing fields stay empty; callers decide on any example. */
 export function readProgression(search: Pick<URLSearchParams, "get">): SharedProgression {
   const progression = search.get("p")
   return {
-    input: progression === null ? defaultProgression.input : progression.split("-").map((chord) => chord.trim()).filter(Boolean).join(" - "),
-    key: search.get("k")?.replaceAll("-", " ") ?? defaultProgression.key,
+    input: progression === null ? "" : progression.split("-").map((chord) => chord.trim()).filter(Boolean).join(" - "),
+    key: search.get("k")?.replaceAll("-", " ") ?? "",
     genre: search.get("g") ?? "",
     section: search.get("s") ?? "",
   }

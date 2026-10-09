@@ -3,12 +3,15 @@ import { edgeKey, type GraphData, type GraphNode } from "./data"
 export type AtlasNode = GraphNode & { x: number; y: number; z: number; fx: number; fy: number; fz: number }
 export type AtlasLink = { id: string; source: string | AtlasNode; target: string | AtlasNode; curvature: number; rotation: number; type: string; prob: number | null }
 
+/** WebGL data palette; CSS tokens --graph-low/--graph-high/--route-accent mirror these values. */
+export const ATLAS_COLORS = { low: "#76d8d1", middle: "#a995ec", high: "#eeb980", unavailable: "#8290a5", route: "#ffcd83" } as const
+
 export function nodeLabel(node: GraphNode) { return node.type === "function" ? node.label.replace(/^[Mm]:/, "") : node.label }
 export function nodeColor(node: GraphNode, axis: string) {
-  if (axis === "none") return ({ function: "#79cfd0", chord: "#8cb8ed", pattern: "#a995ec", genre: "#dca875" } as Record<string, string>)[node.type] ?? "#8290a5"
+  if (axis === "none") return ({ function: "#79cfd0", chord: "#8cb8ed", pattern: "#a995ec", genre: "#dca875" } as Record<string, string>)[node.type] ?? ATLAS_COLORS.unavailable
   const values = (node.props.color as { perceptual?: Record<string, { value?: number }> } | undefined)?.perceptual
   const value = axis === "chromaticity" ? node.props.chromaticity : values?.[axis]?.value
-  return typeof value !== "number" ? "#8290a5" : value > .65 ? "#eeb980" : value > .3 ? "#a995ec" : "#76d8d1"
+  return typeof value !== "number" ? ATLAS_COLORS.unavailable : value > .65 ? ATLAS_COLORS.high : value > .3 ? ATLAS_COLORS.middle : ATLAS_COLORS.low
 }
 
 /** Bounded deterministic spring layout. Previous nodes stay fixed; only additions settle. */

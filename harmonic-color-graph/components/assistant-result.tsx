@@ -140,8 +140,8 @@ export function AssistantResult({ response, context }: { response: AssistantResp
             <div className="mt-4 flex flex-wrap gap-2">
               <Button type="button" size="sm" onClick={() => play(index)} disabled={!sequences[index]} aria-label={`Play option ${index + 1}`}><Volume2 aria-hidden="true" /> {sequences[index] ? "Play" : sequences.length ? "Audio unavailable" : "Preparing audio…"}</Button>
               <Button asChild size="sm" variant="outline"><Link href={progressionHref("/", candidate.chords, response.key, context)}>Use in sketch <ArrowUpRight aria-hidden="true" /></Link></Button>
-              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/explore", candidate.chords, response.key, context)}>Open in explorer <ArrowUpRight aria-hidden="true" /></Link></Button>
-              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/generate", candidate.chords, response.key, context)}>Compare <ArrowUpRight aria-hidden="true" /></Link></Button>
+              <Button asChild size="sm" variant="outline"><Link href={progressionHref("/explore", candidate.chords, response.key, context)}>Explore harmony <ArrowUpRight aria-hidden="true" /></Link></Button>
+              <Button asChild size="sm" variant="outline"><Link href={`${progressionHref("/generate", candidate.chords, response.key, context)}&mode=continue`}>Compare next chords <ArrowUpRight aria-hidden="true" /></Link></Button>
             </div>
             {candidate.fact_ids.length > 0 && <details className="mt-4 border-t border-[var(--border-default)] pt-3">
               <summary className="cursor-pointer text-sm text-[var(--text-secondary)]">Why this option? · {candidate.fact_ids.length} cited facts</summary>

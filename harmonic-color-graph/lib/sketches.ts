@@ -20,6 +20,15 @@ export function parseSketchBook(raw: string): SketchBook {
   if ([value.saved, value.recoveries ?? []].some((items: Sketch[]) => new Set(items.map((item) => item?.id)).size !== items.length)) throw new Error("Duplicate sketch identities in a collection.")
   return { version: 1, draft: validateSketch(value.draft), saved: value.saved.map(validateSketch), recoveries: (value.recoveries ?? []).map(validateSketch) }
 }
+/** The active section of the locally saved draft, or null when none is readable. */
+export function readStoredProgression(): SharedProgression | null {
+  try {
+    const raw = localStorage.getItem(SKETCH_KEY)
+    if (!raw) return null
+    const { draft } = parseSketchBook(raw)
+    return draft.sections.find((section) => section.id === draft.activeSection)?.music ?? null
+  } catch { return null }
+}
 export function newSketch(music: SharedProgression, name = "Untitled sketch"): Sketch {
   const id = crypto.randomUUID(), sectionId = crypto.randomUUID()
   return { id, name, sections: [{ id: sectionId, name: music.section || "Verse", music }], activeSection: sectionId, updatedAt: new Date().toISOString() }

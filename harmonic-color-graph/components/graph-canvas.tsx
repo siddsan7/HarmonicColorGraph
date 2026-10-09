@@ -1,19 +1,19 @@
 "use client"
 
 import { useEffect, useRef, useState, type RefObject } from "react"
-import { Expand, Focus, HelpCircle, Maximize2, Minus, Orbit, Plus, RotateCcw, Route, Sparkles } from "lucide-react"
+import { Expand, Focus, HelpCircle, Maximize2, Minimize2, Minus, Orbit, Plus, RotateCcw, Route, Sparkles } from "lucide-react"
 import type { ForceGraph3DInstance } from "3d-force-graph"
 import type { Group, Sprite, Mesh, MeshBasicMaterial, SpriteMaterial, PerspectiveCamera } from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import { atlasData, nodeColor, nodeLabel, type AtlasNode, type AtlasLink } from "@/lib/graph/atlas"
+import { ATLAS_COLORS, atlasData, nodeColor, nodeLabel, type AtlasNode, type AtlasLink } from "@/lib/graph/atlas"
 import type { GraphData } from "@/lib/graph/data"
 import type { AtlasView } from "@/lib/graph/presentation"
 
-type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void; initialView?: AtlasView | null; captureRef?: RefObject<(() => AtlasView) | null> }
+type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void; initialView?: AtlasView | null; captureRef?: RefObject<(() => AtlasView) | null>; fullscreenTarget?: RefObject<HTMLElement | null> }
 type Atlas = ForceGraph3DInstance<AtlasNode, AtlasLink>
 type NodeVisual = { group: Group; core: Mesh; halo: Sprite; ring: Sprite; label: Sprite; updateLabel: (text: string) => void; dispose: () => void }
 type Runtime = { graph: Atlas; visuals: Map<string, NodeVisual>; refresh: () => void; replay: () => void; cancelReplay: () => void; fit: (mode: "all" | "path" | "selected" | "reset") => void; wake: (ms?: number) => void; dispose: () => void }
-const ROUTE = "#ffd091"
+const ROUTE = ATLAS_COLORS.route
 
 export function GraphCanvas(props: Props) {
   const container = useRef<HTMLDivElement>(null)
@@ -27,7 +27,9 @@ export function GraphCanvas(props: Props) {
   const [guide, setGuide] = useState(false)
   const [reduced, setReduced] = useState(false)
   useEffect(() => { latest.current = props })
-  useEffect(() => { const update = () => setFullScreen(document.fullscreenElement === stage.current); document.addEventListener("fullscreenchange", update); return () => document.removeEventListener("fullscreenchange", update) }, [])
+  // Full screen keeps the surrounding workspace (route editor, inspector) when the host provides it.
+  const fullscreenElement = () => props.fullscreenTarget?.current ?? stage.current
+  useEffect(() => { const update = () => setFullScreen(!!document.fullscreenElement && document.fullscreenElement === (latest.current.fullscreenTarget?.current ?? stage.current)); document.addEventListener("fullscreenchange", update); return () => document.removeEventListener("fullscreenchange", update) }, [])
 
   useEffect(() => {
     let disposed = false
@@ -64,6 +66,10 @@ export function GraphCanvas(props: Props) {
           .linkDirectionalParticles(0).linkDirectionalParticleWidth(1.7).linkDirectionalParticleColor(() => ROUTE).linkDirectionalParticleSpeed(.011)
         const visuals = new Map<string, NodeVisual>()
         const sphere = new THREE.SphereGeometry(3.2, 12, 8); owned.add(sphere)
+        // Taps hit a modest invisible target, never a neighbour's glow, ring or label.
+        const hitSphere = new THREE.SphereGeometry(6, 8, 6); owned.add(hitSphere)
+        const hitMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false }); owned.add(hitMaterial)
+        const ignoreRay = () => {}
         function texture(draw: (ctx: CanvasRenderingContext2D, size: number) => void, size = 128) {
           const canvas = document.createElement("canvas"); canvas.width = size; canvas.height = size
           const ctx = canvas.getContext("2d")!
@@ -101,7 +107,8 @@ export function GraphCanvas(props: Props) {
           const labelMaterial = new THREE.SpriteMaterial({ map: labelTexture, transparent: true, depthWrite: false, sizeAttenuation: false })
           const label = new THREE.Sprite(labelMaterial); label.scale.set(.13, .13, 1); label.position.set(0, 11, 0)
           label.visible = (!latest.current.pathNodes.length && latest.current.graph.nodes.length <= 20) || node.id === latest.current.selected || isRoute
-          group.add(halo, core, selection, label)
+          halo.raycast = ignoreRay; selection.raycast = ignoreRay; label.raycast = ignoreRay
+          group.add(new THREE.Mesh(hitSphere, hitMaterial), halo, core, selection, label)
           const nodeResources = [coreMaterial, haloMaterial, ringMaterial, labelMaterial, labelTexture]
           nodeResources.forEach((resource) => owned.add(resource))
           visuals.set(node.id, { group, core, halo, ring: selection, label, updateLabel: (text) => { if (text === currentLabel) return; currentLabel = text; const canvas = labelTexture.image as HTMLCanvasElement; drawLabel(canvas.getContext("2d")!, 256, text); labelTexture.needsUpdate = true }, dispose: () => { nodeResources.forEach((resource) => { resource.dispose(); owned.delete(resource) }); group.removeFromParent() } })
@@ -201,10 +208,10 @@ export function GraphCanvas(props: Props) {
             visual.label.visible = (!route.size && graph.graphData().nodes.length <= 20) || selected || onPath || hoveredNode === node.id
             ;(visual.label.material as SpriteMaterial).opacity = Math.max(.3, opacity)
           })
-          graph.linkColor((link) => pathEdges.has(link.id) ? ROUTE : graph.graphData().nodes.length > 50 ? "#1d2b40" : p.pathEdges.length ? "#27374c" : "#445e7c")
+          graph.linkColor((link) => pathEdges.has(link.id) ? ROUTE : p.pathEdges.length ? "#33465f" : graph.graphData().nodes.length > 50 ? "#405a7a" : "#4d6788")
             .linkWidth((link) => pathEdges.has(link.id) ? 2.2 : 0)
             .linkDirectionalArrowLength((link) => pathEdges.has(link.id) ? 7.5 : 0)
-            .linkDirectionalArrowColor((link) => pathEdges.has(link.id) ? ROUTE : "#445e7c")
+            .linkDirectionalArrowColor((link) => pathEdges.has(link.id) ? ROUTE : "#58739a")
           host.dataset.pathEdges = JSON.stringify(graph.graphData().links.filter((link) => pathEdges.has(link.id)).map((link) => link.id))
           diagnostics()
           wake()
@@ -240,7 +247,7 @@ export function GraphCanvas(props: Props) {
         const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { controls.update(); diagnostics(); wake(1500) } else { graph.pauseAnimation(); host.dataset.rendering = "paused" } }); intersection.observe(host)
         const visibility = () => { if (document.hidden) { graph.pauseAnimation(); host.dataset.rendering = "paused" } else wake() }; document.addEventListener("visibilitychange", visibility)
         const motion = () => { setReduced(media.matches); controls.enableDamping = !media.matches; cancelReplay(); wake() }; media.addEventListener("change", motion)
-        const contextLost = (event: Event) => { event.preventDefault(); setFailure("The 3D view lost its graphics connection. Your route is still available in List view."); graph.pauseAnimation() }; graph.renderer().domElement.addEventListener("webglcontextlost", contextLost)
+        const contextLost = () => { setFailure("The 3D view lost its graphics connection. Your route is still available in List view."); graph.pauseAnimation() }; graph.renderer().domElement.addEventListener("webglcontextlost", contextLost)
         host.dataset.renderer = "webgl"
         performance.mark("hcg-explore-canvas-created")
         cleanup = () => {
@@ -293,13 +300,10 @@ export function GraphCanvas(props: Props) {
             const camera = engine.graph.camera() as PerspectiveCamera; camera.far = controls.maxDistance * 4; camera.updateProjectionMatrix()
             engine.graph.cameraPosition(view.camera.position, view.camera.target, 0); controls.update(); engine.refresh()
           } else engine.fit("reset")
-          const nodes = latest.current.graph.nodes.length
-          requestAnimationFrame(() => requestAnimationFrame(() => {
-            if (runtime.current !== engine || !nodes) return
-            const ready = performance.getEntriesByName("hcg-explore-neighborhood-ready").at(-1) as PerformanceMark | undefined
-            if (!ready || typeof ready.detail?.elapsedMs !== "number") return
-            performance.mark("hcg-explore-layout-complete", { detail: { elapsedMs: performance.now() - (ready.startTime - ready.detail.elapsedMs), nodes } })
-          }))
+          // Layout timing for performance checks: measured from the neighborhood request when one exists.
+          const loaded = performance.getEntriesByName("hcg-explore-neighborhood-ready").at(-1) as PerformanceMark | undefined
+          const elapsedMs = typeof loaded?.detail?.elapsedMs === "number" ? performance.now() - (loaded.startTime - loaded.detail.elapsedMs) : undefined
+          performance.mark("hcg-explore-layout-complete", { detail: { elapsedMs, nodes: latest.current.graph.nodes.length } })
         }
       })
     }
@@ -336,7 +340,7 @@ export function GraphCanvas(props: Props) {
       <button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("all")}><Expand size={15} />Fit graph</button>
       <button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("selected")} aria-label="Focus selected"><Focus size={15} />Focus</button>
       <button type="button" disabled={!ready || !!failure} onClick={orbit}><Orbit size={15} />Orbit</button>
-      <button type="button" aria-label={fullScreen ? "Exit full screen" : "Full screen"} onClick={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void stage.current?.requestFullscreen().catch(() => setGuide(true)) }}><Maximize2 size={15} /></button>
+      <button type="button" aria-label={fullScreen ? "Exit full screen" : "Full screen"} aria-pressed={fullScreen} onClick={() => { if (document.fullscreenElement) void document.exitFullscreen(); else void fullscreenElement()?.requestFullscreen().catch(() => setHover("Full screen isn't available in this browser. Use Fit graph, or open List view.")) }}>{fullScreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}</button>
       <span className="atlas-toolbar-divider" />
       <button type="button" disabled={!ready || !!failure} onClick={() => zoom(.8)} aria-label="Zoom in"><Plus size={16} /></button>
       <button type="button" disabled={!ready || !!failure} onClick={() => zoom(1.25)} aria-label="Zoom out"><Minus size={16} /></button>
@@ -345,6 +349,6 @@ export function GraphCanvas(props: Props) {
     </div>
     {props.pathNodes.length > 0 && <div className="atlas-route-tools"><button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("path")}><Route size={14} />Fit path</button><button type="button" disabled={!ready || reduced || !!failure} onClick={() => runtime.current?.replay()} title={reduced ? "Animation disabled by reduced motion preference" : "Send a brief pulse along the route"}><Sparkles size={14} />Replay direction</button></div>}
     {guide && <div className="atlas-guide"><strong>Move through the music</strong><span>Drag to orbit · scroll / pinch to zoom</span><span>Right drag or two fingers to pan</span><span>Click a node to inspect. Focus brings it closer.</span><span>Keyboard: use the Orbit, Zoom and Focus buttons, or List view.</span></div>}
-    <div className="atlas-caption"><span aria-live="polite">{hover || "Relationship layout · distance is not a similarity score"}</span><span>DRAG TO ORBIT</span></div>
+    <div className="atlas-caption"><span>{hover || "Relationship layout · distance is not a similarity score"}</span><span>DRAG TO ORBIT</span></div>
   </div>
 }

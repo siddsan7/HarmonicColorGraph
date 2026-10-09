@@ -11,6 +11,8 @@ export function useSketchbook(initial: SharedProgression, explicitURL: boolean) 
   const [status, setStatus] = useState("Opening local draft…")
   const [past, setPast] = useState<Sketch[]>([]), [future, setFuture] = useState<Sketch[]>([])
   const [storageBlocked, setStorageBlocked] = useState(false)
+  // The draft a shared link replaced, so the editor can offer a one-step return.
+  const [displaced, setDisplaced] = useState<Sketch | null>(null)
   useEffect(() => {
     let active = true
     queueMicrotask(() => {
@@ -23,7 +25,9 @@ export function useSketchbook(initial: SharedProgression, explicitURL: boolean) 
       const recoveries = restored?.recoveries ?? []
       if (differs && restored && recoveries.length >= 100) { setBook(restored); setImportNotice("The shared sketch was not imported: export and clear a recovery before adding another draft."); return }
       const draft = differs ? newSketch(seed.current.initial, "Imported sketch") : restored?.draft ?? newSketch(seed.current.initial)
-      if (!put({ version: 1, draft, saved: restored?.saved ?? [], recoveries: differs && restored ? [...recoveries.filter((item) => item.id !== restored.draft.id), restored.draft] : recoveries }) && restored) { setBook(restored); setImportNotice("Shared sketch import was rejected because storage limits would be exceeded. Your previous sketchbook remains available. Export and remove older snapshots before importing again.") }
+      const stored = put({ version: 1, draft, saved: restored?.saved ?? [], recoveries: differs && restored ? [...recoveries.filter((item) => item.id !== restored.draft.id), restored.draft] : recoveries })
+      if (stored && differs && restored) setDisplaced(restored.draft)
+      if (!stored && restored) { setBook(restored); setImportNotice("Shared sketch import was rejected because storage limits would be exceeded. Your previous sketchbook remains available. Export and remove older snapshots before importing again.") }
     })
     const conflict = (event: StorageEvent) => { if (event.key === SKETCH_KEY && event.newValue !== lastStored.current) { setStorageBlocked(true); setStatus("Another tab changed this sketchbook. Your edits remain here in memory. Export them, then reload to open the other tab's saved work.") } }
     window.addEventListener("storage", conflict)
@@ -31,9 +35,10 @@ export function useSketchbook(initial: SharedProgression, explicitURL: boolean) 
   }, [])
   useEffect(() => {
     if (!book || storageBlocked) return
+    // Every change was already validated by put(); write immediately so reloads and navigation never lose an edit.
     try {
       if (localStorage.getItem(SKETCH_KEY) !== lastStored.current) throw new Error("Storage changed in another tab")
-      const encoded = JSON.stringify(book); parseSketchBook(encoded)
+      const encoded = JSON.stringify(book)
       localStorage.setItem(SKETCH_KEY, encoded); lastStored.current = encoded
       queueMicrotask(() => setStatus("Draft saved on this device"))
     }
@@ -45,7 +50,9 @@ export function useSketchbook(initial: SharedProgression, explicitURL: boolean) 
   }
   const draft = book?.draft
   const progression = draft?.sections.find((section) => section.id === draft.activeSection)?.music ?? initial
-  function change(next: Sketch) {
+  // Consecutive keystrokes in one field form a single undo step.
+  const typing = useRef<{ field: string; at: number } | null>(null)
+  function change(next: Sketch, field?: string) {
     if (!book) return
     let checked: Sketch
     try { checked = validateSketch(next) } catch (error) { setStatus(`Change not applied: ${error instanceof Error ? error.message : "Invalid sketch"}`); return }
@@ -55,9 +62,12 @@ export function useSketchbook(initial: SharedProgression, explicitURL: boolean) 
       if (put({ ...book, draft: checked, recoveries: [...book.recoveries.filter((item) => item.id !== book.draft.id), book.draft] })) { setPast([]); setFuture([]) }
       return
     }
-    if (put({ ...book, draft: { ...checked, updatedAt: new Date().toISOString() } })) { setPast((items) => [...items.slice(-49), book.draft]); setFuture([]) }
+    const now = Date.now()
+    const continues = !!field && typing.current?.field === field && now - typing.current.at < 1000
+    typing.current = field ? { field, at: now } : null
+    if (put({ ...book, draft: { ...checked, updatedAt: new Date().toISOString() } })) { if (!continues) setPast((items) => [...items.slice(-49), book.draft]); setFuture([]) }
   }
-  function editMusic(music: SharedProgression) { if (draft) change({ ...draft, sections: draft.sections.map((section) => section.id === draft.activeSection ? { ...section, music } : section) }) }
+  function editMusic(music: SharedProgression, field?: string) { if (draft) change({ ...draft, sections: draft.sections.map((section) => section.id === draft.activeSection ? { ...section, music } : section) }, field) }
   function undo() { if (!book || !past.length) return; if (put({ ...book, draft: past.at(-1)! })) { setFuture([book.draft, ...future]); setPast(past.slice(0, -1)) } }
   function redo() { if (!book || !future.length) return; if (put({ ...book, draft: future[0] })) { setPast([...past, book.draft]); setFuture(future.slice(1)) } }
   function save(variant = false) {
@@ -67,7 +77,12 @@ export function useSketchbook(initial: SharedProgression, explicitURL: boolean) 
     if (book.saved.length >= 50 && !book.saved.some((item) => item.id === saved.id)) { setStatus("50 saved sketches reached. Export a backup and remove a saved snapshot to make room."); return }
     if (put({ ...book, draft: saved, saved: [...book.saved.filter((item) => item.id !== saved.id), saved], recoveries: variant ? [...book.recoveries.filter((item) => item.id !== book.draft.id), book.draft] : book.recoveries }) && variant) { setPast([]); setFuture([]) }
   }
-  return { book, draft, progression, ready: !!book, status: importNotice || status, storageBlocked, change, editMusic, undo, redo, canUndo: !!past.length, canRedo: !!future.length, save,
+  function returnToDisplaced() {
+    if (!book || !displaced) return
+    if (put({ ...book, draft: displaced, recoveries: [...book.recoveries.filter((item) => item.id !== displaced.id && item.id !== book.draft.id), book.draft] })) { setPast([]); setFuture([]) }
+    setDisplaced(null)
+  }
+  return { book, draft, progression, ready: !!book, displaced, returnToDisplaced, dismissDisplaced: () => setDisplaced(null), status: importNotice || status, storageBlocked, change, editMusic, undo, redo, canUndo: !!past.length, canRedo: !!future.length, save,
     restoreBackup: (imported: SketchBook) => {
       if (!book) return
       const ids = new Map<string, string>()
