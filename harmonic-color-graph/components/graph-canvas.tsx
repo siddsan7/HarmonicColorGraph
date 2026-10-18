@@ -262,7 +262,7 @@ export function GraphCanvas(props: Props) {
             .linkDirectionalParticles(routeParticles).linkDirectionalParticleSpeed(.009).linkDirectionalParticleWidth(3.4)
           host.dataset.pathEdges = JSON.stringify(graph.graphData().links.filter((link) => pathEdges.has(link.id)).map((link) => link.id))
           diagnostics()
-          wake(pathEdges.size && !media.matches ? 4200 : 1000)
+          wake(pathEdges.size && !media.matches ? 3000 : 1000)
           kick()
         }
         let replayTimer: ReturnType<typeof setTimeout> | undefined
