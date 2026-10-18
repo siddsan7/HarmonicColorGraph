@@ -85,14 +85,14 @@ export function ColorDelta({ comparison }: { comparison: ColorComparison }) {
   </div>
 }
 
-export function ColorProfilePanel({ profile, busy, error }: { profile: ColorProfile | null; busy: boolean; error: string | null }) {
+export function ColorProfilePanel({ profile, busy, error, onRetry }: { profile: ColorProfile | null; busy: boolean; error: string | null; onRetry?: () => void }) {
   return <section className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] p-5" aria-busy={busy}>
     <div className="flex flex-wrap items-baseline justify-between gap-2">
       <div><p className="font-mono text-xs uppercase tracking-[0.2em] text-[var(--accent-warm)]">Harmonic color</p><h2 className="mt-1 text-base font-semibold">How the progression tends to feel</h2></div>
       {profile && <span className="text-xs text-[var(--text-muted)]">0–100 · higher means more of an axis</span>}
     </div>
     {busy && <p className="mt-4 text-sm text-[var(--text-muted)]">Measuring color…</p>}
-    {error && <p role="alert" className="mt-4 text-sm text-[var(--state-error)]">{error}</p>}
+    {error && <div className="request-error"><p role="alert">Color readings could not load. Your chord analysis is still available.</p>{onRetry && <button type="button" onClick={onRetry}>Try again</button>}<details><summary>Service details</summary><p>{error}</p></details></div>}
     {profile && <div className="mt-5 space-y-6">
       <ColorBars profile={profile} />
       <div><h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">Color through each chord</h3><ColorArc profile={profile} /></div>

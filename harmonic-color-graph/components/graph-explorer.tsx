@@ -2,17 +2,22 @@
 
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { useCallback, useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { hrefWithProgression, readProgression } from "@/lib/progression-url"
-import { filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphEdge, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
+import { edgeKey, filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphEdge, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
 import { usePlayback } from "@/lib/hooks/use-playback"
 import { unlockAudio } from "@/lib/music/unlock-audio"
 import { GraphCanvas } from "@/components/graph-canvas"
+import { ContextSummary } from "@/components/studio-primitives"
+import { GraphLegend } from "@/components/graph-legend"
+import { TeachingComposer } from "@/components/teaching-composer"
+import { functionExplanation, type AtlasView } from "@/lib/graph/presentation"
 
 const ROOT = "function:M:I"
 const EMPTY: GraphData = { nodes: [], edges: [], context: "global" }
+const NO_IDS: string[] = []
 const EDGE_TYPES = ["TRANSITIONS_TO", "FUNCTIONS_AS", "ABS_TRANSITIONS_TO", "BELONGS_TO", "HAS_PATTERN"]
-type ApiError = Error & { code?: string }
+type ApiError = Error & { code?: string; status?: number }
 
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`/api/hcg/v2/graph${path}`, init)
@@ -20,6 +25,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (!response.ok) {
     const error = new Error((payload as { error?: { message?: string } } | null)?.error?.message ?? `Graph API returned ${response.status}`) as ApiError
     error.code = (payload as { error?: { code?: string } } | null)?.error?.code
+    error.status = response.status
     throw error
   }
   return (payload as { data: T }).data
@@ -29,11 +35,10 @@ async function getSnapshot(): Promise<GraphData> {
   if (!response.ok) throw new Error("The graph snapshot is unavailable")
   return parseGraph(await response.json())
 }
-function edgeKey(edge: GraphEdge) { return `${edge.src}|${edge.dst}` }
 function label(id: string) { return id.replace(/^function:[Mm]:/, "") }
 function percent(value: number | null) { return value == null ? "—" : `${Math.round(value * 100)}%` }
 function colorValue(node: GraphNode, axis: string): string {
-  if (axis === "chromaticity") return Number(node.props.chromaticity ?? 0).toFixed(2)
+  if (axis === "chromaticity") return typeof node.props.chromaticity === "number" && Number.isFinite(node.props.chromaticity) ? node.props.chromaticity.toFixed(2) : "Unavailable"
   const color = node.props.color as { perceptual?: Record<string, { value?: number }> } | undefined
   return color?.perceptual?.[axis]?.value?.toFixed(2) ?? "—"
 }
@@ -42,6 +47,10 @@ export function GraphExplorer() {
   const search = useSearchParams()
   const shared = readProgression(search)
   const [root, setRoot] = useState(ROOT)
+  const [centers, setCenters] = useState<string[]>([])
+  const [routeEditorOpen, setRouteEditorOpen] = useState(true)
+  const captureRef = useRef<(() => AtlasView) | null>(null)
+  const [selectedChord, setSelectedChord] = useState<{ nodeId: string; label: string; key: string } | null>(null)
   const [selected, setSelected] = useState(ROOT)
   const [graph, setGraph] = useState<GraphData>(EMPTY)
   const [snapshot, setSnapshot] = useState<GraphData | null>(null)
@@ -61,23 +70,58 @@ export function GraphExplorer() {
   const [paths, setPaths] = useState<GraphPath[]>([])
   const [pathIndex, setPathIndex] = useState(0)
   const [pathError, setPathError] = useState("")
+  const [playingNodes, setPlayingNodes] = useState<string[]>([])
+  const [pathBusy, setPathBusy] = useState(false)
+  // Hand-built route: each click must follow a real connection, so the lit pathway is always playable.
+  const [building, setBuilding] = useState(false)
+  const [built, setBuilt] = useState<string[]>([])
+  const buildingRef = useRef(false)
+  const graphRef = useRef<GraphData>(EMPTY)
+  const pathRequest = useRef<AbortController | null>(null)
+  const expansionRequest = useRef<AbortController | null>(null)
+  const audioRequest = useRef<AbortController | null>(null)
   const playback = usePlayback()
+  const stopPlayback = playback.stop
   const context = contextType === "global" || !contextValue.trim() ? "global" : `${contextType}:${contextValue.trim()}`
   const filters = useMemo<GraphFilters>(() => ({ context, edgeTypes, minProb }), [context, edgeTypes, minProb])
 
   useEffect(() => {
-    const media = window.matchMedia("(max-width: 640px)")
-    const update = () => {
-      if (media.matches) setView("list")
-      else {
-        // Fetch the desktop layout libraries while the neighborhood request
-        // is in flight. Mobile's list view keeps them deferred.
-        void Promise.all([import("cytoscape"), import("cytoscape-fcose")]).catch(() => undefined)
-      }
-    }
-    update(); media.addEventListener("change", update)
-    return () => media.removeEventListener("change", update)
+    pathRequest.current?.abort(); expansionRequest.current?.abort(); audioRequest.current?.abort()
+    stopPlayback()
+    // Reset is coupled to the aborted external request, after effect cleanup.
+    let cancelled = false
+    queueMicrotask(() => { if (!cancelled) { setPaths([]); setPathError(""); setPathBusy(false) } })
+    return () => { cancelled = true; pathRequest.current?.abort(); expansionRequest.current?.abort(); audioRequest.current?.abort() }
+  }, [pathFrom, pathTo, constraint, maxChromaticity, filters, root, stopPlayback])
+
+  // A hand-built route belongs to the graph it was drawn on; a new center or filter invalidates it.
+  useEffect(() => {
+    queueMicrotask(() => { setBuilding(false); setBuilt([]) })
+  }, [filters, root])
+
+  useEffect(() => {
+    // Choose a mobile default once, then preserve the user's view through resizes.
+    const frame = requestAnimationFrame(() => {
+      if (window.matchMedia("(max-width: 640px)").matches) { setView("list"); setRouteEditorOpen(false) }
+      // Fetch the WebGL renderer while the neighborhood request is in flight. Mobile's list view keeps it deferred.
+      else void Promise.all([import("three"), import("3d-force-graph")]).catch(() => undefined)
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
+  useEffect(() => {
+    const controller = new AbortController()
+    async function realize() {
+      await Promise.resolve()
+      if (controller.signal.aborted) return
+      setSelectedChord(null)
+      try {
+        const key = shared.key || "C major"
+        const value = await api<{ chords: { label: string }[] }>("/realize", { method: "POST", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nodes: [selected], key }) })
+        if (!controller.signal.aborted && value.chords[0]) setSelectedChord({ nodeId: selected, label: value.chords[0].label, key })
+      } catch { /* The function label remains useful without a chord realization. */ }
+    }
+    void realize(); return () => controller.abort()
+  }, [selected, shared.key])
   useEffect(() => {
     const controller = new AbortController()
     const started = performance.now()
@@ -97,7 +141,7 @@ export function GraphExplorer() {
       } catch (caught) {
         if (controller.signal.aborted) return
         const problem = caught as ApiError
-        if (problem.code === "db_unavailable" || /fetch|5\d\d/i.test(problem.message)) {
+        if (problem.code === "db_unavailable" || (problem.status !== undefined && problem.status >= 500) || /fetch/i.test(problem.message)) {
           try {
             const data = snapshot ?? await getSnapshot()
             if (controller.signal.aborted) return
@@ -110,66 +154,147 @@ export function GraphExplorer() {
     return () => controller.abort()
   }, [root, filters, context, edgeTypes, minProb, degraded, snapshot])
 
-  const choose = useCallback((id: string) => setSelected(id), [])
+  useEffect(() => { buildingRef.current = building; graphRef.current = graph })
+  const choose = useCallback((id: string) => {
+    setSelected(id)
+    if (!buildingRef.current) return
+    setBuilt((current) => {
+      const tail = current.at(-1)
+      if (tail === id) return current
+      if (tail && graphRef.current.edges.some((edge) => edge.src === tail && edge.dst === id)) return [...current, id].slice(-12)
+      return [id]
+    })
+  }, [])
   const selectedNode = graph.nodes.find((node) => node.id === selected)
   const outgoing = graph.edges.filter((edge) => edge.src === selected)
-  const activePath = paths[pathIndex]
-  const visible = degraded && snapshot ? filterGraph(graph, root, filters) : graph
-  async function expand() {
-    if (degraded && snapshot) { setGraph((current) => mergeGraph(current, snapshotNeighborhood(snapshot, selected, filters))); return }
+  const builtPath = useMemo<GraphPath | undefined>(() => {
+    if (!building || !built.length) return undefined
+    const edges = built.slice(1).map((id, index) => graph.edges.find((edge) => edge.src === built[index] && edge.dst === id)).filter((edge): edge is GraphEdge => !!edge)
+    return { nodes: built, edges, cost: edges.length }
+  }, [building, built, graph.edges])
+  const activePath = building ? builtPath : paths[pathIndex]
+  const candidateNodes = useMemo(() => building && built.length ? [...new Set(graph.edges.filter((edge) => edge.src === built.at(-1)).sort((a, b) => (b.prob ?? -1) - (a.prob ?? -1)).map((edge) => edge.dst))].slice(0, 12) : NO_IDS, [building, built, graph.edges])
+  // Stable inputs keep the WebGL scene from rebuilding links on unrelated renders (playback ticks, typing).
+  const neighborhood = useMemo(() => degraded && snapshot ? filterGraph(graph, root, filters) : graph, [degraded, snapshot, graph, root, filters])
+  const visible = useMemo(() => activePath ? mergeGraph(neighborhood, { context: graph.context, nodes: graph.nodes.filter((node) => activePath.nodes.includes(node.id)), edges: activePath.edges }) : neighborhood, [activePath, neighborhood, graph])
+  const pathNodes = useMemo(() => activePath?.nodes ?? NO_IDS, [activePath])
+  const pathEdges = useMemo(() => activePath?.edges.map(edgeKey) ?? NO_IDS, [activePath])
+  const layout = useRef<HTMLDivElement>(null)
+  async function expand(id = selected) {
+    expansionRequest.current?.abort()
+    const controller = new AbortController(); expansionRequest.current = controller
+    if (degraded && snapshot) { setGraph((current) => mergeGraph(current, snapshotNeighborhood(snapshot, id, filters))); return }
     try {
-      const params = new URLSearchParams({ id: selected, context, min_prob: String(minProb), limit: "150" })
+      const params = new URLSearchParams({ id, context, min_prob: String(minProb), limit: "150" })
       if (edgeTypes.length) params.set("edge_types", edgeTypes.join(","))
-      const data = parseGraph(await api<unknown>(`/neighborhood?${params}`))
-      setGraph((current) => mergeGraph(current, data))
-    } catch (caught) { setError((caught as Error).message) }
+      const data = parseGraph(await api<unknown>(`/neighborhood?${params}`, { signal: controller.signal }))
+      if (!controller.signal.aborted) setGraph((current) => mergeGraph(current, data))
+    } catch (caught) { if (!controller.signal.aborted) setError((caught as Error).message) }
+  }
+  // Keep the route growing: pull in the next chord's connections so there is always somewhere to go.
+  const tail = built.at(-1)
+  useEffect(() => {
+    if (building && tail) queueMicrotask(() => void expand(tail))
+    // expand reads current filters and aborts itself; only a new route tail should trigger it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [building, tail])
+  function startBuilding() {
+    clearPath(); setBuilt([selected]); setBuilding(true)
+  }
+  function stopBuilding() { stopPlayback(); setBuilding(false); setBuilt([]) }
+  function clearPath() {
+    pathRequest.current?.abort(); audioRequest.current?.abort(); playback.stop()
+    setPaths([]); setPathIndex(0); setPathBusy(false); setPathError("")
   }
   async function findPaths() {
-    setPathError(""); setPaths([]); setPathIndex(0)
+    setBuilding(false); setBuilt([])
+    clearPath()
+    const controller = new AbortController(); pathRequest.current = controller
+    setPathBusy(true)
     try {
       let found: GraphPath[]
-      if (degraded && snapshot) found = snapshotPaths(snapshot, pathFrom, pathTo, constraint, maxChromaticity)
+      if (degraded && snapshot) found = snapshotPaths({ ...snapshot, edges: snapshot.edges.filter((edge) => !edgeTypes.length || edgeTypes.includes(edge.type)) }, pathFrom, pathTo, constraint, maxChromaticity)
       else {
-        const data = await api<{ paths: GraphPath[] }>("/path", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: pathFrom, to: pathTo, context, edge_types: edgeTypes, constraint, max_chromaticity: constraint === "max_chromaticity" ? maxChromaticity : null }) })
+        const data = await api<{ paths: GraphPath[] }>("/path", { signal: controller.signal, method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ from: pathFrom, to: pathTo, context, edge_types: edgeTypes, constraint, max_chromaticity: constraint === "max_chromaticity" ? maxChromaticity : null }) })
         found = data.paths
       }
+      if (controller.signal.aborted) return
+      if (!found.length) { setPathError("No path satisfies this constraint. Try another destination or relationship."); return }
+      const ids = new Set(found.flatMap((path) => path.nodes))
+      const missing = [...ids].filter((id) => !graph.nodes.some((node) => node.id === id))
+      const nodes = degraded && snapshot ? snapshot.nodes.filter((node) => ids.has(node.id)) : await Promise.all(missing.map((id) => api<GraphNode>(`/node/${encodeURIComponent(id)}`, { signal: controller.signal })))
+      if (controller.signal.aborted) return
+      setGraph((current) => mergeGraph(current, { nodes, edges: found.flatMap((path) => path.edges), context: current.context }))
       setPaths(found)
-      if (!found.length) { setPathError("No path satisfies this constraint."); return }
-      if (degraded && snapshot) setGraph((current) => mergeGraph(current, { ...snapshot, context: current.context }))
-      else {
-        const missing = [...new Set(found.flatMap((path) => path.nodes))].filter((id) => !graph.nodes.some((node) => node.id === id))
-        const nodes = await Promise.all(missing.map((id) => api<GraphNode>(`/node/${encodeURIComponent(id)}`)))
-        setGraph((current) => mergeGraph(current, { nodes, edges: found.flatMap((path) => path.edges), context: current.context }))
-      }
-    } catch (caught) { setPathError((caught as Error).message) }
+      if (window.matchMedia("(max-width: 640px)").matches) setRouteEditorOpen(false)
+    } catch (caught) { if (!controller.signal.aborted) setPathError((caught as Error).message) }
+    finally { if (!controller.signal.aborted) setPathBusy(false) }
   }
   async function playNodes(nodes: string[]) {
+    audioRequest.current?.abort()
+    const controller = new AbortController(); audioRequest.current = controller
     try {
       // Unlock audio within the click gesture before the realization request.
       void unlockAudio().catch(() => undefined)
-      const data = await api<{ chords: { label: string; pitch_classes: number[] }[] }>("/realize", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nodes, key: shared.key || "C major" }) })
+      const data = await api<{ chords: { label: string; pitch_classes: number[] }[] }>("/realize", { signal: controller.signal, method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nodes, key: shared.key || "C major" }) })
+      if (controller.signal.aborted) return
+      setPlayingNodes(nodes)
       await playback.play([{ label: "Graph path", chords: data.chords.map((chord) => ({ label: chord.label, pitchClasses: chord.pitch_classes })) }], { bpm: 100, loop: false, instrument: "synth" })
-    } catch (caught) { setPathError((caught as Error).message) }
+    } catch (caught) { if (!controller.signal.aborted) setPathError((caught as Error).message) }
   }
   function toggleEdgeType(type: string) { setEdgeTypes((current) => current.includes(type) ? current.filter((item) => item !== type) : [...current, type]) }
+  function recenter() { if (selected !== root) { setCenters((items) => [...items, root]); setRoot(selected) } }
 
-  return <main id="main-content" className="explorer">
-    <header className="explorer-heading"><div><p className="route-eyebrow">Harmonic Color Graph / Explore</p><h1>Graph Explorer</h1><p>Follow harmonic functions, compare transitions, and trace a playable path.</p></div><Link className="route-return" href={hrefWithProgression("/", search)}>Open in Workbench</Link></header>
-    <section className="explorer-shared" aria-label="Shared progression"><strong>Current progression</strong><span>{shared.input || "No progression selected"}</span><span>{shared.key || "Auto key"} · {shared.genre || "Any genre"} · {shared.section || "Any section"}</span></section>
-    {degraded && <p className="explorer-banner" role="status">Database unavailable. Showing the global graph snapshot{snapshot?.nodes.some((node) => node.props.snapshot_sample) ? " sample" : ""}; context filters and corpus counts are unavailable.</p>}
+  return <main id="main-content" className="page explorer atlas-workspace">
+    <header className="explorer-heading"><div><p className="route-eyebrow">Explore harmony · The harmonic atlas</p><h1>Music, in every <em>direction.</em></h1><p>Explore the space between chords. Trace a route. Hear a new possibility.</p></div><Link className="route-return" href={hrefWithProgression("/", search)}>Return to your sketch</Link></header>
+    <ContextSummary value={shared} edit={false} />
+    {degraded && <p className="explorer-banner" role="status">Sample atlas · database unavailable. Showing the global graph snapshot{snapshot?.nodes.some((node) => node.props.snapshot_sample) ? " sample" : ""}; context filters and corpus counts are unavailable.</p>}
     {error && <p className="explorer-error" role="alert">{error}</p>}
-    <section className="explorer-toolbar" aria-label="Graph filters">
+    <details className="graph-filter-details"><summary>Graph filters & color</summary><section className="explorer-toolbar" aria-label="Graph filters">
       <label>Context<select value={contextType} onChange={(event) => setContextType(event.target.value)}><option value="global">Global</option><option value="genre">Genre</option><option value="section">Section</option><option value="decade">Era / decade</option></select></label>
       {contextType !== "global" && <label>Context value<input value={contextValue} onChange={(event) => setContextValue(event.target.value)} placeholder={contextType === "decade" ? "1990" : "pop"} /></label>}
       <fieldset><legend>Relationships</legend>{EDGE_TYPES.map((type) => <label key={type}><input type="checkbox" checked={edgeTypes.includes(type)} onChange={() => toggleEdgeType(type)} />{type.replaceAll("_", " ").toLowerCase()}</label>)}</fieldset>
-      <label>Minimum probability <output>{percent(minProb)}</output><input type="range" min="0" max="1" step="0.05" value={minProb} onChange={(event) => setMinProb(Number(event.target.value))} /></label>
+      <label>Neighborhood probability <output>{percent(minProb)}</output><input type="range" min="0" max="1" step="0.05" value={minProb} onChange={(event) => setMinProb(Number(event.target.value))} /></label>
       <label>Node tint<select value={colorAxis} onChange={(event) => setColorAxis(event.target.value)}><option value="none">Type only</option><option value="chromaticity">Chromaticity</option><option value="brightness">Brightness</option><option value="warmth">Warmth</option><option value="tension">Tension</option><option value="nostalgia">Nostalgia</option></select></label>
-      <div className="explorer-view" role="group" aria-label="Graph view"><button type="button" aria-pressed={view === "canvas"} onClick={() => setView("canvas")}>Canvas</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>List view</button></div>
+
+    </section></details>
+
+    <div ref={layout} className="explorer-layout"><section className="explorer-graph" aria-label="Graph neighborhood"><div className="explorer-graph-title">
+        <div className="explorer-view" role="group" aria-label="Graph view"><button type="button" aria-pressed={view === "canvas"} onClick={() => setView("canvas")}>3D atlas</button><button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}>List view</button></div>
+        <h2>Around {label(root)}</h2><span>{visible.nodes.length} nodes · {visible.edges.length} edges</span></div>
+      {activePath && <ol className="route-steps" aria-label="Route steps">{activePath?.nodes.map((id, index) => <li key={`${id}-${index}`}><button type="button" aria-pressed={selected === id} aria-current={playback.playing && playingNodes.join("|") === activePath.nodes.join("|") && playback.position?.chord === index ? "step" : undefined} onClick={() => choose(id)}><span>{index + 1}</span><strong>{label(id)}</strong><small>{index === 0 ? "Start" : index === activePath.nodes.length - 1 ? "Destination" : "Step"}</small></button>{index < activePath.nodes.length - 1 && <span aria-hidden="true">→</span>}</li>)}</ol>}
+      {loading && <p role="status">Loading graph…</p>}
+      {view === "canvas" ? <GraphCanvas graph={visible} selected={selected} pathNodes={pathNodes} pathEdges={pathEdges} colorAxis={colorAxis} onSelect={choose} onListView={() => setView("list")} captureRef={captureRef} fullscreenTarget={layout} candidateNodes={candidateNodes} /> : <div className="explorer-table-wrap"><table><caption>Graph relationships: {visible.nodes.length} nodes and {visible.edges.length} edges</caption><thead><tr><th>From</th><th>To</th><th>Relationship</th><th>Probability</th><th>Tension Δ</th><th>Inspect</th></tr></thead><tbody>{visible.edges.map((edge, index) => <tr key={`${edgeKey(edge)}-${index}`} className={activePath?.edges.some((item) => edgeKey(item) === edgeKey(edge)) ? "on-path" : ""}><td>{label(edge.src)}</td><td>{label(edge.dst)}</td><td>{edge.type.replaceAll("_", " ").toLowerCase()}</td><td>{percent(edge.prob)}</td><td>{tensionDelta(edge, visible.nodes)?.toFixed(2) ?? "—"}</td><td><button type="button" onClick={() => choose(edge.dst)}>Inspect {label(edge.dst)}</button></td></tr>)}</tbody></table>{!visible.edges.length && <p>No relationships match the filters.</p>}</div>}
+      <GraphLegend axis={colorAxis} types={visible.nodes.map((node) => node.type)} />
     </section>
-    <div className="explorer-layout"><section className="explorer-graph" aria-label="Graph neighborhood"><div className="explorer-graph-title"><h2>Neighborhood of {label(root)}</h2><span>{visible.nodes.length} nodes · {visible.edges.length} edges</span></div>
-      {loading ? <p role="status">Loading graph…</p> : view === "canvas" ? <GraphCanvas graph={visible} selected={selected} pathNodes={activePath?.nodes ?? []} pathEdges={activePath?.edges.map(edgeKey) ?? []} colorAxis={colorAxis} onSelect={choose} /> : <div className="explorer-table-wrap"><table><caption>Graph relationships: {visible.nodes.length} nodes and {visible.edges.length} edges</caption><thead><tr><th>From</th><th>To</th><th>Relationship</th><th>Probability</th><th>Tension Δ</th><th>Inspect</th></tr></thead><tbody>{visible.edges.map((edge, index) => <tr key={`${edgeKey(edge)}-${index}`} className={activePath?.edges.some((item) => edgeKey(item) === edgeKey(edge)) ? "on-path" : ""}><td>{label(edge.src)}</td><td>{label(edge.dst)}</td><td>{edge.type.replaceAll("_", " ").toLowerCase()}</td><td>{percent(edge.prob)}</td><td>{tensionDelta(edge, visible.nodes)?.toFixed(2) ?? "—"}</td><td><button type="button" onClick={() => choose(edge.dst)}>Inspect {label(edge.dst)}</button></td></tr>)}</tbody></table>{!visible.edges.length && <p>No relationships match the filters.</p>}</div>}
-      <div className="explorer-legend"><span><i className="legend-low" /> Low tint value</span><span><i className="legend-high" /> High tint value</span><span><i className="legend-tension" /> Rising tension</span><span>Edge width = probability; exact values appear on hover or in list view.</span></div>
-    </section><aside className="explorer-panel" aria-label="Node details"><h2>{selectedNode?.label ?? label(selected)}</h2><p>{selectedNode?.type ?? "Select a node"}</p>{selectedNode && <><dl><div><dt>ID</dt><dd>{selectedNode.id}</dd></div><div><dt>Chromaticity</dt><dd>{colorValue(selectedNode, "chromaticity")}</dd></div>{["tension", "brightness", "warmth", "nostalgia"].map((axis) => <div key={axis}><dt>{axis}</dt><dd>{colorValue(selectedNode, axis)}</dd></div>)}<div><dt>Outgoing in view</dt><dd>{outgoing.length}</dd></div><div><dt>Corpus support</dt><dd>{String(selectedNode.props.support ?? "—")}</dd></div></dl><h3>Facts and examples</h3>{outgoing.some((edge) => Array.isArray(edge.props.fact_ids) || Array.isArray(edge.props.example_refs)) ? outgoing.map((edge) => <div className="explorer-evidence" key={edgeKey(edge)}><strong>→ {label(edge.dst)}</strong><span>{percent(edge.prob)} · {edge.count ?? "—"} observations</span><small>{Array.isArray(edge.props.fact_ids) ? edge.props.fact_ids.join(", ") : "No linked facts"}</small>{Array.isArray(edge.props.example_refs) && edge.props.example_refs.length ? (edge.props.example_refs as Array<{ song_id?: string; section?: string }>).slice(0, 3).map((example, index) => <small key={`${example.song_id}-${index}`}>Example: {example.song_id || "unknown song"}{example.section ? ` · ${example.section}` : ""}</small>) : <small>No examples</small>}</div>) : <p>No linked facts or examples in this view.</p>}<div className="explorer-actions"><button type="button" onClick={() => void expand()}>Expand neighbors</button><button type="button" disabled={degraded} onClick={() => void playNodes([selected])}>Play node</button><button type="button" onClick={() => setPathFrom(selected)}>Set path start</button><button type="button" onClick={() => setPathTo(selected)}>Set path end</button><button type="button" onClick={() => setRoot(selected)}>Center here</button></div></>}</aside></div>
-    <section className="explorer-path" aria-label="Path mode"><h2>Path mode</h2><div className="explorer-path-controls"><label>From<select value={pathFrom} onChange={(event) => setPathFrom(event.target.value)}>{[...new Set([pathFrom, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>To<select value={pathTo} onChange={(event) => setPathTo(event.target.value)}>{[...new Set([pathTo, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>Constraint<select value={constraint} onChange={(event) => setConstraint(event.target.value)}><option value="none">Any path</option><option value="increasing_chromaticity">Increasing chromaticity</option><option value="max_chromaticity">Maximum chromaticity</option></select></label>{constraint === "max_chromaticity" && <label>Maximum <input type="number" min="0" max="1" step="0.1" value={maxChromaticity} onChange={(event) => setMaxChromaticity(Number(event.target.value))} /></label>}<button type="button" onClick={() => void findPaths()}>Find paths</button></div>{pathError && <p role="alert">{pathError}</p>}{paths.length > 0 && <div className="explorer-results"><label>Path<select value={pathIndex} onChange={(event) => setPathIndex(Number(event.target.value))}>{paths.map((path, index) => <option key={index} value={index}>{index + 1}: {path.nodes.map(label).join(" → ")}</option>)}</select></label><p>{activePath?.nodes.map(label).join(" → ")}</p><button type="button" disabled={degraded} onClick={() => void playNodes(activePath.nodes)}>{playback.playing ? "Restart path" : "Play path"}</button>{playback.playing && <button type="button" onClick={playback.stop}>Stop</button>}</div>}{playback.error && <p role="alert">{playback.error}</p>}</section>
+    <aside className="explorer-sidebar">
+      <section className="explorer-path" aria-label="Path mode"><details className="route-editor" open={routeEditorOpen} onToggle={(event) => setRouteEditorOpen(event.currentTarget.open)}><summary><strong>Trace a route</strong><span>{label(pathFrom)} → {label(pathTo)}{activePath ? ` · ${activePath.nodes.length} steps` : " · edit endpoints"}</span></summary>
+        <p className="path-help">Choose a start and destination. Compare the available connections.</p>
+        <div className="explorer-path-controls"><label>From<select aria-label="From" value={pathFrom} onChange={(event) => setPathFrom(event.target.value)}>{[...new Set([pathFrom, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>To<select aria-label="To" value={pathTo} onChange={(event) => setPathTo(event.target.value)}>{[...new Set([pathTo, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>Constraint<select value={constraint} onChange={(event) => setConstraint(event.target.value)}><option value="none">Any path</option><option value="increasing_chromaticity">Increasing chromaticity</option><option value="max_chromaticity">Maximum chromaticity</option></select></label>{constraint === "max_chromaticity" && <label>Maximum <input type="number" min="0" max="1" step="0.1" value={maxChromaticity} onChange={(event) => setMaxChromaticity(Number(event.target.value))} /></label>}<button type="button" onClick={() => { setPathFrom(pathTo); setPathTo(pathFrom) }}>Swap endpoints</button><button type="button" onClick={clearPath}>Clear route</button><button type="button" disabled={pathBusy || loading} onClick={() => void findPaths()}>{pathBusy ? "Finding routes…" : "Find paths"}</button></div>
+        <div className="route-builder" data-active={building || undefined}>
+          <button type="button" aria-pressed={building} onClick={() => (building ? stopBuilding() : startBuilding())}>{building ? "Done building" : "Build a route by hand"}</button>
+          {building ? <>
+            <p>{built.length > 1 ? `${built.length} chords lit. Keep clicking a pulsing chord to extend the route.` : "Click a pulsing chord to light the first pathway."}</p>
+            <div className="action-row">
+              <button type="button" disabled={built.length < 2} onClick={() => { stopPlayback(); setBuilt((current) => current.slice(0, -1)) }}>Undo step</button>
+              <button type="button" disabled={built.length < 1} onClick={() => { stopPlayback(); setBuilt(selected ? [selected] : []) }}>Restart</button>
+              <button type="button" disabled={degraded || built.length < 2} onClick={() => void (playback.playing ? playback.stop() : playNodes(built))}>{playback.playing ? "Stop" : "Hear route"}</button>
+            </div>
+          </> : <p>Light your own pathway: every click must follow a real connection.</p>}
+        </div>
+        {pathError && <p role="alert">{pathError}</p>}
+        {paths.length > 0 && <div className="explorer-results"><div className="route-alternatives" role="group" aria-label="Alternative routes">{paths.slice(0, 3).map((path, index) => <button type="button" key={index} aria-pressed={pathIndex === index} onClick={() => { audioRequest.current?.abort(); playback.stop(); setPathIndex(index) }}><strong>Route {index + 1} · {path.nodes.length} steps</strong><span>{path.nodes.map(label).join(" → ")}</span><small>{path.edges.length} directed connections</small></button>)}</div><label>Path<select aria-label="Path" value={pathIndex} onChange={(event) => { audioRequest.current?.abort(); playback.stop(); setPathIndex(Number(event.target.value)) }}>{paths.map((path, index) => <option key={index} value={index}>{index + 1}: {path.nodes.map(label).join(" → ")}</option>)}</select></label><p className="sr-only">{activePath?.nodes.map(label).join(" → ")}</p><button type="button" disabled={degraded || !activePath} onClick={() => void playNodes(activePath?.nodes ?? [])}>{playback.playing ? "Restart path" : "Play path"}</button>{playback.playing && <button type="button" onClick={playback.stop}>Stop</button>}</div>}
+        {playback.error && <p role="alert">{playback.error}</p>}
+      </details>{degraded && <p className="playback-note">Sample route audio is unavailable. Your sketch can still be analyzed and played.</p>}</section>
+      <section className="explorer-panel" aria-label="Node details"><p className="route-eyebrow">Inspect function</p><h2>{label(selected)}{selectedChord?.nodeId === selected && <span className="realized-chord"> · {selectedChord.label}</span>}</h2><p>{functionExplanation(selected)}</p><p className="realization-note">{selectedChord?.nodeId === selected ? `Chord realized by the harmonic service in ${selectedChord.key}.` : "Chord-name realization is unavailable; the function label remains visible."}</p>
+        {selectedNode && <>
+          <div className="explorer-actions"><button type="button" onClick={() => void expand()}>Add connected chords</button><button type="button" disabled={degraded} onClick={() => void playNodes([selected])}>Play node</button><button type="button" onClick={() => setPathFrom(selected)}>Set path start</button><button type="button" onClick={() => setPathTo(selected)}>Set path end</button><button type="button" onClick={recenter}>Make this the center</button></div>
+          <p className="graph-action-help">Add connected chords keeps this neighborhood and camera. Make this the center opens a new neighborhood.</p>{centers.length > 0 && <button type="button" onClick={() => { const previous = centers.at(-1)!; setCenters(centers.slice(0, -1)); setRoot(previous); setSelected(previous) }}>← Previous center: {label(centers.at(-1)!)}</button>}
+          <details className="inspector-details"><summary>Musical properties & evidence</summary><dl><div><dt>ID</dt><dd>{selectedNode.id}</dd></div><div><dt>Chromaticity</dt><dd>{colorValue(selectedNode, "chromaticity")}</dd></div>{["tension", "brightness", "warmth", "nostalgia"].map((axis) => <div key={axis}><dt>{axis}</dt><dd>{colorValue(selectedNode, axis)}</dd></div>)}<div><dt>Outgoing in view</dt><dd>{outgoing.length}</dd></div><div><dt>Corpus support</dt><dd>{String(selectedNode.props.support ?? "—")}</dd></div></dl><h3>Facts and examples</h3>{outgoing.some((edge) => Array.isArray(edge.props.fact_ids) || Array.isArray(edge.props.example_refs)) ? outgoing.map((edge) => <div className="explorer-evidence" key={edgeKey(edge)}><strong>{label(edge.src)} → {label(edge.dst)} · {edge.type.replaceAll("_", " ").toLowerCase()}</strong><span>{percent(edge.prob)} · {edge.count ?? "—"} observations</span><small>{Array.isArray(edge.props.fact_ids) ? edge.props.fact_ids.join(", ") : "No linked facts"}</small>{Array.isArray(edge.props.example_refs) && edge.props.example_refs.length ? (edge.props.example_refs as Array<{ song_id?: string; section?: string }>).slice(0, 3).map((example, index) => <small key={`${example.song_id}-${index}`}>Example: {example.song_id || "unknown song"}{example.section ? ` · ${example.section}` : ""}</small>) : <small>No examples</small>}</div>) : <p>No linked facts or examples are available for these relationships. Missing evidence is not a confidence score.</p>}</details>
+        </>}
+      </section>
+    </aside></div>
+
+    <TeachingComposer capture={() => ({ version: 1, capturedAt: new Date().toISOString(), source: degraded ? "sample" : "live capture", music: shared, graph: visible, root, selected, filters, tint: colorAxis, path: activePath ?? null, view: captureRef.current?.() ?? null, mode: view, chord: selectedChord })} />
   </main>
 }

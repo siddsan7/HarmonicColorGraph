@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { PlaybackEngine, type Instrument, type PlaybackPosition, type PlaybackSequence } from "@/lib/music/engine"
 
 export function usePlayback() {
@@ -25,7 +25,7 @@ export function usePlayback() {
     }
   }
 
-  function stop() { engine.stop() }
+  const stop = useCallback(() => { engine.stop() }, [engine])
 
   return { playing, position, error, play, stop }
 }

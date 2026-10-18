@@ -28,7 +28,11 @@ describe("similarity explorer", () => {
     fireEvent.click(screen.getByRole("button", { name: "Find similar" }))
     expect(await screen.findByText(/embedding neighbor · 80% cosine similarity/)).toBeInTheDocument()
     expect(screen.getByText("Rotation")).toBeInTheDocument()
-    fireEvent.click(screen.getByRole("button", { name: /Open in Workbench/ }))
+    vi.mocked(findSimilarProgressions).mockRejectedValueOnce(new Error("fixture refresh failed"))
+    fireEvent.click(screen.getByRole("button", { name: "Find similar" }))
+    expect(await screen.findByText(/Matches couldn't load/)).toBeInTheDocument()
+    expect(screen.getByText(/embedding neighbor .*80% cosine similarity/)).toBeInTheDocument()
+    fireEvent.click(screen.getByRole("button", { name: /Use in sketch/ }))
     await waitFor(() => expect(push).toHaveBeenCalledWith("/?p=Am-C-Em&k=C-major"))
   })
 
@@ -55,7 +59,7 @@ describe("similarity explorer", () => {
     render(<SimilarityExplorer />)
     const picker = await screen.findByRole("textbox", { name: "Find a mapped progression or function" })
     fireEvent.change(picker, { target: { value: "M:vi M:IV" } })
-    const choice = screen.getByRole("button", { name: "Open mapped pattern M:vi M:IV M:V in Workbench" })
+    const choice = screen.getByRole("button", { name: "Open mapped pattern M:vi M:IV M:V in your sketch" })
     expect(choice).toHaveAttribute("type", "button")
     fireEvent.click(choice)
     await waitFor(() => expect(push).toHaveBeenCalledWith("/?p=Am-F-G&k=C-major"))
@@ -69,7 +73,7 @@ describe("similarity explorer", () => {
         rotation_of: null, support: 4 }],
     })
     render(<SimilarityExplorer />)
-    fireEvent.click(screen.getByRole("radio", { name: /Surface/ }))
+    fireEvent.click(screen.getByRole("radio", { name: /Shared chord functions/ }))
     fireEvent.click(screen.getByRole("button", { name: "Find similar" }))
     await waitFor(() => expect(findSimilarProgressions).toHaveBeenCalledWith(expect.objectContaining({ mode: "surface" })))
     expect(await screen.findByText(/50% token overlap/)).toBeInTheDocument()
@@ -90,7 +94,7 @@ describe("similarity explorer", () => {
     fireEvent.change(picker, { target: { value: target } })
     const choices = screen.getAllByRole("button", { name: /^Open mapped/ })
     expect(choices).toHaveLength(20)
-    expect(choices[0]).toHaveAccessibleName(`Open mapped pattern ${target} in Workbench`)
+    expect(choices[0]).toHaveAccessibleName(`Open mapped pattern ${target} in your sketch`)
   })
 
   it("updates the hover label within 50 ms with 5,000 points", async () => {

@@ -1,0 +1,4 @@
+import { ATLAS_COLORS, nodeColor } from "@/lib/graph/atlas"
+export function GraphLegend({ axis, types }: { axis: string; types: string[] }) {
+  return <div className="explorer-legend" aria-label="Graph encoding">{axis === "none" ? [...new Set(types)].map((type) => <span key={type}><i style={{ background: nodeColor({ id: "", label: "", type, props: {} }, "none") }} />{type}</span>) : <><span><i style={{ background: ATLAS_COLORS.low }} />Low {axis} (0–0.30)</span><span><i style={{ background: ATLAS_COLORS.middle }} />Middle (0.30–0.65)</span><span><i style={{ background: ATLAS_COLORS.high }} />High {axis} (0.65–1)</span><span><i style={{ background: ATLAS_COLORS.unavailable }} />Unavailable</span></>}<span className="route-legend"><b aria-hidden="true">● ━▶ ●</b> Active route · ordered steps and arrows</span></div>
+}

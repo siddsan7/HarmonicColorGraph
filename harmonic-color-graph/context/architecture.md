@@ -8,7 +8,7 @@ Full detail and rationale: `docs/roadmap-v2.md` §3 and
 | Layer              | Technology                                              | Role |
 | ------------------ | -------------------------------------------------------- | ---- |
 | Frontend           | Next.js 16, React 19, TypeScript, Tailwind 4, shadcn/ui  | Workbench, graph explorer, generator, similarity, assistant UI |
-| Graph UI           | Cytoscape.js + cytoscape-fcose                           | Harmonic graph explorer, paths, neighborhoods |
+| Graph UI           | 3d-force-graph + Three.js                           | Spatial harmonic atlas with orbit camera, directed routes and accessible relationship list |
 | Audio              | Tone.js, @tonejs/midi                                    | Voice-led playback, compare mode, MIDI export |
 | Backend            | FastAPI, Pydantic v2, Python 3.12                        | `/v1` legacy + `/v2` analysis, recommend, generate, graph, color, similar, AI |
 | Theory processing  | In-house (`backend/app/theory/`); music21 as a dev-only oracle | Spelling, key/Roman v2, relationship catalog v2 (ADR-004: music21 never a runtime dependency) |
@@ -41,6 +41,8 @@ see `docs/roadmap-v2.md` and
 - `app/` - Next.js App Router UI. Owns the browser-facing
   demo and should call backend APIs rather than duplicating
   harmonic business logic.
+- `lib/sketches.ts` and `lib/hooks/use-sketchbook.ts` own bounded, versioned browser-local songwriter documents, saved snapshots and recovery drafts. No server identity or cloud sync is implied. All imports and candidate mutations are validated before acceptance; conflicting tabs stop stale persistence.
+- `lib/graph/presentation.ts` owns the validated version 1 teaching capture; `/teach` renders a self-contained graph, directed contextual path, positions/camera, musical context and author explanation without backend access. Share fragments or JSON carry the snapshot, not account permissions. The capture limit does not truncate the interactive atlas.
 - `context/` - Persistent project memory for agents and
   humans. Owns product scope, architecture, standards,
   workflow rules, phase context, and progress tracking.

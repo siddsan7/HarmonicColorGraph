@@ -6,6 +6,7 @@ export type GraphNode = {
 }
 
 export type GraphEdge = {
+  context_id?: string | number
   src: string
   dst: string
   type: string
@@ -34,20 +35,24 @@ export function parseGraph(value: unknown): GraphData {
   const edges = data.edges.map((item): GraphEdge => {
     const edge = object(item)
     if (typeof edge.src !== "string" || typeof edge.dst !== "string" || typeof edge.type !== "string") throw new Error("Invalid graph edge")
-    return { src: edge.src, dst: edge.dst, type: edge.type, count: typeof edge.count === "number" ? edge.count : null, prob: typeof edge.prob === "number" ? edge.prob : null, props: typeof edge.props === "object" && edge.props !== null ? edge.props as Record<string, unknown> : {} }
+    return { ...((typeof edge.context_id === "string" || typeof edge.context_id === "number") ? { context_id: edge.context_id } : {}), src: edge.src, dst: edge.dst, type: edge.type, count: typeof edge.count === "number" ? edge.count : null, prob: typeof edge.prob === "number" ? edge.prob : null, props: typeof edge.props === "object" && edge.props !== null ? edge.props as Record<string, unknown> : {} }
   })
   return { nodes, edges, context: data.context }
 }
 
 export function filterGraph(graph: GraphData, root: string, filters: GraphFilters): GraphData {
-  const edges = graph.edges.filter((edge) => edge.prob !== null && edge.prob >= filters.minProb && (!filters.edgeTypes.length || filters.edgeTypes.includes(edge.type)))
+  const edges = graph.edges.filter((edge) => (edge.prob === null ? filters.minProb === 0 : edge.prob >= filters.minProb) && (!filters.edgeTypes.length || filters.edgeTypes.includes(edge.type)))
   const ids = new Set([root, ...edges.flatMap((edge) => [edge.src, edge.dst])])
   return { context: graph.context, nodes: graph.nodes.filter((node) => ids.has(node.id)), edges }
 }
 
+export function edgeKey(edge: GraphEdge): string {
+  return JSON.stringify([edge.src, edge.dst, edge.type, edge.context_id ?? edge.props.context_id ?? "global"])
+}
+
 export function mergeGraph(a: GraphData, b: GraphData): GraphData {
   const nodes = new Map([...a.nodes, ...b.nodes].map((node) => [node.id, node]))
-  const edges = new Map([...a.edges, ...b.edges].map((edge) => [`${edge.src}|${edge.dst}|${edge.type}`, edge]))
+  const edges = new Map([...a.edges, ...b.edges].map((edge) => [edgeKey(edge), edge]))
   return { context: b.context, nodes: [...nodes.values()], edges: [...edges.values()] }
 }
 
