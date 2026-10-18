@@ -85,7 +85,7 @@ export function Assistant() {
     <div>
       <div className="grid gap-8 lg:grid-cols-[minmax(0,48rem)_18rem] lg:justify-between">
         <div className="min-w-0">
-          <PageHeader eyebrow="Assistant" title="Ask about the music." lede="Explore a progression, discover what could come next, or ask why a change works. Answers are tied to harmonic tools and cited facts." />
+          <PageHeader eyebrow="Assistant" title={<>Ask about the <em>music.</em></>} lede="Explore a progression, discover what could come next, or ask why a change works. Answers are tied to harmonic tools and cited facts." />
           <div className="mt-4"><ContextSummary value={shared} /></div>
           <form id="assistant-form" onSubmit={submit} className="mt-6 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-3 focus-within:border-[var(--accent-secondary)]">
             <label htmlFor="assistant-query" className="sr-only">Ask the harmonic assistant</label>

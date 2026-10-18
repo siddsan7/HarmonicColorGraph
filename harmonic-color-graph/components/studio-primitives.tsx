@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { BlurFade } from "@/components/ui/blur-fade"
 import { writeProgression, type SharedProgression } from "@/lib/progression-url"
 
 export const genres = ["pop", "rock", "jazz", "classical", "electronic", "country", "r&b"]
@@ -9,8 +10,13 @@ export function ContextSelect({ value, onChange, kind, id, className = "" }: { v
   const choices = kind === "genre" ? genres : sections
   return <select id={id} aria-label={kind === "genre" ? "Genre" : "Section"} className={className} value={value} onChange={(event) => onChange(event.target.value)}><option value="">{kind === "genre" ? "Any genre" : "No section selected"}</option>{value && !choices.includes(value) && <option value={value}>{value} (imported)</option>}{choices.map((item) => <option key={item} value={item}>{item[0].toUpperCase() + item.slice(1)}</option>)}</select>
 }
-export function PageHeader({ eyebrow, title, lede, actions }: { eyebrow: React.ReactNode; title: React.ReactNode; lede?: React.ReactNode; actions?: React.ReactNode }) {
-  return <header className="page-header"><div><p className="page-eyebrow">{eyebrow}</p><h1 className="page-title">{title}</h1>{lede && <p className="page-lede">{lede}</p>}</div>{actions && <div className="page-header-actions">{actions}</div>}</header>
+export function PageHeader({ eyebrow, title, lede, actions, level = 1 }: { eyebrow: React.ReactNode; title: React.ReactNode; lede?: React.ReactNode; actions?: React.ReactNode; level?: 1 | 2 }) {
+  const Heading = level === 1 ? "h1" : "h2"
+  return <header className="page-header"><div>
+    <BlurFade direction="up" offset={10} duration={0.5}><p className="page-eyebrow">{eyebrow}</p></BlurFade>
+    <BlurFade direction="up" offset={16} duration={0.65} delay={0.06}><Heading className="page-title">{title}</Heading></BlurFade>
+    {lede && <BlurFade direction="up" offset={12} duration={0.6} delay={0.14}><p className="page-lede">{lede}</p></BlurFade>}
+  </div>{actions && <div className="page-header-actions">{actions}</div>}</header>
 }
 export function ContextSummary({ value, edit = true }: { value: SharedProgression; edit?: boolean }) {
   return <section className="context-summary" aria-label="Current sketch"><strong>Current sketch</strong><span className="chord-text">{value.input || "No chords yet"}</span><span>{value.key || "Auto key"} · {value.genre || "Any genre"} · {value.section || "No section selected"}</span>{edit && <Link href={`/?${writeProgression(new URLSearchParams(), value)}`}>Edit sketch</Link>}</section>

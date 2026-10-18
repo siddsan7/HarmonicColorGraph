@@ -90,3 +90,30 @@ test("malformed teaching links offer recovery without backend or local state", a
   await expect(page.getByLabel("Teaching view JSON")).toBeVisible()
   await expect(page.getByRole("link", { name: "Prepare a new view in the atlas" })).toBeVisible()
 })
+
+test("the landing constellation lights a route one real connection at a time", async ({ page }) => {
+  await page.goto("/")
+  const map = page.getByRole("group", { name: "Interactive chord map for C major" })
+  const steps = map.getByRole("list", { name: "Your route" }).getByRole("listitem")
+  await expect(map).toBeVisible()
+  // Take over from the self-playing sample, then follow I -> V -> vi, which are real moves.
+  await map.getByRole("button", { name: "Reset route" }).click()
+  await expect(steps).toHaveCount(1)
+  await map.getByRole("button", { name: /^V, G chord/ }).click()
+  await map.getByRole("button", { name: /^vi, Am chord/ }).click()
+  await expect(steps).toHaveCount(3)
+  // vii° is not a listed move from vi, so it starts a fresh route instead of lighting a false pathway.
+  await map.getByRole("button", { name: /^vii°, B° chord/ }).click()
+  await expect(steps).toHaveCount(1)
+})
+
+test("a hand-built atlas route only follows real connections and can be undone", async ({ page }) => {
+  await page.goto("/explore?p=C-G-Am&k=C-major")
+  await page.locator(".route-editor > summary").waitFor()
+  if (!await page.getByRole("button", { name: "Build a route by hand" }).isVisible()) await page.locator(".route-editor > summary").click()
+  await page.getByRole("button", { name: "Build a route by hand" }).click()
+  await expect(page.getByRole("button", { name: "Done building" })).toHaveAttribute("aria-pressed", "true")
+  await expect(page.getByRole("list", { name: "Route steps" }).getByRole("listitem")).toHaveCount(1)
+  await page.getByRole("button", { name: "Done building" }).click()
+  await expect(page.getByRole("list", { name: "Route steps" })).toHaveCount(0)
+})

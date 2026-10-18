@@ -11,6 +11,7 @@ import { readProgression, writeProgression } from "@/lib/progression-url"
 import { Button } from "@/components/ui/button"
 import { ContextSummary, ContextSelect, PageHeader, RequestError, TaskState, RouteMotif } from "@/components/studio-primitives"
 import { Transport } from "@/components/transport"
+import { BorderBeam } from "@/components/ui/border-beam"
 
 const feelings = [
   { id: "open", name: "Warm & open", description: "Bright chords, gentle movement, a place to land.", preset: "familiar", curve: "rise_then_resolve" as const, colors: { brightness: .75, tension: .25, complexity: .25, resolution: .8 } },
@@ -136,12 +137,12 @@ export function Generator() {
     return `${destination}?${writeProgression(new URLSearchParams(), { input: path.chords.join(" - "), ...resultContext }).toString()}`
   }
   return <main id="main-content" className="page text-[var(--text-primary)]"><div className="space-y-6">
-    <PageHeader eyebrow="Find an idea" title="Find the feeling. Follow the sound." lede="Choose a direction, listen to a few possibilities, and take one back to your sketch." />
+    <PageHeader eyebrow="Find an idea" title={<>Find the feeling. Follow the <em>sound.</em></>} lede="Choose a direction, listen to a few possibilities, and take one back to your sketch." />
     <ContextSummary value={shared} />
     <div className="studio-modes" role="group" aria-label="Idea workflow"><button type="button" aria-pressed={mode === "new"} onClick={() => setMode("new")}>New idea</button><button type="button" aria-pressed={mode === "continue"} onClick={() => setMode("continue")}>Continue my sketch</button></div>
     {mode === "new" && <div className={`grid gap-5 ${paths.length ? "lg:grid-cols-[minmax(17rem,1fr)_minmax(0,1.6fr)]" : "generator-first"}`}>
       <form onSubmit={submit} noValidate className={`${panel} space-y-4`}><h2 className="page-section-title">What would you like to explore?</h2>
-        <div className="feeling-options" role="group" aria-label="Musical direction">{feelings.map((item) => <button key={item.id} type="button" aria-pressed={feeling === item.id} onClick={() => { setFeeling(item.id); setColors(item.colors); setCurve(item.curve); setPreset(item.preset) }}><strong>{feeling === item.id && <span aria-hidden="true">✓ </span>}{item.name}</strong><span>{item.description}</span><RouteMotif /></button>)}</div>
+        <div className="feeling-options" role="group" aria-label="Musical direction">{feelings.map((item) => <button key={item.id} type="button" aria-pressed={feeling === item.id} onClick={() => { setFeeling(item.id); setColors(item.colors); setCurve(item.curve); setPreset(item.preset) }}><strong>{feeling === item.id && <span aria-hidden="true">✓ </span>}{item.name}</strong><span>{item.description}</span><RouteMotif />{feeling === item.id && <BorderBeam size={90} duration={5} colorFrom="#79cfd0" colorTo="#ffcd83" borderWidth={1.5} />}</button>)}</div>
         <p className="text-xs text-[var(--text-secondary)]">These are starting suggestions, not fixed meanings of emotion. Each choice sets editable color and movement controls.</p>
         <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[var(--border-default)] py-3"><p className="text-sm text-[var(--text-secondary)]">{key || "No key"} · {length} chords · {feelings.find((item) => item.id === feeling)?.name}</p><Button type="submit" disabled={busy}>{busy ? "Generating…" : "Generate progressions"}</Button></div>
 

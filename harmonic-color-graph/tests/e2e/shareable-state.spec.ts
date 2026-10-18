@@ -26,6 +26,9 @@ test("a deep link restores progression context across routes", async ({ page }) 
 test("mobile navigation and playback controls remain reachable", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 })
   await page.goto("/")
+  // A fresh visit opens on the landing hero; its call to action brings the studio into view.
+  await expect(page.getByRole("heading", { level: 1, name: "Hear where your chords want to go." })).toBeVisible()
+  await page.getByRole("button", { name: "Start a sketch" }).click()
   await expect(page.getByRole("button", { name: "Analyze", exact: true })).toBeInViewport()
   await expect(page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Find an idea" })).toBeVisible()
   await page.getByLabel("Chord progression").focus()

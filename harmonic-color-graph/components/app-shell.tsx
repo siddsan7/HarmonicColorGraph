@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { ChevronDown } from "lucide-react"
+import { motion } from "motion/react"
 import { hrefWithProgression, writeProgression } from "@/lib/progression-url"
 import { readStoredProgression } from "@/lib/sketches"
 
@@ -65,7 +66,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <span>Harmonic Color Graph</span>
         </Link>
         <nav aria-label="Primary navigation" className="shell-nav">
-          {routes.slice(0, 3).map(({ href, label }) => <Link key={href} href={hrefWithProgression(href, search)} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
+          {routes.slice(0, 3).map(({ href, label }) => <Link key={href} href={hrefWithProgression(href, search)} className="nav-link" aria-current={pathname === href ? "page" : undefined}>{pathname === href && <motion.span layoutId="nav-pill" className="nav-pill" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}<span className="nav-label">{label}</span></Link>)}
           <details ref={more} className="nav-more">
             <summary aria-current={currentSecondary ? "page" : undefined}>{currentSecondary ? currentSecondary.label : "More"}<span className="sr-only">, more destinations</span><ChevronDown className="size-3.5" aria-hidden="true" /></summary>
             <div>{secondary.map(({ href, label }) => <Link key={href} href={hrefWithProgression(href, search)} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}</div>

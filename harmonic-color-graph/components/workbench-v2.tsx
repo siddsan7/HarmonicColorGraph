@@ -33,6 +33,7 @@ import { defaultProgression, readProgression, writeProgression, type SharedProgr
 import { useSketchbook } from "@/lib/hooks/use-sketchbook"
 import { SketchEditor } from "@/components/sketch-editor"
 import { ContextSelect, PageHeader, RequestError, TaskState } from "@/components/studio-primitives"
+import { HomeHero } from "@/components/home/hero"
 
 const samples = [
   { name: "Pull toward home · applied dominant", chords: "D7 - G - C", key: "C major" },
@@ -53,6 +54,8 @@ function functionTone(value: string): string {
 
 export function WorkbenchV2() {
   const search = useSearchParams()
+  // The landing hero greets visits without a sketch link. Continuing sessions, which carry ?p=, go straight to the studio.
+  const [showHero] = useState(() => !search.has("p"))
   // A first visit opens the example sketch; a shared link or the saved draft takes precedence.
   const sketches = useSketchbook(search.has("p") ? readProgression(search) : defaultProgression, search.has("p"))
   const shared = sketches.progression
@@ -248,8 +251,9 @@ export function WorkbenchV2() {
 
   return (
     <main id="main-content" className="page text-[var(--text-primary)]">
-      <div className="space-y-6">
-        <PageHeader eyebrow="Write music" title="Write music." lede="Shape a sketch. Hear a change. Keep what feels right."
+      {showHero && <HomeHero />}
+      <div id="studio" className="space-y-6">
+        <PageHeader level={showHero ? 2 : 1} eyebrow={showHero ? "Your studio" : "Write music"} title={<>Write <em>music.</em></>} lede="Shape a sketch. Hear a change. Keep what feels right."
           actions={<details className="service-status text-xs text-[var(--text-muted)]"><summary className="cursor-pointer">Service status</summary><div className="mt-2"><SystemStatusBadges {...health} /></div></details>} />
 
         <details className="starting-points"><summary>Start with chords, a feeling, or a suggested idea</summary><section className="song-starts" aria-label="Start a song">
@@ -298,7 +302,7 @@ export function WorkbenchV2() {
         <p className="sr-only" role="status">{analysis && !busy ? `Analysis ready: ${analysis.song_key}, ${analysis.tokens.length} chords.` : ""}</p>
 
         {analysis ? (
-          <div className={`grid gap-5 transition-opacity lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] ${staleAnalysis ? "is-stale" : ""}`}>
+          <div className={`analysis-grid grid gap-5 transition-opacity lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] ${staleAnalysis ? "is-stale" : ""}`}>
             <div className="space-y-5">
               <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
                 <div className="flex flex-wrap items-center justify-between gap-3">

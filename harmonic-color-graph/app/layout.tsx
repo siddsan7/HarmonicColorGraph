@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { AmbientBackdrop } from "@/components/ambient/backdrop";
+import { MotionProvider } from "@/components/ambient/motion-provider";
 import { AppShell } from "@/components/app-shell";
 import "./globals.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
+});
+
+// Display face: an editorial serif that gives headlines the warmth of a printed score
+// and pairs cleanly with Geist for interface text.
+const display = Instrument_Serif({
+  variable: "--font-display",
+  subsets: ["latin"],
+  weight: "400",
+  style: ["normal", "italic"],
 });
 
 const geistMono = Geist_Mono({
@@ -27,9 +39,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} dark h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${display.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col"><Suspense fallback={children}><AppShell>{children}</AppShell></Suspense></body>
+      <body className="min-h-full flex flex-col"><MotionProvider><TooltipProvider delayDuration={120}><AmbientBackdrop /><Suspense fallback={children}><AppShell>{children}</AppShell></Suspense></TooltipProvider></MotionProvider></body>
     </html>
   );
 }

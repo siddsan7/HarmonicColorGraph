@@ -35,7 +35,7 @@ export function TeachingPresentation() {
   const importer = <label className="file-field grid gap-2 text-sm text-[var(--text-secondary)]">Teaching view JSON<input type="file" accept="application/json,.json" onChange={async (event) => { const file = event.target.files?.[0]; if (!file) return; try { if (file.size > 500_000) throw new Error("Teaching views support files up to 500 KB."); setValue(parseTeachingView(await file.text())); setRevision((current) => current + 1); setError("") } catch (caught) { setError(caught instanceof Error ? caught.message : "Invalid teaching file.") } event.target.value = "" }} /></label>
   return <main id="main-content" className="page studio-page teaching-page">
     {!value && opened && <>
-      <PageHeader eyebrow="Teaching view" title="Open a teaching view" lede="Teaching views are captured routes through the harmonic atlas, with an author's explanation. Open a shared link, import an exported file, or prepare a new one in the atlas." />
+      <PageHeader eyebrow="Teaching view" title={<>Open a teaching <em>view</em></>} lede="Teaching views are captured routes through the harmonic atlas, with an author's explanation. Open a shared link, import an exported file, or prepare a new one in the atlas." />
       {error && <div className="request-error"><p role="alert">{error}</p></div>}
       <div className="empty-state"><h2>Import a captured view</h2>{importer}<p className="text-sm text-[var(--text-muted)]">Or <Link href="/explore">prepare a new view in the atlas</Link> using “Prepare a teaching view”.</p></div>
     </>}

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useSearchParams } from "next/navigation"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { hrefWithProgression, readProgression } from "@/lib/progression-url"
-import { edgeKey, filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
+import { edgeKey, filterGraph, mergeGraph, parseGraph, snapshotNeighborhood, snapshotPaths, tensionDelta, type GraphData, type GraphEdge, type GraphFilters, type GraphNode, type GraphPath } from "@/lib/graph/data"
 import { usePlayback } from "@/lib/hooks/use-playback"
 import { unlockAudio } from "@/lib/music/unlock-audio"
 import { GraphCanvas } from "@/components/graph-canvas"
@@ -72,6 +72,11 @@ export function GraphExplorer() {
   const [pathError, setPathError] = useState("")
   const [playingNodes, setPlayingNodes] = useState<string[]>([])
   const [pathBusy, setPathBusy] = useState(false)
+  // Hand-built route: each click must follow a real connection, so the lit pathway is always playable.
+  const [building, setBuilding] = useState(false)
+  const [built, setBuilt] = useState<string[]>([])
+  const buildingRef = useRef(false)
+  const graphRef = useRef<GraphData>(EMPTY)
   const pathRequest = useRef<AbortController | null>(null)
   const expansionRequest = useRef<AbortController | null>(null)
   const audioRequest = useRef<AbortController | null>(null)
@@ -144,32 +149,60 @@ export function GraphExplorer() {
     return () => controller.abort()
   }, [root, filters, context, edgeTypes, minProb, degraded, snapshot])
 
-  const choose = useCallback((id: string) => setSelected(id), [])
+  useEffect(() => { buildingRef.current = building; graphRef.current = graph })
+  const choose = useCallback((id: string) => {
+    setSelected(id)
+    if (!buildingRef.current) return
+    setBuilt((current) => {
+      const tail = current.at(-1)
+      if (tail === id) return current
+      if (tail && graphRef.current.edges.some((edge) => edge.src === tail && edge.dst === id)) return [...current, id].slice(-12)
+      return [id]
+    })
+  }, [])
   const selectedNode = graph.nodes.find((node) => node.id === selected)
   const outgoing = graph.edges.filter((edge) => edge.src === selected)
-  const activePath = paths[pathIndex]
+  const builtPath = useMemo<GraphPath | undefined>(() => {
+    if (!building || !built.length) return undefined
+    const edges = built.slice(1).map((id, index) => graph.edges.find((edge) => edge.src === built[index] && edge.dst === id)).filter((edge): edge is GraphEdge => !!edge)
+    return { nodes: built, edges, cost: edges.length }
+  }, [building, built, graph.edges])
+  const activePath = building ? builtPath : paths[pathIndex]
+  const candidateNodes = useMemo(() => building && built.length ? [...new Set(graph.edges.filter((edge) => edge.src === built.at(-1)).sort((a, b) => (b.prob ?? -1) - (a.prob ?? -1)).map((edge) => edge.dst))].slice(0, 12) : NO_IDS, [building, built, graph.edges])
   // Stable inputs keep the WebGL scene from rebuilding links on unrelated renders (playback ticks, typing).
   const neighborhood = useMemo(() => degraded && snapshot ? filterGraph(graph, root, filters) : graph, [degraded, snapshot, graph, root, filters])
   const visible = useMemo(() => activePath ? mergeGraph(neighborhood, { context: graph.context, nodes: graph.nodes.filter((node) => activePath.nodes.includes(node.id)), edges: activePath.edges }) : neighborhood, [activePath, neighborhood, graph])
   const pathNodes = useMemo(() => activePath?.nodes ?? NO_IDS, [activePath])
   const pathEdges = useMemo(() => activePath?.edges.map(edgeKey) ?? NO_IDS, [activePath])
   const layout = useRef<HTMLDivElement>(null)
-  async function expand() {
+  async function expand(id = selected) {
     expansionRequest.current?.abort()
     const controller = new AbortController(); expansionRequest.current = controller
-    if (degraded && snapshot) { setGraph((current) => mergeGraph(current, snapshotNeighborhood(snapshot, selected, filters))); return }
+    if (degraded && snapshot) { setGraph((current) => mergeGraph(current, snapshotNeighborhood(snapshot, id, filters))); return }
     try {
-      const params = new URLSearchParams({ id: selected, context, min_prob: String(minProb), limit: "150" })
+      const params = new URLSearchParams({ id, context, min_prob: String(minProb), limit: "150" })
       if (edgeTypes.length) params.set("edge_types", edgeTypes.join(","))
       const data = parseGraph(await api<unknown>(`/neighborhood?${params}`, { signal: controller.signal }))
       if (!controller.signal.aborted) setGraph((current) => mergeGraph(current, data))
     } catch (caught) { if (!controller.signal.aborted) setError((caught as Error).message) }
   }
+  // Keep the route growing: pull in the next chord's connections so there is always somewhere to go.
+  const tail = built.at(-1)
+  useEffect(() => {
+    if (building && tail) queueMicrotask(() => void expand(tail))
+    // expand reads current filters and aborts itself; only a new route tail should trigger it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [building, tail])
+  function startBuilding() {
+    clearPath(); setBuilt([selected]); setBuilding(true)
+  }
+  function stopBuilding() { stopPlayback(); setBuilding(false); setBuilt([]) }
   function clearPath() {
     pathRequest.current?.abort(); audioRequest.current?.abort(); playback.stop()
     setPaths([]); setPathIndex(0); setPathBusy(false); setPathError("")
   }
   async function findPaths() {
+    setBuilding(false); setBuilt([])
     clearPath()
     const controller = new AbortController(); pathRequest.current = controller
     setPathBusy(true)
@@ -226,15 +259,26 @@ export function GraphExplorer() {
         <h2>Around {label(root)}</h2><span>{visible.nodes.length} nodes · {visible.edges.length} edges</span></div>
       {activePath && <ol className="route-steps" aria-label="Route steps">{activePath?.nodes.map((id, index) => <li key={`${id}-${index}`}><button type="button" aria-pressed={selected === id} aria-current={playback.playing && playingNodes.join("|") === activePath.nodes.join("|") && playback.position?.chord === index ? "step" : undefined} onClick={() => choose(id)}><span>{index + 1}</span><strong>{label(id)}</strong><small>{index === 0 ? "Start" : index === activePath.nodes.length - 1 ? "Destination" : "Step"}</small></button>{index < activePath.nodes.length - 1 && <span aria-hidden="true">→</span>}</li>)}</ol>}
       {loading && <p role="status">Loading graph…</p>}
-      {view === "canvas" ? <GraphCanvas graph={visible} selected={selected} pathNodes={pathNodes} pathEdges={pathEdges} colorAxis={colorAxis} onSelect={choose} onListView={() => setView("list")} captureRef={captureRef} fullscreenTarget={layout} /> : <div className="explorer-table-wrap"><table><caption>Graph relationships: {visible.nodes.length} nodes and {visible.edges.length} edges</caption><thead><tr><th>From</th><th>To</th><th>Relationship</th><th>Probability</th><th>Tension Δ</th><th>Inspect</th></tr></thead><tbody>{visible.edges.map((edge, index) => <tr key={`${edgeKey(edge)}-${index}`} className={activePath?.edges.some((item) => edgeKey(item) === edgeKey(edge)) ? "on-path" : ""}><td>{label(edge.src)}</td><td>{label(edge.dst)}</td><td>{edge.type.replaceAll("_", " ").toLowerCase()}</td><td>{percent(edge.prob)}</td><td>{tensionDelta(edge, visible.nodes)?.toFixed(2) ?? "—"}</td><td><button type="button" onClick={() => choose(edge.dst)}>Inspect {label(edge.dst)}</button></td></tr>)}</tbody></table>{!visible.edges.length && <p>No relationships match the filters.</p>}</div>}
+      {view === "canvas" ? <GraphCanvas graph={visible} selected={selected} pathNodes={pathNodes} pathEdges={pathEdges} colorAxis={colorAxis} onSelect={choose} onListView={() => setView("list")} captureRef={captureRef} fullscreenTarget={layout} candidateNodes={candidateNodes} /> : <div className="explorer-table-wrap"><table><caption>Graph relationships: {visible.nodes.length} nodes and {visible.edges.length} edges</caption><thead><tr><th>From</th><th>To</th><th>Relationship</th><th>Probability</th><th>Tension Δ</th><th>Inspect</th></tr></thead><tbody>{visible.edges.map((edge, index) => <tr key={`${edgeKey(edge)}-${index}`} className={activePath?.edges.some((item) => edgeKey(item) === edgeKey(edge)) ? "on-path" : ""}><td>{label(edge.src)}</td><td>{label(edge.dst)}</td><td>{edge.type.replaceAll("_", " ").toLowerCase()}</td><td>{percent(edge.prob)}</td><td>{tensionDelta(edge, visible.nodes)?.toFixed(2) ?? "—"}</td><td><button type="button" onClick={() => choose(edge.dst)}>Inspect {label(edge.dst)}</button></td></tr>)}</tbody></table>{!visible.edges.length && <p>No relationships match the filters.</p>}</div>}
       <GraphLegend axis={colorAxis} types={visible.nodes.map((node) => node.type)} />
     </section>
     <aside className="explorer-sidebar">
       <section className="explorer-path" aria-label="Path mode"><details className="route-editor" open={routeEditorOpen} onToggle={(event) => setRouteEditorOpen(event.currentTarget.open)}><summary><strong>Trace a route</strong><span>{label(pathFrom)} → {label(pathTo)}{activePath ? ` · ${activePath.nodes.length} steps` : " · edit endpoints"}</span></summary>
         <p className="path-help">Choose a start and destination. Compare the available connections.</p>
         <div className="explorer-path-controls"><label>From<select aria-label="From" value={pathFrom} onChange={(event) => setPathFrom(event.target.value)}>{[...new Set([pathFrom, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>To<select aria-label="To" value={pathTo} onChange={(event) => setPathTo(event.target.value)}>{[...new Set([pathTo, ...graph.nodes.map((node) => node.id)])].map((id) => <option key={id} value={id}>{label(id)}</option>)}</select></label><label>Constraint<select value={constraint} onChange={(event) => setConstraint(event.target.value)}><option value="none">Any path</option><option value="increasing_chromaticity">Increasing chromaticity</option><option value="max_chromaticity">Maximum chromaticity</option></select></label>{constraint === "max_chromaticity" && <label>Maximum <input type="number" min="0" max="1" step="0.1" value={maxChromaticity} onChange={(event) => setMaxChromaticity(Number(event.target.value))} /></label>}<button type="button" onClick={() => { setPathFrom(pathTo); setPathTo(pathFrom) }}>Swap endpoints</button><button type="button" onClick={clearPath}>Clear route</button><button type="button" disabled={pathBusy || loading} onClick={() => void findPaths()}>{pathBusy ? "Finding routes…" : "Find paths"}</button></div>
+        <div className="route-builder" data-active={building || undefined}>
+          <button type="button" aria-pressed={building} onClick={() => (building ? stopBuilding() : startBuilding())}>{building ? "Done building" : "Build a route by hand"}</button>
+          {building ? <>
+            <p>{built.length > 1 ? `${built.length} chords lit. Keep clicking a pulsing chord to extend the route.` : "Click a pulsing chord to light the first pathway."}</p>
+            <div className="action-row">
+              <button type="button" disabled={built.length < 2} onClick={() => { stopPlayback(); setBuilt((current) => current.slice(0, -1)) }}>Undo step</button>
+              <button type="button" disabled={built.length < 1} onClick={() => { stopPlayback(); setBuilt(selected ? [selected] : []) }}>Restart</button>
+              <button type="button" disabled={degraded || built.length < 2} onClick={() => void (playback.playing ? playback.stop() : playNodes(built))}>{playback.playing ? "Stop" : "Hear route"}</button>
+            </div>
+          </> : <p>Light your own pathway: every click must follow a real connection.</p>}
+        </div>
         {pathError && <p role="alert">{pathError}</p>}
-        {paths.length > 0 && <div className="explorer-results"><div className="route-alternatives" role="group" aria-label="Alternative routes">{paths.slice(0, 3).map((path, index) => <button type="button" key={index} aria-pressed={pathIndex === index} onClick={() => { audioRequest.current?.abort(); playback.stop(); setPathIndex(index) }}><strong>Route {index + 1} · {path.nodes.length} steps</strong><span>{path.nodes.map(label).join(" → ")}</span><small>{path.edges.length} directed connections</small></button>)}</div><label>Path<select aria-label="Path" value={pathIndex} onChange={(event) => { audioRequest.current?.abort(); playback.stop(); setPathIndex(Number(event.target.value)) }}>{paths.map((path, index) => <option key={index} value={index}>{index + 1}: {path.nodes.map(label).join(" → ")}</option>)}</select></label><p className="sr-only">{activePath?.nodes.map(label).join(" → ")}</p><button type="button" disabled={degraded} onClick={() => void playNodes(activePath.nodes)}>{playback.playing ? "Restart path" : "Play path"}</button>{playback.playing && <button type="button" onClick={playback.stop}>Stop</button>}</div>}
+        {paths.length > 0 && <div className="explorer-results"><div className="route-alternatives" role="group" aria-label="Alternative routes">{paths.slice(0, 3).map((path, index) => <button type="button" key={index} aria-pressed={pathIndex === index} onClick={() => { audioRequest.current?.abort(); playback.stop(); setPathIndex(index) }}><strong>Route {index + 1} · {path.nodes.length} steps</strong><span>{path.nodes.map(label).join(" → ")}</span><small>{path.edges.length} directed connections</small></button>)}</div><label>Path<select aria-label="Path" value={pathIndex} onChange={(event) => { audioRequest.current?.abort(); playback.stop(); setPathIndex(Number(event.target.value)) }}>{paths.map((path, index) => <option key={index} value={index}>{index + 1}: {path.nodes.map(label).join(" → ")}</option>)}</select></label><p className="sr-only">{activePath?.nodes.map(label).join(" → ")}</p><button type="button" disabled={degraded || !activePath} onClick={() => void playNodes(activePath?.nodes ?? [])}>{playback.playing ? "Restart path" : "Play path"}</button>{playback.playing && <button type="button" onClick={playback.stop}>Stop</button>}</div>}
         {playback.error && <p role="alert">{playback.error}</p>}
       </details>{degraded && <p className="playback-note">Sample route audio is unavailable. Your sketch can still be analyzed and played.</p>}</section>
       <section className="explorer-panel" aria-label="Node details"><p className="route-eyebrow">Inspect function</p><h2>{label(selected)}{selectedChord?.nodeId === selected && <span className="realized-chord"> · {selectedChord.label}</span>}</h2><p>{functionExplanation(selected)}</p><p className="realization-note">{selectedChord?.nodeId === selected ? `Chord realized by the harmonic service in ${selectedChord.key}.` : "Chord-name realization is unavailable; the function label remains visible."}</p>

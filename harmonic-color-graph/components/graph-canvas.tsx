@@ -1,15 +1,17 @@
 "use client"
 
 import { useEffect, useRef, useState, type RefObject } from "react"
+import { AnimatePresence, motion } from "motion/react"
 import { Expand, Focus, HelpCircle, Maximize2, Minimize2, Minus, Orbit, Plus, RotateCcw, Route, Sparkles } from "lucide-react"
 import type { ForceGraph3DInstance } from "3d-force-graph"
 import type { Group, Sprite, Mesh, MeshBasicMaterial, SpriteMaterial, PerspectiveCamera } from "three"
 import type { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { ATLAS_COLORS, atlasData, nodeColor, nodeLabel, type AtlasNode, type AtlasLink } from "@/lib/graph/atlas"
 import type { GraphData } from "@/lib/graph/data"
-import type { AtlasView } from "@/lib/graph/presentation"
+import { functionExplanation, type AtlasView } from "@/lib/graph/presentation"
 
-type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void; initialView?: AtlasView | null; captureRef?: RefObject<(() => AtlasView) | null>; fullscreenTarget?: RefObject<HTMLElement | null> }
+type Props = { graph: GraphData; selected: string; pathNodes: string[]; pathEdges: string[]; colorAxis: string; onSelect: (id: string) => void; onListView?: () => void; initialView?: AtlasView | null; captureRef?: RefObject<(() => AtlasView) | null>; fullscreenTarget?: RefObject<HTMLElement | null>; candidateNodes?: string[] }
+type Tip = { id: string; label: string; kind: string; text: string; links: number; moves: { label: string; prob: number | null }[] }
 type Atlas = ForceGraph3DInstance<AtlasNode, AtlasLink>
 type NodeVisual = { group: Group; core: Mesh; halo: Sprite; ring: Sprite; label: Sprite; updateLabel: (text: string) => void; dispose: () => void }
 type Runtime = { graph: Atlas; visuals: Map<string, NodeVisual>; refresh: () => void; replay: () => void; cancelReplay: () => void; fit: (mode: "all" | "path" | "selected" | "reset") => void; wake: (ms?: number) => void; dispose: () => void }
@@ -22,6 +24,8 @@ export function GraphCanvas(props: Props) {
   const [ready, setReady] = useState(false)
   const [failure, setFailure] = useState("")
   const [hover, setHover] = useState("")
+  const [tip, setTip] = useState<Tip | null>(null)
+  const tipRef = useRef<HTMLDivElement>(null)
   const stage = useRef<HTMLDivElement>(null)
   const [fullScreen, setFullScreen] = useState(false)
   const [guide, setGuide] = useState(false)
@@ -65,6 +69,12 @@ export function GraphCanvas(props: Props) {
           .linkDirectionalArrowRelPos(.79).linkDirectionalArrowResolution(12)
           .linkDirectionalParticles(0).linkDirectionalParticleWidth(1.7).linkDirectionalParticleColor(() => ROUTE).linkDirectionalParticleSpeed(.011)
         const visuals = new Map<string, NodeVisual>()
+        // Per-node eased state: hover growth, route ignition flash, dimming and base opacities.
+        type Dyn = { h: number; t: number; flash: number; dim: number; dimT: number; base: number; hb: number; pin: boolean }
+        const anim = new Map<string, Dyn>()
+        const dyn = (id: string) => { let d = anim.get(id); if (!d) { d = { h: 0, t: 0, flash: 0, dim: 0, dimT: 0, base: 1, hb: .45, pin: false }; anim.set(id, d) } return d }
+        let candidates = new Set<string>(), lastRoute = new Set<string>(), raf = 0
+        const routeParticles = (link: AtlasLink) => { const p = latest.current; return p.pathEdges.includes(link.id) && !media.matches ? (link.id === p.pathEdges.at(-1) ? 5 : 2) : 0 }
         const sphere = new THREE.SphereGeometry(3.2, 12, 8); owned.add(sphere)
         // Taps hit a modest invisible target, never a neighbour's glow, ring or label.
         const hitSphere = new THREE.SphereGeometry(6, 8, 6); owned.add(hitSphere)
@@ -141,12 +151,19 @@ export function GraphCanvas(props: Props) {
             if (!visual) return
             const important = latest.current.selected === node.id || latest.current.pathNodes.includes(node.id)
             const depth = Math.max(1, new THREE.Vector3(node.x, node.y, node.z).applyMatrix4(camera.matrixWorldInverse).z * -1)
-            visual.core.scale.setScalar(depth * pixelScale * (important ? 5 : 3.5) / 3.2)
+            const d = anim.get(node.id), h = d?.h ?? 0, flash = d?.flash ?? 0, cand = candidates.has(node.id)
+            const pulse = cand && !media.matches ? .5 + .5 * Math.sin(performance.now() / 360) : .5
+            visual.core.scale.setScalar(depth * pixelScale * (important ? 5 : 3.5) / 3.2 * (1 + .8 * h + .55 * flash))
             visual.label.scale.set(scale, scale, 1)
-            visual.label.position.copy(new THREE.Vector3(0, depth * pixelScale * 17, 0).applyQuaternion(camera.quaternion))
-            visual.halo.scale.setScalar(pixelScale * (important ? 44 : 32))
-            visual.ring.scale.setScalar(pixelScale * 24)
+            visual.label.position.copy(new THREE.Vector3(0, depth * pixelScale * 17 * (1 + .5 * h), 0).applyQuaternion(camera.quaternion))
+            visual.halo.scale.setScalar(pixelScale * (important ? 44 : 32) * (1 + 1.1 * h + 1.4 * flash))
+            visual.ring.scale.setScalar(pixelScale * 24 * (1 + .45 * h + flash * .9 + (cand ? .25 * pulse : 0)))
+            visual.ring.visible = !!d?.pin || cand || h > .04 || flash > .04
+            const ring = visual.ring.material as SpriteMaterial
+            ring.color.set(cand ? ROUTE : h > .04 && !d?.pin ? "#e8f2ff" : latest.current.selected === node.id ? "#e8f2ff" : ROUTE)
+            ring.opacity = cand ? .45 + .5 * pulse : Math.max(.0, Math.min(1, d?.pin ? 1 : h + flash))
           })
+          placeTip()
           host.dataset.camera = JSON.stringify(position)
           host.dataset.target = JSON.stringify(controls.target)
         }
@@ -167,6 +184,31 @@ export function GraphCanvas(props: Props) {
         controls.addEventListener("change", onChange); controls.addEventListener("start", onStart); controls.addEventListener("end", onEnd)
         const onPointer = () => wake()
         host.addEventListener("pointermove", onPointer); host.addEventListener("pointerdown", onPointer); host.addEventListener("wheel", onPointer, { passive: true })
+        function placeTip() {
+          const el = tipRef.current
+          const node = hoveredNode ? graph.graphData().nodes.find((item) => item.id === hoveredNode) : undefined
+          if (!el || !node) return
+          const point = graph.graph2ScreenCoords(node.x, node.y, node.z)
+          el.style.transform = `translate(${Math.max(140, Math.min(host.clientWidth - 140, point.x))}px, ${point.y}px)`
+          el.dataset.side = point.y < 190 ? "below" : "above"
+        }
+        function loop() {
+          raf = 0
+          let moving = false
+          anim.forEach((d, id) => {
+            if (Math.abs(d.t - d.h) > .002) { d.h += (d.t - d.h) * .2; moving = true } else d.h = d.t
+            if (d.flash > .003) { d.flash *= .93; moving = true } else d.flash = 0
+            if (Math.abs(d.dimT - d.dim) > .004) { d.dim += (d.dimT - d.dim) * .18; moving = true } else d.dim = d.dimT
+            const visual = visuals.get(id)
+            if (visual) {
+              ;(visual.core.material as MeshBasicMaterial).opacity = d.base * (1 - .6 * d.dim)
+              ;(visual.halo.material as SpriteMaterial).opacity = Math.min(1, d.hb * (1 + .9 * d.h + .8 * d.flash)) * (1 - .6 * d.dim)
+            }
+          })
+          diagnostics()
+          if (moving || (candidates.size > 0 && !media.matches)) { wake(500); raf = requestAnimationFrame(loop) }
+        }
+        const kick = () => { if (!raf && !disposed && !document.hidden) raf = requestAnimationFrame(loop) }
         function fit(mode: "all" | "path" | "selected" | "reset") {
           const p = latest.current
           const nodes = graph.graphData().nodes.filter((node) => mode === "selected" ? node.id === p.selected : mode === "path" ? p.pathNodes.includes(node.id) : true)
@@ -195,29 +237,34 @@ export function GraphCanvas(props: Props) {
         let hoveredNode = ""
         function refresh() {
           const p = latest.current, route = new Set(p.pathNodes), pathEdges = new Set(p.pathEdges)
+          // Newly lit chords flash so building a route feels like switching pathways on.
+          p.pathNodes.forEach((id) => { if (!lastRoute.has(id)) dyn(id).flash = 1 })
+          lastRoute = route
+          candidates = new Set(p.candidateNodes ?? [])
           graph.graphData().nodes.forEach((node) => {
             const visual = visuals.get(node.id)
             if (!visual) return
             visual.updateLabel(nodeLabel(node))
             const selected = node.id === p.selected, onPath = route.has(node.id), endpoint = node.id === p.pathNodes[0] || node.id === p.pathNodes.at(-1)
-            const tint = onPath ? ROUTE : nodeColor(node, p.colorAxis), opacity = route.size && !onPath && !selected ? .22 : 1
-            const core = visual.core.material as MeshBasicMaterial; core.color.set(tint); core.opacity = opacity
-            const halo = visual.halo.material as SpriteMaterial; halo.color.set(tint); halo.opacity = opacity * (selected || onPath ? .9 : .45)
-            visual.core.scale.setScalar(endpoint ? 1.3 : selected ? 1.15 : 1)
-            visual.ring.visible = selected || endpoint; (visual.ring.material as SpriteMaterial).color.set(selected ? "#e8f2ff" : ROUTE)
+            const tint = onPath ? ROUTE : nodeColor(node, p.colorAxis), opacity = candidates.has(node.id) ? 1 : route.size && !onPath && !selected ? (candidates.size ? .4 : .22) : 1
+            const d = dyn(node.id); d.base = opacity; d.hb = opacity * (selected || onPath ? .9 : .45); d.pin = selected || endpoint
+            const core = visual.core.material as MeshBasicMaterial; core.color.set(tint); core.opacity = opacity * (1 - .6 * d.dim)
+            const halo = visual.halo.material as SpriteMaterial; halo.color.set(tint); halo.opacity = d.hb * (1 - .6 * d.dim)
             visual.label.visible = (!route.size && graph.graphData().nodes.length <= 20) || selected || onPath || hoveredNode === node.id
             ;(visual.label.material as SpriteMaterial).opacity = Math.max(.3, opacity)
           })
           graph.linkColor((link) => pathEdges.has(link.id) ? ROUTE : p.pathEdges.length ? "#33465f" : graph.graphData().nodes.length > 50 ? "#405a7a" : "#4d6788")
-            .linkWidth((link) => pathEdges.has(link.id) ? 2.2 : 0)
-            .linkDirectionalArrowLength((link) => pathEdges.has(link.id) ? 7.5 : 0)
+            .linkWidth((link) => pathEdges.has(link.id) ? 4.2 : 0)
+            .linkDirectionalArrowLength((link) => pathEdges.has(link.id) ? 9 : 0)
             .linkDirectionalArrowColor((link) => pathEdges.has(link.id) ? ROUTE : "#58739a")
+            .linkDirectionalParticles(routeParticles).linkDirectionalParticleSpeed(.009).linkDirectionalParticleWidth(3.4)
           host.dataset.pathEdges = JSON.stringify(graph.graphData().links.filter((link) => pathEdges.has(link.id)).map((link) => link.id))
           diagnostics()
-          wake()
+          wake(pathEdges.size && !media.matches ? 4200 : 1000)
+          kick()
         }
         let replayTimer: ReturnType<typeof setTimeout> | undefined
-        function cancelReplay() { clearTimeout(replayTimer); graph.linkDirectionalParticles(0); host.dataset.replay = "idle"; wake() }
+        function cancelReplay() { clearTimeout(replayTimer); graph.linkDirectionalParticles(routeParticles); host.dataset.replay = "idle"; wake() }
         function replay() {
           cancelReplay()
           if (media.matches) return
@@ -240,7 +287,20 @@ export function GraphCanvas(props: Props) {
             }
             host.style.cursor = node ? "pointer" : "grab"
             setHover(node ? `${nodeLabel(node)} · ${node.type} · click to inspect` : "")
-            wake()
+            const neighbors = new Set<string>()
+            if (node) p.graph.edges.forEach((edge) => { if (edge.src === node.id) neighbors.add(edge.dst); if (edge.dst === node.id) neighbors.add(edge.src) })
+            visuals.forEach((_, id) => {
+              const d = dyn(id)
+              d.t = id === hoveredNode ? 1 : neighbors.has(id) ? .35 : 0
+              d.dimT = node && !p.pathNodes.length && id !== node.id && !neighbors.has(id) ? 1 : 0
+            })
+            if (node) {
+              const moves = p.graph.edges.filter((edge) => edge.src === node.id).sort((a, b) => (b.prob ?? -1) - (a.prob ?? -1)).slice(0, 3)
+                .map((edge) => ({ label: nodeLabel(p.graph.nodes.find((item) => item.id === edge.dst) ?? { id: edge.dst, label: edge.dst, type: "function", props: {} }), prob: edge.prob }))
+              setTip({ id: node.id, label: nodeLabel(node), kind: node.type, text: functionExplanation(node.id), links: neighbors.size, moves })
+              placeTip()
+            } else setTip(null)
+            kick(); wake()
           })
           .onLinkHover((link) => { setHover(link ? `${link.type.replaceAll("_", " ").toLowerCase()} · ${link.prob == null ? "Probability unavailable" : `${Math.round(link.prob * 100)}% probability`}` : ""); wake() })
         const resize = new ResizeObserver(() => { graph.width(host.clientWidth).height(host.clientHeight); requestAnimationFrame(() => { if (!disposed) diagnostics() }); wake() }); resize.observe(host)
@@ -251,7 +311,7 @@ export function GraphCanvas(props: Props) {
         host.dataset.renderer = "webgl"
         performance.mark("hcg-explore-canvas-created")
         cleanup = () => {
-          clearTimeout(replayTimer); clearTimeout(timer); resize.disconnect(); intersection.disconnect()
+          clearTimeout(replayTimer); clearTimeout(timer); cancelAnimationFrame(raf); resize.disconnect(); intersection.disconnect()
           document.removeEventListener("visibilitychange", visibility); media.removeEventListener("change", motion)
           host.removeEventListener("pointermove", onPointer); host.removeEventListener("pointerdown", onPointer); host.removeEventListener("wheel", onPointer)
           controls.removeEventListener("change", onChange); controls.removeEventListener("start", onStart); controls.removeEventListener("end", onEnd)
@@ -310,7 +370,7 @@ export function GraphCanvas(props: Props) {
     engine.refresh()
   }, [ready, props.graph, props.pathNodes, props.selected, props.initialView])
 
-  useEffect(() => { if (ready) runtime.current?.refresh() }, [ready, props.colorAxis, props.selected, props.pathNodes, props.pathEdges])
+  useEffect(() => { if (ready) runtime.current?.refresh() }, [ready, props.colorAxis, props.selected, props.pathNodes, props.pathEdges, props.candidateNodes])
   const routeIdentity = props.pathEdges.join(";")
   useEffect(() => { if (ready) runtime.current?.cancelReplay() }, [ready, routeIdentity])
   function zoom(factor: number) {
@@ -349,6 +409,16 @@ export function GraphCanvas(props: Props) {
     </div>
     {props.pathNodes.length > 0 && <div className="atlas-route-tools"><button type="button" disabled={!ready || !!failure} onClick={() => runtime.current?.fit("path")}><Route size={14} />Fit path</button><button type="button" disabled={!ready || reduced || !!failure} onClick={() => runtime.current?.replay()} title={reduced ? "Animation disabled by reduced motion preference" : "Send a brief pulse along the route"}><Sparkles size={14} />Replay direction</button></div>}
     {guide && <div className="atlas-guide"><strong>Move through the music</strong><span>Drag to orbit · scroll / pinch to zoom</span><span>Right drag or two fingers to pan</span><span>Click a node to inspect. Focus brings it closer.</span><span>Keyboard: use the Orbit, Zoom and Focus buttons, or List view.</span></div>}
+    <div ref={tipRef} className="atlas-tip-anchor" aria-hidden="true">
+      <AnimatePresence>
+        {tip && <div key={tip.id} className="atlas-tip-pos"><motion.div className="atlas-tip" initial={{ opacity: 0, y: 8, scale: 0.94 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 4, scale: 0.97 }} transition={{ type: "spring", stiffness: 520, damping: 30 }}>
+          <div className="atlas-tip-head"><strong>{tip.label}</strong><span>{tip.kind}</span></div>
+          <p>{tip.text}</p>
+          {tip.moves.length > 0 && <ul>{tip.moves.map((move, index) => <li key={`${move.label}-${index}`}><span>→ {move.label}</span>{move.prob != null && <span className="atlas-tip-bar"><i style={{ width: `${Math.round(move.prob * 100)}%` }} /></span>}<b>{move.prob == null ? "—" : `${Math.round(move.prob * 100)}%`}</b></li>)}</ul>}
+          <small>{tip.links} connection{tip.links === 1 ? "" : "s"} in view · click to inspect</small>
+        </motion.div></div>}
+      </AnimatePresence>
+    </div>
     <div className="atlas-caption"><span>{hover || "Relationship layout · distance is not a similarity score"}</span><span>DRAG TO ORBIT</span></div>
   </div>
 }

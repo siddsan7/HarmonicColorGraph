@@ -150,7 +150,7 @@ export function SimilarityExplorer() {
   }
 
   return <main id="main-content" className="page space-y-6 text-[var(--text-primary)]">
-    <PageHeader eyebrow="Similar" title="Find harmonic neighbors" lede="Compare progression shape or shared chord functions, then make a match part of your sketch." />
+    <PageHeader eyebrow="Similar" title={<>Find harmonic <em>neighbors</em></>} lede="Compare progression shape or shared chord functions, then make a match part of your sketch." />
     <ContextSummary value={{ input, key, genre, section: shared.section }} />
     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
       <div className="space-y-5">
@@ -175,7 +175,7 @@ export function SimilarityExplorer() {
         {result ? <section className={panel} aria-label="Similarity results">
           <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"><h2 className="page-section-title">Matches</h2><span className="font-mono text-sm text-[var(--text-secondary)]">{resultContext.input} · {resultContext.key}</span><span className="basis-full text-xs text-[var(--text-muted)]">{result.model} · corpus {result.corpus_version}</span></div>
           {result.results.length === 0 && <p className="text-sm text-[var(--text-secondary)]">No matches in this corpus. Try a different progression or genre.</p>}
-          <ol className="space-y-3">{result.results.map((item, index) => <li key={`${item.subject_id}:${index}`} className="rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3">
+          <ol className="space-y-3">{result.results.map((item, index) => <li key={`${item.subject_id}:${index}`} className="rise rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3" style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}>
             <div className="flex flex-wrap items-start justify-between gap-3"><div><span className="mr-2 text-xs tabular-nums text-[var(--text-muted)]">#{index + 1}</span><span className="font-mono text-sm">{item.subject_id}</span>
               {item.rotation_of && <span className="ml-2 rounded border border-[var(--accent-warm)] px-1.5 py-0.5 text-xs text-[var(--accent-warm)]">Rotation</span>}
             </div><button type="button" disabled={opening !== null} onClick={() => void openInWorkbench(item.subject_id.split(" "), item.subject_id)} className="rounded-md px-2 text-sm font-medium text-[var(--accent-primary)] hover:underline disabled:opacity-50">{opening === item.subject_id ? "Opening…" : "Use in sketch →"}</button></div>
