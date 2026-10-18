@@ -195,7 +195,9 @@ export function GraphCanvas(props: Props) {
         function loop() {
           raf = 0
           let moving = false
+          if (hoveredNode && !visuals.has(hoveredNode)) { hoveredNode = ""; setTip(null) }
           anim.forEach((d, id) => {
+            if (!visuals.has(id)) { anim.delete(id); return }
             if (Math.abs(d.t - d.h) > .002) { d.h += (d.t - d.h) * .2; moving = true } else d.h = d.t
             if (d.flash > .003) { d.flash *= .93; moving = true } else d.flash = 0
             if (Math.abs(d.dimT - d.dim) > .004) { d.dim += (d.dimT - d.dim) * .18; moving = true } else d.dim = d.dimT
@@ -206,7 +208,7 @@ export function GraphCanvas(props: Props) {
             }
           })
           diagnostics()
-          if (moving || (candidates.size > 0 && !media.matches)) { wake(500); raf = requestAnimationFrame(loop) }
+          if (visible && (moving || (candidates.size > 0 && !media.matches))) { wake(500); raf = requestAnimationFrame(loop) }
         }
         const kick = () => { if (!raf && !disposed && !document.hidden) raf = requestAnimationFrame(loop) }
         function fit(mode: "all" | "path" | "selected" | "reset") {
@@ -304,7 +306,7 @@ export function GraphCanvas(props: Props) {
           })
           .onLinkHover((link) => { setHover(link ? `${link.type.replaceAll("_", " ").toLowerCase()} · ${link.prob == null ? "Probability unavailable" : `${Math.round(link.prob * 100)}% probability`}` : ""); wake() })
         const resize = new ResizeObserver(() => { graph.width(host.clientWidth).height(host.clientHeight); requestAnimationFrame(() => { if (!disposed) diagnostics() }); wake() }); resize.observe(host)
-        const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { controls.update(); diagnostics(); wake(1500) } else { graph.pauseAnimation(); host.dataset.rendering = "paused" } }); intersection.observe(host)
+        const intersection = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) { controls.update(); diagnostics(); wake(1500); kick() } else { graph.pauseAnimation(); host.dataset.rendering = "paused" } }); intersection.observe(host)
         const visibility = () => { if (document.hidden) { graph.pauseAnimation(); host.dataset.rendering = "paused" } else wake() }; document.addEventListener("visibilitychange", visibility)
         const motion = () => { setReduced(media.matches); controls.enableDamping = !media.matches; cancelReplay(); wake() }; media.addEventListener("change", motion)
         const contextLost = () => { setFailure("The 3D view lost its graphics connection. Your route is still available in List view."); graph.pauseAnimation() }; graph.renderer().domElement.addEventListener("webglcontextlost", contextLost)

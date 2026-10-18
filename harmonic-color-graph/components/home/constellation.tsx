@@ -85,7 +85,7 @@ export function Constellation() {
 
   return <div className="constellation glass" role="group" aria-label="Interactive chord map for C major">
     <div className="constellation-stage">
-      <svg viewBox="0 0 560 420" role="presentation" className="constellation-svg">
+      <svg viewBox="0 0 560 420" className="constellation-svg">
         <defs>
           <filter id="route-glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="3.2" result="b" /><feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge></filter>
           <filter id="node-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="9" /></filter>
@@ -117,7 +117,7 @@ export function Constellation() {
             onClick={() => choose(chord.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(chord.id) } }}>
             <circle cx={chord.x} cy={chord.y} r={r + 14} fill={color} opacity={onRoute || hover === chord.id ? 0.4 : 0.16} filter="url(#node-glow)" />
             {isCandidate && !reduced && <motion.circle cx={chord.x} cy={chord.y} r={r + 6} fill="none" stroke={ROUTE} strokeWidth={1.5} initial={{ scale: 0.9, opacity: 0.9 }} animate={{ scale: 1.35, opacity: 0 }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }} style={{ transformBox: "fill-box", transformOrigin: "center" }} />}
-            <circle cx={chord.x} cy={chord.y} r={r} fill="#0a1220" stroke={color} strokeWidth={isLast || sounding ? 3 : 1.6} />
+            <circle className="constellation-node-core" cx={chord.x} cy={chord.y} r={r} fill="#0a1220" stroke={color} strokeWidth={isLast || sounding ? 3 : 1.6} />
             <circle cx={chord.x} cy={chord.y} r={r - 6} fill={color} opacity={onRoute ? 0.95 : 0.55} />
             <text x={chord.x} y={chord.y + 1} textAnchor="middle" dominantBaseline="middle" className="constellation-numeral" fill={onRoute ? "#1d1405" : "#07101c"}>{chord.numeral}</text>
           </motion.g>

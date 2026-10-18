@@ -466,7 +466,7 @@ main.page.studio-page, .empty-state { align-content: start; }
 .constellation-orbits ellipse:nth-child(3) { animation-duration: 60s; }
 @keyframes orbit { to { transform: rotate(360deg); } }
 .constellation-numeral { font: italic 400 20px var(--font-display), Georgia, serif; pointer-events: none; }
-.constellation-svg g[role=button]:focus-visible circle:nth-of-type(3) { stroke: #fff; stroke-width: 3; }
+.constellation-svg g[role=button]:focus-visible .constellation-node-core { stroke: #fff; stroke-width: 3; }
 .constellation-tip-pos { position: absolute; z-index: 3; width: 15rem; max-width: 60%; transform: translate(-50%, calc(-100% - 38px)); pointer-events: none; }
 .constellation-tip-pos.below { transform: translate(-50%, 34px); }
 .constellation-tip { padding: .7rem .85rem; border-radius: 12px; font-size: .8125rem; color: var(--text-secondary); }

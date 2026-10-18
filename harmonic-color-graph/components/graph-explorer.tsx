@@ -94,6 +94,11 @@ export function GraphExplorer() {
     return () => { cancelled = true; pathRequest.current?.abort(); expansionRequest.current?.abort(); audioRequest.current?.abort() }
   }, [pathFrom, pathTo, constraint, maxChromaticity, filters, root, stopPlayback])
 
+  // A hand-built route belongs to the graph it was drawn on; a new center or filter invalidates it.
+  useEffect(() => {
+    queueMicrotask(() => { setBuilding(false); setBuilt([]) })
+  }, [filters, root])
+
   useEffect(() => {
     // Choose a mobile default once, then preserve the user's view through resizes.
     const frame = requestAnimationFrame(() => {
