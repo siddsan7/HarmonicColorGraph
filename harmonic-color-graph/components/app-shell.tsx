@@ -55,7 +55,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     document.addEventListener("keydown", onKey)
     return () => { document.removeEventListener("pointerdown", onPointer); document.removeEventListener("keydown", onKey) }
   }, [])
-  useEffect(() => { if (more.current) more.current.open = false }, [pathname])
+  // Close after navigating, but not on first mount: an early click on More must not be undone by hydration.
+  const lastPath = useRef(pathname)
+  useEffect(() => {
+    if (lastPath.current === pathname) return
+    lastPath.current = pathname
+    if (more.current) more.current.open = false
+  }, [pathname])
 
   return <>
     <header className="shell-header shell-atlas">

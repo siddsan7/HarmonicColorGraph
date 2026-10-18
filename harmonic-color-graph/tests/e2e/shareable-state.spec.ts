@@ -37,3 +37,27 @@ test("mobile navigation and playback controls remain reachable", async ({ page }
   await page.getByRole("navigation", { name: "Primary navigation" }).getByRole("link", { name: "Find an idea" }).click()
   await expect(page.getByRole("heading", { name: "Find the feeling. Follow the sound." })).toBeVisible()
 })
+
+for (const [label, size] of [["desktop", { width: 1440, height: 900 }], ["mobile", { width: 390, height: 844 }]] as const) {
+  test(`the More menu opens, shows every destination and closes (${label})`, async ({ page }) => {
+    await page.setViewportSize(size)
+    await page.goto("/?p=C-G-Am&k=C-major")
+    const nav = page.getByRole("navigation", { name: "Primary navigation" })
+    await nav.locator(".nav-more summary").click()
+    for (const name of ["Similar", "Assistant", "About"]) {
+      const link = nav.getByRole("link", { name, exact: true })
+      await expect(link).toBeVisible()
+      // The link must actually receive pointer events, not be clipped behind a scroll container.
+      const reachable = await link.evaluate((element) => { const box = element.getBoundingClientRect(); const hit = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2); return hit === element || element.contains(hit) })
+      expect(reachable).toBe(true)
+    }
+    // The nav must not become a scroll container (which clipped the dropdown and showed stray scroll arrows).
+    expect(await nav.evaluate((element) => getComputedStyle(element).overflowY)).toBe("visible")
+    await page.keyboard.press("Escape")
+    await expect(nav.getByRole("link", { name: "Similar", exact: true })).toBeHidden()
+    await nav.locator(".nav-more summary").click()
+    await nav.getByRole("link", { name: "Similar", exact: true }).click()
+    await expect(page).toHaveURL(/\/similar/)
+    await expect(page.getByRole("heading", { name: "Find harmonic neighbors" })).toBeVisible()
+  })
+}
