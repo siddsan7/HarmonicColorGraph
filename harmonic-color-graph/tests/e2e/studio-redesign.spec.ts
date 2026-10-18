@@ -117,3 +117,21 @@ test("a hand-built atlas route only follows real connections and can be undone",
   await page.getByRole("button", { name: "Done building" }).click()
   await expect(page.getByRole("list", { name: "Route steps" })).toHaveCount(0)
 })
+
+test("hovering landing buttons never displaces them (no hover jitter)", async ({ page }) => {
+  await page.goto("/")
+  const scroll = page.getByRole("button", { name: "Scroll to the writing studio" })
+  await expect(scroll).toBeVisible()
+  const start = (await scroll.boundingBox())!
+  await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2)
+  // A generic hover transform used to replace the button's own centering and slide it out from under the pointer.
+  const xs: number[] = []
+  for (let i = 0; i < 12; i++) { xs.push(Math.round((await scroll.boundingBox())!.x)); await page.waitForTimeout(40) }
+  expect(new Set(xs).size).toBe(1)
+  expect(Math.round(xs[0])).toBe(Math.round(start.x))
+  // Cards keep their own lift instead of the generic one.
+  const card = page.getByRole("button", { name: /^Write music/ })
+  await card.hover()
+  await page.waitForTimeout(500)
+  expect(await card.evaluate((element) => getComputedStyle(element).transform)).toContain("-4")
+})
