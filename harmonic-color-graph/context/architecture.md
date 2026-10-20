@@ -59,6 +59,10 @@ see `docs/roadmap-v2.md` and
   cited facts, chord and Roman-figure provenance, emotion wording, song
   example citation, and theory registry label before any prose is returned.
   MCP reuses the same tool boundary.
+  If intent parsing fails, explicit recommendation directions use a bounded
+  deterministic recovery grammar; negated or ambiguous clauses abstain.
+  `backend/tests/eval/ai_diagnostics.py` profiles local workflow stages without
+  changing the response or durable audit contract.
 - `backend/app/theory/` - Planned symbolic music logic:
   chord parsing, normalization, key detection, Roman numeral
   conversion, theory labels, and voice-leading helpers.

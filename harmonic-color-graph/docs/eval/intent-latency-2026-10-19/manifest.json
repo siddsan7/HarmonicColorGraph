@@ -1,0 +1,8 @@
+{
+  "candidate-feasibility.json": "fada15ee08aed10c09805a26e8f641dec7914be0f66dadafde7101123c08458c",
+  "independent-parser-observation.json": "9fb646001dc0f4b1030b6efca67b8fd3e2f3a7f493698f169c169fc9790f9708",
+  "offline-baseline.json": "0943efb1d91c1f88192a3946f98741ccf859885d65b92a118d55e646ec4857f7",
+  "offline-candidate.json": "601a821cd64c5181b216aa85798206d101ebef8f28fdef09c204126b3c302cd1",
+  "parser-regression.json": "a7f143117759826c96814d7afeb95f4877ffcbc1713bfcdc4a881facfbaad326",
+  "prompt-serialization.json": "f610600f32c80547434ab2a774d11467455bb5914661a835ec957e1ef6b0ab92"
+}

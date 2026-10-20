@@ -1,0 +1,83 @@
+{
+  "mode": "controlled_serialization_only",
+  "cost_usd": "0",
+  "model": "injected deterministic test callable; no provider",
+  "cases": [
+    {
+      "id": "recommend-01",
+      "before_prompt_bytes": 19098,
+      "after_prompt_bytes": 17484,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-02",
+      "before_prompt_bytes": 19569,
+      "after_prompt_bytes": 17930,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-03",
+      "before_prompt_bytes": 19515,
+      "after_prompt_bytes": 17877,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-04",
+      "before_prompt_bytes": 19091,
+      "after_prompt_bytes": 17477,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-05",
+      "before_prompt_bytes": 19355,
+      "after_prompt_bytes": 17728,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-06",
+      "before_prompt_bytes": 18439,
+      "after_prompt_bytes": 16862,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-07",
+      "before_prompt_bytes": 23822,
+      "after_prompt_bytes": 21823,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-08",
+      "before_prompt_bytes": 19323,
+      "after_prompt_bytes": 17696,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-09",
+      "before_prompt_bytes": 19228,
+      "after_prompt_bytes": 17601,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-10",
+      "before_prompt_bytes": 19139,
+      "after_prompt_bytes": 17525,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-11",
+      "before_prompt_bytes": 19346,
+      "after_prompt_bytes": 17720,
+      "evidence_equal": true
+    },
+    {
+      "id": "recommend-12",
+      "before_prompt_bytes": 19848,
+      "after_prompt_bytes": 18209,
+      "evidence_equal": true
+    }
+  ],
+  "before_bytes": 235773,
+  "after_bytes": 215932,
+  "reduction_fraction": 0.08415297765223329,
+  "limits": "Same candidate context with default versus compact JSON. Byte reduction does not measure token, latency or model-quality improvement."
+}

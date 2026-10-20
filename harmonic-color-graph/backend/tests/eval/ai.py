@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import re
+import time
 from contextlib import contextmanager
 from datetime import UTC, datetime
 from decimal import Decimal
@@ -21,6 +22,7 @@ from app.recommend.candidates import Candidate
 from app.recommend.features import extract_features
 from app.recommend.scorer import INTENT_AXES, intent_score
 from app.theory.relationships_v2 import RULES
+from tests.eval.ai_diagnostics import RequestDiagnostics, reproducibility, route_diagnostics
 
 CORPUS = Path(__file__).with_name("ai_benchmark.jsonl")
 THRESHOLDS = {
@@ -77,10 +79,17 @@ class RecordingTools:
     def __init__(self, delegate: HarmonicTools) -> None:
         self.delegate = delegate
         self.called: list[str] = []
+        self.timings: list[dict[str, Any]] = []
 
     def call(self, name: str, arguments: dict[str, Any]) -> Any:
         self.called.append(name)
-        return self.delegate.call(name, arguments)
+        started = time.perf_counter()
+        try:
+            return self.delegate.call(name, arguments)
+        finally:
+            self.timings.append(
+                {"tool": name, "latency_ms": (time.perf_counter() - started) * 1000}
+            )
 
 
 @contextmanager
@@ -275,8 +284,11 @@ def run(
         if accounted_cost + per_case_bound > max_cost_usd:
             break
         before = meter.cost_usd
+        usage_before = meter.as_log()["model_usage"]
         unknown_before = meter.unknown_usage_calls
         uncertain_cost = False
+        diagnostics = RequestDiagnostics()
+        tools = None
         try:
             with _tool_scope(fixture=fixture) as delegate:
                 tools = RecordingTools(delegate)
@@ -285,12 +297,19 @@ def run(
                     if live
                     else AssistantWorkflow(tools)
                 )
-                final = next(
-                    payload for event, payload in workflow.stream(case["input"]) if event == "final"
-                )
+                diagnostics.attach(workflow)
+                final = None
+                for event, payload in workflow.stream(case["input"]):
+                    diagnostics.event(event, payload)
+                    if event == "final":
+                        final = payload
+                if final is None:
+                    raise ValueError("Workflow did not deliver a final frame")
+                timing = diagnostics.finish()
             response = AssistantResponse.model_validate(final["response"])
             parsed = ParsedIntent.model_validate(final["parsed_intent"])
             row = _measure(case, response, parsed, tools.called)
+            row["actual_route"] = response.route
             uncertain_cost = live and any("model_failed" in code for code in response.errors)
             if ragas and response.claims and len(ragas_samples) < 3:
                 ragas_samples.append(
@@ -306,16 +325,39 @@ def run(
                 )
         except Exception as exc:
             row = {"error": type(exc).__name__}
+            timing = diagnostics.finish()
             uncertain_cost = live
         actual_cost = meter.cost_usd - before
         if uncertain_cost or (live and meter.unknown_usage_calls > unknown_before):
             # A timeout can be billed even when the provider returns no usage.
             # Reserve the whole request bound before allowing another case.
-            accounted_cost += max(per_case_bound, actual_cost)
+            case_cost = max(per_case_bound, actual_cost)
             unknown_cost_cases.append(case["id"])
         else:
-            accounted_cost += actual_cost
-        rows.append({"id": case["id"], **row})
+            case_cost = actual_cost
+        accounted_cost += case_cost
+        usage_after = meter.as_log()["model_usage"]
+        rows.append(
+            {
+                "id": case["id"],
+                "expected_route": case["intent"]["route"],
+                **row,
+                "diagnostics": {**timing, "tools": tools.timings if tools else []},
+                "metered_cost_usd": str(actual_cost),
+                "accounted_cost_usd": str(case_cost),
+                "model_usage": {
+                    name: {
+                        key: (
+                            str(Decimal(value) - Decimal(usage_before.get(name, {}).get(key, "0")))
+                            if key == "cost_usd"
+                            else value - usage_before.get(name, {}).get(key, 0)
+                        )
+                        for key, value in totals.items()
+                    }
+                    for name, totals in usage_after.items()
+                },
+            }
+        )
     summary = summarize(rows, len(cases), accounted_cost)
     report = {
         "ran_at": datetime.now(UTC).isoformat(),
@@ -325,6 +367,8 @@ def run(
         "metered_cost_usd": str(meter.cost_usd),
         "unknown_cost_cases": unknown_cost_cases,
         "model_usage": meter.as_log()["model_usage"],
+        "reproducibility": reproducibility(cases, live=live, fixture=fixture),
+        "route_diagnostics": route_diagnostics(rows),
         **summary,
         "cases": rows,
     }
@@ -360,9 +404,27 @@ def render_markdown(report: dict[str, Any]) -> str:
             "The fact coverage proxy checks cited claims against the deterministic validator; "
             "it does not prove semantic entailment.",
             "See the JSON artifact for per-case failures and called tools.",
+            "Timings are in-process workflow measurements, not production HTTP/SSE latency. "
+            "Route groups use expected routes and include misroutes; p95 uses nearest rank. "
+            "Small samples do not establish a reliable tail.",
             "",
         ]
     )
+    if report.get("route_diagnostics"):
+        lines += [
+            "| Route | Completed/attempts | p50 ms | p95 ms | Fallbacks | Repair calls |",
+            "|---|---:|---:|---:|---:|---:|",
+        ]
+        for route, values in report["route_diagnostics"].items():
+            p50 = values["p50_workflow_ms"]
+            p95 = values["p95_workflow_ms"]
+            lines.append(
+                f"| {route} | {values['completed']}/{values['attempts']} | "
+                f"{f'{p50:.1f}' if p50 is not None else 'n/a'} | "
+                f"{f'{p95:.1f}' if p95 is not None else 'n/a'} | "
+                f"{values['fallbacks']} | {values['repair_calls']} |"
+            )
+        lines.append("")
     return "\n".join(lines)
 
 

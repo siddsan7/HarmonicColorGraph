@@ -1,0 +1,3012 @@
+{
+  "ran_at": "2026-10-20T06:40:49.422573+00:00",
+  "mode": "offline",
+  "data_source": "seeded_fixture",
+  "max_cost_usd": "1",
+  "metered_cost_usd": "0",
+  "unknown_cost_cases": [],
+  "model_usage": {},
+  "reproducibility": {
+    "source_commit": "1db9cbf6a2cc57c34e76ec2f9ff862a5b7e3aa38",
+    "source_branch": "codex/intent-reliability-diagnostics",
+    "python": "3.12.10",
+    "dirty": true,
+    "source_sha256": {
+      "app/ai/workflow.py": "bb74da9b480adfcc8233ff4f55a7bed25835bb6c548c3d76c5c4acd67df03b14",
+      "app/ai/intent_fallback.py": "8c97e037ca18c3086ffa099ff0ba70997953679de6f336e062c3c1d4770c6df2",
+      "app/recommend/scorer.py": "37bf77dfcc325e8516dcfd1b8ad3973feb2000fca3c80bd0123b059bc4a0f4c2",
+      "app/recommend/features.py": "f1f41a433cc3a429ab5e0bd339860ed2ef0ffbd060711151bb7bd935002a7bf3",
+      "tests/eval/ai.py": "54f14d5b8f11f04afbc4ae4a55dec270c248a135748a3c60737e46caf335af70",
+      "tests/eval/ai_diagnostics.py": "b705f72efdea2605d7dc8eabaa0338f0f9155371e2c0d4a7811ef6441f12ad91"
+    },
+    "case_sha256": "dea639fffa862ec79576dd8144874fa3a5f484fac082692258769d9a123a852d",
+    "weights_sha256": "fe88830f93b69ace8e45aa4cebce9c2e7c018ac4af9789a9b46307281be6d272",
+    "models": {},
+    "corpus_version": "ai-eval-v1",
+    "timing_boundary": "in-process workflow including tool scope; excludes HTTP/SSE transport",
+    "first_useful_boundary": "validated explanation text; candidates arrive in final frame",
+    "cache_state": "uncontrolled; process caches may warm across cases",
+    "p95_method": "nearest rank; small samples do not establish a reliable tail"
+  },
+  "route_diagnostics": {
+    "clarify": {
+      "attempts": 2,
+      "completed": 2,
+      "request_failures": 0,
+      "fallbacks": 2,
+      "fallback_rate": 1.0,
+      "repair_calls": 0,
+      "accounted_cost_usd": "0",
+      "cost_per_completed_request_usd": "0",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "model_calls": 0,
+      "p50_workflow_ms": 153.22619999642484,
+      "p95_workflow_ms": 170.85840000072494,
+      "p50_first_validated_text_ms": 152.40540000377223,
+      "p95_first_validated_text_ms": 170.0321999960579
+    },
+    "compare": {
+      "attempts": 4,
+      "completed": 4,
+      "request_failures": 0,
+      "fallbacks": 4,
+      "fallback_rate": 1.0,
+      "repair_calls": 0,
+      "accounted_cost_usd": "0",
+      "cost_per_completed_request_usd": "0",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "model_calls": 0,
+      "p50_workflow_ms": 41.275350013165735,
+      "p95_workflow_ms": 46.235499990871176,
+      "p50_first_validated_text_ms": 40.12870001315605,
+      "p95_first_validated_text_ms": 45.43469997588545
+    },
+    "explain": {
+      "attempts": 8,
+      "completed": 8,
+      "request_failures": 0,
+      "fallbacks": 8,
+      "fallback_rate": 1.0,
+      "repair_calls": 0,
+      "accounted_cost_usd": "0",
+      "cost_per_completed_request_usd": "0",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "model_calls": 0,
+      "p50_workflow_ms": 9.42139999824576,
+      "p95_workflow_ms": 10.05709997843951,
+      "p50_first_validated_text_ms": 8.902899993699975,
+      "p95_first_validated_text_ms": 9.532099997159094
+    },
+    "generate": {
+      "attempts": 8,
+      "completed": 8,
+      "request_failures": 0,
+      "fallbacks": 8,
+      "fallback_rate": 1.0,
+      "repair_calls": 0,
+      "accounted_cost_usd": "0",
+      "cost_per_completed_request_usd": "0",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "model_calls": 0,
+      "p50_workflow_ms": 816.5104999934556,
+      "p95_workflow_ms": 976.5327000059187,
+      "p50_first_validated_text_ms": 815.6813999958104,
+      "p95_first_validated_text_ms": 975.6868999975268
+    },
+    "recommend": {
+      "attempts": 12,
+      "completed": 12,
+      "request_failures": 0,
+      "fallbacks": 12,
+      "fallback_rate": 1.0,
+      "repair_calls": 0,
+      "accounted_cost_usd": "0",
+      "cost_per_completed_request_usd": "0",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "model_calls": 0,
+      "p50_workflow_ms": 218.46129999903496,
+      "p95_workflow_ms": 243.60029998933896,
+      "p50_first_validated_text_ms": 217.64645000803284,
+      "p95_first_validated_text_ms": 242.4209000018891
+    },
+    "similar": {
+      "attempts": 6,
+      "completed": 6,
+      "request_failures": 0,
+      "fallbacks": 6,
+      "fallback_rate": 1.0,
+      "repair_calls": 0,
+      "accounted_cost_usd": "0",
+      "cost_per_completed_request_usd": "0",
+      "tokens_in": 0,
+      "tokens_out": 0,
+      "model_calls": 0,
+      "p50_workflow_ms": 9.481150002102368,
+      "p95_workflow_ms": 85.58569999877363,
+      "p50_first_validated_text_ms": 8.925050002289936,
+      "p95_first_validated_text_ms": 84.84659998794086
+    }
+  },
+  "cases_completed": 40,
+  "cases_total": 40,
+  "claims": 22,
+  "intent_cases": 12,
+  "cost_usd": "0",
+  "metrics": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 0.925,
+    "intent_match": 0.75,
+    "intent_parse_match": 1.0,
+    "color_axis_match": 0.75,
+    "tool_correct": 0.925,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 1.0
+  },
+  "thresholds": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 0.9,
+    "intent_match": 0.75,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 0.95
+  },
+  "passed": false,
+  "cases": [
+    {
+      "id": "recommend-01",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.04285714285714293,
+        "tense_relaxed": -0.15,
+        "common_surprising": -0.291259374819711,
+        "simple_complex": 0.0,
+        "resolved_open": 0.45,
+        "smooth": -0.04166666666666652,
+        "dreamy": 0.1
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "darker_brighter": -0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 215.14090002165176,
+        "first_validated_text_ms": 214.43840002757497,
+        "node_ms": {
+          "intent_parser": 8.419100020546466,
+          "analyze": 0.9205999958794564,
+          "router": 0.39289999403990805,
+          "retrieve": 147.83329999772832,
+          "color_score": 49.95210000197403,
+          "validate": 0.32400002237409353,
+          "rank": 0.26699999580159783,
+          "explain": 0.28279999969527125,
+          "format_playback": 0.20330000552348793,
+          "final": 0.21769999875687063
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5090999766252935
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 147.31790000223555
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.12010000483133
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.197900025872514
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.887700021266937
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-02",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.08571428571428563,
+        "tense_relaxed": -0.15,
+        "common_surprising": -0.36269424693483865,
+        "simple_complex": 0.0,
+        "resolved_open": -0.3,
+        "smooth": -0.12499999999999989,
+        "dreamy": 0.1
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "darker_brighter": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 213.91660001245327,
+        "first_validated_text_ms": 212.97799999592826,
+        "node_ms": {
+          "intent_parser": 1.3131000159773976,
+          "analyze": 0.7455000013578683,
+          "router": 0.3282999969087541,
+          "retrieve": 155.07589999469928,
+          "color_score": 50.250800006324425,
+          "validate": 0.3794000076595694,
+          "rank": 0.3110000106971711,
+          "explain": 0.3249000001233071,
+          "format_playback": 0.3302999830339104,
+          "final": 0.2969999914057553
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.43009998626075685
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 154.52880001976155
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.599600010318682
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.656000000191852
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.167999983532354
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-03",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0035714285714285587,
+        "tense_relaxed": -0.38,
+        "common_surprising": -0.2792190574483112,
+        "simple_complex": 0.25,
+        "resolved_open": 0.6499999999999999,
+        "smooth": 0.04166666666666652,
+        "dreamy": 0.10624999999999998
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "tense_relaxed": -0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 217.73919998668134,
+        "first_validated_text_ms": 216.77190001355484,
+        "node_ms": {
+          "intent_parser": 1.1240000021643937,
+          "analyze": 0.6995000003371388,
+          "router": 0.2930999908130616,
+          "retrieve": 153.79949999623932,
+          "color_score": 55.22819998441264,
+          "validate": 0.47060000360943377,
+          "rank": 0.3761999832931906,
+          "explain": 0.4002999921794981,
+          "format_playback": 0.30750001315027475,
+          "final": 0.2819000219460577
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.40580000495538116
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 153.27229999820702
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.677300009177998
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 19.50819999910891
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.169999995734543
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-04",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": true,
+      "color_axis_match": false,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": 0.75,
+        "smooth": 0.33333333333333326,
+        "dreamy": 0.15
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "tense_relaxed": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 215.68299998762086,
+        "first_validated_text_ms": 214.792499988107,
+        "node_ms": {
+          "intent_parser": 1.4214999973773956,
+          "analyze": 0.8034000056795776,
+          "router": 0.33500001882202923,
+          "retrieve": 152.52699999837205,
+          "color_score": 53.87899998459034,
+          "validate": 0.49500001478008926,
+          "rank": 0.38300000596791506,
+          "explain": 0.381799996830523,
+          "format_playback": 0.27829999453388155,
+          "final": 0.2604000037536025
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4822000046260655
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 151.94710000650957
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.649700010428205
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.548999974271283
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.66510001127608
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-05",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": true,
+      "color_axis_match": false,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.042857142857142816,
+        "tense_relaxed": 0.3,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": -0.6499999999999999,
+        "smooth": 0.0,
+        "dreamy": 0.13
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "common_surprising": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 243.60029998933896,
+        "first_validated_text_ms": 242.4209000018891,
+        "node_ms": {
+          "intent_parser": 0.9520000021439046,
+          "analyze": 0.6329999887384474,
+          "router": 0.2936999953817576,
+          "retrieve": 180.39929997758009,
+          "color_score": 54.21519998344593,
+          "validate": 0.3336999798193574,
+          "rank": 0.2742999931797385,
+          "explain": 0.42470000335015357,
+          "format_playback": 0.4421000194270164,
+          "final": 0.32140000257641077
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.3698000218719244
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 179.8494000104256
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.597400001250207
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.828899988671765
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.0296000035014
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-06",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.042857142857142816,
+        "tense_relaxed": 0.15,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": -0.75,
+        "smooth": 0.0,
+        "dreamy": 0.115
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "common_surprising": -0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 241.7385999870021,
+        "first_validated_text_ms": 241.01830000290647,
+        "node_ms": {
+          "intent_parser": 1.3664000143762678,
+          "analyze": 0.6766000005882233,
+          "router": 0.29230001382529736,
+          "retrieve": 173.56489997473545,
+          "color_score": 58.767199981957674,
+          "validate": 0.3552999987732619,
+          "rank": 0.2640000020619482,
+          "explain": 0.29299999005161226,
+          "format_playback": 0.21730002481490374,
+          "final": 0.2038000093307346
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.38880002102814615
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 172.95730000478216
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 20.747200003825128
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.661899997619912
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 19.561100023565814
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-07",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.042857142857142816,
+        "tense_relaxed": 0.3,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": -0.6499999999999999,
+        "smooth": 0.04166666666666674,
+        "dreamy": 0.13
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "resolved_open": -0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 216.28950000740588,
+        "first_validated_text_ms": 215.54840001044795,
+        "node_ms": {
+          "intent_parser": 1.2239000061526895,
+          "analyze": 0.7996000058483332,
+          "router": 0.36299999919719994,
+          "retrieve": 144.86780000152066,
+          "color_score": 63.326100003905594,
+          "validate": 0.305800000205636,
+          "rank": 0.24059999850578606,
+          "explain": 0.2722999779507518,
+          "format_playback": 0.19699998665601015,
+          "final": 0.1925000105984509
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.49130001571029425
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 144.30059998994693
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 22.420099994633347
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 20.228100009262562
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 19.838800013531
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-08",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.36269424693483865,
+        "simple_complex": 0.0,
+        "resolved_open": 0.3,
+        "smooth": 0.33333333333333326,
+        "dreamy": 0.15
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "resolved_open": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 233.64069999661297,
+        "first_validated_text_ms": 232.93210001429543,
+        "node_ms": {
+          "intent_parser": 1.1642999888863415,
+          "analyze": 0.7048999832477421,
+          "router": 0.3090999962296337,
+          "retrieve": 170.90430000098422,
+          "color_score": 54.154699988430366,
+          "validate": 0.34210001467727125,
+          "rank": 0.2586000191513449,
+          "explain": 0.28420001035556197,
+          "format_playback": 0.20400001085363328,
+          "final": 0.2046999870799482
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.41009997949004173
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 170.31660000793636
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 21.77819999633357
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.951300010783598
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.500999987125397
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-09",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.0,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.33029005387644805,
+        "simple_complex": 0.0,
+        "resolved_open": 0.0,
+        "smooth": 0.33333333333333326,
+        "dreamy": 0.15
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "smooth": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 219.18340001138858,
+        "first_validated_text_ms": 218.52100000251085,
+        "node_ms": {
+          "intent_parser": 1.7177999834530056,
+          "analyze": 1.2836000241804868,
+          "router": 0.42550000944174826,
+          "retrieve": 155.2259000018239,
+          "color_score": 54.449799994472414,
+          "validate": 0.2930000191554427,
+          "rank": 0.2358000201638788,
+          "explain": 0.25090001872740686,
+          "format_playback": 0.18699999782256782,
+          "final": 0.18370000179857016
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.7782000175211579
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 154.6960000123363
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.818499978398904
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 20.535399991786107
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.328300000168383
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-10",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": false,
+      "intent_parse_match": true,
+      "color_axis_match": false,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.37142857142857144,
+        "tense_relaxed": 0.0,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": 0.45,
+        "smooth": 0.08333333333333337,
+        "dreamy": 0.11875
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "simple_complex": -0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 214.2376999836415,
+        "first_validated_text_ms": 213.4150000056252,
+        "node_ms": {
+          "intent_parser": 1.131500001065433,
+          "analyze": 0.6705999840050936,
+          "router": 0.28899998869746923,
+          "retrieve": 152.5813000043854,
+          "color_score": 52.91589998523705,
+          "validate": 0.385499995900318,
+          "rank": 0.41859998600557446,
+          "explain": 0.32389999250881374,
+          "format_playback": 0.24210000992752612,
+          "final": 0.2314999874215573
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.3992999845650047
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 152.0306000020355
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.655499999411404
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.344599997159094
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.91839999007061
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-11",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": -0.03928571428571426,
+        "tense_relaxed": -0.08000000000000002,
+        "common_surprising": -0.2792190574483112,
+        "simple_complex": 0.25,
+        "resolved_open": 0.3,
+        "smooth": 0.2499999999999999,
+        "dreamy": 0.13749999999999998
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "simple_complex": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 235.29860001872294,
+        "first_validated_text_ms": 234.64350000722334,
+        "node_ms": {
+          "intent_parser": 1.5429000195581466,
+          "analyze": 0.8315000159200281,
+          "router": 0.3695000195875764,
+          "retrieve": 166.5625000023283,
+          "color_score": 59.20649998006411,
+          "validate": 0.2899999963119626,
+          "rank": 0.2347000117879361,
+          "explain": 0.24920000578276813,
+          "format_playback": 0.18470000941306353,
+          "final": 0.1789000234566629
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4788000078406185
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 166.05060000438243
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 23.147700005210936
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.045399999711663
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 19.26219998858869
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "recommend-12",
+      "expected_route": "recommend",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {
+        "darker_brighter": 0.042857142857142816,
+        "tense_relaxed": 0.15,
+        "common_surprising": -0.3738798807501711,
+        "simple_complex": 0.0,
+        "resolved_open": -0.75,
+        "smooth": -0.12499999999999989,
+        "dreamy": 0.115
+      },
+      "intent_scored": true,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {
+        "dreamy": 0.7
+      },
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 222.85069999634288,
+        "first_validated_text_ms": 221.62070000194944,
+        "node_ms": {
+          "intent_parser": 1.3002000050619245,
+          "analyze": 0.6860000139568001,
+          "router": 0.29799999902024865,
+          "retrieve": 164.51649999362417,
+          "color_score": 48.80409999168478,
+          "validate": 0.30910002533346415,
+          "rank": 0.458099995739758,
+          "explain": 0.595899997279048,
+          "format_playback": 0.38989997119642794,
+          "final": 0.3370000049471855
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4031999851576984
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 163.95279997959733
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.37789999949746
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.25610001408495
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.428900009486824
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-01",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 784.1726999904495,
+        "first_validated_text_ms": 783.2737999851815,
+        "node_ms": {
+          "intent_parser": 1.1844999971799552,
+          "analyze": 0.21320002269931138,
+          "router": 0.31800000579096377,
+          "retrieve": 691.1812000034843,
+          "color_score": 84.22940000309609,
+          "validate": 0.4070000140927732,
+          "rank": 0.32869999995455146,
+          "explain": 0.3420999855734408,
+          "format_playback": 0.25419998564757407,
+          "final": 0.239099987084046
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 690.4727000219282
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 30.257799982791767
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 27.29279999039136
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 25.787899998249486
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-02",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 841.1276999977417,
+        "first_validated_text_ms": 839.9215000099503,
+        "node_ms": {
+          "intent_parser": 1.114599988795817,
+          "analyze": 0.2297000028192997,
+          "router": 0.30220000189729035,
+          "retrieve": 779.0027000010014,
+          "color_score": 54.16270002024248,
+          "validate": 0.34779999987222254,
+          "rank": 0.28910001856274903,
+          "explain": 0.3136999730486423,
+          "format_playback": 0.22539999918080866,
+          "final": 0.21809997269883752
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 778.2523999921978
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 18.346400000154972
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.665599996689707
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.299900006037205
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-03",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 976.5327000059187,
+        "first_validated_text_ms": 975.6868999975268,
+        "node_ms": {
+          "intent_parser": 1.670199999352917,
+          "analyze": 0.31939998734742403,
+          "router": 0.42929998016916215,
+          "retrieve": 847.0334000012372,
+          "color_score": 117.99869997776113,
+          "validate": 0.3801999846473336,
+          "rank": 0.32599997939541936,
+          "explain": 0.3158000181429088,
+          "format_playback": 0.2403999969828874,
+          "final": 0.2201999886892736
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 846.2732000043616
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 37.44210000149906
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 39.26990000763908
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 40.35870000370778
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-04",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 776.9677999895066,
+        "first_validated_text_ms": 776.1089999985415,
+        "node_ms": {
+          "intent_parser": 1.250800007255748,
+          "analyze": 0.32800002372823656,
+          "router": 0.43539999751374125,
+          "retrieve": 705.4004999808967,
+          "color_score": 62.816499994369224,
+          "validate": 0.3533000126481056,
+          "rank": 0.292200013063848,
+          "explain": 0.3019999712705612,
+          "format_playback": 0.22749998606741428,
+          "final": 0.22379998699761927
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 704.7062999918126
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 24.881399993319064
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.133500001160428
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 20.96319998963736
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-05",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile",
+        "format_playback"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 856.5837000205647,
+        "first_validated_text_ms": 845.3697000222746,
+        "node_ms": {
+          "intent_parser": 1.0352999961469322,
+          "analyze": 0.2507000172045082,
+          "router": 0.3259000077378005,
+          "retrieve": 734.4080999901053,
+          "color_score": 103.9341000141576,
+          "validate": 0.34630001755431294,
+          "rank": 0.2893000200856477,
+          "explain": 0.3066000062972307,
+          "format_playback": 10.591700003715232,
+          "final": 0.24839999969117343
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 733.7701999931596
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 31.378500018035993
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 32.916000025579706
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 38.87459999532439
+          },
+          {
+            "tool": "format_playback",
+            "latency_ms": 10.290899983374402
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-06",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 834.1941999970004,
+        "first_validated_text_ms": 833.3272000018042,
+        "node_ms": {
+          "intent_parser": 0.9184999798890203,
+          "analyze": 0.2313000150024891,
+          "router": 0.31599999056197703,
+          "retrieve": 724.0499000181444,
+          "color_score": 102.29420001269318,
+          "validate": 0.3726000140886754,
+          "rank": 0.30280000646598637,
+          "explain": 0.3328000020701438,
+          "format_playback": 0.2432999899610877,
+          "final": 0.235399988014251
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 723.4575000184122
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 33.8503000093624
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 31.27659999881871
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 36.3634999957867
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-07",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 798.8267999899108,
+        "first_validated_text_ms": 798.0355999898165,
+        "node_ms": {
+          "intent_parser": 0.9306000138167292,
+          "analyze": 0.23659999715164304,
+          "router": 0.33160002203658223,
+          "retrieve": 723.1119000061881,
+          "color_score": 67.99350000801496,
+          "validate": 0.3580999909900129,
+          "rank": 0.2838000073097646,
+          "explain": 0.2986000035889447,
+          "format_playback": 0.22390001686289907,
+          "final": 0.21660001948475838
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 722.5424000062048
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 22.21939997980371
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 24.547499982872978
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 20.519199984846637
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "generate-08",
+      "expected_route": "generate",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 758.5165000054985,
+        "first_validated_text_ms": 757.6355999917723,
+        "node_ms": {
+          "intent_parser": 1.0374999837949872,
+          "analyze": 0.2562000008765608,
+          "router": 0.32750001992098987,
+          "retrieve": 659.0972000267357,
+          "color_score": 91.39499999582767,
+          "validate": 0.3920000162906945,
+          "rank": 0.3181000065524131,
+          "explain": 0.33229999826289713,
+          "format_playback": 0.25579999783076346,
+          "final": 0.2342999796383083
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 658.4313999919686
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 32.102800003485754
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 30.241500004194677
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 28.23629998601973
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-01",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 2,
+      "claim_count": 2,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 8.09710001340136,
+        "first_validated_text_ms": 7.624599995324388,
+        "node_ms": {
+          "intent_parser": 0.9628999978303909,
+          "analyze": 0.5721999914385378,
+          "router": 0.30519999563694,
+          "retrieve": 0.3434999962337315,
+          "color_score": 0.23560001864098012,
+          "validate": 0.23079998209141195,
+          "rank": 0.24389999452978373,
+          "explain": 0.42249998659826815,
+          "format_playback": 0.20889998995698988,
+          "final": 0.19240000983700156
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.29830000130459666
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.09360001422464848
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-02",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 1,
+      "claim_count": 1,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 8.82429999182932,
+        "first_validated_text_ms": 8.376599987968802,
+        "node_ms": {
+          "intent_parser": 1.1493000201880932,
+          "analyze": 0.6288000149652362,
+          "router": 0.34680002136155963,
+          "retrieve": 0.37190000875853,
+          "color_score": 0.2573999809101224,
+          "validate": 0.2531000063754618,
+          "rank": 0.24540000595152378,
+          "explain": 0.35909999860450625,
+          "format_playback": 0.20129999029450119,
+          "final": 0.18309999722987413
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.32699998700991273
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.09119999594986439
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-03",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 2,
+      "claim_count": 2,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 9.303600003477186,
+        "first_validated_text_ms": 8.80810001399368,
+        "node_ms": {
+          "intent_parser": 1.1736000014934689,
+          "analyze": 0.7893000147305429,
+          "router": 0.3847000189125538,
+          "retrieve": 0.39500001003034413,
+          "color_score": 0.2820999943651259,
+          "validate": 0.27609997778199613,
+          "rank": 0.2761000068858266,
+          "explain": 0.44230002094991505,
+          "format_playback": 0.21919998107478023,
+          "final": 0.19950000569224358
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.44070000876672566
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.09660000796429813
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-04",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 1,
+      "claim_count": 1,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 8.983899984741583,
+        "first_validated_text_ms": 8.487699989927933,
+        "node_ms": {
+          "intent_parser": 1.0760000150185078,
+          "analyze": 0.7166000141296536,
+          "router": 0.3824999730568379,
+          "retrieve": 0.4379000165499747,
+          "color_score": 0.281100015854463,
+          "validate": 0.27150000096298754,
+          "rank": 0.2643000043462962,
+          "explain": 0.40480002644471824,
+          "format_playback": 0.22629997693002224,
+          "final": 0.19809999503195286
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.36700000055134296
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.1221999991685152
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-05",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 4,
+      "claim_count": 4,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 9.574399999110028,
+        "first_validated_text_ms": 9.063999983482063,
+        "node_ms": {
+          "intent_parser": 1.131199998781085,
+          "analyze": 0.884700013557449,
+          "router": 0.41229999624192715,
+          "retrieve": 0.40679998346604407,
+          "color_score": 0.2975999959744513,
+          "validate": 0.28139998903498054,
+          "rank": 0.27099999715574086,
+          "explain": 0.6258999928832054,
+          "format_playback": 0.22600000374950469,
+          "final": 0.20119998953305185
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.53190000471659
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.09640000644139946
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-06",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 3,
+      "claim_count": 3,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 9.539199993014336,
+        "first_validated_text_ms": 8.99769997340627,
+        "node_ms": {
+          "intent_parser": 1.1642000172287226,
+          "analyze": 0.8356000180356205,
+          "router": 0.3859999997075647,
+          "retrieve": 0.48779998905956745,
+          "color_score": 0.2893999917432666,
+          "validate": 0.32419999479316175,
+          "rank": 0.2894999925047159,
+          "explain": 0.5358999769669026,
+          "format_playback": 0.2499000111129135,
+          "final": 0.20790001144632697
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4823999770451337
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.18030000501312315
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-07",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 4,
+      "claim_count": 4,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 10.05709997843951,
+        "first_validated_text_ms": 9.532099997159094,
+        "node_ms": {
+          "intent_parser": 1.3046000094618648,
+          "analyze": 0.9883999882731587,
+          "router": 0.4047999973408878,
+          "retrieve": 0.3981000045314431,
+          "color_score": 0.29009999707341194,
+          "validate": 0.2806999837048352,
+          "rank": 0.27910000062547624,
+          "explain": 0.6382999999914318,
+          "format_playback": 0.22929999977350235,
+          "final": 0.20619999850168824
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.600800005486235
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.09220000356435776
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "explain-08",
+      "expected_route": "explain",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 5,
+      "claim_count": 5,
+      "called_tools": [
+        "analyze_progression",
+        "explain_transition"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable",
+        "explain_transition:corpus_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "explain",
+      "diagnostics": {
+        "workflow_completion_ms": 9.619799995562062,
+        "first_validated_text_ms": 9.09269999829121,
+        "node_ms": {
+          "intent_parser": 1.1131000064779073,
+          "analyze": 0.9208999981638044,
+          "router": 0.38979999953880906,
+          "retrieve": 0.381199992261827,
+          "color_score": 0.28940002084709704,
+          "validate": 0.2766000106930733,
+          "rank": 0.26679999427869916,
+          "explain": 0.7301000005099922,
+          "format_playback": 0.22999997599981725,
+          "final": 0.19920000340789557
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5540999991353601
+          },
+          {
+            "tool": "explain_transition",
+            "latency_ms": 0.08440000237897038
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "similar-01",
+      "expected_route": "similar",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "similar",
+      "diagnostics": {
+        "workflow_completion_ms": 10.083300003316253,
+        "first_validated_text_ms": 9.577299992088228,
+        "node_ms": {
+          "intent_parser": 1.0804000194184482,
+          "analyze": 0.8860999951139092,
+          "router": 0.37930000689812005,
+          "retrieve": 0.9477999992668629,
+          "color_score": 0.2927999885287136,
+          "validate": 0.33179999445565045,
+          "rank": 0.2741999924182892,
+          "explain": 0.2830000012181699,
+          "format_playback": 0.22159999934956431,
+          "final": 0.1970999874174595
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5403000104706734
+          },
+          {
+            "tool": "similar_progressions",
+            "latency_ms": 0.5930000043008476
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "similar-02",
+      "expected_route": "similar",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "similar",
+      "diagnostics": {
+        "workflow_completion_ms": 9.905700018862262,
+        "first_validated_text_ms": 9.389100014232099,
+        "node_ms": {
+          "intent_parser": 1.137399987783283,
+          "analyze": 0.8819999929983169,
+          "router": 0.3761999832931906,
+          "retrieve": 0.8677000005263835,
+          "color_score": 0.2992999798152596,
+          "validate": 0.2699999895412475,
+          "rank": 0.25949999690055847,
+          "explain": 0.2962999860756099,
+          "format_playback": 0.22429999080486596,
+          "final": 0.20349997794255614
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5333000153768808
+          },
+          {
+            "tool": "similar_progressions",
+            "latency_ms": 0.5538999976124614
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "similar-03",
+      "expected_route": "similar",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": false,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": false,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "recommend_next",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "recommend",
+      "diagnostics": {
+        "workflow_completion_ms": 85.58569999877363,
+        "first_validated_text_ms": 84.84659998794086,
+        "node_ms": {
+          "intent_parser": 1.1576999968383461,
+          "analyze": 0.8917999803088605,
+          "router": 0.384299986762926,
+          "retrieve": 1.2864999880548567,
+          "color_score": 74.40760001190938,
+          "validate": 0.31510001281276345,
+          "rank": 0.2798000059556216,
+          "explain": 0.26030000299215317,
+          "format_playback": 0.19500000053085387,
+          "final": 0.1914000022225082
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5507000023499131
+          },
+          {
+            "tool": "recommend_next",
+            "latency_ms": 0.9125000215135515
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 24.883199977921322
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 25.323899986688048
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 23.50409998325631
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "similar-04",
+      "expected_route": "similar",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "similar",
+      "diagnostics": {
+        "workflow_completion_ms": 9.056599985342473,
+        "first_validated_text_ms": 8.460999990347773,
+        "node_ms": {
+          "intent_parser": 0.978299998678267,
+          "analyze": 0.7292000227607787,
+          "router": 0.312299991492182,
+          "retrieve": 1.2224999954923987,
+          "color_score": 0.2843999827746302,
+          "validate": 0.25010001263581216,
+          "rank": 0.23980002151802182,
+          "explain": 0.2708999963942915,
+          "format_playback": 0.26729999808594584,
+          "final": 0.22259997786022723
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4393999988678843
+          },
+          {
+            "tool": "similar_progressions",
+            "latency_ms": 0.7885000086389482
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "similar-05",
+      "expected_route": "similar",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "similar",
+      "diagnostics": {
+        "workflow_completion_ms": 7.86139999399893,
+        "first_validated_text_ms": 7.457700005033985,
+        "node_ms": {
+          "intent_parser": 0.9883999882731587,
+          "analyze": 0.7255999953486025,
+          "router": 0.29399999766610563,
+          "retrieve": 0.6995000003371388,
+          "color_score": 0.22300001000985503,
+          "validate": 0.21850000484846532,
+          "rank": 0.21940001170150936,
+          "explain": 0.24259998463094234,
+          "format_playback": 0.17970000044442713,
+          "final": 0.15960002201609313
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.44299999717622995
+          },
+          {
+            "tool": "similar_progressions",
+            "latency_ms": 0.4484000091906637
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "similar-06",
+      "expected_route": "similar",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "similar_progressions"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "similar",
+      "diagnostics": {
+        "workflow_completion_ms": 7.967199984705076,
+        "first_validated_text_ms": 7.550599984824657,
+        "node_ms": {
+          "intent_parser": 0.9450000070501119,
+          "analyze": 0.7570000016130507,
+          "router": 0.3074000123888254,
+          "retrieve": 0.7182999979704618,
+          "color_score": 0.235699990298599,
+          "validate": 0.22089999401941895,
+          "rank": 0.23450001026503742,
+          "explain": 0.24220001068897545,
+          "format_playback": 0.18579998868517578,
+          "final": 0.16120000509545207
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.46609999844804406
+          },
+          {
+            "tool": "similar_progressions",
+            "latency_ms": 0.458399998024106
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "compare-01",
+      "expected_route": "compare",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "compare",
+      "diagnostics": {
+        "workflow_completion_ms": 42.14900001534261,
+        "first_validated_text_ms": 41.39790000044741,
+        "node_ms": {
+          "intent_parser": 1.1697000009007752,
+          "analyze": 0.7036000024527311,
+          "router": 0.32049999572336674,
+          "retrieve": 33.92770001664758,
+          "color_score": 0.37650001468136907,
+          "validate": 0.2940000267699361,
+          "rank": 0.2717000024858862,
+          "explain": 0.2835000050254166,
+          "format_playback": 0.2195000124629587,
+          "final": 0.20790001144632697
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.41799998143687844
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.88859999901615
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4613999917637557
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 16.41750000999309
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.49100001342594624
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "compare-02",
+      "expected_route": "compare",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "compare",
+      "diagnostics": {
+        "workflow_completion_ms": 46.235499990871176,
+        "first_validated_text_ms": 45.43469997588545,
+        "node_ms": {
+          "intent_parser": 1.4254999987315387,
+          "analyze": 0.8602000016253442,
+          "router": 0.362000020686537,
+          "retrieve": 37.169599992921576,
+          "color_score": 0.36529998760670424,
+          "validate": 0.2964999875985086,
+          "rank": 0.31109998235479,
+          "explain": 0.30270000570453703,
+          "format_playback": 0.2164000179618597,
+          "final": 0.2148000057786703
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5210000090301037
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.584399989573285
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5203000036999583
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 17.824100010329857
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5460999964270741
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "compare-03",
+      "expected_route": "compare",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "compare",
+      "diagnostics": {
+        "workflow_completion_ms": 39.706400013528764,
+        "first_validated_text_ms": 38.85950002586469,
+        "node_ms": {
+          "intent_parser": 1.371799997286871,
+          "analyze": 0.860599975567311,
+          "router": 0.3653000167105347,
+          "retrieve": 30.45429999474436,
+          "color_score": 0.37460000021383166,
+          "validate": 0.30759998480789363,
+          "rank": 0.29830000130459666,
+          "explain": 0.3178000042680651,
+          "format_playback": 0.23940001847222447,
+          "final": 0.22860002354718745
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.520500005222857
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 15.207899996312335
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5494000215549022
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 13.466899981722236
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5514999793376774
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "compare-04",
+      "expected_route": "compare",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": true,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": true,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression",
+        "color_profile",
+        "analyze_progression"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "compare",
+      "diagnostics": {
+        "workflow_completion_ms": 40.40170001098886,
+        "first_validated_text_ms": 38.65940001560375,
+        "node_ms": {
+          "intent_parser": 1.4549000188708305,
+          "analyze": 0.8132000220939517,
+          "router": 0.361400016117841,
+          "retrieve": 30.179200024576858,
+          "color_score": 0.3795000084210187,
+          "validate": 0.3667999990284443,
+          "rank": 0.29940000968053937,
+          "explain": 0.3178000042680651,
+          "format_playback": 0.2398999931756407,
+          "final": 0.22980000358074903
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.4912000149488449
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 14.308299985714257
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5233999982010573
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 14.158000005409122
+          },
+          {
+            "tool": "analyze_progression",
+            "latency_ms": 0.5156999977771193
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "clarify-01",
+      "expected_route": "clarify",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": false,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": false,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 135.59399999212474,
+        "first_validated_text_ms": 134.77860001148656,
+        "node_ms": {
+          "intent_parser": 1.1418999929446727,
+          "analyze": 0.26959998649545014,
+          "router": 0.35620000562630594,
+          "retrieve": 43.91730000497773,
+          "color_score": 83.70550000108778,
+          "validate": 0.32419999479316175,
+          "rank": 0.25389998336322606,
+          "explain": 0.2750999992713332,
+          "format_playback": 0.20959999528713524,
+          "final": 0.24049999774433672
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 43.271200003800914
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 33.443400025134906
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 25.388899986865
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 24.104899988742545
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    },
+    {
+      "id": "clarify-02",
+      "expected_route": "clarify",
+      "schema_valid": true,
+      "must_not": true,
+      "routing": false,
+      "intent_match": true,
+      "intent_parse_match": true,
+      "color_axis_match": true,
+      "measured_axis_deltas": {},
+      "intent_scored": false,
+      "tool_correct": false,
+      "theory_valid": true,
+      "required_tags": true,
+      "valid_claims": 0,
+      "claim_count": 0,
+      "called_tools": [
+        "generate_progression",
+        "color_profile",
+        "color_profile",
+        "color_profile"
+      ],
+      "validator_codes": [],
+      "fallback": true,
+      "error_codes": [
+        "intent_model_unavailable"
+      ],
+      "parsed_intent_axes": {},
+      "actual_route": "generate",
+      "diagnostics": {
+        "workflow_completion_ms": 170.85840000072494,
+        "first_validated_text_ms": 170.0321999960579,
+        "node_ms": {
+          "intent_parser": 0.9570999827701598,
+          "analyze": 0.22789998911321163,
+          "router": 0.3087999939452857,
+          "retrieve": 79.02049997937866,
+          "color_score": 84.3575999897439,
+          "validate": 0.40110002737492323,
+          "rank": 0.28639999800361693,
+          "explain": 0.2955000090878457,
+          "format_playback": 0.22339998395182192,
+          "final": 0.218400004087016
+        },
+        "model_calls": [],
+        "repair_calls": 0,
+        "tools": [
+          {
+            "tool": "generate_progression",
+            "latency_ms": 78.35990001331083
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 30.641999997897074
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 26.707399985753
+          },
+          {
+            "tool": "color_profile",
+            "latency_ms": 26.185199996689335
+          }
+        ]
+      },
+      "metered_cost_usd": "0",
+      "accounted_cost_usd": "0",
+      "model_usage": {}
+    }
+  ]
+}

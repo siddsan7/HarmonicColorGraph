@@ -14,6 +14,7 @@ from langgraph.graph import END, START, StateGraph
 from langsmith.run_helpers import tracing_context
 from pydantic import ValidationError
 
+from app.ai.intent_fallback import explicit_axes
 from app.ai.state import (
     INTENT_AXIS_GUIDE,
     AssistantCandidate,
@@ -152,6 +153,7 @@ def heuristic_intent(query: str) -> ParsedIntent:
         chords=chords[:16],
         key=key_match.group(1) if key_match else None,
         variants=variants,
+        intent_axes=explicit_axes(query) if route == "recommend" else {},
         export=_requests_playback(query),
     )
 
@@ -723,7 +725,7 @@ class AssistantWorkflow:
                 "Use tool_results as evidence; use only chord and figure symbols present there. "
                 "Do not assert emotions as objective fact or name a song without an example: fact. "
                 "If naming a theory relationship, provide its registry ID in theory_labels. "
-                f"Context: {json.dumps(context, ensure_ascii=False)}"
+                f"Context: {json.dumps(context, ensure_ascii=False, separators=(',', ':'))}"
             )
             for attempt in range(MAIN_MAX_CALLS):
                 if len(prompt.encode("utf-8")) > MAIN_MAX_PROMPT_BYTES:

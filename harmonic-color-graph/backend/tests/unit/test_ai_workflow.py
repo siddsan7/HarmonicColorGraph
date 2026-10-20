@@ -28,6 +28,32 @@ ROUTING_QUERIES = [
 ]
 
 
+def test_explanation_context_removes_only_json_whitespace():
+    import json
+
+    prompts = []
+
+    def explain(prompt):
+        prompts.append(prompt)
+        return {"claims": [{"text": "Tool evidence is available.", "fact_ids": ["fact:1"]}]}
+
+    profile = {"summary": {"brightness": 0.5}, "evidence": ["preserve spaces in strings"]}
+    result = AssistantWorkflow(None, explanation_model=explain)._explain(
+        {
+            "raw_user_query": "Recommend a next chord",
+            "route": "recommend",
+            "fact_pool": {"fact:1": {}},
+            "tool_results": {"color_profile:0": profile},
+        }
+    )
+    assert not result["fallback"]
+    context = prompts[0].split("Context: ", 1)[1]
+    parsed = json.loads(context)
+    assert parsed["tool_results"]["color_profile:0"] == profile
+    assert context == json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+    assert len(context.encode()) < len(json.dumps(parsed, ensure_ascii=False).encode())
+
+
 def test_explanation_prompt_does_not_duplicate_candidate_color_profiles():
     import json
 
