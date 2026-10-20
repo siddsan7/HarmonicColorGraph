@@ -2,6 +2,17 @@ name: AI evaluation
 
 on:
   workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [benchmark, paired_live]
+        default: benchmark
+      reconciliation_cutoff:
+        type: string
+        default: ''
+      ip_nonce:
+        type: string
+        default: ''
   schedule:
     - cron: '17 6 * * 1'
 
@@ -10,6 +21,7 @@ permissions:
 
 jobs:
   benchmark:
+    if: github.event_name != 'workflow_dispatch' || inputs.mode != 'paired_live'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     defaults:
@@ -43,3 +55,106 @@ jobs:
         with:
           name: ai-eval-report
           path: harmonic-color-graph/backend/.agent-logs/ai-eval/
+
+  paired-live:
+    if: github.event_name == 'workflow_dispatch' && inputs.mode == 'paired_live' && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: hcg-pr78-paired-live
+      cancel-in-progress: false
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      HCG_PAIRED_EVAL_DATABASE_URL: ${{ secrets.HCG_PAIRED_EVAL_DATABASE_URL }}
+      HCG_LLM_FAST_MODEL: claude-haiku-4-5-20251001
+      HCG_LLM_MODEL: claude-sonnet-5
+      HCG_LLM_FAST_INPUT_USD_PER_MTOK: '1'
+      HCG_LLM_FAST_OUTPUT_USD_PER_MTOK: '5'
+      HCG_LLM_INPUT_USD_PER_MTOK: '2'
+      HCG_LLM_OUTPUT_USD_PER_MTOK: '10'
+      HCG_CORPUS_VERSION: cv-2026-10-b
+      HCG_DAILY_AI_BUDGET_USD: '2'
+      HCG_IP_HASH_SECRET: ${{ inputs.ip_nonce }}
+      LANGSMITH_TRACING: 'false'
+      HCG_ENV: development
+      EVAL_CUTOFF: ${{ inputs.reconciliation_cutoff }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: harness
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 8ed6dfb5e63a7c5e417e3ffedd17d532e4548dec
+          path: baseline
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: e668de33d217417f4ef7dff53c576aa46b8f44b8
+          path: candidate
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: candidate/harmonic-color-graph/backend/pyproject.toml
+      - name: Validate explicit paired mode and credentials
+        run: |
+          test "$GITHUB_RUN_ATTEMPT" = 1
+          test "$(git -C harness rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(git -C baseline rev-parse HEAD)" = 8ed6dfb5e63a7c5e417e3ffedd17d532e4548dec
+          test "$(git -C candidate rev-parse HEAD)" = e668de33d217417f4ef7dff53c576aa46b8f44b8
+          test -n "$ANTHROPIC_API_KEY"
+          test -n "$HCG_PAIRED_EVAL_DATABASE_URL"
+          test -n "$EVAL_CUTOFF"
+          test -n "$HCG_IP_HASH_SECRET"
+          mkdir paired-output
+      - name: Install existing backend dependencies
+        run: pip install -e 'candidate/harmonic-color-graph/backend[dev]'
+      - name: Verify and record corpus identity before requests
+        run: python harness/harmonic-color-graph/scripts/paired_live_snapshot.py paired-output/corpus-before.json
+      - name: Resolve configured models without inference
+        run: python harness/harmonic-color-graph/scripts/paired_live_snapshot.py paired-output/model-catalog.json --check-models
+      - name: Start isolated baseline and candidate HTTP servers
+        run: |
+          set -e
+          export DATABASE_URL="$HCG_PAIRED_EVAL_DATABASE_URL"
+          export VERCEL_GIT_COMMIT_SHA=8ed6dfb5e63a7c5e417e3ffedd17d532e4548dec
+          python harness/harmonic-color-graph/backend/tests/eval/paired_live.py serve --backend baseline/harmonic-color-graph/backend --diagnostics paired-output/baseline-diagnostics.jsonl --port 8081 >baseline-server.log 2>&1 &
+          echo $! > baseline-server.pid
+          export VERCEL_GIT_COMMIT_SHA=e668de33d217417f4ef7dff53c576aa46b8f44b8
+          python harness/harmonic-color-graph/backend/tests/eval/paired_live.py serve --backend candidate/harmonic-color-graph/backend --diagnostics paired-output/candidate-diagnostics.jsonl --port 8082 >candidate-server.log 2>&1 &
+          echo $! > candidate-server.pid
+          python harness/harmonic-color-graph/scripts/paired_live_snapshot.py --wait-servers
+      - name: Run single bounded live comparison
+        run: |
+          python harness/harmonic-color-graph/backend/tests/eval/paired_live.py run \
+            --baseline-backend baseline/harmonic-color-graph/backend \
+            --candidate-backend candidate/harmonic-color-graph/backend \
+            --baseline-diagnostics paired-output/baseline-diagnostics.jsonl \
+            --candidate-diagnostics paired-output/candidate-diagnostics.jsonl \
+            --baseline-url http://127.0.0.1:8081 --candidate-url http://127.0.0.1:8082 \
+            --cutoff "$EVAL_CUTOFF" --corpus cv-2026-10-b --prior-spend 10.207600 --total-ceiling 12.157483 --cap 1.949883 \
+            --output paired-output
+      - name: Verify corpus identity after requests
+        if: always()
+        run: python harness/harmonic-color-graph/scripts/paired_live_snapshot.py paired-output/corpus-after.json --compare paired-output/corpus-before.json
+      - name: Stop isolated servers
+        if: always()
+        run: |
+          for file in baseline-server.pid candidate-server.pid; do
+            if test -f "$file"; then kill "$(cat "$file")" 2>/dev/null || true; fi
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pr78-paired-live-${{ github.run_id }}
+          path: |
+            paired-output/report.json
+            paired-output/ledger.json
+            paired-output/corpus-before.json
+            paired-output/corpus-after.json
+            paired-output/model-catalog.json
+            paired-output/baseline-diagnostics.jsonl
+            paired-output/candidate-diagnostics.jsonl
+          if-no-files-found: warn

@@ -1,0 +1,229 @@
+{
+  "protocol": {
+    "version": 1,
+    "candidate": "first matching top5 with plausibility >= original winner",
+    "strong_request": "all nonzero axes have absolute magnitude >= 0.7",
+    "dev_count": 200,
+    "test_count": 400,
+    "dev_seed": 1781,
+    "test_seed": 1782,
+    "gates": {
+      "version": 1,
+      "scales": [
+        6.0,
+        8.0,
+        10.0,
+        12.0
+      ],
+      "dev_count": 200,
+      "test_count": 400,
+      "dev_seed": 781,
+      "test_seed": 782,
+      "minimum_feasible_gain": 0.02,
+      "maximum_request_regression": 0.02,
+      "maximum_mrr5_loss": 0.02,
+      "minimum_geomean_plausibility_ratio": 0.5,
+      "promotion_requires_positive_song_bootstrap_lower_bound": true,
+      "bootstrap_repeats": 2000,
+      "bootstrap_seed": 783,
+      "selection": "highest gain passing all dev gates, smallest scale on tie; if none pass, highest gain is diagnostic-only and cannot promote",
+      "requests": {
+        "darker": {
+          "darker_brighter": -0.7
+        },
+        "brighter": {
+          "darker_brighter": 0.7
+        },
+        "tense": {
+          "tense_relaxed": -0.7
+        },
+        "relaxed": {
+          "tense_relaxed": 0.7
+        },
+        "common": {
+          "common_surprising": -0.7
+        },
+        "surprising": {
+          "common_surprising": 0.7
+        },
+        "simple": {
+          "simple_complex": -0.7
+        },
+        "complex": {
+          "simple_complex": 0.7
+        },
+        "resolved": {
+          "resolved_open": -0.7
+        },
+        "open": {
+          "resolved_open": 0.7
+        },
+        "smooth": {
+          "smooth": 0.7
+        },
+        "rough": {
+          "smooth": -0.7
+        },
+        "dreamy": {
+          "dreamy": 0.7
+        },
+        "weak_bright": {
+          "darker_brighter": 0.1
+        },
+        "weak_surprise": {
+          "common_surprising": 0.1
+        },
+        "weak_smooth": {
+          "smooth": 0.1
+        },
+        "dark_smooth": {
+          "darker_brighter": -0.7,
+          "smooth": 0.7
+        },
+        "relaxed_complex": {
+          "tense_relaxed": 0.7,
+          "simple_complex": 0.7
+        }
+      }
+    },
+    "selection": "one fixed candidate; failed development prohibits test",
+    "exclusions": "all old sampled dev/test songs and fresh development songs"
+  },
+  "sources": {
+    "sections_sha256": "26c31745e30633e64919d8e62bca38fb6e362f609609d27fdb2f13af3308c462",
+    "ngrams_sha256": "ad0602157e89c9bfba4d2a8ff63040b091c1c8306a87b8c8cc855ce1260d7789",
+    "weights_sha256": "fe88830f93b69ace8e45aa4cebce9c2e7c018ac4af9789a9b46307281be6d272",
+    "scorer_sha256": "2272d8010cc04ff0772b36506e5eda96b923b108587d24c8131b571e93031888",
+    "runner_sha256": "9cb13bab892a035cfbf88d17890fe8d01e85f06d6493d3ff7c00837ce8a0d940",
+    "algorithm_sha256": {
+      "app\\__init__.py": "678b38f0eff63cb98ffd4cf4380fb239e6eedaec8a84b3091b3a2e67087c0b3b",
+      "app\\ai\\__init__.py": "f30a85372e0f50ecda70f5209f781f875031edc496c4fc568038d5711fd9f850",
+      "app\\ai\\explanation_constraints.py": "31de5c69d217bd410a3722ed214860c5aae7d0dcd8a97d87b5e38d35d666f5b8",
+      "app\\ai\\intent_fallback.py": "b06424136f7148e1348fbf38adaee0c897663a1c38b48ef9cff5caa2c5b8106e",
+      "app\\ai\\logs.py": "d64b366522a8364c04de91a8f0675ad27142052199bf1d1f24b34eeae02504d7",
+      "app\\ai\\schemas.py": "4e1989dc69a845d5f8ca7e5dc07f323a7a5ac472c133f3aad06d77889f3ddeb1",
+      "app\\ai\\state.py": "0dc588d833e54c7e65e8618e68fbf6a4e943372fa2a0a67f7450f92a10d0d67e",
+      "app\\ai\\text.py": "92c943d969701c77ab1d0418d0ee2e93b18cb0e62b94686112242a74e1790a6d",
+      "app\\ai\\tools.py": "f2e8fb0fc3a1e011d4bad16c92d317a0a36fef39f2cf24de6265b61dbb81a9d5",
+      "app\\ai\\usage.py": "098855410e787849bc4a799cfdc6fb40b57786213da4c84f632cbedce86b091c",
+      "app\\ai\\validators.py": "6fd58dd5f9f0abec339f462e462f195df0d18c51af3435ee8bb7eb45f0acdfe7",
+      "app\\ai\\workflow.py": "35116275e774039aa3ba70061ebaf44345543d1d525f2f848b20c2b304233537",
+      "app\\api\\__init__.py": "ee2721a72fbc622051e62291c5a6aca5c6225488aaa7be5dc0b228227458344e",
+      "app\\api\\admin_metrics_v2.py": "93481d7e297f2b90904ebb4d12b1b338aebaf44e990d39ed0f0fc2c8ba6b54a2",
+      "app\\api\\ai_v2.py": "cbcdcb6626a2dbc6d693709aca544fb7f1feee952d191b28ecbda3653d1e6f74",
+      "app\\api\\analysis_v2.py": "d9a78ed2547d037b5b40ec76e706e8eb18dbd9f487a627d5518042d86bbc41c8",
+      "app\\api\\color_v2.py": "8dc27714bb19e4b4220bb73aa03b1c6574a085d2b41c4a88e2bdd11b135c8850",
+      "app\\api\\examples_v2.py": "f546909bbbd8e0595f66d9769dca425a7e34014b4693dc40e0a5bb529338f885",
+      "app\\api\\generate_v2.py": "f63224bf563dccc3735b679b3030d21c74a90532824e9fca07c931009ccdd70d",
+      "app\\api\\graph_v2.py": "180578c80fbbdfcb47e2836da944d8add2fa354af591c1be2a1da3bc0818238e",
+      "app\\api\\jobs_v2.py": "4a52eadbfbc13cbbe2671add6d93d9d18f4d422093860758d4780cae69fb2ebb",
+      "app\\api\\phase1.py": "de322987c18d8aa75722f4362a7f4c97343dfe32a8c27e04aa228521a9b8ebd1",
+      "app\\api\\recommend_v2.py": "ea223056bd4d4472354ec693914c2c972ff5142c9a9d26e813d641883abf7dbd",
+      "app\\api\\similar_v2.py": "4c578d57c124465b0fe7246c2712a3140a417ac3a8cf77aebba24e272064faac",
+      "app\\api\\substitutes_v2.py": "3add14429c70e1f0404c0c7a742ca860c607715ec1c1533fe509cd3b036178f9",
+      "app\\color\\__init__.py": "5432c4b46ae101818d4451867f1b27360d30470128ec42fce770c78235e168ad",
+      "app\\color\\features.py": "af43bab7bb314a1fa730feaf09060314e9fbd0b11fa25f8509e578cc1fc0b728",
+      "app\\color\\norms.py": "35e56ee699370d77e17f3cbc6c71bd788b6389ea43130648d065ac5d1501e85b",
+      "app\\color\\perceptual.py": "78875738c7463defe50e3825b0da149607d952d09824e574aa6fdb508e3df7bb",
+      "app\\color\\profile.py": "5bc9ac69d7d776b2cde776b76f0bb3b51e3c397fd837c3a9e7447994d4c3cb87",
+      "app\\core\\__init__.py": "ea3c87c0c4af2bd1e2d54455322b353e3d0fc97e838ad09e5b87607b03aac7a1",
+      "app\\core\\cache.py": "94ffc3bdd9359d9143ffa862fb53c320b9441d6e498f2c0409bece67c6735fcc",
+      "app\\core\\config.py": "8151c810bd6f23f799f396c396c80dfa43da629e9987c9f5e12568f7a03af494",
+      "app\\core\\maintenance.py": "558cbdea2674facb970a85f8f177823c883d1d9d066375dd8acf6a0627947c51",
+      "app\\core\\metrics.py": "c7ce416ea35b15c26044cca8cf796df85784aa56a3e8f7164c9abb4bc90e8ef3",
+      "app\\core\\redis.py": "2a4fecc7473ca3f5d44f44c6cd1484a827e7104a9763b6d1a1110d8ed72685d9",
+      "app\\core\\request_metrics.py": "03e58bfc704d47bcdbe0fed344a4aae1e578ab4ad336be946e2a63df54a05701",
+      "app\\core\\telemetry.py": "e6e167dde3fe5df89d5260d0859195ae06da1528976545553302f6767658903c",
+      "app\\db\\__init__.py": "d1568c2bc1e5bcecbda14060e8dbfc37ffa0cea5dd311a8aaaf8b7f916e5f8b3",
+      "app\\db\\base.py": "9c66297e5a33427ac1cb06538296d360c325bc41622ced5553d21f3b2525ed61",
+      "app\\db\\repositories.py": "92cfb513f2914deb07c34c30dbf3f01a5565e82abcef9b6ac6d0677cf0d3121f",
+      "app\\db\\session.py": "3c3535a387d08defc41464bcf1c56ae07f6a995103d961530cf52df8e66efd01",
+      "app\\db\\stores\\__init__.py": "2138c586112a37b90eac34cfab2ad7b87682488003a92c48da6fbb65d97a5b14",
+      "app\\db\\stores\\embeddings.py": "5fda877524084fbd15b0ac88f74b66a1f005a5a70764d505a490db998d3f7597",
+      "app\\db\\stores\\graph.py": "6896fae8eabe78a17ce3f53bd98e496144eb63bbebd23191670defa971ebdcf0",
+      "app\\db\\stores\\recommendation_candidates.py": "2ddfe0237a5e19f666d6d5d73337047415eb8d6df843365a7791c670e419407b",
+      "app\\graph\\__init__.py": "3681d24e5142f2d083f314d3c3d715009c98f9e776618c6c6c309271eaa34a1c",
+      "app\\graph\\service.py": "97a079c57485552741eca9af2cfe456177907e75ff169dd9fe5895c3750fac53",
+      "app\\ingestion\\__init__.py": "753728cf241cd1611443592650c9b1ce32c7aa320f1c6e9e61f27b53fdd26ae5",
+      "app\\ingestion\\chordonomicon.py": "abcabb47770cc25ab92ba63a9436f2da1788ab10b9b44ebc6f79499d7e23c091",
+      "app\\ingestion\\metrics_report.py": "82540a22a67424f0116f585ae278b3874597ffe126a5fc53f608e02761ae403b",
+      "app\\ingestion\\seed_corpus.py": "601cf5826d154838d3197e6f6af38bc94f73cb37643064253a6e83eb1eeae097",
+      "app\\jobs\\__init__.py": "76ab57ddcd5f0a214968b499322374f703e0bbee59c6e17e3720ab970f6d7949",
+      "app\\jobs\\handlers.py": "a9effbee6007885035948d00b4be28ed98fe345546b0de7dc6aa6f02dfdf279a",
+      "app\\jobs\\policy.py": "4d4e174c1a86da197d55b59c9e6027bdd77e3af9ecb177a4e2af33650d8bd8e4",
+      "app\\jobs\\queue.py": "89125169f5513fe3beb4f7f8516e2a132b3b14647125becdda21c6852e09d7f5",
+      "app\\jobs\\repository.py": "5d70ba5103f0ec77d9c2e3fbdc1e6fb267aebef40bf0ceeb82bf9a668191ab14",
+      "app\\jobs\\schemas.py": "ec5d47e357ddab6e2a5289b5f5e6184273dce16364e62d19af242bf9daa01d6d",
+      "app\\jobs\\worker_runtime.py": "b7c52a8a71c384fd8b96d177cd00d5d7ad09db924022b56671a82805cf0f2f69",
+      "app\\main.py": "a02d54d7efcae5b510d07e0aa245afcec6f461c8e64abdc22d43890c25b79edd",
+      "app\\mcp\\__init__.py": "29dcf610d97810c51c6dcf1a570cda89c58f8e9377309f83b2bfcce3f16a8d7c",
+      "app\\mcp\\server.py": "2371e3992887ed86385aa6c06ffa9d66c3d78d44d05a73d7f5f23866c5fca20d",
+      "app\\models\\__init__.py": "371758dffc0e6215b5ebe41338d7e302a5a79bc012dd227b76a922d63a8535b8",
+      "app\\models\\harmony.py": "22786ffc1b279289720756573a950c5e52124067d3c8b445fd88f91272c35489",
+      "app\\ngram_contract.py": "fb0124313b58ce55df88159d2eb88d2f76716b7edc0d3a5cd3e73c777fd4594e",
+      "app\\predict\\__init__.py": "b0bb56dea896889d14f16e074ed67d5496106105b050a950628dd469aabde471",
+      "app\\predict\\ngram.py": "7e3b74f9c4c65a13ab092f6c75f52e0f0f00fe0ecb357af3ce4f286bbb5c03d8",
+      "app\\predict\\realize.py": "03eaf0e6161a227cb639e0b751b54a58cbb58956da6c08696d894db966dbf0f1",
+      "app\\recommend\\__init__.py": "9303321ab860fdc4e8d5cef06dc850aa42856c3b3f5429cf2e3da0711d7eb9a5",
+      "app\\recommend\\candidates.py": "866eaa27ec351eb70cd7e409db06add92805e68c6663d3da73389e2f06625586",
+      "app\\recommend\\features.py": "5d0789e04f0015161d4e5b416bc4f5c4ebe41466c4c98e7f02ebf8ecfd5427e9",
+      "app\\recommend\\generate.py": "f4812bde2746bd191144a8095f4d853e901018d324fbecaf41b7d0dad3a3bf69",
+      "app\\recommend\\scorer.py": "2272d8010cc04ff0772b36506e5eda96b923b108587d24c8131b571e93031888",
+      "app\\recommend\\substitutes.py": "b136d719fdd0217226a63ff4ca5293435b99e5ec3eca80e4e9ba14538c9c50ef",
+      "app\\runtime_check.py": "015e557cb7e1c715b1b4e0b1f97da9d15f84ffd3d1327aa29b44c70a12a8af88",
+      "app\\schemas\\__init__.py": "06b44bbedd9757d0e5977c39440805dde174c7feb2751ff32b17c9f87d6b8e08",
+      "app\\schemas\\analysis_v2.py": "939afc7cfeae6d65c6ea0ed2b211fee74c804cc3ce55af707170c350cf048f38",
+      "app\\schemas\\color_v2.py": "38f269b3d6c7acdf385a6b880aed4dcff42684f05eeba6709a317cca5dea37a6",
+      "app\\schemas\\generate_v2.py": "eeabe0f55a3531196b24133b94f16f642f82a83d2be0bacde47ac04695f4ba69",
+      "app\\schemas\\harmony.py": "b5e11286ecd705644a6a1cb3ce3a756423bb51a06fc8e9db7cf1d255f176b451",
+      "app\\schemas\\recommend_v2.py": "37d4a6893f05cf9efcb719e5a38dce8021554697723e41e349c4e6f392cb4081",
+      "app\\schemas\\similar_v2.py": "e7ccc27076741eadbb8f4285b77180975dd1d3245df925196aa0eeb1dc90e4d4",
+      "app\\schemas\\substitutes_v2.py": "b83fde495432376f8e3bb7bfc14631f3ff5836207fe6374d56e0c4b5fcc3ba36",
+      "app\\services\\__init__.py": "283efc9772f0242ab3977c9abde442e6ae539cf275a0426af50ec6bdeae46b57",
+      "app\\services\\analysis.py": "7df69ed984d759326b892fb7e72bca8d00d6734661e11429db3b19f078f194d7",
+      "app\\services\\color_profile.py": "c55dad2dc2fec5e76e3722e9d52841748ab552ac84dfbfd66feab90250d74262",
+      "app\\services\\corpus_ingestion.py": "70e379096f8a4511ebbfc6520a8565336451a6dc97b3bf291fef348b0a57ab22",
+      "app\\services\\quality_metrics.py": "d57cb65dd3ccb59f3a09de67e32bbc4502dd2197470fa14ba8a3050bc84bc311",
+      "app\\services\\recommend.py": "ef0a8295d8a2dcb2c2def5cea63d2c3a8b529463dbb54468116a908959ac159f",
+      "app\\services\\similarity.py": "e13655cbfbe96aa210c82e81ff0170301ede831d37f7aaf76238533f489083ed",
+      "app\\services\\transition_graph.py": "7d917446ec34080d896f32775b8c320febc321ff2288c7ff032f390d5c62c6c2",
+      "app\\services\\transition_lookup.py": "45d0eedaa51b897f72f473b984907c78064bcd018dcb8a5389d0544aadc5af2f",
+      "app\\theory\\__init__.py": "b06f1de21a4f39a648239a860deff2ef1b7a873dd9434315266f6ea7cebe96de",
+      "app\\theory\\chord_normalizer.py": "347f5375fccd504b155641c3b743b66724a48a8604ac29ecbbcdd9509d07048a",
+      "app\\theory\\core_tokens.py": "f37dc1daca7ab132685ae3afbb83d34bb760ad339585e9881f19d14301312a2b",
+      "app\\theory\\keys.py": "5d95af8ccf850ae979788cb9fa0c4bba5f1351916e2a1fcfe0e96f604ae8abab",
+      "app\\theory\\language.py": "19bc30cfe9f2ca8e9192f4fe53f04e4472001123279a9d7deabd181716816d36",
+      "app\\theory\\progression_normalizer.py": "b456d21507c5640286563ddf116fe5ba274ac8861f16aac01439050e59a5a57f",
+      "app\\theory\\relationships.py": "c3612a4abcd8208b95e4434470d0789ce22c3b48a1b28a3d5c03e2acd8f80437",
+      "app\\theory\\relationships_v2.py": "a603e23ac741d62f516be796a9d8a9725fb583223bd59cf52d823ae5375e8f35",
+      "app\\theory\\roman.py": "cea5adf3997e1888cc5896a66732fd1d8dfb38f7a9da3981a4ba42479a5f3ef2",
+      "app\\theory\\roman_analysis.py": "884c8ede04c785e44de7d564cd6792ecae895450a6a25e41785087e8165f0a65",
+      "app\\theory\\spelling.py": "787ef5da4d716456e30e47979cf11e2b1983afcd06b639d979a2000c8798b29a",
+      "app\\theory\\voice_leading.py": "c4baa8d85c3c29f3216a22494423ca3736c869546435614d90a8a54fd296e1e4",
+      "app\\worker.py": "e877aac76c33cf60597174f0f01ca932987457b524750d37c3f1ae4738a3b532",
+      "app\\color\\perceptual_params.json": "2cfc46903a6cb512c52ce310fda216a8a2fc73a4ae3d1c0cdfa01f55a6591a61",
+      "app\\color\\rules\\color_rules.json": "e11c5385efd38b22282c181bb13c39a17016215cc8465c2cf398c681d543de46",
+      "app\\recommend\\weights\\plausibility_v1.json": "fe88830f93b69ace8e45aa4cebce9c2e7c018ac4af9789a9b46307281be6d272",
+      "app\\theory\\keys_params.json": "6cb1240e9744c97775fbf704113e2d66813d21ae2f1fc017a4304d12a68e1a35",
+      "tests\\eval\\sampling.py": "1d555e32c37896fca7fed4d11a17444f19e8e84c20216289a14f5389ae6bf8b0"
+    },
+    "experiment_sha256": "374f9a0c3bd3e5a74cf09cbdb0ecc4884ef21c3e26f452167555839333ad9fee",
+    "comparison_runner_sha256": "9cb13bab892a035cfbf88d17890fe8d01e85f06d6493d3ff7c00837ce8a0d940",
+    "train_membership_sha256": "431148b2565e95d9f336867217f2622c2793b85642dc266b19b6f72f4e1ea306"
+  },
+  "split_overlap": {
+    "train_dev": 0,
+    "train_test": 0,
+    "dev_test": 0
+  },
+  "excluded_prior_songs": 596,
+  "private_sha256": "5865bd2c7bab3dee7cd2d44429cba543a049c4c293a3f52c5f003e2110ca1048",
+  "membership_sha256": {
+    "dev": "0b009917a13ff77538abbc8df7183bdb60180001cecb78f9a6289b3665f08986",
+    "test": "08b465e03d8dc10dd41fb63b91f9b517341ce4322bea83bc0e38191bf029f730"
+  },
+  "songs": {
+    "dev": 200,
+    "test": 397
+  }
+}

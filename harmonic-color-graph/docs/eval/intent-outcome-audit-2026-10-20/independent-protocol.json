@@ -1,0 +1,24 @@
+{
+  "protocol": {
+    "sample": "100 unique test songs; first unique song among fixed seeded position permutation",
+    "seed": 6782,
+    "requests": "unchanged ranking_experiment.REQUESTS (18)",
+    "minimum_feasible_gain": 0.02,
+    "maximum_request_regression": 0.02,
+    "maximum_mrr5_loss": 0.02,
+    "minimum_geomean_plausibility_ratio": 0.5,
+    "neutral_unchanged": true,
+    "policy": "one evaluation per frozen candidate; no tuning after opening; only promoted development candidate may open challenge",
+    "domain": "train-only ngram/theory; graph only if candidate research protocol includes it; no paid providers",
+    "freshness": "song-disjoint all prior experimental/reserved songs plus concurrent ranking and coverage dev/test; not globally untouched corpus songs"
+  },
+  "private_sha256": "f7a775c6fc83e00fb511a44338984fe7358b9bfbe21991440c142cf8d90f7864",
+  "membership_sha256": "d72950c87151aafe62114bce85a7b6e7d28f1611e2204b438a876e06218c9271",
+  "positions": 100,
+  "songs": 100,
+  "excluded_songs": 2781,
+  "train_overlap": 0,
+  "prior_and_concurrent_overlap": 0,
+  "sections_sha256": "26c31745e30633e64919d8e62bca38fb6e362f609609d27fdb2f13af3308c462",
+  "ngrams_sha256": "ad0602157e89c9bfba4d2a8ff63040b091c1c8306a87b8c8cc855ce1260d7789"
+}

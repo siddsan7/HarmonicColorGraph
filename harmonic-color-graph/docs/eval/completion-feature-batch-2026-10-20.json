@@ -1,0 +1,119 @@
+{
+  "baseline_commit": "8ed6dfb5e63a7c5e417e3ffedd17d532e4548dec",
+  "exact_feature_rows": 514,
+  "exact_ranking_sets": 16,
+  "request_contexts": 8,
+  "candidates_per_context": [
+    34,
+    34,
+    34,
+    34,
+    34,
+    29,
+    29,
+    29
+  ],
+  "warmup_pairs": 2,
+  "alternating_paired_repeats": 9,
+  "timing_scope": "local deterministic feature extraction only; no database, model, HTTP, or transport",
+  "median_ms": {
+    "baseline": 1329.255299991928,
+    "candidate": 670.9670000127517
+  },
+  "median_reduction_fraction": 0.4952309010791034,
+  "color_computations": {
+    "baseline": 514,
+    "candidate": 265
+  },
+  "scenarios": [
+    {
+      "history": [
+        "M:I"
+      ],
+      "key": "C major",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "M:V7",
+        "M:I"
+      ],
+      "key": "D major",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "M:IV",
+        "M:I"
+      ],
+      "key": "D major",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "M:Imaj7",
+        "M:iii7",
+        "M:vi7"
+      ],
+      "key": "E major",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "M:V7/V",
+        "M:V7"
+      ],
+      "key": "Gb major",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "m:i"
+      ],
+      "key": "A minor",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "m:iv",
+        "m:V7",
+        "m:i"
+      ],
+      "key": "G minor",
+      "pool": "all realizable theory_expansions in key"
+    },
+    {
+      "history": [
+        "m:V7",
+        "m:i"
+      ],
+      "key": "Eb minor",
+      "pool": "all realizable theory_expansions in key"
+    }
+  ],
+  "environment": {
+    "python": "3.12.10",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "cpu": "Intel64 Family 6 Model 197 Stepping 2, GenuineIntel",
+    "cache": "two paired warmups; alternating order; unrelated host load uncontrolled"
+  },
+  "source_sha256": {
+    "app\\recommend\\features.py": "5d0789e04f0015161d4e5b416bc4f5c4ebe41466c4c98e7f02ebf8ecfd5427e9",
+    "app\\services\\recommend.py": "ef0a8295d8a2dcb2c2def5cea63d2c3a8b529463dbb54468116a908959ac159f"
+  },
+  "baseline_source_sha256": "d993ab5e2fadbeb65833057b5ad5f74eae0360fb86107b318c7fa2d734a81f96",
+  "limitations": [
+    "Feature-only benchmark; no claim about production request p50 or reaching 8 seconds.",
+    "Theory pools span 29-34 options; graph/vector candidates, database and models are not timed.",
+    "Exact reference comparison is against pre-change source, not against the refactored wrapper.",
+    "No ranking weights, benchmark or held-out data changed.",
+    "Benchmark ran with focused tests on same host; alternating order limits but does not eliminate load effects."
+  ],
+  "baseline_sha256_normalization": "Git baseline source bytes; candidate working-tree bytes (line endings may differ).",
+  "paired_timing_ratios": {
+    "median": 0.5269464446899341,
+    "minimum": 0.4795773964931887,
+    "maximum": 0.5534627145990633
+  },
+  "detailed_timings": "Ignored local .agent-logs/completion-feature-batch.json; retained by experiment owner."
+}

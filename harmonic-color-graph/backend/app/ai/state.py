@@ -82,6 +82,24 @@ class AssistantCandidate(StrictModel):
     source_tool: str
 
 
+class CandidatePreviewItem(StrictModel):
+    chords: list[Chord] = Field(min_length=1, max_length=16)
+    fact_ids: list[str] = Field(min_length=1, max_length=64)
+    source_tool: str = Field(min_length=1, max_length=80)
+
+
+class CandidatePreview(StrictModel):
+    schema_version: Literal[1] = 1
+    candidates: list[CandidatePreviewItem] = Field(min_length=1, max_length=20)
+    fact_ids: list[str] = Field(min_length=1, max_length=1280)
+
+    @model_validator(mode="after")
+    def validate_provenance(self) -> CandidatePreview:
+        if any(not set(item.fact_ids) <= set(self.fact_ids) for item in self.candidates):
+            raise ValueError("Preview candidates require known tool facts")
+        return self
+
+
 class AssistantResponse(StrictModel):
     route: Route
     key: str | None = None

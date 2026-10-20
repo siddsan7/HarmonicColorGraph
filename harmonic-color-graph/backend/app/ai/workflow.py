@@ -14,11 +14,18 @@ from langgraph.graph import END, START, StateGraph
 from langsmith.run_helpers import tracing_context
 from pydantic import ValidationError
 
+from app.ai.explanation_constraints import (
+    REPAIR_HEADROOM_BYTES,
+    explanation_hints,
+    repair_advice,
+)
+from app.ai.intent_fallback import explicit_axes, explicit_next_chord_command
 from app.ai.state import (
     INTENT_AXIS_GUIDE,
     AssistantCandidate,
     AssistantResponse,
     AssistantState,
+    CandidatePreview,
     Claim,
     ExplanationDraft,
     ParsedIntent,
@@ -119,14 +126,16 @@ def heuristic_intent(query: str) -> ParsedIntent:
     lower = query.lower()
     route: Route = "recommend"
     for pattern, choice in (
-        (r"\b(compare|versus|vs\.?|difference)\b", "compare"),
-        (r"\b(similar|similarity|like this|neighbors?)\b", "similar"),
+        (r"\b(compare|comparison|versus|vs\.?|difference)\b", "compare"),
+        (r"\b(similar|similarity|like this|neighbors?|progressions?\s+like)\b", "similar"),
         (r"\b(explain|why|what does|what is|analy[sz]e)\b", "explain"),
         (r"\b(generate|create|make|write|compose)\b", "generate"),
         (r"\b(recommend|next chord|what comes next|suggest)\b", "recommend"),
     ):
         if re.search(pattern, lower):
             route = choice  # type: ignore[assignment]
+            if route == "generate" and explicit_next_chord_command(query):
+                route = "recommend"
             break
     key_match = _KEY.search(query)
     chord_text = _KEY.sub("", query)
@@ -146,12 +155,15 @@ def heuristic_intent(query: str) -> ParsedIntent:
                 chords = []
                 route = "clarify"
     if not chords and route not in {"generate", "explain", "clarify"}:
-        route = "generate"
+        # Missing input for recommendation/similarity/comparison is not a
+        # request to generate a new progression.
+        route = "clarify"
     return ParsedIntent(
         task_type=route,
         chords=chords[:16],
         key=key_match.group(1) if key_match else None,
         variants=variants,
+        intent_axes=explicit_axes(query) if route == "recommend" else {},
         export=_requests_playback(query),
     )
 
@@ -367,6 +379,25 @@ class AssistantWorkflow:
             for node, delta in update.items():
                 state.update(delta or {})
                 yield "step", {"node": node, "status": "completed"}
+                if node == "rank":
+                    # Project tool-derived data only; explanation and playback remain final-only.
+                    items = [
+                        {
+                            "chords": item.chords,
+                            "fact_ids": item.fact_ids,
+                            "source_tool": item.source_tool,
+                        }
+                        for item in state.get("validated_candidates", [])[:20]
+                        if 1 <= len(item.fact_ids) <= 64
+                    ]
+                    if items:
+                        preview = CandidatePreview(
+                            candidates=items,
+                            fact_ids=sorted({fact for item in items for fact in item["fact_ids"]}),
+                        )
+                        if not set(preview.fact_ids) <= set(state.get("fact_pool", {})):
+                            raise ValueError("Preview contains unknown facts")
+                        yield "candidates", preview.model_dump(mode="json")
                 if node == "explain":
                     draft = state.get("explanation")
                     message = (
@@ -502,8 +533,8 @@ class AssistantWorkflow:
         route = intent.task_type
         if intent.chords and state.get("analysis") is None:
             route = "clarify"
-        elif not intent.chords and route not in {"clarify", "explain"}:
-            route = "generate"
+        elif not intent.chords and route not in {"generate", "clarify", "explain"}:
+            route = "clarify"
         elif route == "similar" and len(state.get("input_chords", [])) < 3:
             route = "clarify"
         elif route == "compare" and len(intent.variants) != 2:
@@ -695,8 +726,25 @@ class AssistantWorkflow:
         return {"validated_candidates": ranked}
 
     def _explain(self, state: AssistantState) -> dict[str, Any]:
+        """Validate bounded prose and emit one terminal lifecycle outcome.
+
+        Rates use ``started`` as the denominator; direct clarification bypasses
+        this node. Repair attempts count actual second calls. ``provider_error``
+        follows the existing exception boundary: ValueError/ValidationError stay
+        validation failures, including those raised by a provider adapter.
+        """
         facts = state.get("fact_pool", {})
         error_code: str | None = None
+        route = state["route"]
+
+        # Fixed lifecycle labels provide a request denominator without prompt data.
+        def lifecycle(outcome: str, kind: str = "none") -> None:
+            emit_metric(
+                "ai_explanation_lifecycle_count", 1, route=route, outcome=outcome, kind=kind
+            )
+
+        lifecycle("started")
+        fallback_kind = "no_model" if self.explanation_model is None else "no_facts"
         if self.explanation_model is not None and facts:
             context = {
                 "user_query": state["raw_user_query"],
@@ -722,40 +770,61 @@ class AssistantWorkflow:
                 "Every claim must cite fact_ids from facts; do not return uncited prose. "
                 "Use tool_results as evidence; use only chord and figure symbols present there. "
                 "Do not assert emotions as objective fact or name a song without an example: fact. "
+                "An example fact authorizes only its supplied identity; do not infer a song title "
+                "or artist from an opaque ID. Prefer describing the chord progression. "
                 "If naming a theory relationship, provide its registry ID in theory_labels. "
-                f"Context: {json.dumps(context, ensure_ascii=False)}"
+                f"Context: {json.dumps(context, ensure_ascii=False, separators=(',', ':'))}"
             )
+            hints = explanation_hints(facts, state.get("tool_results", {}))
+            # Optional hints must not turn a previously valid prompt into a skip.
+            if (
+                len((hints + prompt).encode("utf-8")) + REPAIR_HEADROOM_BYTES
+                <= MAIN_MAX_PROMPT_BYTES
+            ):
+                prompt = hints + prompt
             for attempt in range(MAIN_MAX_CALLS):
                 if len(prompt.encode("utf-8")) > MAIN_MAX_PROMPT_BYTES:
                     # Appending a repair cannot make an oversized prompt fit.
                     error_code = "explanation_prompt_too_large"
+                    fallback_kind = "prompt_limit"
                     emit_metric("ai_validation_failure_count", 1)
                     break
+                if attempt:
+                    # Count an attempted repair only when the second call starts.
+                    emit_metric("ai_repair_attempt_count", 1)
+                    lifecycle("repair_attempted")
                 try:
                     draft = ExplanationDraft.model_validate(self.explanation_model(prompt))
                     validate_draft(draft, facts, state.get("tool_results", {}))
+                    lifecycle("repair_succeeded" if attempt else "first_pass_valid")
                     return {"explanation": draft, "fallback": False}
                 except (ValueError, ValidationError) as exc:
                     emit_metric("ai_validation_failure_count", 1)
-                    if attempt + 1 < MAIN_MAX_CALLS:
-                        emit_metric("ai_repair_attempt_count", 1)
+                    fallback_kind = "validation_exhausted"
                     error_code = f"explanation_validation_failed:{type(exc).__name__}"
                     repair_detail = type(exc).__name__
+                    advice = repair_advice()
                     if isinstance(exc, ClaimValidationError):
                         repair_detail = ",".join(exc.codes)
+                        advice = repair_advice(
+                            exc.codes, facts=facts, tool_results=state.get("tool_results", {})
+                        )
                         error_code += ":" + repair_detail
                     elif isinstance(exc, StructuredOutputError):
                         repair_detail = exc.code
                         error_code += ":" + repair_detail
-                    prompt += (
-                        f"\nRepair attempt {attempt + 1}: {repair_detail}. "
-                        "Return one short claim. Use only listed facts, symbols, "
-                        "and registered theory labels."
-                    )
+                    if attempt + 1 < MAIN_MAX_CALLS:
+                        prompt += (
+                            f"\nRepair attempt {attempt + 1}: {repair_detail}. "
+                            "Return one short claim. Use only listed facts, symbols, "
+                            f"and registered theory labels. {advice}"
+                        )
                 except Exception as exc:
                     error_code = f"explanation_model_failed:{type(exc).__name__}"
+                    fallback_kind = "provider_error"
+                    lifecycle("provider_error")
                     break
-        route = state["route"]
+        lifecycle("terminal_fallback", fallback_kind)
         count = len(state.get("validated_candidates", []))
         message = {
             "recommend": f"Found {count} tool-backed next-chord options.",

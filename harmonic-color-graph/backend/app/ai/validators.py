@@ -170,6 +170,9 @@ def validate_claims(
             match.group("name").lower()
             for match in _NAMED_SUBJECT.finditer(claim.text)
             if match.group("name").lower() not in _ANALYTIC_SUBJECTS
+            and not any(
+                title.start() <= match.start("name") < title.end() for title in title_matches
+            )
         )
         named_titles.extend(
             match.group("name").lower()

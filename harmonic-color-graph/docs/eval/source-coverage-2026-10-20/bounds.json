@@ -1,0 +1,30 @@
+{
+  "membership_sha256": "ad3ec4f6449d3fba30a476c00e035f902179261a8d42190d68f8b6a67e16baee",
+  "scope": "Post-evaluation causal diagnosis only, no policy tuning. For these requests, the maximum directional product under any normalized candidate is below unchanged0.025 threshold. No norms, currentruntimefeaturebounds0..1.",
+  "upper_bound_formulas": {
+    "simple": ".7*old_complexity",
+    "relaxed": ".7*old_tension",
+    "open": ".7*old_resolution",
+    "weak_bright": ".1*(1-old_brightness)",
+    "weak_smooth": ".1*(1-old_smoothness)"
+  },
+  "threshold": 0.025,
+  "counts": {
+    "dev": {
+      "simple": 97,
+      "relaxed": 47,
+      "open": 66,
+      "weak_bright": 38,
+      "weak_smooth": 28
+    },
+    "test": {
+      "simple": 95,
+      "relaxed": 41,
+      "open": 61,
+      "weak_bright": 39,
+      "weak_smooth": 19
+    }
+  },
+  "runtime_changes": false,
+  "cost_usd": "0"
+}
