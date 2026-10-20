@@ -70,3 +70,38 @@ checks and Ruff lint/format pass. Frozen identity and leakage checks pass.
 This remains research-only pending a fresh independent graph confirmation and
 review. No production code or benchmark outcomes were changed or inspected for
 this experiment. No paid calls, database writes, merges or deployments occurred.
+
+## Runtime integration and parity
+
+After the fresh independent 100-song graph confirmation passed all unchanged
+gates, the fixed candidate was integrated in `580c3db`. The single strong
+surprise branch evaluates three incumbents even when the requested limit is one
+or two. It rotates only the qualifying third, first and second candidates and
+exchanges their three internal utility slots. Signed `selection_constraint`
+terms record the complete adjustment; all original feature, diversity and
+plausibility components remain intact. Every other request delegates exactly to
+the previous adjacent policy. Balanced-preset scope and vector-neighbor/non-null
+retained-similarity bypasses remain unchanged. No policy tuning followed any
+measurement, and the worker did not inspect benchmark case outputs.
+
+Runtime matches the frozen graph research operator on **9,000 requests across
+all registered 400 held-out and fresh independent 100 positions**. There are
+584 changed winners, including exactly **40 third-slot rotations** (the 33
+registered and seven independent additional matches). All top-five token lists
+match research, positions four onward are unchanged, the utility score multiset
+is exact, and learned plausibility, feature values and original score components
+are unchanged. Runtime helper/service hashes were unchanged throughout parity.
+Registered private memberships, research source, training data, weights, scorer,
+graph helper, adjacent ablation and comparison runner identities were checked.
+[Runtime parity](surprise-ranking-2026-10-20/runtime-parity.json) records hashes.
+
+Seventy-eight selection, service, HTTP, hybrid and assistant checks pass. Tests
+cover utility offsets, weak/neutral/other-preset parity, existing/absent/joint
+qualifiers, both vector bypass paths, descending public scores after assistant
+re-sort, normalized output, exact limit 1/2/5/20 token prefixes, `[3,3,5,20]`
+scorer widths for the new branch, and unchanged source evidence/fact IDs.
+Ruff lint/format and diff checks pass. External services and paid models were
+disabled during tests. The parity runner's initial membership-assembly NameError
+was fixed before evaluating any case; runtime policy and samples were unchanged.
+The parent owns the unchanged benchmark, complete repository gates and release
+review. No paid calls, merge, deployment or live quality claim occurred here.
