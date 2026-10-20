@@ -90,3 +90,37 @@ or establish musical usefulness, original-benchmark gains or live latency.
 retains source/data identities, paired-row hash, per-request results and gate
 values. Raw paired rows remain private. This challenge is now closed regression
 evidence and must be excluded from future tuning samples.
+
+## Fresh graph-source confirmation
+
+The primary experiments omitted graph candidates. A separate confirmation
+therefore froze another 100 unique test songs before outcomes, excluding the
+entire joint experiment's used/reserved-song union and all training songs.
+The candidate is the same frozen `3643cde` adjacent policy. The original gates
+and bootstrap remain unchanged; there was one evaluation and no retuning.
+
+[The graph protocol](intent-outcome-audit-2026-10-20/graph-protocol.json)
+pins membership, source and data hashes. The graph adapter matches production's
+global, same-mode, probability-at-least-0.005, top-30 query using train-only
+transition data. Both arms receive the same graph-augmented pool and original
+64-candidate cap. It returned 1,461 graph neighbors across these contexts.
+
+| Graph confirmation | Baseline | Adjacent swap |
+|---|---:|---:|
+| Feasible direction hit rate | 61.8746% | 69.0627% |
+| All-request direction hit rate | 48.7778% | 54.4444% |
+| Eligible coverage | 1,419/1,800 | 1,419/1,800 |
+| Actual next-token MRR@5 | 0.553426 | 0.537593 |
+| Geometric-mean top-one plausibility ratio | 1.000000 | 0.906531 |
+
+All unchanged guards pass. Feasible-direction gain is **7.1882 percentage
+points**, with a 100-song bootstrap interval of **+5.8239 to +8.6681 points**.
+MRR loss is **0.015833**, below the 0.02 maximum. No request category loses
+directional hits and neutral output is identical. Coverage remains unchanged.
+
+[The full graph result](intent-outcome-audit-2026-10-20/graph-independent-result.json)
+preserves all per-request and identity evidence; private paired rows and song
+memberships are retained for future exclusions. No live models, database writes
+or production measurements were used. Vectors are absent from this confirmation;
+it does not establish the behavior of production embedding candidates or feature
+similarities. Runtime scope must respect this remaining evidence limit.
