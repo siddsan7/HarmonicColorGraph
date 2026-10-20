@@ -724,8 +724,25 @@ class AssistantWorkflow:
         return {"validated_candidates": ranked}
 
     def _explain(self, state: AssistantState) -> dict[str, Any]:
+        """Validate bounded prose and emit one terminal lifecycle outcome.
+
+        Rates use ``started`` as the denominator; direct clarification bypasses
+        this node. Repair attempts count actual second calls. ``provider_error``
+        follows the existing exception boundary: ValueError/ValidationError stay
+        validation failures, including those raised by a provider adapter.
+        """
         facts = state.get("fact_pool", {})
         error_code: str | None = None
+        route = state["route"]
+
+        # Fixed lifecycle labels provide a request denominator without prompt data.
+        def lifecycle(outcome: str, kind: str = "none") -> None:
+            emit_metric(
+                "ai_explanation_lifecycle_count", 1, route=route, outcome=outcome, kind=kind
+            )
+
+        lifecycle("started")
+        fallback_kind = "no_model" if self.explanation_model is None else "no_facts"
         if self.explanation_model is not None and facts:
             context = {
                 "user_query": state["raw_user_query"],
@@ -765,16 +782,21 @@ class AssistantWorkflow:
                 if len(prompt.encode("utf-8")) > MAIN_MAX_PROMPT_BYTES:
                     # Appending a repair cannot make an oversized prompt fit.
                     error_code = "explanation_prompt_too_large"
+                    fallback_kind = "prompt_limit"
                     emit_metric("ai_validation_failure_count", 1)
                     break
+                if attempt:
+                    # Count an attempted repair only when the second call starts.
+                    emit_metric("ai_repair_attempt_count", 1)
+                    lifecycle("repair_attempted")
                 try:
                     draft = ExplanationDraft.model_validate(self.explanation_model(prompt))
                     validate_draft(draft, facts, state.get("tool_results", {}))
+                    lifecycle("repair_succeeded" if attempt else "first_pass_valid")
                     return {"explanation": draft, "fallback": False}
                 except (ValueError, ValidationError) as exc:
                     emit_metric("ai_validation_failure_count", 1)
-                    if attempt + 1 < MAIN_MAX_CALLS:
-                        emit_metric("ai_repair_attempt_count", 1)
+                    fallback_kind = "validation_exhausted"
                     error_code = f"explanation_validation_failed:{type(exc).__name__}"
                     repair_detail = type(exc).__name__
                     advice = repair_advice()
@@ -793,8 +815,10 @@ class AssistantWorkflow:
                         )
                 except Exception as exc:
                     error_code = f"explanation_model_failed:{type(exc).__name__}"
+                    fallback_kind = "provider_error"
+                    lifecycle("provider_error")
                     break
-        route = state["route"]
+        lifecycle("terminal_fallback", fallback_kind)
         count = len(state.get("validated_candidates", []))
         message = {
             "recommend": f"Found {count} tool-backed next-chord options.",
