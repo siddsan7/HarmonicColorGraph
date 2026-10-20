@@ -67,9 +67,10 @@ small additional selection gain, not evidence that all intent requests can be
 satisfied or that musician judgments improve. Twenty-eight new/current ranking
 checks and Ruff lint/format pass. Frozen identity and leakage checks pass.
 
-This remains research-only pending a fresh independent graph confirmation and
-review. No production code or benchmark outcomes were changed or inspected for
-this experiment. No paid calls, database writes, merges or deployments occurred.
+At measurement, this remained research-only pending independent confirmation
+and review. The worker did not inspect individual benchmark outputs or edit
+runtime code during the experiment. No paid calls, database writes, merges or
+deployments occurred. Subsequent runtime integration is recorded below.
 
 ## Runtime integration and parity
 

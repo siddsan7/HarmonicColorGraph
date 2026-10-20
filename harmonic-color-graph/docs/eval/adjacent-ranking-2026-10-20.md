@@ -56,6 +56,9 @@ were made. Independent validation and parent integration are separate gates.
 
 ## Runtime integration
 
+This records the initial adjacent integration. The final runtime retains that
+fallback and adds the separately validated [bounded surprise extension](surprise-ranking-2026-10-20.md).
+
 The independently validated operator now runs after the unchanged scorer for
 strong balanced requests. It exchanges the first two internal utility scores
 when selection triggers, records signed `selection_constraint` adjustments, and
@@ -71,7 +74,10 @@ behavior. Any nonempty returned embedding-neighbor list or any retained candidat
 non-null embedding similarity bypasses selection and its extra incumbent
 evaluation because vector-source quality was not validated. Zero similarity is
 also treated conservatively as vector data.
-Graph-source activation remains subject to the separate independent graph gate.
+The separate fresh 100-song train-only graph confirmation passes every unchanged
+gate: directional match 61.8746% to 69.0627%, MRR loss 0.015833, plausibility
+ratio 0.906531 and bootstrap gain interval +5.8239 to +8.6681 percentage points.
+See the [graph confirmation](intent-outcome-audit-2026-10-20.md).
 No rejected coverage expansion is included.
 
 Runtime-versus-frozen-research parity passes all **9,000 requests across the
