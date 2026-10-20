@@ -116,7 +116,8 @@ the rubric still need musical review. We did not tune ranking to these benchmark
 cases. Extra nonmatching axes are not penalized by the original parse rubric;
 the separate exact-dictionary parser check detects them.
 
-Unchanged routing misses are `similar-03` and `clarify-01/02`. Generation also
+At the first PR78 commit (`f82f241`), routing misses were `similar-03` and
+`clarify-01/02`; the October 20 follow-up below corrects them. Generation also
 discards parsed axes: its tool call does not map them to generator targets.
 Relative preference versus absolute generation target needs a design decision;
 this slice does not silently choose a mapping.
@@ -203,3 +204,42 @@ first-explanation versus repair contribution from measured stages before a
 model change, evidence pruning, caching, or progressive-results contract change.
 Live benefit, subjective usefulness, real Postgres and release gates remain
 separate acceptance requirements.
+
+## October 20 routing follow-up
+
+The user requested corrections for the three remaining routing/tool failures in
+PR78. New regressions failed before the fix on all three original benchmark
+cases, plus similarity paraphrases, missing input and model-selected routes.
+The cause was deterministic routing: “progressions like” and “comparison” were
+not recognized, and missing chords redirected comparison/similarity/recommendation
+requests to generation. The router repeated that redirect even for parsed model
+intent.
+
+The fallback now recognizes the bounded phrase `progressions? like` and the word
+`comparison`. Missing required chord input asks for clarification in both the
+fallback and the router. Explicit generation remains available without starting
+chords. Ordinary “I'd like a brighter next chord” remains recommendation. The
+two missing-sequence comparison cases call no tools and return no candidates.
+Valid comparisons and existing generation, grounding and accounting paths retain
+their checks. No benchmark case, threshold, rubric, weight or model setting changed.
+
+[The new offline artifact](intent-latency-2026-10-19/offline-routing-2026-10-20.json)
+preserves all 40 per-case results and source hashes. The earlier artifacts and
+failed history remain intact.
+
+| Measure | First PR78 commit | Routing correction |
+|---|---:|---:|
+| Completed | 40/40 | 40/40 |
+| Routing | 37/40 | 40/40 |
+| Tool correctness | 37/40 | 40/40 |
+| Combined intent | 9/12 | 9/12 |
+| Original overall benchmark gates | FAIL | PASS |
+| Model calls / cost | 0 / $0 | 0 / $0 |
+
+Independent reviewer approval includes 106 focused checks and a separate
+in-memory offline 40-case recheck with all gates passing. Broader check results
+include the final isolated backend lint, format and full non-Postgres unit suite
+(80.969 s), documentation integrity and diff inspection. Required CI results are
+recorded in the PR and shared resume record. These remain seeded offline
+results; they do not change historical production or portfolio claims, establish
+live latency/fallback improvements, or authorize paid evaluation or release.

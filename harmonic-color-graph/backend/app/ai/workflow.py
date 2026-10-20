@@ -120,8 +120,8 @@ def heuristic_intent(query: str) -> ParsedIntent:
     lower = query.lower()
     route: Route = "recommend"
     for pattern, choice in (
-        (r"\b(compare|versus|vs\.?|difference)\b", "compare"),
-        (r"\b(similar|similarity|like this|neighbors?)\b", "similar"),
+        (r"\b(compare|comparison|versus|vs\.?|difference)\b", "compare"),
+        (r"\b(similar|similarity|like this|neighbors?|progressions?\s+like)\b", "similar"),
         (r"\b(explain|why|what does|what is|analy[sz]e)\b", "explain"),
         (r"\b(generate|create|make|write|compose)\b", "generate"),
         (r"\b(recommend|next chord|what comes next|suggest)\b", "recommend"),
@@ -147,7 +147,9 @@ def heuristic_intent(query: str) -> ParsedIntent:
                 chords = []
                 route = "clarify"
     if not chords and route not in {"generate", "explain", "clarify"}:
-        route = "generate"
+        # Missing input for recommendation/similarity/comparison is not a
+        # request to generate a new progression.
+        route = "clarify"
     return ParsedIntent(
         task_type=route,
         chords=chords[:16],
@@ -504,8 +506,8 @@ class AssistantWorkflow:
         route = intent.task_type
         if intent.chords and state.get("analysis") is None:
             route = "clarify"
-        elif not intent.chords and route not in {"clarify", "explain"}:
-            route = "generate"
+        elif not intent.chords and route not in {"generate", "clarify", "explain"}:
+            route = "clarify"
         elif route == "similar" and len(state.get("input_chords", [])) < 3:
             route = "clarify"
         elif route == "compare" and len(intent.variants) != 2:

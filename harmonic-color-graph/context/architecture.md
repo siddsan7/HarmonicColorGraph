@@ -61,6 +61,8 @@ see `docs/roadmap-v2.md` and
   MCP reuses the same tool boundary.
   If intent parsing fails, explicit recommendation directions use a bounded
   deterministic recovery grammar; negated or ambiguous clauses abstain.
+  Missing input for recommendation, similarity or comparison asks for
+  clarification; explicit generation can start without chords.
   `backend/tests/eval/ai_diagnostics.py` profiles local workflow stages without
   changing the response or durable audit contract.
 - `backend/app/theory/` - Planned symbolic music logic:
