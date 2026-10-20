@@ -4,7 +4,31 @@ from decimal import Decimal
 
 import pytest
 
-from tests.eval.paired_live import Ledger, allowed_cap, audit_matches, events, stable_query_id
+from tests.eval.paired_live import (
+    Ledger,
+    allowed_cap,
+    audit_matches,
+    complete_call_usage,
+    events,
+    stable_query_id,
+)
+
+
+def test_metered_validation_failure_is_accounted_but_missing_usage_is_not():
+    diagnostic = {
+        "unknown_usage_calls": 0,
+        "calls": [
+            {"outcome": "error", "usage_recorded_calls": 1, "unknown_usage_calls": 0},
+            {"outcome": "returned", "usage_recorded_calls": 1, "unknown_usage_calls": 0},
+        ],
+    }
+    assert complete_call_usage(diagnostic, {"main": {"calls": 2}})
+    assert not complete_call_usage(diagnostic, {"main": {"calls": 1}})
+    diagnostic["calls"][0]["usage_recorded_calls"] = 0
+    assert not complete_call_usage(diagnostic, {"main": {"calls": 2}})
+    diagnostic["calls"][0]["usage_recorded_calls"] = 1
+    diagnostic["calls"][0]["unknown_usage_calls"] = 1
+    assert not complete_call_usage(diagnostic, {"main": {"calls": 2}})
 
 
 def test_stream_identity_stable_and_valid_uuid():

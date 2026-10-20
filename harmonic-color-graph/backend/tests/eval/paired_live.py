@@ -121,13 +121,21 @@ def serve(args: argparse.Namespace) -> None:
             def wrapped(prompt: str, delegate: Any = delegate, stage: str = stage) -> Any:
                 record = {"stage": stage, "outcome": "started"}
                 records.append(record)
+                before = sum(row.calls for row in meter.by_model.values())
+                unknown_before = meter.unknown_usage_calls
                 try:
                     value = delegate(prompt)
                     record["outcome"] = "returned"
                     return value
-                except Exception:
+                except Exception as exc:
                     record["outcome"] = "error"
+                    record["error_type"] = type(exc).__name__
                     raise
+                finally:
+                    record["usage_recorded_calls"] = (
+                        sum(row.calls for row in meter.by_model.values()) - before
+                    )
+                    record["unknown_usage_calls"] = meter.unknown_usage_calls - unknown_before
 
             setattr(workflow, attribute, wrapped)
         original_stream = workflow.stream
@@ -209,6 +217,21 @@ def stable_query_id(previous: str | None, current: str) -> str:
     if previous is not None and previous != parsed:
         raise ValueError("sse_request_identity_mismatch")
     return parsed
+
+
+def complete_call_usage(diagnostic: dict[str, Any], usage: dict[str, Any]) -> bool:
+    calls = diagnostic.get("calls", [])
+    return bool(
+        calls
+        and diagnostic.get("unknown_usage_calls") == 0
+        and all(
+            call.get("usage_recorded_calls") == 1
+            and call.get("unknown_usage_calls") == 0
+            and call.get("outcome") in {"returned", "error"}
+            for call in calls
+        )
+        and len(calls) == sum(row.get("calls", 0) for row in usage.values())
+    )
 
 
 def run(args: argparse.Namespace) -> None:
@@ -349,7 +372,7 @@ def run(args: argparse.Namespace) -> None:
                     if len(matches) != 1 or matches[0]["unknown_usage_calls"]:
                         raise ValueError("missing_or_unknown_usage_diagnostics")
                     diagnostic = matches[0]
-                    if any(call["outcome"] != "returned" for call in diagnostic["calls"]):
+                    if not complete_call_usage(diagnostic, audit["model_usage"]):
                         raise ValueError("callable_failed_uncertain_billing")
                     parsed = ParsedIntent.model_validate(audit["parsed_intent"])
                     measured = _measure(

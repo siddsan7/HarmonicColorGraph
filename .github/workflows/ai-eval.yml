@@ -134,7 +134,7 @@ jobs:
             --baseline-diagnostics paired-output/baseline-diagnostics.jsonl \
             --candidate-diagnostics paired-output/candidate-diagnostics.jsonl \
             --baseline-url http://127.0.0.1:8081 --candidate-url http://127.0.0.1:8082 \
-            --cutoff "$EVAL_CUTOFF" --corpus cv-2026-10-b --prior-spend 10.157483 --total-ceiling 12.157483 --cap 2 \
+            --cutoff "$EVAL_CUTOFF" --corpus cv-2026-10-b --prior-spend 10.207600 --total-ceiling 12.157483 --cap 1.949883 \
             --output paired-output
       - name: Verify corpus identity after requests
         if: always()
