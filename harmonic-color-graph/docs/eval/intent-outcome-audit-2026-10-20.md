@@ -55,3 +55,38 @@ original directional-gain, per-request regression, MRR, plausibility and
 neutral-request gates remain fixed. Failed development leaves this challenge
 closed. Runtime code, scorer, weights, benchmark and grader are unchanged by
 this audit. No paid provider calls or database writes are used.
+
+The first full-floor reranker failed its development MRR gate, so this challenge
+was not opened for that candidate. A later fixed adjacent-swap candidate at
+`3643cde` passed its own fresh development and 400-case validation. Its new
+samples excluded this independent challenge. The main agent then authorized
+one independent evaluation of that frozen candidate. No case or policy was
+changed after opening.
+
+Before inference, the audit verified the sealed private/protocol hashes,
+corpus and training hashes, every source identity in the candidate's frozen
+protocol, a clean runtime tree containing `3643cde`, and zero song overlap with
+training, prior experiments and the adjacent candidate's development/test sets.
+The unmodified candidate `measure`, original `compare` and original song
+bootstrap functions produced these results:
+
+| Check | Baseline | Adjacent swap | Result |
+|---|---:|---:|---|
+| Feasible direction hit rate | 60.5337% | 68.2584% | +7.7247 percentage points; minimum +2 passed |
+| All-request direction hit rate | 47.8889% | 54.0000% | +6.1111 percentage points |
+| Eligible coverage | 1,424/1,800 | 1,424/1,800 | Unchanged |
+| Actual next-token MRR@5 | 0.580056 | 0.562278 | Loss 0.017778; maximum 0.02 passed |
+| Geometric-mean top-one plausibility ratio | 1.000000 | 0.892706 | Minimum 0.5 passed |
+| Per-request direction regressions | — | None | Maximum 2 percentage points passed |
+| Neutral request output | — | Unchanged | Passed |
+
+The 100-song bootstrap interval for feasible-direction gain is
+**+6.0692 to +9.4662 percentage points**. All fixed gates pass. The MRR loss is
+close to its allowed bound; this is an explicit tradeoff, not a claim that
+ranking improved every quality dimension. The candidate does not add coverage
+or establish musical usefulness, original-benchmark gains or live latency.
+
+[The full one-shot report](intent-outcome-audit-2026-10-20/adjacent-independent-result.json)
+retains source/data identities, paired-row hash, per-request results and gate
+values. Raw paired rows remain private. This challenge is now closed regression
+evidence and must be excluded from future tuning samples.
