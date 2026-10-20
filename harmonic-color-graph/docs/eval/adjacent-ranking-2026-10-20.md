@@ -53,3 +53,39 @@ pass. The research list operator retains original scores; runtime adoption must
 explicitly preserve the API descending-score contract and assistant re-sort.
 At this checkpoint no runtime, benchmark, scorer, weights, or feature changes
 were made. Independent validation and parent integration are separate gates.
+
+## Runtime integration
+
+The independently validated operator now runs after the unchanged scorer for
+strong balanced requests. It exchanges the first two internal utility scores
+when selection triggers, records signed `selection_constraint` adjustments, and
+updates each total. Learned plausibility, feature terms, original diversity
+terms, and source n-gram evidence are unchanged. The utility score multiset and
+softmax normalizer are identical. This keeps descending public scores and the
+assistant's downstream re-sort consistent with selection. Limits of one still
+score two incumbents before selection; limits 1, 2, 5, and 20 share token prefixes.
+The implementation keeps every remaining entry for limits above five.
+
+Neutral, weak, other-preset, and non-qualifying lists retain the previous scorer
+behavior. Any nonempty returned embedding-neighbor list bypasses selection and
+its extra incumbent evaluation because vector-source quality was not validated.
+Graph-source activation remains subject to the separate independent graph gate.
+No rejected coverage expansion is included.
+
+Runtime-versus-frozen-research parity passes all **9,000 requests across the
+registered 400 held-out and independent 100 positions**. There are 560 swaps;
+all top-five token lists match the frozen operator, all remaining positions stay
+fixed, the utility distribution is exact, and learned plausibility/features and
+original component values are unchanged. Membership and frozen source hashes
+were checked. [Runtime parity](adjacent-ranking-2026-10-20/runtime-parity.json)
+retains exact identities and caveats.
+
+Fifty-eight selection/service/HTTP/hybrid/assistant tests pass, including score
+order after assistant re-sort, normalized public scores, all four limit prefixes,
+positive joint qualification, both signs at the strong threshold, weak and
+non-balanced parity, and vector-source bypass. Ruff lint/format and diff checks
+pass. The first sandbox TestClient run stalled; the same tests pass in the local
+unsandboxed runner with external services and paid models disabled. An initial
+negative-boundary test used a neutral delta and correctly did not qualify; its
+fixture was corrected to a negative delta without changing runtime policy.
+Parent review and repository gates remain separate. No live metrics are claimed.
