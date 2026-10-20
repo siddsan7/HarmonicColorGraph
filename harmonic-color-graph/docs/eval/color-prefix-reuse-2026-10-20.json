@@ -1,0 +1,183 @@
+{
+  "baseline_commit": "cc1086762cb781eefa2740736f14f765d0f3b765",
+  "mode": "model_free_local_cpu",
+  "protocol": "Six contexts frozen before editing: two development, four held-out; seven alternating AB/BA repetitions per context against pre-change build_arc; no retuning after held-out scoring. Full compute_color_profile including analysis and serialization preparation, excluding HTTP/network/provider time.",
+  "raw_calls_per_region_before": "n + n*(n+1)/2",
+  "raw_calls_per_region_after": "n",
+  "unchanged_frozen_output_hashes": true,
+  "rows": [
+    {
+      "split": "dev",
+      "chords": "Bbmaj7 Dm7 Gm9 Cm7 F7 Bbmaj7",
+      "key": "Bb major",
+      "before_ms": 96.72109998064116,
+      "after_ms": 25.010399986058474,
+      "samples_ms": {
+        "before": [
+          92.55259999190457,
+          96.72109998064116,
+          101.61379998316988,
+          94.57620000466704,
+          96.47439999389462,
+          98.96120001212694,
+          97.64980000909418
+        ],
+        "after": [
+          28.906399995321408,
+          25.507599988486618,
+          24.749799980781972,
+          25.010399986058474,
+          24.763800000073388,
+          25.090599985560402,
+          24.66569998068735
+        ]
+      },
+      "output_sha256": "e62c116ef02b4d896a9e12c73f296157eec1ebe207c9f2593a437b3cd16024f8"
+    },
+    {
+      "split": "dev",
+      "chords": "F#m D E C#7 F#m",
+      "key": "F# minor",
+      "before_ms": 17.883299995446578,
+      "after_ms": 6.302299996605143,
+      "samples_ms": {
+        "before": [
+          17.529899982037023,
+          21.8237999943085,
+          17.691199987893924,
+          17.883299995446578,
+          21.705199993448332,
+          18.602399999508634,
+          17.408000014256686
+        ],
+        "after": [
+          6.302299996605143,
+          5.869599990546703,
+          6.33830000879243,
+          6.245500000659376,
+          6.509800005005673,
+          6.39009999576956,
+          5.933599983109161
+        ]
+      },
+      "output_sha256": "2daa74fbeb05d4c8b2960ae9de1afd2f00b2db9d2691a85cc5abc109363ea15f"
+    },
+    {
+      "split": "heldout",
+      "chords": "Abmaj7 Cm7 Fm9 Bbm7 Eb7 Abmaj7",
+      "key": "Ab major",
+      "before_ms": 111.56530000152998,
+      "after_ms": 26.20679998653941,
+      "samples_ms": {
+        "before": [
+          107.32250000000931,
+          113.19219999131747,
+          113.51870000362396,
+          111.56530000152998,
+          108.34179999073967,
+          109.0744000102859,
+          115.01040001166984
+        ],
+        "after": [
+          26.20679998653941,
+          29.031399986706674,
+          31.566699995892122,
+          25.488399987807497,
+          26.05089999269694,
+          25.977699988288805,
+          29.65729997958988
+        ]
+      },
+      "output_sha256": "c8ee59310c57e8a5d2cc2990cdab7b4b7e7c95741ef58ca5b3709fdebff5b16a"
+    },
+    {
+      "split": "heldout",
+      "chords": "C#m9 F#m7 G#7 C#m9",
+      "key": "C# minor",
+      "before_ms": 59.27110000629909,
+      "after_ms": 20.408700016560033,
+      "samples_ms": {
+        "before": [
+          60.142100002849475,
+          57.99480000860058,
+          58.34369998774491,
+          61.36110000079498,
+          61.12190001294948,
+          57.26150001282804,
+          59.27110000629909
+        ],
+        "after": [
+          20.828700013225898,
+          20.270200009690598,
+          19.628900015959516,
+          20.21970000350848,
+          20.67570001236163,
+          20.408700016560033,
+          20.459999999729916
+        ]
+      },
+      "output_sha256": "ba47323c4fd42b745969a5e3c71dca721dc1bcfb95f109c60a0d5945a57d967e"
+    },
+    {
+      "split": "heldout",
+      "chords": "D/F# G A7 Dmaj7 Bm7 Em7 A7 Dmaj7",
+      "key": "D major",
+      "before_ms": 132.17249998706393,
+      "after_ms": 31.29909999552183,
+      "samples_ms": {
+        "before": [
+          131.07430000673048,
+          135.06760000018403,
+          134.0706000046339,
+          131.21989998035133,
+          128.9495000091847,
+          132.3337000212632,
+          132.17249998706393
+        ],
+        "after": [
+          31.16720000980422,
+          32.689199986634776,
+          31.29909999552183,
+          32.31969999615103,
+          31.135099998209625,
+          31.10749999177642,
+          31.59379999851808
+        ]
+      },
+      "output_sha256": "af6fed1087f6466ae175f7e07559fc6d847cf816fbf439af1dc5e723cfd2a811"
+    },
+    {
+      "split": "heldout",
+      "chords": "Eb Cm Ab Bb7 Eb E C#m A B7 E",
+      "key": null,
+      "before_ms": 37.855800008401275,
+      "after_ms": 14.550699997926131,
+      "samples_ms": {
+        "before": [
+          39.09790000761859,
+          38.40020002098754,
+          37.15429999283515,
+          37.855800008401275,
+          37.605600024107844,
+          37.506199994822964,
+          38.93350000726059
+        ],
+        "after": [
+          14.778199983993545,
+          16.182999999728054,
+          14.46040000882931,
+          14.420300023630261,
+          14.550699997926131,
+          14.107999973930418,
+          14.717200014274567
+        ]
+      },
+      "output_sha256": "544c93a39b5ca5a0c6af9cdb0acca8a785161ed5c7b1c943596d42698c5bcc09"
+    }
+  ],
+  "limitations": [
+    "CPU microbenchmark on one Windows desktop, not production completion or p95.",
+    "The existing candidate paired run spends median 8.482s after validated candidate delivery; this includes explanation, repair, formatting, audit and delivery, and is not a model-only timing.",
+    "No additional paid calls. No change to benchmark, scorer, validator, model or timeout."
+  ]
+}
