@@ -8,12 +8,14 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import hmac
 import json
 import os
 import statistics
 import subprocess
 import sys
 import time
+import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -24,6 +26,16 @@ PAIR = BOUND * 2
 BASELINE = "8ed6dfb5e63a7c5e417e3ffedd17d532e4548dec"
 CANDIDATE = "e668de33d217417f4ef7dff53c576aa46b8f44b8"
 MODELS = ["claude-haiku-4-5-20251001", "claude-sonnet-5"]
+
+
+def allowed_cap(cap: str, prior_spend: str, total_ceiling: str) -> Decimal:
+    values = [Decimal(value) for value in (cap, prior_spend, total_ceiling)]
+    if any(not value.is_finite() for value in values):
+        raise ValueError("Invalid nonfinite budget")
+    requested, prior, ceiling = values
+    if requested <= 0 or prior < 0 or ceiling <= prior:
+        raise ValueError("Invalid exhausted budget")
+    return min(requested, Decimal("2"), ceiling - prior)
 
 
 def persist(path: Path, value: dict[str, Any]) -> None:
@@ -192,6 +204,13 @@ def audit_matches(audit: dict[str, Any], final: dict[str, Any]) -> bool:
     )
 
 
+def stable_query_id(previous: str | None, current: str) -> str:
+    parsed = str(uuid.UUID(current))
+    if previous is not None and previous != parsed:
+        raise ValueError("sse_request_identity_mismatch")
+    return parsed
+
+
 def run(args: argparse.Namespace) -> None:
     import httpx
     from sqlalchemy import create_engine, text
@@ -204,7 +223,10 @@ def run(args: argparse.Namespace) -> None:
     args.output.mkdir(parents=True, exist_ok=True)
     engine = create_engine(os.environ["HCG_PAIRED_EVAL_DATABASE_URL"])
     cutoff = datetime.fromisoformat(args.cutoff).astimezone(UTC)
-    cap = min(Decimal(args.cap), Decimal("2"), Decimal("10") - Decimal(args.prior_spend))
+    expected_ip_hash = hmac.new(
+        os.environ["HCG_IP_HASH_SECRET"].encode(), b"127.0.0.1", hashlib.sha256
+    ).hexdigest()
+    cap = allowed_cap(args.cap, args.prior_spend, args.total_ceiling)
     ledger = Ledger(args.output / "ledger.json", cap)
     cases = [case for case in load_cases() if case["intent"]["route"] == "recommend"][:10]
     identities = {
@@ -279,7 +301,9 @@ def run(args: argparse.Namespace) -> None:
                         for kind, payload in events(response.iter_lines()):
                             query_id = payload.get("query_id")
                             if query_id:
-                                attempt["query_id"] = query_id
+                                attempt["query_id"] = stable_query_id(
+                                    attempt.get("query_id"), query_id
+                                )
                                 persist(ledger.path, ledger.value)
                             elapsed = (time.perf_counter() - started) * 1000
                             if kind == "candidates":
@@ -297,10 +321,18 @@ def run(args: argparse.Namespace) -> None:
                         audit = dict(
                             connection.execute(
                                 text(
-                                    "SELECT * FROM hcg.ai_query_logs "
-                                    "WHERE query_id=CAST(:id AS uuid)"
+                                    "SELECT final,parsed_intent,error_category,"
+                                    "model_usage,cost_usd,"
+                                    "tools,tokens_in,tokens_out FROM hcg.ai_query_logs "
+                                    "WHERE query_id=CAST(:id AS uuid) AND created_at>=:cutoff "
+                                    "AND ip_hash=:ip_hash AND user_query=:query"
                                 ),
-                                {"id": attempt["query_id"]},
+                                {
+                                    "id": attempt["query_id"],
+                                    "cutoff": cutoff,
+                                    "ip_hash": expected_ip_hash,
+                                    "query": case["input"],
+                                },
                             )
                             .mappings()
                             .one()
@@ -356,6 +388,7 @@ def run(args: argparse.Namespace) -> None:
                 "audit_final_or_usage_mismatch",
                 "missing_or_unknown_usage_diagnostics",
                 "callable_failed_uncertain_billing",
+                "sse_request_identity_mismatch",
             }
             stop = str(exc) if str(exc) in safe_codes else type(exc).__name__
         finally:
@@ -397,12 +430,16 @@ def run(args: argparse.Namespace) -> None:
                     "protocol": {
                         "cap_usd": str(cap),
                         "prior_spend_usd": args.prior_spend,
+                        "total_ceiling_usd": args.total_ceiling,
                         "cutoff": args.cutoff,
                         "pair_reservation_usd": str(PAIR),
                         "case_ids": [case["id"] for case in cases],
                         "order": "AB/BA alternating",
                         "maximum_pairs": 10,
                         "paid_warmup": False,
+                        "first_useful_boundary": (
+                            "first validated candidate event, or final with candidates"
+                        ),
                         "transport_retries": 0,
                     },
                     "stop": stop,
@@ -434,7 +471,14 @@ def main() -> None:
         "output",
     ):
         evaluator.add_argument("--" + name, type=Path, required=True)
-    for name in ("baseline-url", "candidate-url", "cutoff", "corpus", "prior-spend"):
+    for name in (
+        "baseline-url",
+        "candidate-url",
+        "cutoff",
+        "corpus",
+        "prior-spend",
+        "total-ceiling",
+    ):
         evaluator.add_argument("--" + name, required=True)
     evaluator.add_argument("--cap", default="2")
     args = parser.parse_args()

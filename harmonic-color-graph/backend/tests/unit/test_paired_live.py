@@ -4,7 +4,29 @@ from decimal import Decimal
 
 import pytest
 
-from tests.eval.paired_live import Ledger, audit_matches, events
+from tests.eval.paired_live import Ledger, allowed_cap, audit_matches, events, stable_query_id
+
+
+def test_stream_identity_stable_and_valid_uuid():
+    value = "3ab8e21e-973e-4060-9f99-f8669344d4aa"
+    assert stable_query_id(None, value) == value
+    assert stable_query_id(value, value) == value
+    with pytest.raises(ValueError, match="identity_mismatch"):
+        stable_query_id(value, "00000000-0000-0000-0000-000000000000")
+    with pytest.raises(ValueError):
+        stable_query_id(None, "invalid")
+
+
+def test_additional_budget_preserves_historical_spend():
+    assert allowed_cap("2", "10.157483", "12.157483") == Decimal("2")
+    assert allowed_cap("5", "10.157483", "12.157483") == Decimal("2")
+    assert allowed_cap("2", "11.157483", "12.157483") == Decimal("1")
+
+
+@pytest.mark.parametrize("prior,ceiling", [("10.157483", "10"), ("NaN", "12"), ("0", "Infinity")])
+def test_exhausted_or_nonfinite_budget_rejected(prior, ceiling):
+    with pytest.raises(ValueError):
+        allowed_cap("2", prior, ceiling)
 
 
 def test_pair_requires_full_reservation(tmp_path):
