@@ -124,3 +124,56 @@ memberships are retained for future exclusions. No live models, database writes
 or production measurements were used. Vectors are absent from this confirmation;
 it does not establish the behavior of production embedding candidates or feature
 similarities. Runtime scope must respect this remaining evidence limit.
+
+## Fresh confirmation of the bounded surprise extension
+
+The later frozen research candidate `c2ff580` retains adjacent selection for
+every other request. For a sole positive surprise axis of at least 0.7, when
+the first two incumbents fail and the third satisfies the existing direction
+criterion, it rotates those three incumbents. The top-five membership remains
+the same. A requested top-two prefix can include the previous third candidate.
+The original eighteen-request quality gates remain unchanged. A further
+registered gate requires strictly positive incremental directional gain over
+the frozen adjacent ablation.
+
+Another 100 unique graph-source test songs were frozen before outcomes,
+excluding the entire surprise experiment's 5,963-song used/reserved union and
+all training songs. The private membership stayed byte-identical throughout.
+The independent run opened only after checking the actual registered
+400-position held-out artifact: all six checks, `promotion_passed`, positive
+bootstrap lower bound, and its protocol/source fingerprint passed.
+
+Two operational preflights stopped before inference: a report-relative path
+was corrected, then an unavailable dependency exposed that the audit checkout
+predated the frozen candidate's runtime inventory. Before any measurement, the
+entry point was corrected to a fresh process in the ranking backend. Every
+algorithm hash then matched the candidate's registered `330b198` app sources
+and `c2ff580` research source. The candidate, data, cases, gates and policy were
+unchanged. Both the [initial inventory](intent-outcome-audit-2026-10-20/surprise-protocol-initial-preflight.json)
+and the [corrected source inventory](intent-outcome-audit-2026-10-20/surprise-protocol.json)
+are preserved. There was one call to the measurement function, with no repeat
+or tuning afterward.
+
+| Independent graph confirmation | Original | Adjacent | Surprise extension |
+|---|---:|---:|---:|
+| Feasible direction hit rate | 62.4383% | 68.9218% | 69.4151% |
+| All-request direction hit rate | 49.2222% | 54.3333% | 54.7222% |
+| Actual next-token MRR@5 | 0.575685 | 0.559574 | 0.558463 |
+| Eligible coverage | 1,419/1,800 | 1,419/1,800 | 1,419/1,800 |
+
+All unchanged guards and the incremental gate pass. The extension adds seven
+directional matches over adjacent, **+0.4933 percentage points** among feasible
+requests. Gain over original is **+6.9767 points**, with a song-bootstrap
+interval of **+5.7143 to +8.3510 points**. This interval describes gain over the
+original control; an incremental bootstrap-confidence claim is not made.
+MRR loss versus original is **0.017222**, below the 0.02 maximum, and the
+geometric plausibility ratio is **0.894856**. Category and neutral guards pass.
+
+[The full one-shot report](intent-outcome-audit-2026-10-20/surprise-independent-result.json)
+contains source identities, registered held-out verification and private-row
+hashes. The small incremental gain is evidence for this bounded selection
+policy, not a claim of improved musical usefulness, coverage, original benchmark
+outcomes or live latency. The benchmark must still be run by the integrating
+agent. No paid calls, database writes or runtime edits were made by this audit.
+The new membership and raw rows remain outside the audit worktree for future
+exclusions; the challenge is now closed.
