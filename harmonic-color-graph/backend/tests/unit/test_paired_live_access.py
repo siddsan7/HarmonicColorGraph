@@ -2,6 +2,7 @@
 
 import importlib.util
 import json
+from contextlib import nullcontext
 from pathlib import Path
 
 import pytest
@@ -77,3 +78,37 @@ def test_failed_database_cleanup_still_revokes_secret_and_preserves_failure(tmp_
     saved = json.loads(path.read_text())
     assert saved["cleanup_complete"] is False
     assert saved["cleanup_failures"] == ["database:ValueError"]
+
+
+def test_cleanup_revokes_exact_grants_without_drop_owned_membership(tmp_path, monkeypatch):
+    path = tmp_path / "state.json"
+    path.write_text(json.dumps(state()))
+    commands = []
+    results = iter([(1,), (0,), None])
+
+    class Connection:
+        autocommit = False
+
+        def execute(self, statement, parameters=None):
+            command = str(statement)
+            if "DROP OWNED" in command:
+                raise PermissionError("managed database denies DROP OWNED")
+            commands.append(command)
+            return self
+
+        def fetchone(self):
+            return next(results)
+
+        def transaction(self):
+            return nullcontext()
+
+        def close(self):
+            pass
+
+    monkeypatch.setattr(access, "admin_connection", lambda: (Connection(), "not-used"))
+    monkeypatch.setattr(access, "github", lambda *args, **kwargs: "[]")
+    access.cleanup(path)
+    assert json.loads(path.read_text())["cleanup_complete"]
+    assert any("REVOKE" in command and "UPDATE" in command for command in commands)
+    assert any("REVOKE USAGE ON SCHEMA" in command for command in commands)
+    assert any("DROP ROLE" in command for command in commands)

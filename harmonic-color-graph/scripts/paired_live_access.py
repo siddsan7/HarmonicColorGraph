@@ -390,8 +390,36 @@ def cleanup(path):
                             sql.Identifier(policy), sql.Identifier(table)
                         )
                     )
+                # Managed Postgres can permit role creation but deny DROP OWNED.
+                # Revoke this helper's exact grants; never grant role membership.
+                for table in (*READ_TABLES, "api_request_logs"):
+                    connection.execute(
+                        sql.SQL("REVOKE ALL PRIVILEGES ON hcg.{} FROM {}").format(
+                            sql.Identifier(table), sql.Identifier(role)
+                        )
+                    )
+                for table, privilege, columns in (
+                    ("ai_query_logs", "UPDATE", AUDIT_UPDATES),
+                    ("rate_limits", "UPDATE", ("count",)),
+                    ("api_request_logs", "SELECT", ("id",)),
+                ):
+                    connection.execute(
+                        sql.SQL("REVOKE {} ({}) ON hcg.{} FROM {}").format(
+                            sql.SQL(privilege),
+                            sql.SQL(",").join(map(sql.Identifier, columns)),
+                            sql.Identifier(table),
+                            sql.Identifier(role),
+                        )
+                    )
                 connection.execute(
-                    sql.SQL("DROP OWNED BY {}").format(sql.Identifier(role))
+                    sql.SQL(
+                        "REVOKE USAGE ON SEQUENCE hcg.api_request_logs_id_seq FROM {}"
+                    ).format(sql.Identifier(role))
+                )
+                connection.execute(
+                    sql.SQL("REVOKE USAGE ON SCHEMA hcg,extensions FROM {}").format(
+                        sql.Identifier(role)
+                    )
                 )
                 connection.execute(sql.SQL("DROP ROLE {}").format(sql.Identifier(role)))
         role_absent = not connection.execute(

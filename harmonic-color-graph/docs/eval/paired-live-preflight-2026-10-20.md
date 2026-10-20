@@ -1,5 +1,9 @@
 # Paired live evaluation preflight — 2026-10-20
 
+Historical preflight: the user subsequently approved $2 additional and pausing
+the weekly workflow. See the [completed paired evaluation](paired-live-2026-10-20.md)
+for current results, final spend and verified cleanup.
+
 Status: blocked before credential provisioning or model calls. The user approved
 up to $2 **within the remaining $10 project allowance**. Reconciliation found
 identified spend of $10.157483, leaving no allowance. New spend in this work: $0.

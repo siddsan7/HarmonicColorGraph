@@ -157,6 +157,11 @@ savings and musical usefulness remain unverified.
 
 ## Next production acceptance
 
+The subsequent [controlled paired live evaluation](paired-live-2026-10-20.md)
+completed six pairs. It measured faster delivery and lower observed cost, unchanged
+intent match, and a fallback regression. It does not establish production acceptance.
+Its report supersedes the paid-evaluation status above; no production release occurred.
+
 1. Review PR78 and its deployment plan. Reconcile model/corpus/deployment identity,
    current audited spend and remaining allowance before approving any new charges.
 2. Run a bounded paired baseline/candidate HTTP/SSE evaluation with fixed cases,
