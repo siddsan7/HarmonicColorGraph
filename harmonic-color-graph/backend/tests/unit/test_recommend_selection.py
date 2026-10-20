@@ -203,3 +203,40 @@ def test_service_bypasses_selection_and_extra_scoring_for_vector_sources(monkeyp
         assert result[0].token == "M:V"
         assert len(result) == limit
     assert observed_limits == [1, 2, 5, 20]
+
+
+@pytest.mark.parametrize("similarity", [0.0, 0.8])
+def test_service_bypasses_retained_vector_features_even_without_embedding_neighbors(
+    monkeypatch, similarity
+):
+    from app.schemas.recommend_v2 import RecommendRequest
+
+    class Reader:
+        def read(self, history, tokens):
+            return [], []
+
+        def similarities(self, previous, tokens):
+            return {"M:IV": similarity}
+
+    observed_limits = []
+
+    def scorer(features, *, limit, **kwargs):
+        observed_limits.append(limit)
+        assert any(row.values["emb_cos"] == similarity for row in features)
+        return _controlled_scorer(features, limit=limit, **kwargs)
+
+    monkeypatch.setattr("app.services.recommend.score_candidates", scorer)
+    service = _service()
+    service.candidate_reader = Reader()
+    for limit in (1, 2, 5, 20):
+        result = service.recommend(
+            RecommendRequest(
+                progression=["C", "G", "Am"],
+                key="C major",
+                intent={"darker_brighter": 0.7},
+                limit=limit,
+            )
+        ).data.recommendations
+        assert result[0].token == "M:V"
+        assert len(result) == limit
+    assert observed_limits == [1, 2, 5, 20]

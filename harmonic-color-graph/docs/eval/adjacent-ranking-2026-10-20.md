@@ -67,8 +67,10 @@ score two incumbents before selection; limits 1, 2, 5, and 20 share token prefix
 The implementation keeps every remaining entry for limits above five.
 
 Neutral, weak, other-preset, and non-qualifying lists retain the previous scorer
-behavior. Any nonempty returned embedding-neighbor list bypasses selection and
-its extra incumbent evaluation because vector-source quality was not validated.
+behavior. Any nonempty returned embedding-neighbor list or any retained candidate with a
+non-null embedding similarity bypasses selection and its extra incumbent
+evaluation because vector-source quality was not validated. Zero similarity is
+also treated conservatively as vector data.
 Graph-source activation remains subject to the separate independent graph gate.
 No rejected coverage expansion is included.
 
@@ -89,3 +91,13 @@ unsandboxed runner with external services and paid models disabled. An initial
 negative-boundary test used a neutral delta and correctly did not qualify; its
 fixture was corrected to a negative delta without changing runtime policy.
 Parent review and repository gates remain separate. No live metrics are claimed.
+
+
+Independent runtime review found a vector scope gap in the first integration:
+`CandidateReader.similarities` can attach vector features even when embedding
+neighbor retrieval returns an empty list. The corrected guard also checks every
+retained candidate for non-null embedding similarity. New zero and positive
+similarity regressions verify unchanged scorer limits and order at 1, 2, 5, and
+20 results. Frozen ranking policy, benchmark, reports, feature values, and quality
+gates are unchanged. Sixty selection/API/hybrid/assistant checks pass after this
+correction. No additional data evaluation or paid call was needed.

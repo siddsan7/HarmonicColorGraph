@@ -221,8 +221,10 @@ class RecommendationService:
         features = extract_features_many(pool, history, key)
         rerank_started = time.perf_counter()
         # Vector-source composition has not passed this policy's held-out gates.
-        adjacent_allowed = not embeddings and strong_balanced_request(
-            request.intent, request.preset or "balanced"
+        adjacent_allowed = (
+            not embeddings
+            and not any(item.embedding_similarity is not None for item in pool)
+            and strong_balanced_request(request.intent, request.preset or "balanced")
         )
         with telemetry.safe_span("recommend.rerank"):
             scored = score_candidates(
