@@ -21,7 +21,11 @@ from app.predict.realize import realize
 from app.recommend.candidates import generate_candidates
 from app.recommend.features import extract_features_many
 from app.recommend.scorer import score_candidates
-from app.recommend.selection import select_strong_adjacent, strong_balanced_request
+from app.recommend.selection import (
+    select_bounded_intent,
+    single_strong_surprise,
+    strong_balanced_request,
+)
 from app.schemas.recommend_v2 import (
     ContextUsed,
     Evidence,
@@ -221,7 +225,7 @@ class RecommendationService:
         features = extract_features_many(pool, history, key)
         rerank_started = time.perf_counter()
         # Vector-source composition has not passed this policy's held-out gates.
-        adjacent_allowed = (
+        selection_allowed = (
             not embeddings
             and not any(item.embedding_similarity is not None for item in pool)
             and strong_balanced_request(request.intent, request.preset or "balanced")
@@ -231,11 +235,13 @@ class RecommendationService:
                 features,
                 intent=request.intent,
                 preset=request.preset or "balanced",
-                # A one-result request still evaluates the incumbent runner-up.
-                limit=max(2, request.limit) if adjacent_allowed else request.limit,
+                # Short result lists still evaluate the required incumbents.
+                limit=max(3 if single_strong_surprise(request.intent) else 2, request.limit)
+                if selection_allowed
+                else request.limit,
             )
-            if adjacent_allowed:
-                scored = select_strong_adjacent(
+            if selection_allowed:
+                scored = select_bounded_intent(
                     scored, request.intent, preset=request.preset or "balanced"
                 )[: request.limit]
         emit_metric("recommend_rerank_latency_ms", (time.perf_counter() - rerank_started) * 1000)

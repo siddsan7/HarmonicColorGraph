@@ -11,7 +11,7 @@ from app.ai.workflow import AssistantWorkflow
 from app.api.recommend_v2 import recommendation_service
 from app.main import app
 from app.recommend.scorer import ScoredCandidate
-from app.recommend.selection import select_strong_adjacent
+from app.recommend.selection import select_bounded_intent, select_strong_adjacent
 from tests.eval.adjacent_ranking_experiment import rerank
 from tests.unit.test_pareto_experiment import ranked
 from tests.unit.test_recommend_v2_api import _service
@@ -172,7 +172,8 @@ def test_joint_qualifier_and_strong_boundary_and_negative_target():
     assert select_strong_adjacent(negative, {"darker_brighter": -0.699999}) is negative
 
 
-def test_service_bypasses_selection_and_extra_scoring_for_vector_sources(monkeypatch):
+@pytest.mark.parametrize("intent", [{"darker_brighter": 0.7}, {"common_surprising": 0.7}])
+def test_service_bypasses_selection_and_extra_scoring_for_vector_sources(monkeypatch, intent):
     from app.schemas.recommend_v2 import RecommendRequest
 
     class Reader:
@@ -196,7 +197,7 @@ def test_service_bypasses_selection_and_extra_scoring_for_vector_sources(monkeyp
             RecommendRequest(
                 progression=["C", "G", "Am"],
                 key="C major",
-                intent={"darker_brighter": 0.7},
+                intent=intent,
                 limit=limit,
             )
         ).data.recommendations
@@ -206,8 +207,9 @@ def test_service_bypasses_selection_and_extra_scoring_for_vector_sources(monkeyp
 
 
 @pytest.mark.parametrize("similarity", [0.0, 0.8])
+@pytest.mark.parametrize("intent", [{"darker_brighter": 0.7}, {"common_surprising": 0.7}])
 def test_service_bypasses_retained_vector_features_even_without_embedding_neighbors(
-    monkeypatch, similarity
+    monkeypatch, similarity, intent
 ):
     from app.schemas.recommend_v2 import RecommendRequest
 
@@ -233,10 +235,147 @@ def test_service_bypasses_retained_vector_features_even_without_embedding_neighb
             RecommendRequest(
                 progression=["C", "G", "Am"],
                 key="C major",
-                intent={"darker_brighter": 0.7},
+                intent=intent,
                 limit=limit,
             )
         ).data.recommendations
         assert result[0].token == "M:V"
         assert len(result) == limit
     assert observed_limits == [1, 2, 5, 20]
+
+
+def _surprise_rows(values):
+    first = ranked()[0]
+    return [
+        replace(
+            first,
+            token=token,
+            score=3.0 - i,
+            plausibility=0.4 - i * 0.05,
+            score_breakdown={"intent": 3.0 - i, "total": 3.0 - i},
+            features=replace(
+                first.features, color_delta={**first.features.color_delta, "surprise": value}
+            ),
+        )
+        for i, (token, value) in enumerate(
+            zip(("M:I", "M:V", "M:IV", "M:ii", "M:vi"), values, strict=False)
+        )
+    ]
+
+
+def test_three_slot_rotation_preserves_utility_evidence_and_all_other_components():
+    rows = _surprise_rows([0.4, 0.5, 0.8, 0.9, 0.9])
+    result = select_bounded_intent(rows, {"common_surprising": 0.7})
+    assert [r.token for r in result] == [rows[i].token for i in (2, 0, 1, 3, 4)]
+    assert [r.score for r in result] == [r.score for r in rows]
+    before = {r.token: r for r in rows}
+    for row in result:
+        old = before[row.token]
+        assert row.plausibility == old.plausibility and row.features is old.features
+        assert row.score_breakdown["total"] == row.score
+        assert row.score_breakdown["intent"] == old.score_breakdown["intent"]
+        assert (
+            row.score_breakdown["intent"] + row.score_breakdown.get("selection_constraint", 0)
+            == row.score
+        )
+    assert result[3:] == rows[3:]
+
+
+@pytest.mark.parametrize(
+    "intent,preset",
+    [
+        ({"common_surprising": 0.69999}, "balanced"),
+        ({"common_surprising": -0.7}, "balanced"),
+        ({"common_surprising": 0.7, "smooth": 0.7}, "balanced"),
+        ({"common_surprising": 0.7, "smooth": 0.1}, "balanced"),
+        ({"common_surprising": 0.7}, "plausible"),
+        ({"common_surprising": 0.7}, "adventurous"),
+        ({"darker_brighter": 0.7}, "balanced"),
+        (None, "balanced"),
+        ({}, "balanced"),
+    ],
+)
+def test_extended_selector_keeps_all_other_adjacent_branches_exact(intent, preset):
+    rows = _surprise_rows([0.4, 0.5, 0.8, 0.9, 0.9])
+    assert select_bounded_intent(rows, intent, preset=preset) == select_strong_adjacent(
+        rows, intent, preset=preset
+    )
+
+
+@pytest.mark.parametrize("values", [[0.8, 0.4, 0.9], [0.4, 0.8, 0.9], [0.4, 0.5, 0.51], [0.4, 0.5]])
+def test_extended_selector_preserves_adjacent_for_existing_or_absent_qualifiers(values):
+    rows = _surprise_rows(values)
+    assert select_bounded_intent(rows, {"common_surprising": 0.7}) == select_strong_adjacent(
+        rows, {"common_surprising": 0.7}
+    )
+
+
+def test_surprise_http_service_assistant_three_slot_prefix_and_source_evidence(monkeypatch):
+    observed_limits = []
+
+    def scorer(features, *, limit, **kwargs):
+        observed_limits.append(limit)
+        rows = _controlled_scorer(features, limit=limit, **kwargs)
+        return [
+            replace(
+                row,
+                features=replace(
+                    row.features,
+                    color_delta={
+                        **row.features.color_delta,
+                        "surprise": (0.4, 0.5, 0.8)[i] if i < 3 else 0.9,
+                    },
+                ),
+            )
+            for i, row in enumerate(rows)
+        ]
+
+    monkeypatch.setattr("app.services.recommend.score_candidates", scorer)
+    service = _service()
+    app.dependency_overrides[recommendation_service] = lambda: service
+    try:
+        client = TestClient(app)
+        outputs = {}
+        for limit in (1, 2, 5, 20):
+            response = client.post(
+                "/v2/recommend-next-chords",
+                json={
+                    "progression": ["C", "G", "Am"],
+                    "key": "C major",
+                    "intent": {"common_surprising": 0.7},
+                    "limit": limit,
+                },
+            )
+            assert response.status_code == 200
+            rows = response.json()["data"]["recommendations"]
+            assert len(rows) == limit
+            # Third incumbent follows V/IV in the controlled utility fixture.
+            assert rows[0]["token"] not in {"M:V", "M:IV"}
+            assert sum(r["score"] for r in rows) == pytest.approx(1.0)
+            assert all(a["score"] >= b["score"] for a, b in zip(rows, rows[1:], strict=False))
+            candidates = [
+                AssistantCandidate(
+                    chords=[r["chord"]],
+                    score=r["score"],
+                    source_tool="recommend_next",
+                    fact_ids=r["fact_ids"],
+                )
+                for r in rows
+            ]
+            assert (
+                AssistantWorkflow(None)._rank({"validated_candidates": candidates})[
+                    "validated_candidates"
+                ]
+                == candidates
+            )
+            outputs[limit] = rows
+        assert observed_limits == [3, 3, 5, 20]
+        for limit, rows in outputs.items():
+            assert [r["token"] for r in rows] == [r["token"] for r in outputs[20][:limit]]
+            for a, b in zip(rows, outputs[20], strict=False):
+                assert a["evidence"] == b["evidence"]
+                assert a["score_breakdown"] == b["score_breakdown"]
+                assert a["generators"] == b["generators"]
+                assert a["fact_ids"] == b["fact_ids"]
+    finally:
+        app.dependency_overrides.pop(recommendation_service, None)

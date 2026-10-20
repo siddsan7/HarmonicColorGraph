@@ -57,3 +57,45 @@ def select_strong_adjacent(
         )
 
     return [adjusted(second, first.score), adjusted(first, second.score), *ranked[2:]]
+
+
+def single_strong_surprise(intent: dict[str, float] | None) -> bool:
+    active = {axis: value for axis, value in (intent or {}).items() if value}
+    return set(active) == {"common_surprising"} and active["common_surprising"] >= 0.7
+
+
+def select_bounded_intent(
+    ranked: list[ScoredCandidate],
+    intent: dict[str, float] | None,
+    *,
+    preset: str = "balanced",
+) -> list[ScoredCandidate]:
+    """Add the frozen third-slot rotation only for single strong surprise.
+
+    Selected utility slots rotate with the candidate priority; signed offsets
+    retain every original score component and learned plausibility unchanged.
+    Every other request keeps the independently validated adjacent policy.
+    """
+    if preset == "balanced" and len(ranked) >= 3 and single_strong_surprise(intent):
+        target = (intent or {})["common_surprising"]
+
+        def satisfies(row: ScoredCandidate) -> bool:
+            return (
+                intent_score(row.features.color_delta, {"common_surprising": 1.0}, row.features)
+                - 0.5
+            ) * target >= 0.025
+
+        if not any(satisfies(row) for row in ranked[:2]) and satisfies(ranked[2]):
+            return [
+                replace(
+                    row,
+                    score=slot.score,
+                    score_breakdown={
+                        **row.score_breakdown,
+                        "selection_constraint": slot.score - row.score,
+                        "total": slot.score,
+                    },
+                )
+                for row, slot in zip([ranked[2], ranked[0], ranked[1]], ranked[:3], strict=True)
+            ] + ranked[3:]
+    return select_strong_adjacent(ranked, intent, preset=preset)
