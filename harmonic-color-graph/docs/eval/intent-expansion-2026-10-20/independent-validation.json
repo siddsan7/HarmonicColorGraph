@@ -1,0 +1,287 @@
+{
+  "sample_sha256": "ff491db1cd027330862e7ce31c31fc48864a42020fd88c2918d93f222cac5310",
+  "candidate_commit": "a35e8cc823040ed4607211cf777fca314284fe63",
+  "count": 24,
+  "baseline_exact": 24,
+  "candidate_exact": 24,
+  "cases": [
+    {
+      "id": "fresh-01",
+      "query": "Suggest a slightly darker next chord after C G.",
+      "expected_axes": {
+        "darker_brighter": -0.3
+      },
+      "baseline": {
+        "darker_brighter": -0.3
+      },
+      "candidate": {
+        "darker_brighter": -0.3
+      }
+    },
+    {
+      "id": "fresh-02",
+      "query": "After Am F, give a much smoother next chord.",
+      "expected_axes": {
+        "smooth": 1.0
+      },
+      "baseline": {
+        "smooth": 1.0
+      },
+      "candidate": {
+        "smooth": 1.0
+      }
+    },
+    {
+      "id": "fresh-03",
+      "query": "I want less tension after Dm G.",
+      "expected_axes": {
+        "tense_relaxed": 0.7
+      },
+      "baseline": {
+        "tense_relaxed": 0.7
+      },
+      "candidate": {
+        "tense_relaxed": 0.7
+      }
+    },
+    {
+      "id": "fresh-04",
+      "query": "Make it a little less complex after G C.",
+      "expected_axes": {
+        "simple_complex": -0.3
+      },
+      "baseline": {
+        "simple_complex": -0.3
+      },
+      "candidate": {
+        "simple_complex": -0.3
+      }
+    },
+    {
+      "id": "fresh-05",
+      "query": "Choose a very familiar continuation for C F.",
+      "expected_axes": {
+        "common_surprising": -1.0
+      },
+      "baseline": {
+        "common_surprising": -1.0
+      },
+      "candidate": {
+        "common_surprising": -1.0
+      }
+    },
+    {
+      "id": "fresh-06",
+      "query": "Give C G a more open ending.",
+      "expected_axes": {
+        "resolved_open": 0.7
+      },
+      "baseline": {
+        "resolved_open": 0.7
+      },
+      "candidate": {
+        "resolved_open": 0.7
+      }
+    },
+    {
+      "id": "fresh-07",
+      "query": "I prefer a dreamlike continuation after Em Am.",
+      "expected_axes": {
+        "dreamy": 0.7
+      },
+      "baseline": {
+        "dreamy": 0.7
+      },
+      "candidate": {
+        "dreamy": 0.7
+      }
+    },
+    {
+      "id": "fresh-08",
+      "query": "I want darker and smoother after C G.",
+      "expected_axes": {
+        "darker_brighter": -0.7,
+        "smooth": 0.7
+      },
+      "baseline": {
+        "darker_brighter": -0.7,
+        "smooth": 0.7
+      },
+      "candidate": {
+        "darker_brighter": -0.7,
+        "smooth": 0.7
+      }
+    },
+    {
+      "id": "fresh-09",
+      "query": "No darker chord; make the next one simpler after C G.",
+      "expected_axes": {
+        "simple_complex": -0.7
+      },
+      "baseline": {
+        "simple_complex": -0.7
+      },
+      "candidate": {
+        "simple_complex": -0.7
+      }
+    },
+    {
+      "id": "fresh-10",
+      "query": "Avoid relaxed options, but give me a surprising next chord after Am F.",
+      "expected_axes": {
+        "common_surprising": 0.7
+      },
+      "baseline": {
+        "common_surprising": 0.7
+      },
+      "candidate": {
+        "common_surprising": 0.7
+      }
+    },
+    {
+      "id": "fresh-11",
+      "query": "Choose brighter or darker after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-12",
+      "query": "If a darker chord clashes, keep the current feeling after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-13",
+      "query": "Unless I ask for smoother chords, retain the current sound after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-14",
+      "query": "I want a darker next chord, however do not make it more complex.",
+      "expected_axes": {
+        "darker_brighter": -0.7
+      },
+      "baseline": {
+        "darker_brighter": -0.7
+      },
+      "candidate": {
+        "darker_brighter": -0.7
+      }
+    },
+    {
+      "id": "fresh-15",
+      "query": "Give a brighter and darker next chord after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-16",
+      "query": "I do not want a dreamy next chord after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-17",
+      "query": "Give another next chord after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-18",
+      "query": "Give a less resolved next chord after C G.",
+      "expected_axes": {
+        "resolved_open": 0.7
+      },
+      "baseline": {
+        "resolved_open": 0.7
+      },
+      "candidate": {
+        "resolved_open": 0.7
+      }
+    },
+    {
+      "id": "fresh-19",
+      "query": "Make the next chord much less surprising after C G.",
+      "expected_axes": {
+        "common_surprising": -1.0
+      },
+      "baseline": {
+        "common_surprising": -1.0
+      },
+      "candidate": {
+        "common_surprising": -1.0
+      }
+    },
+    {
+      "id": "fresh-20",
+      "query": "If I prefer more relaxed chords, suggest one after C G.",
+      "expected_axes": {
+        "tense_relaxed": 0.7
+      },
+      "baseline": {
+        "tense_relaxed": 0.7
+      },
+      "candidate": {
+        "tense_relaxed": 0.7
+      }
+    },
+    {
+      "id": "fresh-21",
+      "query": "Make it smoother. Make it a bit brighter after C G.",
+      "expected_axes": {
+        "smooth": 0.7,
+        "darker_brighter": 0.3
+      },
+      "baseline": {
+        "smooth": 0.7,
+        "darker_brighter": 0.3
+      },
+      "candidate": {
+        "smooth": 0.7,
+        "darker_brighter": 0.3
+      }
+    },
+    {
+      "id": "fresh-22",
+      "query": "Do not make it smooth or dreamy after C G.",
+      "expected_axes": {},
+      "baseline": {},
+      "candidate": {}
+    },
+    {
+      "id": "fresh-23",
+      "query": "I want more complexity but no extra tension after C G.",
+      "expected_axes": {
+        "simple_complex": 0.7
+      },
+      "baseline": {
+        "simple_complex": 0.7
+      },
+      "candidate": {
+        "simple_complex": 0.7
+      }
+    },
+    {
+      "id": "fresh-24",
+      "query": "Give the next chord more resolution after C G.",
+      "expected_axes": {
+        "resolved_open": -0.7
+      },
+      "baseline": {
+        "resolved_open": -0.7
+      },
+      "candidate": {
+        "resolved_open": -0.7
+      }
+    }
+  ],
+  "sample_status": "Independently authored and frozen before candidate edits; baseline and frozen candidate each evaluated once. Now published regression evidence, not an unseen future test.",
+  "author_and_runner": "parent integration agent, separate from grammar implementation agent"
+}
