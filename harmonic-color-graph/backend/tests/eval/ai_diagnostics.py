@@ -25,6 +25,8 @@ class RequestDiagnostics:
         self.node_ms: dict[str, float] = {}
         self.model_calls: list[dict[str, Any]] = []
         self.first_text_ms: float | None = None
+        self.first_candidates_ms: float | None = None
+        self.first_result_ms: float | None = None
 
     def attach(self, workflow: Any) -> None:
         for attr, stage in (("intent_model", "intent"), ("explanation_model", "explanation")):
@@ -62,11 +64,21 @@ class RequestDiagnostics:
                 self.node_ms[node] = (now - self.nodes.pop(node)) * 1000
         elif event == "partial" and payload.get("text") and self.first_text_ms is None:
             self.first_text_ms = (now - self.started) * 1000
+            if self.first_result_ms is None:
+                self.first_result_ms = self.first_text_ms
+        elif (
+            event == "candidates" and payload.get("candidates") and self.first_candidates_ms is None
+        ):
+            self.first_candidates_ms = (now - self.started) * 1000
+            if self.first_result_ms is None:
+                self.first_result_ms = self.first_candidates_ms
 
     def finish(self) -> dict[str, Any]:
         return {
             "workflow_completion_ms": (time.perf_counter() - self.started) * 1000,
             "first_validated_text_ms": self.first_text_ms,
+            "first_validated_candidates_ms": self.first_candidates_ms,
+            "first_validated_result_ms": self.first_result_ms,
             "node_ms": self.node_ms,
             "model_calls": self.model_calls,
             "repair_calls": max(
@@ -87,6 +99,11 @@ def route_diagnostics(rows: list[dict[str, Any]]) -> dict[str, Any]:
             row["diagnostics"]["first_validated_text_ms"]
             for row in completed
             if row["diagnostics"]["first_validated_text_ms"] is not None
+        )
+        result_times = sorted(
+            row["diagnostics"]["first_validated_result_ms"]
+            for row in completed
+            if row["diagnostics"].get("first_validated_result_ms") is not None
         )
         cost = sum((Decimal(row["accounted_cost_usd"]) for row in sample), Decimal(0))
         result[route] = {
@@ -114,6 +131,9 @@ def route_diagnostics(rows: list[dict[str, Any]]) -> dict[str, Any]:
             "p50_workflow_ms": median(times) if times else None,
             "p95_workflow_ms": times[math.ceil(0.95 * len(times)) - 1] if times else None,
             "p50_first_validated_text_ms": median(text_times) if text_times else None,
+            "validated_result_count": len(result_times),
+            "completed_without_validated_result": len(completed) - len(result_times),
+            "p50_first_validated_result_ms": median(result_times) if result_times else None,
             "p95_first_validated_text_ms": (
                 text_times[math.ceil(0.95 * len(text_times)) - 1] if text_times else None
             ),
