@@ -768,6 +768,8 @@ class AssistantWorkflow:
                 "Every claim must cite fact_ids from facts; do not return uncited prose. "
                 "Use tool_results as evidence; use only chord and figure symbols present there. "
                 "Do not assert emotions as objective fact or name a song without an example: fact. "
+                "An example fact authorizes only its supplied identity; do not infer a song title "
+                "or artist from an opaque ID. Prefer describing the chord progression. "
                 "If naming a theory relationship, provide its registry ID in theory_labels. "
                 f"Context: {json.dumps(context, ensure_ascii=False, separators=(',', ':'))}"
             )
@@ -802,7 +804,9 @@ class AssistantWorkflow:
                     advice = repair_advice()
                     if isinstance(exc, ClaimValidationError):
                         repair_detail = ",".join(exc.codes)
-                        advice = repair_advice(exc.codes)
+                        advice = repair_advice(
+                            exc.codes, facts=facts, tool_results=state.get("tool_results", {})
+                        )
                         error_code += ":" + repair_detail
                     elif isinstance(exc, StructuredOutputError):
                         repair_detail = exc.code
