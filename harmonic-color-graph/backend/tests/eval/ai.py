@@ -345,6 +345,7 @@ def run(
                 "diagnostics": {**timing, "tools": tools.timings if tools else []},
                 "metered_cost_usd": str(actual_cost),
                 "accounted_cost_usd": str(case_cost),
+                "unknown_usage_calls": meter.unknown_usage_calls - unknown_before,
                 "model_usage": {
                     name: {
                         key: (

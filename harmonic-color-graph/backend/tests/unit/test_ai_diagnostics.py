@@ -64,6 +64,10 @@ def test_offline_profile_has_stage_and_tool_boundaries_without_models():
     assert set(row["diagnostics"]["node_ms"]) >= {"retrieve", "rank", "explain", "final"}
     assert row["diagnostics"]["tools"]
     assert row["model_usage"] == {}
+    assert row["unknown_usage_calls"] == 0
+    summary = report["route_diagnostics"]["recommend"]
+    assert summary["model_call_attempts"] == summary["usage_recorded_calls"] == 0
+    assert summary["tokens_in_per_known_usage_call"] is None
     assert row["accounted_cost_usd"] == "0"
     assert report["reproducibility"]["corpus_version"] == "ai-eval-v1"
     assert report["reproducibility"]["models"] == {}

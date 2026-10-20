@@ -17,6 +17,7 @@ from typing import Any
 
 from app.recommend.scorer import WEIGHTS_FILE
 from tests.eval.tail_acceptance import completion_tail_acceptance
+from tests.eval.model_call_diagnostics import model_call_summary
 
 
 class RequestDiagnostics:
@@ -131,9 +132,11 @@ def route_diagnostics(
             "tokens_out": sum(
                 usage["tokens_out"] for row in sample for usage in row["model_usage"].values()
             ),
+            # Compatibility alias: returned responses recorded by UsageMeter.
             "model_calls": sum(
                 usage["calls"] for row in sample for usage in row["model_usage"].values()
             ),
+            **model_call_summary(sample),
             "p50_workflow_ms": median(times) if times else None,
             "p95_workflow_ms": times[math.ceil(0.95 * len(times)) - 1] if times else None,
             "p50_first_validated_text_ms": median(text_times) if text_times else None,
@@ -173,6 +176,7 @@ def reproducibility(cases: list[dict[str, Any]], *, live: bool, fixture: bool) -
                 "app/recommend/features.py",
                 "tests/eval/ai.py",
                 "tests/eval/ai_diagnostics.py",
+                "tests/eval/model_call_diagnostics.py",
             )
         },
         "case_sha256": hashlib.sha256(
