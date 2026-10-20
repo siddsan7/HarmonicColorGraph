@@ -23,6 +23,23 @@ _CLAUSES = re.compile(r"[.!?;,\n]|\b(?:but|however)\b")
 _UNCERTAIN = re.compile(
     r"\b(?:not|no|never|neither|nor|without|avoid|or|unless|whether)\b|\b\w+n['’]t\b"
 )
+_GENERATE_VERB = r"\b(?:generate|create|make|write|compose)\s+(?:me\s+)?(?:a\s+|the\s+)?"
+
+
+def explicit_next_chord_command(query: str) -> bool:
+    """Recover a direct next-chord object, without resolving mixed requests.
+
+    Generation verbs can request one recommendation. Quoted examples, negation,
+    alternatives and explicit requests for a whole progression retain the old
+    route. This recovery never changes a valid model-selected route.
+    """
+    lower = query.lower()
+    if _UNCERTAIN.search(lower):
+        return False
+    unquoted = re.sub(r"'[^'\n]*'|\"[^\"\n]*\"|“[^”\n]*”", "", lower)
+    if re.search(_GENERATE_VERB + r"(?:\w+\s+){0,3}(?:progression|sequence|song)\b", unquoted):
+        return False
+    return bool(re.search(_GENERATE_VERB + r"next\s+chord\b", unquoted))
 
 
 def explicit_axes(query: str) -> dict[str, float]:

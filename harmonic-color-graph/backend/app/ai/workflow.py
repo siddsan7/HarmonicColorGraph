@@ -19,7 +19,7 @@ from app.ai.explanation_constraints import (
     explanation_hints,
     repair_advice,
 )
-from app.ai.intent_fallback import explicit_axes
+from app.ai.intent_fallback import explicit_axes, explicit_next_chord_command
 from app.ai.state import (
     INTENT_AXIS_GUIDE,
     AssistantCandidate,
@@ -134,6 +134,8 @@ def heuristic_intent(query: str) -> ParsedIntent:
     ):
         if re.search(pattern, lower):
             route = choice  # type: ignore[assignment]
+            if route == "generate" and explicit_next_chord_command(query):
+                route = "recommend"
             break
     key_match = _KEY.search(query)
     chord_text = _KEY.sub("", query)
