@@ -16,6 +16,7 @@ from statistics import median
 from typing import Any
 
 from app.recommend.scorer import WEIGHTS_FILE
+from tests.eval.tail_acceptance import completion_tail_acceptance
 
 
 class RequestDiagnostics:
@@ -87,7 +88,9 @@ class RequestDiagnostics:
         }
 
 
-def route_diagnostics(rows: list[dict[str, Any]]) -> dict[str, Any]:
+def route_diagnostics(
+    rows: list[dict[str, Any]], *, evidence_type: str = "offline"
+) -> dict[str, Any]:
     groups = defaultdict(list)
     for row in rows:
         groups[row["expected_route"]].append(row)
@@ -107,6 +110,9 @@ def route_diagnostics(rows: list[dict[str, Any]]) -> dict[str, Any]:
         )
         cost = sum((Decimal(row["accounted_cost_usd"]) for row in sample), Decimal(0))
         result[route] = {
+            "completion_tail_acceptance": completion_tail_acceptance(
+                sample, evidence_type=evidence_type
+            ),
             "attempts": len(sample),
             "completed": len(completed),
             "request_failures": len(sample) - len(completed),

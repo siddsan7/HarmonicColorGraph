@@ -368,7 +368,10 @@ def run(
         "unknown_cost_cases": unknown_cost_cases,
         "model_usage": meter.as_log()["model_usage"],
         "reproducibility": reproducibility(cases, live=live, fixture=fixture),
-        "route_diagnostics": route_diagnostics(rows),
+        "route_diagnostics": route_diagnostics(
+            rows,
+            evidence_type=("seeded_live" if fixture else "live_workflow") if live else "offline",
+        ),
         **summary,
         "cases": rows,
     }
