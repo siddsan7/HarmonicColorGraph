@@ -76,6 +76,7 @@
       "owner": "backend/app/api/*.py"
     },
     "request_bounds": {
+      "ranking_experiment": "app/recommend/scorer.py has an internal finite intent_scale argument in [0,12], default6; HTTP/tool requests do not expose it. tests/eval/ranking_experiment.py freezes one dev-selected candidate before heldout scoring and rejects source/protocol/selection drift. Failed dev gates cannot promote a candidate.",
       "assistant_intent_recovery": "app/ai/intent_fallback.py recovers explicit recommendation axes only after an unavailable or failed parser. Defaults: ordinary 0.7, weak 0.3, strong 1.0; conflicting directions and negated/ambiguous clauses abstain. app/ai/workflow.py clarifies missing chord input for recommendation/similarity/comparison; explicit generation can start without chords. Valid model output remains authoritative; generation axes are not mapped to generator targets.",
       "recommend": "1–128 chords, each ≤80 chars; limit 1–20 (default 10); genre/section ≤80 chars; the predictor ranks top 100 before the mode filter and realization. Optional intent accepts seven axes in [-1,1]: darker_brighter, tense_relaxed, common_surprising, simple_complex, resolved_open, smooth, dreamy; optional preset is plausible, balanced, or adventurous. Intent ranking scores at most 64 generated candidates.",
       "graph_neighborhood": "limit 1–200, hops 1–2, min_prob 0–1",

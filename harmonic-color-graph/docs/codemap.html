@@ -740,6 +740,7 @@
             <tr><td class="p">backend/tests/golden/</td><td>v1 golden outputs + capture script (regression lock)</td></tr>
             <tr><td class="p">backend/tests/eval/</td><td>F31 harness: sampling, metrics, baselines, prediction CLI (hcg-eval)</td></tr>
             <tr><td class="p">backend/tests/eval/ai_diagnostics.py, intent_recovery.py, intent_candidates.py</td><td>Local assistant stage/tool/model profiling, offline fallback-parser regression corpus, and fixed-weight seeded candidate-feasibility inspection; workflow timings exclude HTTP transport</td></tr>
+            <tr><td class="p">backend/tests/eval/ranking_experiment.py</td><td>Frozen local intent-scale experiment: song-disjoint development/test samples, unchanged plausibility weights, paired guards and song bootstrap; failed development candidates cannot promote</td></tr>
             <tr><td class="p">backend/openapi.json</td><td>Generated API contract (scripts/export_openapi.py); CI drift-checked</td></tr>
             <tr><td class="p">backend/legacy/</td><td>Retired Alembic history (reference only)</td></tr>
             <tr><td class="p">backend/pyproject.toml</td><td>Deps + extras (dev, pipeline, ml, oracle), scripts, ruff and pytest config; package data ships color, key, and scorer JSON in the API wheel</td></tr>

@@ -1,0 +1,10 @@
+{
+  "assistant-regression.json": "0a13431aeb9e4ae2060066b5ac5a3645eb1324e3c21e3dc96d045e687713a7f2",
+  "development-initial.json": "56f02dd242864c86f9c628ab888ac8b4fad32f8dc7b2ef28e45813ed521a23b8",
+  "development.json": "1777661f4dfd84eacde50c4075abf37835b8e4e26740bf001c18e59c920c1265",
+  "environment.json": "f08a595bbf9fc6edfee426a794008df829ead6b10587955c6518985726da27c4",
+  "heldout.json": "8bf99ae8ab4cd98a840b4952084463549a243c462f774984d42a61f48c2a344d",
+  "protocol-initial.json": "c40b20bc3c38080d9044022302651a6195d17e2806250c6f7d02ce3d13bb59e2",
+  "protocol.json": "38b7faeda2d6badf00d72514ba84717f598afc85b5a561ac1db8728237288946",
+  "selection.json": "c0d6742cfec28c4a2059578c3fc79b882ff0722161f86c8f3bc53bdaefe8716d"
+}

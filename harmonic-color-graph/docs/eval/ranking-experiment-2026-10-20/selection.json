@@ -1,0 +1,12 @@
+{
+  "status": "frozen_before_single_heldout_run",
+  "candidate_scale": 12.0,
+  "control_scale": 6.0,
+  "development_passed": false,
+  "purpose": "diagnostic validation only; not eligible for promotion",
+  "development_sha256": "1777661f4dfd84eacde50c4075abf37835b8e4e26740bf001c18e59c920c1265",
+  "test_seed": 782,
+  "test_positions": 400,
+  "source_identities_match": true,
+  "initial_and_refreshed_dev_comparisons_equal": true
+}

@@ -65,6 +65,8 @@ see `docs/roadmap-v2.md` and
   clarification; explicit generation can start without chords.
   `backend/tests/eval/ai_diagnostics.py` profiles local workflow stages without
   changing the response or durable audit contract.
+  `backend/tests/eval/ranking_experiment.py` compares bounded intent scales on
+  song-disjoint local development/test data; the runtime scorer default remains 6.
 - `backend/app/theory/` - Planned symbolic music logic:
   chord parsing, normalization, key detection, Roman numeral
   conversion, theory labels, and voice-leading helpers.

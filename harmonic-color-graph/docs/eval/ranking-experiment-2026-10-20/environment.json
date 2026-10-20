@@ -1,0 +1,9 @@
+{
+  "python": "3.12.10",
+  "platform": "Windows",
+  "polars": "1.44.2",
+  "numpy": "2.4.6",
+  "dependency_changes": "none; existing system Python and installed project dependencies",
+  "evaluation_model_calls": 0,
+  "scope": "Local deterministic ranking; not production latency or LLM quality"
+}
