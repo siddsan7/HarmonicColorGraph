@@ -14,6 +14,11 @@ from langgraph.graph import END, START, StateGraph
 from langsmith.run_helpers import tracing_context
 from pydantic import ValidationError
 
+from app.ai.explanation_constraints import (
+    REPAIR_HEADROOM_BYTES,
+    explanation_hints,
+    repair_advice,
+)
 from app.ai.intent_fallback import explicit_axes
 from app.ai.state import (
     INTENT_AXIS_GUIDE,
@@ -729,6 +734,13 @@ class AssistantWorkflow:
                 "If naming a theory relationship, provide its registry ID in theory_labels. "
                 f"Context: {json.dumps(context, ensure_ascii=False, separators=(',', ':'))}"
             )
+            hints = explanation_hints(facts, state.get("tool_results", {}))
+            # Optional hints must not turn a previously valid prompt into a skip.
+            if (
+                len((hints + prompt).encode("utf-8")) + REPAIR_HEADROOM_BYTES
+                <= MAIN_MAX_PROMPT_BYTES
+            ):
+                prompt = hints + prompt
             for attempt in range(MAIN_MAX_CALLS):
                 if len(prompt.encode("utf-8")) > MAIN_MAX_PROMPT_BYTES:
                     # Appending a repair cannot make an oversized prompt fit.
@@ -745,17 +757,20 @@ class AssistantWorkflow:
                         emit_metric("ai_repair_attempt_count", 1)
                     error_code = f"explanation_validation_failed:{type(exc).__name__}"
                     repair_detail = type(exc).__name__
+                    advice = repair_advice()
                     if isinstance(exc, ClaimValidationError):
                         repair_detail = ",".join(exc.codes)
+                        advice = repair_advice(exc.codes)
                         error_code += ":" + repair_detail
                     elif isinstance(exc, StructuredOutputError):
                         repair_detail = exc.code
                         error_code += ":" + repair_detail
-                    prompt += (
-                        f"\nRepair attempt {attempt + 1}: {repair_detail}. "
-                        "Return one short claim. Use only listed facts, symbols, "
-                        "and registered theory labels."
-                    )
+                    if attempt + 1 < MAIN_MAX_CALLS:
+                        prompt += (
+                            f"\nRepair attempt {attempt + 1}: {repair_detail}. "
+                            "Return one short claim. Use only listed facts, symbols, "
+                            f"and registered theory labels. {advice}"
+                        )
                 except Exception as exc:
                     error_code = f"explanation_model_failed:{type(exc).__name__}"
                     break
