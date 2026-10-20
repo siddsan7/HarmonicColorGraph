@@ -640,3 +640,75 @@ def test_modulating_similarity_and_generation_use_opening_context():
     assert calls[0][1]["key"] is None
     assert calls[1][1]["start"] == "C"
     assert calls[1][1]["key"] == "C major"
+
+
+def test_candidates_arrive_before_explanation_and_contain_only_validated_tool_data(monkeypatch):
+    calls = []
+
+    def explain(_prompt):
+        calls.append("explain")
+        raise ValueError("Simulated explanation failure")
+
+    workflow = AssistantWorkflow(_tools(), explanation_model=explain)
+    from app.ai.state import AssistantCandidate
+
+    candidate = AssistantCandidate(
+        chords=["C", "G"],
+        source_tool="recommend_next",
+        fact_ids=["fact:1"],
+        explanation="Do not stream this prose",
+    )
+
+    def updates(_state):
+        yield {
+            "rank": {
+                "route": "recommend",
+                "validated_candidates": [candidate],
+                "fact_pool": {"fact:1": {"tool": "recommend_next"}},
+            }
+        }
+        calls.append("explain")
+        yield {
+            "final": {
+                "parsed_intent": ParsedIntent(task_type="recommend"),
+                "response": AssistantResponse(
+                    route="recommend",
+                    message="Done",
+                    candidates=[candidate],
+                    facts={"fact:1": {"tool": "recommend_next"}},
+                ),
+            }
+        }
+
+    monkeypatch.setattr(workflow, "_graph_updates", updates)
+    stream = workflow.stream("Recommend the next chord after C G Am in C major")
+    preview = None
+    for kind, payload in stream:
+        if kind == "candidates":
+            preview = payload
+            assert calls == []
+            assert preview["schema_version"] == 1
+            assert 1 <= len(preview["candidates"]) <= 20
+            assert all(
+                set(item) == {"chords", "source_tool", "fact_ids"} for item in preview["candidates"]
+            )
+        if kind == "final":
+            assert calls
+            assert preview is not None
+            assert (
+                preview["candidates"][0]["chords"] == payload["response"]["candidates"][0]["chords"]
+            )
+            assert set(preview["fact_ids"]) <= set(payload["response"]["facts"])
+
+
+def test_preview_schema_rejects_unknown_facts_and_oversized_candidates():
+    import pytest
+    from pydantic import ValidationError
+
+    from app.ai.state import CandidatePreview
+
+    item = {"chords": ["C"], "source_tool": "recommend_next", "fact_ids": ["fact:1"]}
+    with pytest.raises(ValidationError):
+        CandidatePreview(candidates=[item], fact_ids=["fact:2"])
+    with pytest.raises(ValidationError):
+        CandidatePreview(candidates=[item] * 21, fact_ids=["fact:1"])

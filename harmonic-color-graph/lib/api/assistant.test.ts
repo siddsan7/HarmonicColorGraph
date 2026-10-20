@@ -64,3 +64,36 @@ it("parses SSE frames split across chunks and rejects a stream without a final r
   vi.stubGlobal("fetch", vi.fn(async () => new Response('event: partial\ndata: {"text":"unfinished"}\n\n', { status: 200 })))
   await expect(queryAssistant("Explain C G", () => {})).rejects.toThrow("before a result")
 })
+
+
+const preview = { schema_version: 1, query_id: "query-1", candidates: [
+  { chords: ["C", "G"], fact_ids: ["fact:1"], source_tool: "recommend_next" },
+], fact_ids: ["fact:1"] }
+const frame = (kind: string, payload: unknown) => `event: ${kind}\ndata: ${JSON.stringify(payload)}\n\n`
+
+it("delivers bounded tool candidates before final and ignores unknown event kinds", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(frame("future", {}) + frame("candidates", preview) + finalFrame)))
+  const events: AssistantEvent[] = []
+  await queryAssistant("Recommend C G", (event) => events.push(event))
+  expect(events.map((event) => event.kind)).toEqual(["candidates", "final"])
+})
+
+it.each([
+  { ...preview, schema_version: 2 },
+  { ...preview, fact_ids: ["unrelated"] },
+  { ...preview, candidates: Array(21).fill(preview.candidates[0]) },
+  { ...preview, query_id: undefined },
+])("rejects invalid candidate previews", async (payload) => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(frame("candidates", payload) + finalFrame)))
+  await expect(queryAssistant("Recommend C G", () => {})).rejects.toThrow(/candidate/)
+})
+
+it("rejects cross-query events and does not deliver buffered events after abort", async () => {
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(frame("step", { query_id: "other", node: "rank", status: "completed" }) + frame("candidates", preview))))
+  await expect(queryAssistant("Recommend C G", () => {})).rejects.toThrow("different query")
+  const controller = new AbortController()
+  vi.stubGlobal("fetch", vi.fn(async () => new Response(frame("candidates", preview) + finalFrame)))
+  const events: AssistantEvent[] = []
+  await expect(queryAssistant("Recommend C G", (event) => { events.push(event); controller.abort() }, controller.signal)).rejects.toThrow("Aborted")
+  expect(events.map((event) => event.kind)).toEqual(["candidates"])
+})

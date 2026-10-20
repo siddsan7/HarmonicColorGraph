@@ -9,7 +9,7 @@ import { ContextSummary, PageHeader } from "@/components/studio-primitives"
 import { AudioLines, Check, ChevronRight, LoaderCircle, Search } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import { AssistantQueryError, queryAssistant, type AssistantResponse, type AssistantStep } from "@/lib/api/assistant"
+import { AssistantQueryError, queryAssistant, type CandidatePreview, type AssistantResponse, type AssistantStep } from "@/lib/api/assistant"
 
 const examples = [
   "What chord could follow C – Am – F in C major?",
@@ -40,6 +40,7 @@ export function Assistant() {
   const [query, setQuery] = useState("")
   const [busy, setBusy] = useState(false)
   const [steps, setSteps] = useState<AssistantStep[]>([])
+  const [preview, setPreview] = useState<CandidatePreview | null>(null)
   const [partial, setPartial] = useState("")
   const [result, setResult] = useState<AssistantResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -56,6 +57,7 @@ export function Assistant() {
     controller.current?.abort()
     const current = new AbortController()
     controller.current = current
+    setPreview(null)
     setBusy(true)
     setSteps([])
     setPartial("")
@@ -63,13 +65,15 @@ export function Assistant() {
     setLimited(false)
     try {
       await queryAssistant(text, (event) => {
+        if (current.signal.aborted || controller.current !== current) return
+        if (event.kind === "candidates") setPreview(event.value)
         if (event.kind === "step") setSteps((previous) => {
           const index = previous.findIndex((step) => step.node === event.value.node)
           if (index < 0) return [...previous, event.value]
           return previous.map((step, position) => position === index ? event.value : step)
         })
         if (event.kind === "partial") setPartial(event.value)
-        if (event.kind === "final") { setResult(event.value); setSubmittedContext(shared); setResultRevision((value) => value + 1) }
+        if (event.kind === "final") { setPreview(null); setResult(event.value); setSubmittedContext(shared); setResultRevision((value) => value + 1) }
       }, current.signal)
     } catch (caught) {
       if (!current.signal.aborted) {
@@ -77,7 +81,7 @@ export function Assistant() {
         setLimited(caught instanceof AssistantQueryError && caught.status === 429)
       }
     } finally {
-      if (!current.signal.aborted) setBusy(false)
+      if (controller.current === current) { setPreview(null); setBusy(false) }
     }
   }
 
@@ -123,6 +127,11 @@ export function Assistant() {
           {nodeNames[step.node] || step.node.replaceAll("_", " ")}
         </li>)}</ol>
         {busy && partial && <p className="mt-4 border-t border-[var(--border-default)] pt-3 text-sm text-[var(--text-secondary)]" aria-live="polite">{partial}</p>}
+      </section>}
+      {busy && preview && <section className="mt-6 rounded-xl border border-[var(--border-default)] p-5" aria-label="Candidate preview" aria-live="polite">
+        <h2 className="font-semibold">Candidates ready</h2>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">Tool-checked candidates. The explanation is still being prepared.</p>
+        <ul className="mt-3 space-y-2">{preview.candidates.map((item, index) => <li key={index}>{item.chords.join(" � ")}</li>)}</ul>
       </section>}
       {error && <div role="alert" className="mt-8 rounded-xl border border-[var(--state-error)]/40 bg-[var(--state-error)]/10 p-5">
         <p className="font-semibold">{limited ? "Assistant limit reached" : "The assistant could not answer"}</p>

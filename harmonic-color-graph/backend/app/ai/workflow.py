@@ -25,6 +25,7 @@ from app.ai.state import (
     AssistantCandidate,
     AssistantResponse,
     AssistantState,
+    CandidatePreview,
     Claim,
     ExplanationDraft,
     ParsedIntent,
@@ -376,6 +377,25 @@ class AssistantWorkflow:
             for node, delta in update.items():
                 state.update(delta or {})
                 yield "step", {"node": node, "status": "completed"}
+                if node == "rank":
+                    # Project tool-derived data only; explanation and playback remain final-only.
+                    items = [
+                        {
+                            "chords": item.chords,
+                            "fact_ids": item.fact_ids,
+                            "source_tool": item.source_tool,
+                        }
+                        for item in state.get("validated_candidates", [])[:20]
+                        if 1 <= len(item.fact_ids) <= 64
+                    ]
+                    if items:
+                        preview = CandidatePreview(
+                            candidates=items,
+                            fact_ids=sorted({fact for item in items for fact in item["fact_ids"]}),
+                        )
+                        if not set(preview.fact_ids) <= set(state.get("fact_pool", {})):
+                            raise ValueError("Preview contains unknown facts")
+                        yield "candidates", preview.model_dump(mode="json")
                 if node == "explain":
                     draft = state.get("explanation")
                     message = (
