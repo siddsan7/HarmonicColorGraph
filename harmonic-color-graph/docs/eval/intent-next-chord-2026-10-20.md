@@ -25,6 +25,11 @@ not independently authored evidence. The integration agent has a separate
 unseen frozen sample and will score the committed candidate once. No tuning
 will follow that score. Published cases become regression cases.
 
+Integration result: the parent-authored twelve-case sample, frozen before the
+worker candidate, scored **7/12 → 10/12** with zero regressions. No tuning followed
+that score. This independent result is primary; the worker's 12/12 is secondary.
+[Independent frozen evidence](intent-next-chord-independent-2026-10-20.json).
+
 The generator accepts absolute `[0,1]` targets, while assistant intent axes
 express signed relative directions. No product contract defines the reference
 or conversion. Generator mapping remains unchanged; inventing an absolute

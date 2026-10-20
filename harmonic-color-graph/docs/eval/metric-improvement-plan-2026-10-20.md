@@ -157,6 +157,12 @@ savings and musical usefulness remain unverified.
 
 ## Next production acceptance
 
+The [provenance and remaining metric follow-up](metric-followup-2026-10-20.md)
+fixes a reproduced title false positive, validates narrow routing recovery and
+removes repeated color-prefix work. It also records rejected ranking and coverage
+hypotheses and preserves the original benchmark. New live outcome targets remain
+unverified; completion of worker slices is not completion of every metric goal.
+
 The subsequent [controlled paired live evaluation](paired-live-2026-10-20.md)
 completed six pairs. It measured faster delivery and lower observed cost, unchanged
 intent match, and a fallback regression. It does not establish production acceptance.

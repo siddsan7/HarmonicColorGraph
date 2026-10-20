@@ -1,0 +1,167 @@
+{
+  "baseline": {
+    "correct": 7,
+    "total": 12,
+    "rows": [
+      {
+        "id": "h01",
+        "input": "Compose the next chord after Fm Bb Eb in Eb major, a little darker.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h02",
+        "input": "Create the next chord after Bm Em F#7 in B minor, more tense.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h03",
+        "input": "Make the next chord after Dm G C in C major smoother.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h04",
+        "input": "Write what comes next after Ab Db Eb in Ab major.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h05",
+        "input": "Generate a four-chord progression in E major.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h06",
+        "input": "Compose a dreamy progression in A minor.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h07",
+        "input": "Create a sequence using C F G.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h08",
+        "input": "Write a progression that avoids a predictable next chord.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h09",
+        "input": "Explain the next chord after C F G in C major.",
+        "expected_route": "explain",
+        "actual_route": "explain"
+      },
+      {
+        "id": "h10",
+        "input": "What comes next?",
+        "expected_route": "clarify",
+        "actual_route": "clarify"
+      },
+      {
+        "id": "h11",
+        "input": "Make the next chord after A D E in A major; do not generate a whole progression.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h12",
+        "input": "Write a new progression rather than recommend the next chord after C F G.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      }
+    ]
+  },
+  "candidate": {
+    "correct": 10,
+    "total": 12,
+    "rows": [
+      {
+        "id": "h01",
+        "input": "Compose the next chord after Fm Bb Eb in Eb major, a little darker.",
+        "expected_route": "recommend",
+        "actual_route": "recommend"
+      },
+      {
+        "id": "h02",
+        "input": "Create the next chord after Bm Em F#7 in B minor, more tense.",
+        "expected_route": "recommend",
+        "actual_route": "recommend"
+      },
+      {
+        "id": "h03",
+        "input": "Make the next chord after Dm G C in C major smoother.",
+        "expected_route": "recommend",
+        "actual_route": "recommend"
+      },
+      {
+        "id": "h04",
+        "input": "Write what comes next after Ab Db Eb in Ab major.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h05",
+        "input": "Generate a four-chord progression in E major.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h06",
+        "input": "Compose a dreamy progression in A minor.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h07",
+        "input": "Create a sequence using C F G.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h08",
+        "input": "Write a progression that avoids a predictable next chord.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h09",
+        "input": "Explain the next chord after C F G in C major.",
+        "expected_route": "explain",
+        "actual_route": "explain"
+      },
+      {
+        "id": "h10",
+        "input": "What comes next?",
+        "expected_route": "clarify",
+        "actual_route": "clarify"
+      },
+      {
+        "id": "h11",
+        "input": "Make the next chord after A D E in A major; do not generate a whole progression.",
+        "expected_route": "recommend",
+        "actual_route": "generate"
+      },
+      {
+        "id": "h12",
+        "input": "Write a new progression rather than recommend the next chord after C F G.",
+        "expected_route": "generate",
+        "actual_route": "generate"
+      }
+    ]
+  },
+  "protocol": {
+    "case_sha256": "f7f1884eac2adf2cd31338974143671d6c2b311f71643b5319b69da6eee95725",
+    "baseline_sha": "cc1086762cb781eefa2740736f14f765d0f3b765",
+    "candidate_sha": "1b028c0fe0920f74882d2946da22be393aac0947",
+    "authored_by": "parent before candidate source freeze; not inspected by worker",
+    "closed_after_single_scoring": true,
+    "model_calls": 0,
+    "cost_usd": "0"
+  }
+}
