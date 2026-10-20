@@ -12,7 +12,7 @@ import re
 
 _DIRECTIONS = {
     "darker_brighter": ((r"dark(?:er)?", -1), (r"bright(?:er)?", 1)),
-    "tense_relaxed": ((r"tense|tension", -1), (r"relaxed|relaxation", 1)),
+    "tense_relaxed": ((r"tense|tenser|tension", -1), (r"relaxed|relaxation", 1)),
     "common_surprising": ((r"common|familiar", -1), (r"surprising|surprise", 1)),
     "simple_complex": ((r"simple|simpler", -1), (r"complex|complexity", 1)),
     "resolved_open": ((r"resolved|resolution", -1), (r"open", 1)),
@@ -40,7 +40,9 @@ def explicit_axes(query: str) -> dict[str, float]:
                     prefix = clause[: match.start()]
                     direction = -sign if re.search(r"\bless\s+$", prefix) else sign
                     strength = 0.7
-                    if re.search(r"\b(?:slightly|a little|a bit)\s+(?:(?:more|less)\s+)?$", prefix):
+                    if re.search(
+                        r"\b(?:slightly|a little(?: bit)?|a bit)\s+(?:(?:more|less)\s+)?$", prefix
+                    ):
                         strength = 0.3
                     elif re.search(r"\b(?:much|very|far)\s+(?:(?:more|less)\s+)?$", prefix):
                         strength = 1.0
