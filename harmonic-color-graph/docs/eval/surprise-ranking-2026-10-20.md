@@ -12,8 +12,10 @@ The hypothesis is that an explicit rare-next-chord preference can justify a
 small additional continuation tradeoff. It is not permission to weaken the
 existing MRR or plausibility gates. The unchanged scorer, weights, features,
 benchmark, grader, vocabulary, floor and cap remain intact. No benchmark case
-outputs were inspected to select or modify this policy. No runtime edit is part
-of this experiment.
+outputs were inspected by the worker to select or modify this policy. The main
+agent already knew the original 9/12 score and the unresolved surprise category
+from the earlier audit. Adoption depends on fresh registered gates, not on a
+benchmark improvement. No runtime edit is part of this experiment.
 
 The exact source, data, protocol and 200-development/400-test memberships were
 frozen before outcomes. Development has 199 songs; reserved test has 398 songs.
