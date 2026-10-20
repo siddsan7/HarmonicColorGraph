@@ -131,7 +131,7 @@ export function Assistant() {
       {busy && preview && <section className="mt-6 rounded-xl border border-[var(--border-default)] p-5" aria-label="Candidate preview" aria-live="polite">
         <h2 className="font-semibold">Candidates ready</h2>
         <p className="mt-1 text-sm text-[var(--text-secondary)]">Tool-checked candidates. The explanation is still being prepared.</p>
-        <ul className="mt-3 space-y-2">{preview.candidates.map((item, index) => <li key={index}>{item.chords.join(" – ")}</li>)}</ul>
+        <ul className="mt-3 space-y-2">{preview.candidates.map((item, index) => <li key={index}>{item.chords.join(" â†’ ")}</li>)}</ul>
       </section>}
       {error && <div role="alert" className="mt-8 rounded-xl border border-[var(--state-error)]/40 bg-[var(--state-error)]/10 p-5">
         <p className="font-semibold">{limited ? "Assistant limit reached" : "The assistant could not answer"}</p>

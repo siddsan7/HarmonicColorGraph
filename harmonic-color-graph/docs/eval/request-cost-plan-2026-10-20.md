@@ -41,16 +41,17 @@ The comparator rejects zero-cost baselines and duplicate case IDs. A favorable
 comparison means an observed estimated-cost reduction; it does not establish
 statistical significance, invoice savings or production readiness by itself.
 
-Minimal runner integration: add `cost_usage_complete` on each case from
-`not uncertain_cost and meter.unknown_usage_calls == unknown_before`, and add
-`cost_diagnostics(rows)` to the report. Do not fabricate comparison identities:
+The runner records `cost_usage_complete` on each case from
+`not uncertain_cost and meter.unknown_usage_calls == unknown_before`, and includes
+`cost_diagnostics(rows)` in the report. The quality comparison also preserves
+claim counts and validated claim counts. Do not fabricate comparison identities:
 populate them from the actual run configuration before using the optional paired
 comparator. Existing `cost_per_completed_request_usd` retains its historical
 accounted-cost meaning for compatibility.
 
 ## Validation and limits
 
-Sixteen deterministic helper tests pass. They cover failed-attempt spend,
+Seventeen deterministic helper tests pass. They cover failed-attempt spend,
 reservation separation, zero completions, unknown usage, offline runs, changed
 quality or completion, mismatched routes and cases, missing source identities,
 duplicate IDs, and invalid money values. Ruff lint and formatting pass.

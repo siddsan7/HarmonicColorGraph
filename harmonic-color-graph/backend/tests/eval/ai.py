@@ -22,6 +22,7 @@ from app.recommend.candidates import Candidate
 from app.recommend.features import extract_features
 from app.recommend.scorer import INTENT_AXES, intent_score
 from app.theory.relationships_v2 import RULES
+from tests.eval.ai_cost_diagnostics import cost_diagnostics
 from tests.eval.ai_diagnostics import RequestDiagnostics, reproducibility, route_diagnostics
 
 CORPUS = Path(__file__).with_name("ai_benchmark.jsonl")
@@ -346,6 +347,9 @@ def run(
                 "metered_cost_usd": str(actual_cost),
                 "accounted_cost_usd": str(case_cost),
                 "unknown_usage_calls": meter.unknown_usage_calls - unknown_before,
+                "cost_usage_complete": (
+                    not uncertain_cost and meter.unknown_usage_calls == unknown_before
+                ),
                 "model_usage": {
                     name: {
                         key: (
@@ -367,6 +371,7 @@ def run(
         "max_cost_usd": str(max_cost_usd),
         "metered_cost_usd": str(meter.cost_usd),
         "unknown_cost_cases": unknown_cost_cases,
+        "cost_diagnostics": cost_diagnostics(rows),
         "model_usage": meter.as_log()["model_usage"],
         "reproducibility": reproducibility(cases, live=live, fixture=fixture),
         "route_diagnostics": route_diagnostics(

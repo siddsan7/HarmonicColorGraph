@@ -85,6 +85,7 @@ def test_paired_complete_comparison_includes_failed_cost():
         (lambda r: r["cases"][0].update(cost_usage_complete=False), "incomplete_usage"),
         (lambda r: r["cases"][0].update(error="Failure"), "completion_pattern_changed"),
         (lambda r: r["cases"][0].update(routing=False), "quality_metrics_changed"),
+        (lambda r: r["cases"][0].update(claim_count=0), "quality_metrics_changed"),
         (lambda r: r["cases"][0].pop("schema_valid"), "missing_quality_evidence"),
         (lambda r: r["cases"][0].update(expected_route="generate"), "route_mismatch"),
         (lambda r: r["cases"][0].update(id="different"), "case_membership_mismatch"),

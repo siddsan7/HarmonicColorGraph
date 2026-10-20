@@ -159,7 +159,7 @@ test("tool candidates are read-only while explanation waits and clear on final o
   for (const fail of [false, true]) {
     await page.getByRole("button", { name: "Ask assistant", exact: true }).click()
     const preview = page.getByRole("region", { name: "Candidate preview" })
-    await expect(preview).toContainText("C – G")
+    await expect(preview).toContainText("C â†’ G")
     await expect(preview.getByRole("button")).toHaveCount(0)
     await expect(preview).toContainText("explanation is still being prepared")
     await page.evaluate((fail) => (window as unknown as { finishPreview: (fail: boolean) => void }).finishPreview(fail), fail)

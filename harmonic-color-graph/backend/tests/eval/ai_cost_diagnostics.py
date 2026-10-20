@@ -15,6 +15,8 @@ QUALITY_FIELDS = (
     "tool_correct",
     "theory_valid",
     "required_tags",
+    "valid_claims",
+    "claim_count",
     "fallback",
 )
 IDENTITY_FIELDS = ("models", "corpus", "pricing", "inputs", "rubric", "context", "cache_conditions")
