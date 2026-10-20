@@ -18,6 +18,7 @@ Read only the rows relevant to the task. Paths are relative to this document.
 | Close M0–M7 gaps | [Completion checklist](../docs/m0-m7-completion-checklist.md) | Ready work, human inputs, live acceptance, and evidence ledger |
 | Diagnose assistant intent or recommendation latency | [Intent recovery](../docs/eval/intent-reliability-2026-10-19.md) | Offline before/after evidence, profiling boundaries, residual failures and live acceptance limits |
 | Evaluate stronger candidate intent ranking | [Ranking experiment](../docs/eval/ranking-experiment-2026-10-20.md) | Frozen local development/test protocol, quality tradeoffs and promotion decision |
+| Improve assistant metrics | [Metric improvement plan](../docs/eval/metric-improvement-plan-2026-10-20.md) | Classic methods, code-specific decisions, metric owners and acceptance limits |
 | Investigate prior behavior | [Historical tracker](history/2026-09-26/progress-tracker.md) | Completed work and measurements |
 | Change corpus load behavior | [Corpus report](../docs/eval/corpus-cv-2026-09-a.md) | Prior load failures, limits, results |
 | Change hosted services | [Runbooks](../docs/runbooks/) | Deployment and database operations |

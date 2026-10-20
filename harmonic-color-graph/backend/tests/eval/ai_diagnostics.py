@@ -16,8 +16,8 @@ from statistics import median
 from typing import Any
 
 from app.recommend.scorer import WEIGHTS_FILE
-from tests.eval.tail_acceptance import completion_tail_acceptance
 from tests.eval.model_call_diagnostics import model_call_summary
+from tests.eval.tail_acceptance import completion_tail_acceptance
 
 
 class RequestDiagnostics:
@@ -172,11 +172,14 @@ def reproducibility(cases: list[dict[str, Any]], *, live: bool, fixture: bool) -
             for name in (
                 "app/ai/workflow.py",
                 "app/ai/intent_fallback.py",
+                "app/ai/explanation_constraints.py",
                 "app/recommend/scorer.py",
                 "app/recommend/features.py",
                 "tests/eval/ai.py",
                 "tests/eval/ai_diagnostics.py",
                 "tests/eval/model_call_diagnostics.py",
+                "tests/eval/tail_acceptance.py",
+                "tests/eval/ai_cost_diagnostics.py",
             )
         },
         "case_sha256": hashlib.sha256(
@@ -191,7 +194,10 @@ def reproducibility(cases: list[dict[str, Any]], *, live: bool, fixture: bool) -
         else {},
         "corpus_version": "ai-eval-v1" if fixture else "unverified",
         "timing_boundary": "in-process workflow including tool scope; excludes HTTP/SSE transport",
-        "first_useful_boundary": "validated explanation text; candidates arrive in final frame",
+        "first_useful_boundary": (
+            "earliest validated candidate preview after rank or validated explanation text; "
+            "in-process event availability, excludes HTTP/SSE transport and browser rendering"
+        ),
         "cache_state": "uncontrolled; process caches may warm across cases",
         "p95_method": "nearest rank; small samples do not establish a reliable tail",
     }

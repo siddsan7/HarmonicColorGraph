@@ -667,6 +667,7 @@
             <tr><td class="p">backend/app/api/phase1.py</td><td>Frozen v1 routes, including the in-code DEMO_TRANSITIONS fallback</td></tr>
             <tr class="grp"><td colspan="2">backend/app · domain</td></tr>
             <tr><td class="p">backend/app/ai/intent_fallback.py</td><td>Bounded explicit recommendation-axis recovery when workflow intent parsing is unavailable or fails; ambiguous clauses abstain</td></tr>
+            <tr><td class="p">backend/app/ai/explanation_constraints.py</td><td>Optional bounded evidence hints and fixed repair advice; validator remains authoritative</td></tr>
             <tr><td class="p">backend/app/services/recommend.py</td><td>RecommendationService, SessionNgramReader (+ version-keyed count cache), input parsing, optional intent ranking, explanations</td></tr>
             <tr><td class="p">backend/app/services/color_profile.py</td><td>F43 build_arc (prefix-based per-position color), build_summary_and_drivers (final-cadence/borrowed-chord weighted raw summary), compute_color_profile/compare</td></tr>
             <tr><td class="p">backend/app/services/similarity.py</td><td>F51 SimilarityService: functions/chords/progressions ranking; structural-vs-surface mode, rotation flagging, color filter</td></tr>
@@ -741,6 +742,8 @@
             <tr><td class="p">backend/tests/eval/</td><td>F31 harness: sampling, metrics, baselines, prediction CLI (hcg-eval)</td></tr>
             <tr><td class="p">backend/tests/eval/ai_diagnostics.py, intent_recovery.py, intent_candidates.py</td><td>Local assistant stage/tool/model profiling, offline fallback-parser regression corpus, and fixed-weight seeded candidate-feasibility inspection; workflow timings exclude HTTP transport</td></tr>
             <tr><td class="p">backend/tests/eval/ranking_experiment.py</td><td>Frozen local intent-scale experiment: song-disjoint development/test samples, unchanged plausibility weights, paired guards and song bootstrap; failed development candidates cannot promote</td></tr>
+            <tr><td class="p">backend/tests/eval/pareto_experiment.py, candidate_coverage.py</td><td>Fresh-song constrained-ranking experiment and development-only cap/floor/union coverage diagnosis; rejected policies leave runtime unchanged</td></tr>
+            <tr><td class="p">backend/tests/eval/tail_acceptance.py, model_call_diagnostics.py, ai_cost_diagnostics.py</td><td>Failure-aware production-tail evidence eligibility, callable versus usage-recorded counts, and reservation-aware paired cost comparison</td></tr>
             <tr><td class="p">backend/openapi.json</td><td>Generated API contract (scripts/export_openapi.py); CI drift-checked</td></tr>
             <tr><td class="p">backend/legacy/</td><td>Retired Alembic history (reference only)</td></tr>
             <tr><td class="p">backend/pyproject.toml</td><td>Deps + extras (dev, pipeline, ml, oracle), scripts, ruff and pytest config; package data ships color, key, and scorer JSON in the API wheel</td></tr>

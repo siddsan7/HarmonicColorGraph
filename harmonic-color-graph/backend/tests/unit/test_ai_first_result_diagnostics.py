@@ -1,6 +1,17 @@
 """Candidate availability and validated prose are distinct timing boundaries."""
 
-from tests.eval.ai_diagnostics import RequestDiagnostics, route_diagnostics
+from tests.eval.ai_diagnostics import RequestDiagnostics, reproducibility, route_diagnostics
+
+
+def test_reproducibility_describes_new_boundary_and_hashes_behavior_helpers():
+    metadata = reproducibility([], live=False, fixture=True)
+    assert "candidate preview after rank" in metadata["first_useful_boundary"]
+    assert "excludes HTTP/SSE" in metadata["first_useful_boundary"]
+    assert {
+        "app/ai/explanation_constraints.py",
+        "tests/eval/tail_acceptance.py",
+        "tests/eval/ai_cost_diagnostics.py",
+    } <= metadata["source_sha256"].keys()
 
 
 def test_preview_is_useful_before_explanation_without_relabeling_text(monkeypatch):

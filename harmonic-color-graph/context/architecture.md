@@ -67,6 +67,13 @@ see `docs/roadmap-v2.md` and
   changing the response or durable audit contract.
   `backend/tests/eval/ranking_experiment.py` compares bounded intent scales on
   song-disjoint local development/test data; the runtime scorer default remains 6.
+  Validated, fact-backed candidate previews can stream after ranking and before
+  explanation; the final SSE response and durable audit remain authoritative.
+  Optional bounded explanation hints reuse validator symbols; lifecycle metrics
+  distinguish actual repair attempts, success and terminal fallback reasons.
+  Recommendation feature batching reuses the previous arrival within one request,
+  with no persistent cache or ranking-policy change. Metric evidence and release
+  limits live in `docs/eval/metric-improvement-plan-2026-10-20.md`.
 - `backend/app/theory/` - Planned symbolic music logic:
   chord parsing, normalization, key detection, Roman numeral
   conversion, theory labels, and voice-leading helpers.
