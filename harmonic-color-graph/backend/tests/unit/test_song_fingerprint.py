@@ -5,12 +5,9 @@ import json
 import numpy as np
 import pytest
 
-pytest.importorskip("scipy")
-pytest.importorskip("sklearn")
-
-from app.color.features import AXES  # noqa: E402
-from app.color.perceptual import PERCEPTUAL_AXES  # noqa: E402
-from pipeline.song_fingerprint import (  # noqa: E402
+from app.color.features import AXES
+from app.color.perceptual import PERCEPTUAL_AXES
+from pipeline.song_fingerprint import (
     ARC_AXES,
     SongIndex,
     camelot,
@@ -155,6 +152,9 @@ ALL_TOKENS = sorted(
 
 @pytest.fixture
 def index():
+    # The index needs the optional `ml` extra; fingerprint tests above do not.
+    pytest.importorskip("scipy")
+    pytest.importorskip("sklearn")
     return SongIndex(
         [
             _row("pop-c", POP_C, "artist-1", "pop"),
@@ -189,5 +189,13 @@ def test_arc_weight_is_ignored_for_songs_without_an_arc(index):
 
 def test_proxy_metrics_report_every_arm(index):
     report = proxy_metrics(index, queries=4, k=1)
-    assert set(report["arms"]) == {"color", "embed", "pattern", "arc", "blend", "random"}
+    assert set(report["arms"]) == {
+        "color",
+        "embed",
+        "pattern",
+        "arc",
+        "blend",
+        "random",
+        "rand_mode",
+    }
     assert report["arms"]["blend"]["same_main_genre"]["queries"] == 4

@@ -569,14 +569,20 @@ def proxy_metrics(index: SongIndex, *, queries: int, k: int, seed: int = SEED) -
     chosen = sorted(rng.sample(range(count), k=min(queries, count)))
     artists = np.asarray([row["artist_id"] or f"?{i}" for i, row in enumerate(index.rows)])
     genres = [row["main_genre"] for row in index.rows]
-    decades = [row["decade"] for row in index.rows]
+    # `sections.parquet` stores the full release date in its `decade` column.
+    decades = [(row["decade"] or "")[:3] or None for row in index.rows]
     tags = [set(json.loads(row["genre_tags"])) for row in index.rows]
     modes = [row["mode"] for row in index.rows]
 
     component = index.component_scores(chosen)
     arms: dict[str, np.ndarray] = {name: component[name] for name in COMPONENTS}
     arms["blend"] = index.blended(chosen, DEFAULT_WEIGHTS)
-    arms["random"] = np.random.default_rng(seed).random((len(chosen), count))
+    noise = np.random.default_rng(seed).random((len(chosen), count))
+    arms["random"] = noise
+    # Major/minor alone separates genres, so also compare against random songs
+    # in the query's own mode: anything above this is more than mode matching.
+    query_modes = np.asarray([modes[query] for query in chosen])
+    arms["rand_mode"] = np.where(np.asarray(modes)[None, :] == query_modes[:, None], noise, -1.0)
 
     report: dict[str, dict] = {}
     for name, scores in arms.items():
@@ -613,7 +619,11 @@ def proxy_metrics(index: SongIndex, *, queries: int, k: int, seed: int = SEED) -
                         float(np.mean([decades[i] == decades[query] for i in known]))
                     )
         report[name] = {
-            metric: {"mean": round(float(np.mean(values)), 4), "queries": len(values)}
+            metric: {
+                "mean": round(float(np.mean(values)), 4),
+                "se": round(float(np.std(values) / np.sqrt(len(values))), 4),
+                "queries": len(values),
+            }
             for metric, values in sorted(totals.items())
         }
     return {"songs": count, "queries": len(chosen), "k": k, "seed": seed, "arms": report}
@@ -625,10 +635,10 @@ def run_proxy(args: argparse.Namespace) -> None:
     (out / "proxy_report.json").write_text(json.dumps(report, indent=2), encoding="utf-8")
     metrics = ["same_main_genre", "genre_tag_jaccard", "same_decade", "same_artist", "same_mode"]
     print(f"{report['songs']} songs, {report['queries']} queries, top {report['k']}")
-    print(f"{'arm':<9}" + "".join(f"{metric:>19}" for metric in metrics))
+    print(f"{'arm':<10}" + "".join(f"{metric:>19}" for metric in metrics))
     for name, values in report["arms"].items():
         cells = "".join(f"{values.get(m, {}).get('mean', float('nan')):>19.4f}" for m in metrics)
-        print(f"{name:<9}{cells}")
+        print(f"{name:<10}{cells}")
 
 
 # --------------------------------------------------------------------------
