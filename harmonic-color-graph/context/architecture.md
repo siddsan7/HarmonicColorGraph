@@ -59,6 +59,31 @@ see `docs/roadmap-v2.md` and
   cited facts, chord and Roman-figure provenance, emotion wording, song
   example citation, and theory registry label before any prose is returned.
   MCP reuses the same tool boundary.
+  If intent parsing fails, explicit recommendation directions use a bounded
+  deterministic recovery grammar; negated or ambiguous clauses abstain.
+  Missing input for recommendation, similarity or comparison asks for
+  clarification; explicit generation can start without chords.
+  `backend/tests/eval/ai_diagnostics.py` profiles local workflow stages without
+  changing the response or durable audit contract.
+  `backend/tests/eval/ranking_experiment.py` compares bounded intent scales on
+  song-disjoint local development/test data; the runtime scorer default remains 6.
+  `backend/app/recommend/selection.py` applies a separately validated adjacent
+  priority after scoring strong balanced requests. It exchanges only the first
+  two utility slots when the runner-up meets every requested direction and the
+  winner does not. For a sole strong surprising request, a qualifying third
+  incumbent can rotate first when neither earlier incumbent qualifies. Short
+  lists score the required two or three incumbents before taking their prefix.
+  Learned plausibility and feature evidence stay unchanged;
+  an explicit internal constraint term records the score adjustment. Vector
+  retrieval retains the original selection until independently validated.
+  Validated, fact-backed candidate previews can stream after ranking and before
+  explanation; the final SSE response and durable audit remain authoritative.
+  Optional bounded explanation hints reuse validator symbols; lifecycle metrics
+  distinguish actual repair attempts, success and terminal fallback reasons.
+  Recommendation feature batching reuses the previous arrival within one request,
+  with no persistent cache. Metric evidence and release limits live in
+  `docs/eval/metric-improvement-plan-2026-10-20.md` and
+  `docs/eval/ranking-coverage-followup-2026-10-20.md`.
 - `backend/app/theory/` - Planned symbolic music logic:
   chord parsing, normalization, key detection, Roman numeral
   conversion, theory labels, and voice-leading helpers.

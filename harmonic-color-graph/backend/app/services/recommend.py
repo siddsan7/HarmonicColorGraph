@@ -19,8 +19,13 @@ from app.db.stores.recommendation_candidates import CandidateReader
 from app.predict.ngram import KNPredictor, NgramHistory, PredictionResult, TokenPrediction
 from app.predict.realize import realize
 from app.recommend.candidates import generate_candidates
-from app.recommend.features import extract_features
+from app.recommend.features import extract_features_many
 from app.recommend.scorer import score_candidates
+from app.recommend.selection import (
+    select_bounded_intent,
+    single_strong_surprise,
+    strong_balanced_request,
+)
 from app.schemas.recommend_v2 import (
     ContextUsed,
     Evidence,
@@ -217,15 +222,28 @@ class RecommendationService:
                 ]
             sources = {item.token: item.generators for item in pool}
         emit_metric("recommend_candidate_count", len(pool))
-        features = [extract_features(candidate, history, key) for candidate in pool]
+        features = extract_features_many(pool, history, key)
         rerank_started = time.perf_counter()
+        # Vector-source composition has not passed this policy's held-out gates.
+        selection_allowed = (
+            not embeddings
+            and not any(item.embedding_similarity is not None for item in pool)
+            and strong_balanced_request(request.intent, request.preset or "balanced")
+        )
         with telemetry.safe_span("recommend.rerank"):
             scored = score_candidates(
                 features,
                 intent=request.intent,
                 preset=request.preset or "balanced",
-                limit=request.limit,
+                # Short result lists still evaluate the required incumbents.
+                limit=max(3 if single_strong_surprise(request.intent) else 2, request.limit)
+                if selection_allowed
+                else request.limit,
             )
+            if selection_allowed:
+                scored = select_bounded_intent(
+                    scored, request.intent, preset=request.preset or "balanced"
+                )[: request.limit]
         emit_metric("recommend_rerank_latency_ms", (time.perf_counter() - rerank_started) * 1000)
         if not scored:
             return []

@@ -1,0 +1,6 @@
+{"id":"dev01","input":"Generate the next chord after Eb Ab Bb in Eb major, slightly brighter","route":"recommend","axes":{"darker_brighter":0.3}}
+{"id":"dev02","input":"Write me a next chord after Fm Bbm C in F minor, more relaxed","route":"recommend","axes":{"tense_relaxed":0.7}}
+{"id":"dev03","input":"Make the next chord after D A in D major darker","route":"recommend","axes":{"darker_brighter":-0.7}}
+{"id":"dev04","input":"Compose a progression in E minor","route":"generate","axes":{}}
+{"id":"dev05","input":"Generate a progression called \"next chord\" in Bb major","route":"generate","axes":{}}
+{"id":"dev06","input":"Do not write the next chord; compose a progression in F major","route":"generate","axes":{}}

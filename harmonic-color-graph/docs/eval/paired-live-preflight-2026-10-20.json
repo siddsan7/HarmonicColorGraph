@@ -1,0 +1,88 @@
+{
+  "date": "2026-10-20",
+  "status": "blocked_budget_exhausted",
+  "project_allowance_usd": "10",
+  "prior_documented_subtotal_usd": "6.092766",
+  "scheduled_runs": [
+    {
+      "run_id": "37326217686",
+      "url": "https://github.com/siddsan7/HarmonicColorGraph/actions/runs/37326217686",
+      "artifact_sha256": "ad84e7c7fd7b4b2fcd1ada3ad4a4753ca093c002524cbf1c5a19e1cabc93c1b8",
+      "ran_at": "2026-10-05T14:45:05.610948+00:00",
+      "mode": "live",
+      "data_source": "seeded_fixture",
+      "cases_completed": 40,
+      "unknown_cost_cases": [],
+      "cost_usd": "1.378142",
+      "metrics": {
+        "schema_valid": 1.0,
+        "must_not": 1.0,
+        "routing": 1.0,
+        "intent_match": 0.8333,
+        "intent_parse_match": 1.0,
+        "color_axis_match": 0.8333,
+        "tool_correct": 1.0,
+        "theory_valid": 1.0,
+        "required_tags": 1.0,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "run_id": "38269994351",
+      "url": "https://github.com/siddsan7/HarmonicColorGraph/actions/runs/38269994351",
+      "artifact_sha256": "eeab75985315a4ea6f4371bc24337d87c1549baa01b9e3b93c05e057333f12a9",
+      "ran_at": "2026-10-12T15:31:28.565070+00:00",
+      "mode": "live",
+      "data_source": "seeded_fixture",
+      "cases_completed": 40,
+      "unknown_cost_cases": [],
+      "cost_usd": "1.309303",
+      "metrics": {
+        "schema_valid": 1.0,
+        "must_not": 1.0,
+        "routing": 1.0,
+        "intent_match": 0.8333,
+        "intent_parse_match": 1.0,
+        "color_axis_match": 0.8333,
+        "tool_correct": 1.0,
+        "theory_valid": 1.0,
+        "required_tags": 1.0,
+        "fact_coverage": 1.0
+      }
+    },
+    {
+      "run_id": "39258407648",
+      "url": "https://github.com/siddsan7/HarmonicColorGraph/actions/runs/39258407648",
+      "artifact_sha256": "de2d1182b28c4f7d0b1ce5cd85d2c7f89f89963163bb4d4e53ca5f86eaaf010e",
+      "ran_at": "2026-10-19T13:21:16.293343+00:00",
+      "mode": "live",
+      "data_source": "seeded_fixture",
+      "cases_completed": 40,
+      "unknown_cost_cases": [],
+      "cost_usd": "1.377272",
+      "metrics": {
+        "schema_valid": 1.0,
+        "must_not": 1.0,
+        "routing": 1.0,
+        "intent_match": 0.75,
+        "intent_parse_match": 0.9167,
+        "color_axis_match": 0.75,
+        "tool_correct": 1.0,
+        "theory_valid": 1.0,
+        "required_tags": 1.0,
+        "fact_coverage": 1.0
+      }
+    }
+  ],
+  "identified_total_usd": "10.157483",
+  "over_allowance_usd": "0.157483",
+  "remaining_authorized_usd": "0",
+  "new_spend_usd": "0",
+  "paired_live_requests": 0,
+  "paired_metrics": null,
+  "independent_spend_review": "confirmed",
+  "limitations": [
+    "Application usage records, not provider invoice reconciliation.",
+    "Historical seeded live results are not candidate before-and-after measurements."
+  ]
+}

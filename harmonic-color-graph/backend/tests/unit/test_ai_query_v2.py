@@ -380,3 +380,62 @@ def test_malformed_usage_retains_reservation(usage):
         assert client.post("/v2/ai/query", json={"query": "Explain C G"}).status_code == 429
     finally:
         app.dependency_overrides.clear()
+
+
+def test_invalid_preview_is_error_audited_and_never_emitted():
+    class InvalidPreview:
+        def stream(self, _query):
+            yield "candidates", {"schema_version": 1, "candidates": [], "fact_ids": []}
+
+    client, factory = _client(lambda _session, _meter: InvalidPreview())
+    try:
+        response = client.post("/v2/ai/query", json={"query": "Recommend after C G"})
+        assert _events(response) == ["error"]
+        with factory() as session:
+            row = session.execute(select(ai_query_logs)).one()._mapping
+            assert row["error_category"] == "workflow_failed"
+            assert row["final"] is None
+    finally:
+        app.dependency_overrides.clear()
+
+
+def test_preview_precedes_final_but_only_final_is_success_audited():
+    from app.ai.state import AssistantResponse
+
+    final = AssistantResponse(route="recommend", message="Final authoritative response")
+
+    class PreviewWorkflow:
+        def stream(self, _query):
+            yield (
+                "candidates",
+                {
+                    "schema_version": 1,
+                    "candidates": [
+                        {
+                            "chords": ["C", "G"],
+                            "fact_ids": ["fact:1"],
+                            "source_tool": "recommend_next",
+                        }
+                    ],
+                    "fact_ids": ["fact:1"],
+                },
+            )
+            yield (
+                "final",
+                {
+                    "response": final.model_dump(mode="json"),
+                    "parsed_intent": ParsedIntent(task_type="recommend").model_dump(mode="json"),
+                    "tools": ["recommend_next"],
+                },
+            )
+
+    client, factory = _client(lambda _session, _meter: PreviewWorkflow())
+    try:
+        response = client.post("/v2/ai/query", json={"query": "Recommend after C G"})
+        assert _events(response) == ["candidates", "final"]
+        with factory() as session:
+            row = session.execute(select(ai_query_logs)).one()._mapping
+            assert row["final"] == final.model_dump(mode="json")
+            assert row["error_category"] is None
+    finally:
+        app.dependency_overrides.clear()

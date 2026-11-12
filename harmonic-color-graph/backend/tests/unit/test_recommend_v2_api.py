@@ -173,13 +173,13 @@ def test_intent_service_passes_corpus_neighbors_to_scoring(monkeypatch):
             return {"M:IV": 0.4, "M:ivmaj7": 0.85}
 
     captured = {}
-    original = module.extract_features
+    original = module.extract_features_many
 
-    def record(candidate, *args, **kwargs):
-        captured[candidate.token] = candidate
-        return original(candidate, *args, **kwargs)
+    def record(candidates, *args, **kwargs):
+        captured.update({candidate.token: candidate for candidate in candidates})
+        return original(candidates, *args, **kwargs)
 
-    monkeypatch.setattr(module, "extract_features", record)
+    monkeypatch.setattr(module, "extract_features_many", record)
     service = _service()
     service.candidate_reader = Neighbors()
     result = service.recommend(

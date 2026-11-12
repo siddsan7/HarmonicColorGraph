@@ -1,0 +1,937 @@
+{
+  "cleanup": {
+    "github_secret_absent": true,
+    "initial_failure": "DROP OWNED denied by managed PostgreSQL; role was NOLOGIN and GitHub secret already removed",
+    "policies_absent": true,
+    "resolution": "Revoke exact role grants, then drop role; no role membership added",
+    "role_absent": true,
+    "weekly_workflow": "disabled_manually"
+  },
+  "corpus": "cv-2026-10-b",
+  "evidence": {
+    "artifact_sha256": {
+      "baseline-diagnostics.jsonl": "3b90275e3f5867a4985f53d837000bd8548c3f442808bebf648d8c8437e6964a",
+      "candidate-diagnostics.jsonl": "31ad71943ec631aaf1a0a878a340d9f4de6adb3f4bc9bd29b15d89042e12b64a",
+      "corpus-after.json": "e0e19ce13d3bbdcf7839e47b3d027155726d15ee1a852bb1001bf0e0ac76df7d",
+      "corpus-before.json": "e0e19ce13d3bbdcf7839e47b3d027155726d15ee1a852bb1001bf0e0ac76df7d",
+      "ledger.json": "4ffb0d554e55c8b553121175f305464309758470029c5c014a10698bd98cb7b1",
+      "model-catalog.json": "9a43c5cfae749101c90bcbbca2204a4eb3d7d3f208cdf5eb63479725a6f80cb8",
+      "report.json": "ace28a40c519871a283d28f4bea13f91b89050c5ad9483454c28dbb247b3f518"
+    },
+    "benchmark_sha256": "f1abbb87e6b14441ded5c5f95c33774b61f8223ff1c9488b758e9c781870e2cc",
+    "benchmark_unchanged_between_arms": true,
+    "corpus_identity": {
+      "loaded_at": "2026-10-01T06:58:28.399010+00:00",
+      "manifest_sha256": "9ee5791cf3d6d4513d9b440c2d00d5147f608ff7e1eb14e2f6b8e1112b7d0032",
+      "scope": "active corpus version/load/manifest; not a full database row checksum",
+      "version": "cv-2026-10-b"
+    },
+    "corpus_identity_stable": true,
+    "github_run": 39417065727,
+    "harness_sha": "1e9bae2402ffda5ce28e54a2ae827fec109034a8",
+    "model_catalog": {
+      "models": [
+        {
+          "requested_id": "claude-haiku-4-5-20251001",
+          "resolved_id": "claude-haiku-4-5-20251001"
+        },
+        {
+          "requested_id": "claude-sonnet-5",
+          "resolved_id": "claude-sonnet-5"
+        }
+      ],
+      "paid_requests": 0
+    }
+  },
+  "identities": {
+    "baseline": {
+      "app_sha256": "bb83b40ae8f8c83141578d0e78493603ff94ac75de72c4fc3dc0c6ccdc6c84ad",
+      "sha": "8ed6dfb5e63a7c5e417e3ffedd17d532e4548dec"
+    },
+    "candidate": {
+      "app_sha256": "c6dbe58bdaf7e0b6a1dc7e5061e29aacbb533464eccfd3c4991dd6bab4c008a8",
+      "sha": "e668de33d217417f4ef7dff53c576aa46b8f44b8"
+    }
+  },
+  "limitations": [
+    "Maximum ten pairs; p95 not certified",
+    "No musician judgment",
+    "Not Vercel production",
+    "Diagnostics reconcile actual callable attempts and unknown usage"
+  ],
+  "mode": "controlled_runner_live_http",
+  "protocol": {
+    "cap_usd": "1.949883",
+    "case_ids": [
+      "recommend-01",
+      "recommend-02",
+      "recommend-03",
+      "recommend-04",
+      "recommend-05",
+      "recommend-06",
+      "recommend-07",
+      "recommend-08",
+      "recommend-09",
+      "recommend-10"
+    ],
+    "cutoff": "2026-10-20T11:43:26.167769+00:00",
+    "first_useful_boundary": "first validated candidate event, or final with candidates",
+    "maximum_pairs": 10,
+    "order": "AB/BA alternating",
+    "paid_warmup": false,
+    "pair_reservation_usd": "1.50",
+    "prior_spend_usd": "10.207600",
+    "total_ceiling_usd": "12.157483",
+    "transport_retries": 0
+  },
+  "rows": {
+    "baseline": [
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-01",
+        "claim_count": 1,
+        "color_axis_match": true,
+        "completion_ms": 17099.21871,
+        "cost_usd": "0.04990700",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 17099.21871,
+        "first_text_ms": 16903.77967500001,
+        "first_useful_ms": 17099.21871,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": 0.04960335103364877,
+          "darker_brighter": -0.4,
+          "dreamy": 0.11249999999999999,
+          "resolved_open": 0.45,
+          "simple_complex": 0.0,
+          "smooth": 0.04166666666666674,
+          "tense_relaxed": -0.21666666666666667
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.001935",
+            "tokens_in": 1325,
+            "tokens_out": 122
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.047972",
+            "tokens_in": 18346,
+            "tokens_out": 1128
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "darker_brighter": -1.0
+        },
+        "query_id": "66551212-8324-438d-a4ef-502e51418e51",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 19671,
+        "tokens_out": 1250,
+        "tool_correct": true,
+        "valid_claims": 1,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-02",
+        "claim_count": 1,
+        "color_axis_match": true,
+        "completion_ms": 18224.109174999994,
+        "cost_usd": "0.05168300",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 18224.109174999994,
+        "first_text_ms": 18056.503717,
+        "first_useful_ms": 18224.109174999994,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.4400845731446382,
+          "darker_brighter": 0.08571428571428563,
+          "dreamy": 0.1,
+          "resolved_open": -0.3,
+          "simple_complex": 0.0,
+          "smooth": -0.12499999999999989,
+          "tense_relaxed": -0.15
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.001851",
+            "tokens_in": 1326,
+            "tokens_out": 105
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.049832",
+            "tokens_in": 18546,
+            "tokens_out": 1274
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "darker_brighter": 1.0
+        },
+        "query_id": "2bfc54ea-0d77-4b38-9b70-8debd93755b0",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 19872,
+        "tokens_out": 1379,
+        "tool_correct": true,
+        "valid_claims": 1,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-03",
+        "claim_count": 1,
+        "color_axis_match": true,
+        "completion_ms": 11114.41087,
+        "cost_usd": "0.04538900",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 11114.41087,
+        "first_text_ms": 10950.928379000004,
+        "first_useful_ms": 11114.41087,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.16949631755767453,
+          "darker_brighter": 0.0892857142857143,
+          "dreamy": 0.13749999999999998,
+          "resolved_open": 0.6499999999999999,
+          "simple_complex": 0.25,
+          "smooth": 0.2499999999999999,
+          "tense_relaxed": -0.43
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.001863",
+            "tokens_in": 1328,
+            "tokens_out": 107
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.043526",
+            "tokens_in": 18443,
+            "tokens_out": 664
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "tense_relaxed": -1.0
+        },
+        "query_id": "ab153b5d-cdaa-44f9-ae6d-1ab911d675cc",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 19771,
+        "tokens_out": 771,
+        "tool_correct": true,
+        "valid_claims": 1,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "recommend_next"
+        ],
+        "case_id": "recommend-04",
+        "claim_count": 1,
+        "color_axis_match": false,
+        "completion_ms": 19236.533003999968,
+        "cost_usd": "0.03450400",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 19236.533003999968,
+        "first_text_ms": 19114.726969999992,
+        "first_useful_ms": 19236.533003999968,
+        "intent_match": false,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.3270175629921488,
+          "darker_brighter": -0.37142857142857144,
+          "dreamy": 0.11875,
+          "resolved_open": 0.75,
+          "simple_complex": 0.0,
+          "smooth": 0.12499999999999989,
+          "tense_relaxed": 0.0
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.002196",
+            "tokens_in": 1326,
+            "tokens_out": 174
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.032308",
+            "tokens_in": 9454,
+            "tokens_out": 1340
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "tense_relaxed": 1.0
+        },
+        "query_id": "8e9e341b-929d-4793-9f3a-575de17b9b37",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 10780,
+        "tokens_out": 1514,
+        "tool_correct": true,
+        "valid_claims": 1,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-05",
+        "claim_count": 3,
+        "color_axis_match": true,
+        "completion_ms": 12350.47833699997,
+        "cost_usd": "0.02849200",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 12350.47833699997,
+        "first_text_ms": 12186.88948199997,
+        "first_useful_ms": 12350.47833699997,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": 0.1956262472080239,
+          "darker_brighter": -0.0071428571428571175,
+          "dreamy": 0.12958333333333333,
+          "resolved_open": -0.6499999999999999,
+          "simple_complex": 0.25,
+          "smooth": 0.04166666666666652,
+          "tense_relaxed": 0.23333333333333334
+        },
+        "model_call_attempts": 2,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.00193",
+            "tokens_in": 1325,
+            "tokens_out": 121
+          },
+          "claude-sonnet-5": {
+            "calls": 1,
+            "cost_usd": "0.026562",
+            "tokens_in": 9136,
+            "tokens_out": 829
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "common_surprising": 1.0
+        },
+        "query_id": "d6d79267-a377-4528-8fc5-93ed62055837",
+        "repair_attempts": 0,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 10461,
+        "tokens_out": 950,
+        "tool_correct": true,
+        "valid_claims": 3,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-06",
+        "claim_count": 1,
+        "color_axis_match": true,
+        "completion_ms": 15911.84707299999,
+        "cost_usd": "0.04796400",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 15911.84707299999,
+        "first_text_ms": 15749.375919999977,
+        "first_useful_ms": 15911.84707299999,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.45533473718461764,
+          "darker_brighter": 0.042857142857142816,
+          "dreamy": 0.115,
+          "resolved_open": -0.75,
+          "simple_complex": 0.0,
+          "smooth": 0.0,
+          "tense_relaxed": 0.15
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.00193",
+            "tokens_in": 1325,
+            "tokens_out": 121
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.046034",
+            "tokens_in": 17872,
+            "tokens_out": 1029
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "common_surprising": -1.0
+        },
+        "query_id": "d4f42a81-0485-499d-a33d-2104358a0019",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 19197,
+        "tokens_out": 1150,
+        "tool_correct": true,
+        "valid_claims": 1,
+        "validator_codes": []
+      }
+    ],
+    "candidate": [
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-01",
+        "claim_count": 3,
+        "color_axis_match": true,
+        "completion_ms": 14286.899535999994,
+        "cost_usd": "0.02923300",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 3558.8726690000103,
+        "first_text_ms": 14123.652832000005,
+        "first_useful_ms": 3558.8726690000103,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": 0.04960335103364877,
+          "darker_brighter": -0.4,
+          "dreamy": 0.11249999999999999,
+          "resolved_open": 0.45,
+          "simple_complex": 0.0,
+          "smooth": 0.04166666666666674,
+          "tense_relaxed": -0.21666666666666667
+        },
+        "model_call_attempts": 2,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.001935",
+            "tokens_in": 1325,
+            "tokens_out": 122
+          },
+          "claude-sonnet-5": {
+            "calls": 1,
+            "cost_usd": "0.027298",
+            "tokens_in": 9299,
+            "tokens_out": 870
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "darker_brighter": -1.0
+        },
+        "query_id": "f077e51e-915e-4b6d-9b80-dbbb2041f9b3",
+        "repair_attempts": 0,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 10624,
+        "tokens_out": 992,
+        "tool_correct": true,
+        "valid_claims": 3,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-02",
+        "claim_count": 3,
+        "color_axis_match": true,
+        "completion_ms": 7271.494124000014,
+        "cost_usd": "0.02399900",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 2794.6876249999946,
+        "first_text_ms": 7107.6478150000075,
+        "first_useful_ms": 2794.6876249999946,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.4400845731446382,
+          "darker_brighter": 0.08571428571428563,
+          "dreamy": 0.1,
+          "resolved_open": -0.3,
+          "simple_complex": 0.0,
+          "smooth": -0.12499999999999989,
+          "tense_relaxed": -0.15
+        },
+        "model_call_attempts": 2,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.001851",
+            "tokens_in": 1326,
+            "tokens_out": 105
+          },
+          "claude-sonnet-5": {
+            "calls": 1,
+            "cost_usd": "0.022148",
+            "tokens_in": 9384,
+            "tokens_out": 338
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "darker_brighter": 1.0
+        },
+        "query_id": "e16373c3-528a-49e7-aaec-5255f6c29c76",
+        "repair_attempts": 0,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 10710,
+        "tokens_out": 443,
+        "tool_correct": true,
+        "valid_claims": 3,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-03",
+        "claim_count": 3,
+        "color_axis_match": true,
+        "completion_ms": 17477.633546000023,
+        "cost_usd": "0.05175500",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 2674.252383999999,
+        "first_text_ms": 17313.90994,
+        "first_useful_ms": 2674.252383999999,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.16949631755767453,
+          "darker_brighter": 0.0892857142857143,
+          "dreamy": 0.13749999999999998,
+          "resolved_open": 0.6499999999999999,
+          "simple_complex": 0.25,
+          "smooth": 0.2499999999999999,
+          "tense_relaxed": -0.43
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.001863",
+            "tokens_in": 1328,
+            "tokens_out": 107
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.049892",
+            "tokens_in": 18751,
+            "tokens_out": 1239
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "tense_relaxed": -1.0
+        },
+        "query_id": "ac84a3fc-fad3-4f1e-a227-1fe7b8138347",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 20079,
+        "tokens_out": 1346,
+        "tool_correct": true,
+        "valid_claims": 3,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "recommend_next"
+        ],
+        "case_id": "recommend-04",
+        "claim_count": 0,
+        "color_axis_match": false,
+        "completion_ms": 9422.08884200005,
+        "cost_usd": "0.02610400",
+        "error_codes": [
+          "explanation_validation_failed:ClaimValidationError:claim:0:song_provenance"
+        ],
+        "fallback": true,
+        "first_candidate_ms": 3185.7662650000407,
+        "first_text_ms": 9298.668554000016,
+        "first_useful_ms": 3185.7662650000407,
+        "intent_match": false,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.3270175629921488,
+          "darker_brighter": -0.37142857142857144,
+          "dreamy": 0.11875,
+          "resolved_open": 0.75,
+          "simple_complex": 0.0,
+          "smooth": 0.12499999999999989,
+          "tense_relaxed": 0.0
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.002196",
+            "tokens_in": 1326,
+            "tokens_out": 174
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.023908",
+            "tokens_in": 9774,
+            "tokens_out": 436
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "tense_relaxed": 1.0
+        },
+        "query_id": "8d1e85f5-a49e-4577-8ce1-5c22ec015ba5",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 11100,
+        "tokens_out": 610,
+        "tool_correct": true,
+        "valid_claims": 0,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-05",
+        "claim_count": 1,
+        "color_axis_match": true,
+        "completion_ms": 14033.747452999989,
+        "cost_usd": "0.04874000",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 2644.5143070000086,
+        "first_text_ms": 13872.693486999993,
+        "first_useful_ms": 2644.5143070000086,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": 0.1956262472080239,
+          "darker_brighter": -0.0071428571428571175,
+          "dreamy": 0.12958333333333333,
+          "resolved_open": -0.6499999999999999,
+          "simple_complex": 0.25,
+          "smooth": 0.04166666666666652,
+          "tense_relaxed": 0.23333333333333334
+        },
+        "model_call_attempts": 3,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.00193",
+            "tokens_in": 1325,
+            "tokens_out": 121
+          },
+          "claude-sonnet-5": {
+            "calls": 2,
+            "cost_usd": "0.04681",
+            "tokens_in": 18665,
+            "tokens_out": 948
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "common_surprising": 1.0
+        },
+        "query_id": "dc9ddd55-8a89-405f-9752-e5a77fb2f90b",
+        "repair_attempts": 1,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 19990,
+        "tokens_out": 1069,
+        "tool_correct": true,
+        "valid_claims": 1,
+        "validator_codes": []
+      },
+      {
+        "called_tools": [
+          "analyze_progression",
+          "color_profile:0",
+          "color_profile:1",
+          "color_profile:2",
+          "recommend_next"
+        ],
+        "case_id": "recommend-06",
+        "claim_count": 4,
+        "color_axis_match": true,
+        "completion_ms": 6775.553150000007,
+        "cost_usd": "0.02342800",
+        "error_codes": [],
+        "fallback": false,
+        "first_candidate_ms": 2560.2152159999605,
+        "first_text_ms": 6614.810712999997,
+        "first_useful_ms": 2560.2152159999605,
+        "intent_match": true,
+        "intent_parse_match": true,
+        "intent_scored": true,
+        "measured_axis_deltas": {
+          "common_surprising": -0.45533473718461764,
+          "darker_brighter": 0.042857142857142816,
+          "dreamy": 0.115,
+          "resolved_open": -0.75,
+          "simple_complex": 0.0,
+          "smooth": 0.0,
+          "tense_relaxed": 0.15
+        },
+        "model_call_attempts": 2,
+        "model_usage": {
+          "claude-haiku-4-5-20251001": {
+            "calls": 1,
+            "cost_usd": "0.00193",
+            "tokens_in": 1325,
+            "tokens_out": 121
+          },
+          "claude-sonnet-5": {
+            "calls": 1,
+            "cost_usd": "0.021498",
+            "tokens_in": 9029,
+            "tokens_out": 344
+          }
+        },
+        "must_not": true,
+        "parsed_intent_axes": {
+          "common_surprising": -1.0
+        },
+        "query_id": "26389a1d-8681-413b-a07e-c380a2ce4859",
+        "repair_attempts": 0,
+        "required_tags": true,
+        "routing": true,
+        "schema_valid": true,
+        "theory_valid": true,
+        "tokens_in": 10354,
+        "tokens_out": 465,
+        "tool_correct": true,
+        "valid_claims": 4,
+        "validator_codes": []
+      }
+    ]
+  },
+  "spend_reconciliation": {
+    "all_attempts_model_calls": 35,
+    "all_attempts_tokens_in": 202280,
+    "all_attempts_tokens_out": 13210,
+    "approved_total_ceiling_usd": "12.157483",
+    "database_audits": 13,
+    "new_total_usd": "0.51131500",
+    "paired_usd": "0.461198",
+    "pending": 0,
+    "pilot": {
+      "actual_cost_usd": "0.050117",
+      "audit_id": "295c82ce-6a55-460a-b637-29e71243367a",
+      "basis": "Independent reviewer verified all three provider calls have usage; unknown usage0; explanation validation failure followed by repair; exact audit/final matched. Original ledger preserved unchanged.",
+      "original_ledger_sha256": "127671212145554483da00f8c0a5ca6dd58708206a1920cb6823bceb2217886e",
+      "paired_metrics_inclusion": false,
+      "pilot_run": 39416590948,
+      "previous_reservation_usd": "1.50",
+      "prior_spend_after_pilot_usd": "10.207600",
+      "remaining_authorized_usd": "1.949883",
+      "reviewer": "live_safety_review",
+      "second_cutoff": "2026-10-20T11:43:26.167769+00:00",
+      "unused_reservation_released_usd": "1.449883"
+    },
+    "pilot_usd": "0.050117",
+    "prior_usd": "10.157483",
+    "project_total_usd": "10.66879800",
+    "remaining_usd": "1.48868500",
+    "unknown_usage_calls": 0
+  },
+  "stop": "shared_daily_pair_budget_shortfall",
+  "summaries": {
+    "baseline": {
+      "completed": 6,
+      "completion_p50_ms": 16505.532891499995,
+      "cost_usd": "0.25793900",
+      "fallback_rate": 0.0,
+      "first_useful_p50_ms": 16505.532891499995,
+      "model_call_attempts": 17,
+      "quality": {
+        "cases_completed": 6,
+        "cases_total": 6,
+        "claims": 8,
+        "cost_usd": "0.25793900",
+        "intent_cases": 6,
+        "metrics": {
+          "color_axis_match": 0.8333,
+          "fact_coverage": 1.0,
+          "intent_match": 0.8333,
+          "intent_parse_match": 1.0,
+          "must_not": 1.0,
+          "required_tags": 1.0,
+          "routing": 1.0,
+          "schema_valid": 1.0,
+          "theory_valid": 1.0,
+          "tool_correct": 1.0
+        },
+        "passed": true,
+        "thresholds": {
+          "fact_coverage": 0.95,
+          "intent_match": 0.75,
+          "must_not": 1.0,
+          "required_tags": 1.0,
+          "routing": 0.9,
+          "schema_valid": 1.0,
+          "theory_valid": 1.0,
+          "tool_correct": 1.0
+        }
+      },
+      "repair_attempts": 5,
+      "tokens_in": 99752,
+      "tokens_out": 7014
+    },
+    "candidate": {
+      "completed": 6,
+      "completion_p50_ms": 11727.918147500019,
+      "cost_usd": "0.20325900",
+      "fallback_rate": 0.16666666666666666,
+      "first_useful_p50_ms": 2734.470004499997,
+      "model_call_attempts": 15,
+      "quality": {
+        "cases_completed": 6,
+        "cases_total": 6,
+        "claims": 14,
+        "cost_usd": "0.20325900",
+        "intent_cases": 6,
+        "metrics": {
+          "color_axis_match": 0.8333,
+          "fact_coverage": 1.0,
+          "intent_match": 0.8333,
+          "intent_parse_match": 1.0,
+          "must_not": 1.0,
+          "required_tags": 1.0,
+          "routing": 1.0,
+          "schema_valid": 1.0,
+          "theory_valid": 1.0,
+          "tool_correct": 1.0
+        },
+        "passed": true,
+        "thresholds": {
+          "fact_coverage": 0.95,
+          "intent_match": 0.75,
+          "must_not": 1.0,
+          "required_tags": 1.0,
+          "routing": 0.9,
+          "schema_valid": 1.0,
+          "theory_valid": 1.0,
+          "tool_correct": 1.0
+        }
+      },
+      "repair_attempts": 3,
+      "tokens_in": 82857,
+      "tokens_out": 4925
+    }
+  }
+}

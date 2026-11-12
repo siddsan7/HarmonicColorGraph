@@ -322,6 +322,24 @@ def compute_perceptual_color(
         )
         history.append(token.core)
 
+    return _perceptual_from_raws(raws, tokens, rules=rules, params=params)
+
+
+def _perceptual_from_raws(
+    raws: Sequence[ChordColorRaw],
+    tokens: Sequence[RomanToken],
+    *,
+    rules: Sequence[ColorRule] = _DEFAULT_RULES,
+    params: dict[str, tuple[float, dict[str, float]]] = _DEFAULT_PARAMS,
+) -> PerceptualColor:
+    """Aggregate already-computed raw positions within one analyzed key region.
+
+    Callers must supply the same raw computation and token order as
+    ``compute_perceptual_color``. No mutable data is retained across requests.
+    """
+    if len(raws) != len(tokens) or not tokens:
+        raise ValueError("raws and tokens must be the same non-empty length")
+
     features = _progression_features(raws, tokens)
     matched = _match_rules(tokens, rules)
     transition_count = max(len(tokens) - 1, 0)

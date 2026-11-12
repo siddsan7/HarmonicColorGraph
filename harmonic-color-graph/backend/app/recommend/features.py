@@ -11,6 +11,8 @@ from app.color.features import compute_chord_color
 from app.color.norms import NormsTable, normalize
 from app.predict.realize import realize
 from app.recommend.candidates import Candidate
+from app.schemas.analysis_v2 import RomanToken
+from app.schemas.harmony import CanonicalChord
 from app.theory.roman import romanize_chord
 from app.theory.spelling import lof
 
@@ -83,22 +85,62 @@ def extract_features(
     context_probability: float | None = None,
     norms: NormsTable | None = None,
 ) -> CandidateFeatures:
-    """Compute theory, motion, corpus and color features without I/O.
+    """Compute one candidate using the same request-local batch path."""
+    return extract_features_many(
+        [candidate],
+        history,
+        key,
+        global_bigram=global_bigram,
+        global_unigram=global_unigram,
+        context_probability=context_probability,
+        norms=norms,
+    )[0]
 
-    Probability maps are optional. Missing graph/vector/corpus evidence has an
-    explicit zero feature rather than falsely claiming evidence. The n-gram
-    probability floor applies only to logs and surprise, not plausibility.
-    """
+
+def extract_features_many(
+    candidates: Sequence[Candidate],
+    history: Sequence[str],
+    key: str,
+    *,
+    global_bigram: Mapping[str, float] | None = None,
+    global_unigram: Mapping[str, float] | None = None,
+    context_probability: float | None = None,
+    norms: NormsTable | None = None,
+) -> list[CandidateFeatures]:
+    """Reuse the previous arrival within one request, without caching corpus data."""
+    if not candidates:
+        return []
+    context = _feature_context(history, key, norms)
+    return [
+        _extract_features(
+            candidate,
+            context,
+            key,
+            global_bigram=global_bigram,
+            global_unigram=global_unigram,
+            context_probability=context_probability,
+            norms=norms,
+        )
+        for candidate in candidates
+    ]
+
+
+@dataclass(frozen=True)
+class _FeatureContext:
+    previous: CanonicalChord
+    previous_token: RomanToken
+    old_color: dict[str, float]
+
+
+def _feature_context(history: Sequence[str], key: str, norms: NormsTable | None) -> _FeatureContext:
     if not history:
         raise ValueError("Feature extraction needs a previous chord")
     previous = realize(history[-1], key).chord
-    current = realize(candidate.token, key).chord
     predecessor = realize(history[-2], key).chord if len(history) >= 2 else None
     predecessor_token = (
         romanize_chord(predecessor, key, next_chord=previous) if predecessor else None
     )
     previous_token = romanize_chord(previous, key, previous_chord=predecessor)
-    current_token = romanize_chord(current, key, previous_chord=previous)
     previous_color = compute_chord_color(
         previous,
         previous_token,
@@ -106,10 +148,28 @@ def extract_features(
         previous_chord=predecessor,
         previous_token=predecessor_token,
     )
+    old_color = _color_values(previous_color, norms)
+    old_color["surprise"] = 0.0  # last chord's historical surprise is not known here
+    return _FeatureContext(previous, previous_token, old_color)
+
+
+def _extract_features(
+    candidate: Candidate,
+    context: _FeatureContext,
+    key: str,
+    *,
+    global_bigram: Mapping[str, float] | None = None,
+    global_unigram: Mapping[str, float] | None = None,
+    context_probability: float | None = None,
+    norms: NormsTable | None = None,
+) -> CandidateFeatures:
+    previous, previous_token = context.previous, context.previous_token
+    current = realize(candidate.token, key).chord
+    current_token = romanize_chord(current, key, previous_chord=previous)
     current_color = compute_chord_color(
         current, current_token, key, previous_chord=previous, previous_token=previous_token
     )
-    old_color = _color_values(previous_color, norms)
+    old_color = context.old_color
     # With a single historical chord there is no prior arrival to compare;
     # retain the zero baseline for missing transition axes. With context,
     # compare both actual arrivals instead of treating missing data as zero.
@@ -119,7 +179,6 @@ def extract_features(
     unigram_p = (global_unigram or {}).get(candidate.token, 0.0)
     surprise = _clip(-math.log2(max(ngram_p, 1e-6)) / 16.0, 0.0, 1.0)
     new_color["surprise"] = surprise
-    old_color["surprise"] = 0.0  # last chord's historical surprise is not known here
     delta = {axis: _clip(new_color[axis] - old_color[axis]) for axis in COLOR_AXES}
     overlap = len(set(previous.pitch_classes) & set(current.pitch_classes))
     root_fifths = abs(lof(previous.root) - lof(current.root))

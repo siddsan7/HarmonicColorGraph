@@ -1,0 +1,12 @@
+{"id":"fresh01","input":"Create the next chord after Ab Db Eb in Ab major, a little bit smoother","route":"recommend","axes":{"smooth":0.3}}
+{"id":"fresh02","input":"Could you compose me the next chord after Bm Em F# in B minor, more open?","route":"recommend","axes":{"resolved_open":0.7}}
+{"id":"fresh03","input":"Please write a next chord after E A B in E major, less complex","route":"recommend","axes":{"simple_complex":-0.7}}
+{"id":"fresh04","input":"Make me the next chord after Cm Fm G in C minor, very tense","route":"recommend","axes":{"tense_relaxed":-1.0}}
+{"id":"fresh05","input":"Generate next chord after Gb Cb Db in Gb major, more familiar","route":"recommend","axes":{"common_surprising":-0.7}}
+{"id":"fresh06","input":"Create the next chord after Gm Cm D in G minor, a bit dreamier","route":"recommend","axes":{"dreamy":0.3}}
+{"id":"fresh07","input":"Generate a progression after Ab Db Eb in Ab major","route":"generate","axes":{}}
+{"id":"fresh08","input":"Write a sequence titled 'next chord' in B minor","route":"generate","axes":{}}
+{"id":"fresh09","input":"Never make the next chord; generate a new progression in E major","route":"generate","axes":{}}
+{"id":"fresh10","input":"Compose a progression and create the next chord after Cm Fm G in C minor","route":"generate","axes":{}}
+{"id":"fresh11","input":"Explain why we generate the next chord after Gb Cb Db in Gb major","route":"explain","axes":{}}
+{"id":"fresh12","input":"Compare Ab Db Eb versus Fm Db Eb; generate the next chord","route":"compare","axes":{}}

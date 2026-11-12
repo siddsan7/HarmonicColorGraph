@@ -128,3 +128,43 @@ test("identical answer text cannot reuse prior candidate audio", async ({ page }
   finishAnalysis!()
   await expect(page.getByRole("button", { name: "Play option 1" })).toBeEnabled()
 })
+
+
+test("tool candidates are read-only while explanation waits and clear on final or failure", async ({ page }) => {
+  await page.addInitScript(() => {
+    const original = window.fetch.bind(window)
+    let active: ReadableStreamDefaultController<Uint8Array>
+    const encode = (kind: string, payload: unknown) => new TextEncoder().encode(`event: ${kind}\ndata: ${JSON.stringify(payload)}\n\n`)
+    Object.assign(window, { finishPreview: (fail: boolean) => {
+      if (fail) active.enqueue(encode("error", { query_id: "preview-query", error: { message: "Explanation unavailable" } }))
+      else active.enqueue(encode("final", { query_id: "preview-query", response: {
+        route: "recommend", message: "Final checked result", candidates: [], claims: [],
+        analysis_options: [], tool_results: {}, facts: {}, fact_ids: [], errors: [], fallback: false,
+      } }))
+      active.close()
+    } })
+    window.fetch = async (input, init) => {
+      if (!String(input).endsWith("/v2/ai/query")) return original(input, init)
+      return new Response(new ReadableStream<Uint8Array>({ start(controller) {
+        active = controller
+        controller.enqueue(encode("step", { query_id: "preview-query", node: "explain", status: "started" }))
+        controller.enqueue(encode("candidates", { query_id: "preview-query", schema_version: 1,
+          candidates: [{ chords: ["C", "G"], fact_ids: ["fact:1"], source_tool: "recommend_next" }], fact_ids: ["fact:1"] }))
+      } }), { headers: { "Content-Type": "text/event-stream" } })
+    }
+  })
+  await page.goto("/assistant")
+  await expect(page.getByRole("main")).toHaveAttribute("data-hydrated", "true")
+  await page.getByRole("textbox", { name: "Ask the harmonic assistant" }).fill("Recommend after C G")
+  for (const fail of [false, true]) {
+    await page.getByRole("button", { name: "Ask assistant", exact: true }).click()
+    const preview = page.getByRole("region", { name: "Candidate preview" })
+    await expect(preview).toContainText("C → G")
+    await expect(preview.getByRole("button")).toHaveCount(0)
+    await expect(preview).toContainText("explanation is still being prepared")
+    await page.evaluate((fail) => (window as unknown as { finishPreview: (fail: boolean) => void }).finishPreview(fail), fail)
+    await expect(preview).toHaveCount(0)
+    if (fail) await expect(page.getByRole("main").getByRole("alert")).toContainText("could not answer")
+    else await expect(page.getByRole("heading", { name: "Recommendations", exact: true })).toBeVisible()
+  }
+})

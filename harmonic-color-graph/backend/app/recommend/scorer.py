@@ -117,6 +117,7 @@ def score_candidates(
     weights: dict[str, float] | None = None,
     limit: int | None = None,
     selection_diversity: float = 0.8,
+    intent_scale: float = 6.0,
 ) -> list[ScoredCandidate]:
     if preset not in PRESETS:
         raise ValueError(f"Unknown preset: {preset}")
@@ -124,6 +125,8 @@ def score_candidates(
         raise ValueError("limit must be positive")
     if not math.isfinite(selection_diversity) or selection_diversity < 0:
         raise ValueError("selection_diversity must be finite and nonnegative")
+    if not math.isfinite(intent_scale) or not 0 <= intent_scale <= 12:
+        raise ValueError("intent_scale must be finite and lie in [0, 12]")
     if not candidates:
         return []
     coefficients = weights or load_weights()
@@ -151,7 +154,7 @@ def score_candidates(
         plaus_term = w_p * (logit - average) / spread
         # Color deltas are bounded by one while candidate-set z-scores span
         # several units. Scale an explicit creative request accordingly.
-        intent_term = 6.0 * w_i * intent_value
+        intent_term = intent_scale * w_i * intent_value
         diversity_term = w_d * diversity
         surprise_bonus = 0.08 * item.values["surprise"] if preset == "adventurous" else 0.0
         score = plaus_term + intent_term + diversity_term + surprise_bonus

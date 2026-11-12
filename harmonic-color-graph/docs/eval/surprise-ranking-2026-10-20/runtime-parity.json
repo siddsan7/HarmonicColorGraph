@@ -1,0 +1,27 @@
+{
+  "positions": 500,
+  "requests": 9000,
+  "changed_winners": 584,
+  "third_rotations": 40,
+  "parity_passed": true,
+  "registered_heldout_positions": 400,
+  "independent_positions": 100,
+  "private_sha256": "617527f599f843798b4c9c3a06b02ab37c304ef10a6dbf9b47e656bdb915d23b",
+  "independent_private_file_sha256": "3bfb209d44456c83fbefa05255beb56e8852c720420eb98aa2f2b952bc6cd0a5",
+  "independent_protocol_sha256": "f7197aa308e2a215e1bb51cee654ec25f2a2d8c42f225c23c56783e264213422",
+  "runtime_selection_sha256": "b24d23a6f8239793e526fe3df734628db9867be6bdbc785f0aef482c4b3a0672",
+  "runtime_service_sha256": "3613fe50ad5cbca692a35a51d1046b1acf397690c000b86adb655cb423776511",
+  "frozen_experiment_sha256": "13061ce77a6c0ced25b6d0df6820dacc3b791453cd30a0c2f2c0e105a5f5b008",
+  "cost_usd": "0",
+  "notes": "same frozen graph policy; no retuning; top20score distribution, top5tokens, positions4+order, plausibility/features/components exact; private registration and frozen source hashes checked",
+  "additional_source_data_identity_checks": {
+    "ngrams": true,
+    "weights": true,
+    "scorer": true,
+    "graph_helper": true,
+    "adjacent_ablation": true,
+    "comparison_runner": true
+  },
+  "runtime_commit": "580c3db",
+  "tests": "78 selection/service/HTTP/hybrid/assistant checks pass; Ruff lint/format and diff check pass"
+}

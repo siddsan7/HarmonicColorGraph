@@ -1,0 +1,94 @@
+{
+  "status": "source_guard_extended_before_heldout_scoring",
+  "starting_commit": "bfdfab8",
+  "protocol": {
+    "version": 1,
+    "scales": [
+      6.0,
+      8.0,
+      10.0,
+      12.0
+    ],
+    "dev_count": 200,
+    "test_count": 400,
+    "dev_seed": 781,
+    "test_seed": 782,
+    "minimum_feasible_gain": 0.02,
+    "maximum_request_regression": 0.02,
+    "maximum_mrr5_loss": 0.02,
+    "minimum_geomean_plausibility_ratio": 0.5,
+    "promotion_requires_positive_song_bootstrap_lower_bound": true,
+    "bootstrap_repeats": 2000,
+    "bootstrap_seed": 783,
+    "selection": "highest gain passing all dev gates, smallest scale on tie; if none pass, highest gain is diagnostic-only and cannot promote",
+    "requests": {
+      "darker": {
+        "darker_brighter": -0.7
+      },
+      "brighter": {
+        "darker_brighter": 0.7
+      },
+      "tense": {
+        "tense_relaxed": -0.7
+      },
+      "relaxed": {
+        "tense_relaxed": 0.7
+      },
+      "common": {
+        "common_surprising": -0.7
+      },
+      "surprising": {
+        "common_surprising": 0.7
+      },
+      "simple": {
+        "simple_complex": -0.7
+      },
+      "complex": {
+        "simple_complex": 0.7
+      },
+      "resolved": {
+        "resolved_open": -0.7
+      },
+      "open": {
+        "resolved_open": 0.7
+      },
+      "smooth": {
+        "smooth": 0.7
+      },
+      "rough": {
+        "smooth": -0.7
+      },
+      "dreamy": {
+        "dreamy": 0.7
+      },
+      "weak_bright": {
+        "darker_brighter": 0.1
+      },
+      "weak_surprise": {
+        "common_surprising": 0.1
+      },
+      "weak_smooth": {
+        "smooth": 0.1
+      },
+      "dark_smooth": {
+        "darker_brighter": -0.7,
+        "smooth": 0.7
+      },
+      "relaxed_complex": {
+        "tense_relaxed": 0.7,
+        "simple_complex": 0.7
+      }
+    }
+  },
+  "default_intent_scale": 6,
+  "weights": "unchanged",
+  "corpus": {
+    "sections": "cv-2026-10-b",
+    "ngrams": "eval-train-a"
+  },
+  "source_hashes": {
+    "app/recommend/scorer.py": "2272d8010cc04ff0772b36506e5eda96b923b108587d24c8131b571e93031888",
+    "tests/eval/ranking_experiment.py": "7ae968cae06a3a01b4e9429bd882f5c3c1f2ad2532399c5a95ad9aa0010093e8"
+  },
+  "revision_note": "Independent review added full app Python/JSON and sampling source identities plus mismatch/promotion regressions after initial development. Numerical protocol/scales/gates unchanged; no heldout scoring yet. Development rerun must reproduce initial comparison results."
+}
