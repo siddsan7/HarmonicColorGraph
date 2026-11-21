@@ -1,10 +1,11 @@
 import { edgeKey, type GraphData, type GraphNode } from "./data"
 
-export type AtlasNode = GraphNode & { x: number; y: number; z: number; fx: number; fy: number; fz: number }
+/** x/y/z and fx/fy/fz are the live, animated position; rx/ry/rz is the layout's resting position. */
+export type AtlasNode = GraphNode & { x: number; y: number; z: number; fx: number; fy: number; fz: number; rx: number; ry: number; rz: number }
 export type AtlasLink = { id: string; source: string | AtlasNode; target: string | AtlasNode; curvature: number; rotation: number; type: string; prob: number | null }
 
 /** WebGL data palette; CSS tokens --graph-low/--graph-high/--route-accent mirror these values. */
-export const ATLAS_COLORS = { low: "#76d8d1", middle: "#a995ec", high: "#eeb980", unavailable: "#8290a5", route: "#ffcd83" } as const
+export const ATLAS_COLORS = { low: "#79cfc4", middle: "#a995ec", high: "#f08e6e", unavailable: "#8c8794", route: "#f2c14e" } as const
 
 export function nodeLabel(node: GraphNode) { return node.type === "function" ? node.label.replace(/^[Mm]:/, "") : node.label }
 export function nodeColor(node: GraphNode, axis: string) {
@@ -20,11 +21,12 @@ export function atlasData(graph: GraphData, previous: AtlasNode[] = []) {
   const count = graph.nodes.length
   const nodes = graph.nodes.map((node, index): AtlasNode => {
     const existing = old.get(node.id)
-    if (existing) { Object.assign(existing, node); return existing }
+    // The scene drifts nodes around their resting place; layout always starts from rest.
+    if (existing) { Object.assign(existing, node, { x: existing.rx, y: existing.ry, z: existing.rz }); return existing }
     const angle = index * 2.399963229728653
     const y = count < 5 ? (index % 2 ? 25 : -25) : (1 - 2 * (index + .5) / count) * 85
     const radius = count < 5 ? 64 : 85 * (count > 300 ? Math.cbrt(count / 150) : 1) * Math.sqrt(1 - (y / 90) ** 2)
-    return { ...node, x: radius * Math.cos(angle), y, z: radius * Math.sin(angle), fx: 0, fy: 0, fz: 0 }
+    return { ...node, x: radius * Math.cos(angle), y, z: radius * Math.sin(angle), fx: 0, fy: 0, fz: 0, rx: 0, ry: 0, rz: 0 }
   })
   const byId = new Map(nodes.map((node, index) => [node.id, index]))
   const pairs = graph.edges.map((edge) => [byId.get(edge.src), byId.get(edge.dst)]).filter((pair): pair is [number, number] => pair[0] !== undefined && pair[1] !== undefined)
@@ -52,7 +54,7 @@ export function atlasData(graph: GraphData, previous: AtlasNode[] = []) {
       for (const axis of ["x", "y", "z"] as const) node[axis] += Math.max(-4, Math.min(4, forces[index][axis] - node[axis] * .008)) * (1 - iteration / 120)
     })
   }
-  nodes.forEach((node) => { node.fx = node.x; node.fy = node.y; node.fz = node.z })
+  nodes.forEach((node) => { node.fx = node.rx = node.x; node.fy = node.ry = node.y; node.fz = node.rz = node.z })
   const groups = new Map<string, string[]>()
   graph.edges.forEach((edge) => { const pair = JSON.stringify([edge.src, edge.dst].sort()); groups.set(pair, [...(groups.get(pair) ?? []), edgeKey(edge)].sort()) })
   const links: AtlasLink[] = graph.edges.map((edge) => {

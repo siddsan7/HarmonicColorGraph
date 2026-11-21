@@ -36,6 +36,26 @@ describe("similarity explorer", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/?p=Am-C-Em&k=C-major"))
   })
 
+  it("searches by itself on arrival, and again when the comparison changes", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false }))
+    vi.mocked(findSimilarProgressions).mockResolvedValue({
+      query: "M:I M:iii M:vi", model: "chord2vec", corpus_version: "cv-test", warnings: [],
+      results: [{ subject_id: "M:vi M:I M:iii", similarity: .8, shared_tokens: ["M:I"], rotation_of: null, support: 3 }],
+    })
+    render(<SimilarityExplorer />)
+    expect(await screen.findByText("vi → I → iii")).toBeInTheDocument()
+    expect(findSimilarProgressions).toHaveBeenCalledTimes(1)
+    expect(findSimilarProgressions).toHaveBeenCalledWith(expect.objectContaining({ progression: ["Cmaj7", "Em7", "Am7"], mode: "structural" }))
+    fireEvent.click(screen.getByRole("radio", { name: /Shared chord functions/ }))
+    await waitFor(() => expect(findSimilarProgressions).toHaveBeenCalledWith(expect.objectContaining({ mode: "surface" })))
+    expect(findSimilarProgressions).toHaveBeenCalledTimes(2)
+    // Too few chords explains itself instead of searching.
+    fireEvent.change(screen.getByRole("textbox", { name: "Progression" }), { target: { value: "C - G" } })
+    expect(screen.getByRole("status")).toHaveTextContent("Enter 3 to 8 chords")
+    // Edited chords can still be carried back to the sketch.
+    expect(screen.getByRole("link", { name: "Open in your sketch: C - G" })).toHaveAttribute("href", "/?p=C-G&k=C-major")
+  })
+
   it("loads a map point with the same Workbench path", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true, json: async () => ({
       model: "chord2vec", points: [{ type: "pattern", id: "M:I M:V M:vi", x: 1, y: 2 }],

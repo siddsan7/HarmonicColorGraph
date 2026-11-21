@@ -49,6 +49,8 @@ test("color bars, arc, and candidate delta are accessible on the workbench", asy
   await expect(page.getByLabel("Nostalgia: +12 points")).toBeVisible()
   await page.screenshot({ path: "test-results/color-workbench.png", fullPage: true })
 
+  // Scan the settled page: the landing copy fades in over its first two seconds and is not readable text until then.
+  for (const selector of [".hero-lede", ".hero-actions", ".hero-facts"]) await expect(page.locator(selector)).toHaveCSS("opacity", "1")
   const scan = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze()
   expect(scan.violations.filter((violation) => violation.impact === "critical" || violation.impact === "serious")).toEqual([])
 })

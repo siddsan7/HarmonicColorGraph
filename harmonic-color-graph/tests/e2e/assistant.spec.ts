@@ -92,6 +92,27 @@ test("assistant handles hourly limit and stream errors without hiding determinis
   await expect(page.getByRole("main").getByRole("alert")).toContainText("The assistant could not answer")
 })
 
+test("Enter asks the question, Shift+Enter adds a line, and the sketch is only offered when there is one", async ({ page }) => {
+  const sent: string[] = []
+  await mockAssistant(page, "explain")
+  page.on("request", (request) => { if (request.url().endsWith("/v2/ai/query")) sent.push(request.postDataJSON().query) })
+  await page.goto("/assistant")
+  await expect(page.getByRole("main")).toHaveAttribute("data-hydrated", "true")
+  await expect(page.getByRole("checkbox", { name: "Include my sketch" })).toHaveCount(0)
+  const box = page.getByRole("textbox", { name: "Ask the harmonic assistant" })
+  await box.fill("Why does Dm")
+  await box.press("Shift+Enter")
+  await expect(box).toHaveValue("Why does Dm\n")
+  expect(sent).toHaveLength(0)
+  await box.pressSequentially("G C work?")
+  await box.press("Enter")
+  await expect(page.getByRole("heading", { name: "Explanation", exact: true }).first()).toBeVisible()
+  expect(sent).toEqual(["Why does Dm\nG C work?"])
+  await page.goto("/assistant?p=C-G-Am&k=C-major")
+  await expect(page.getByRole("checkbox", { name: "Include my sketch" })).toBeChecked()
+  await expect(page.getByRole("link", { name: "Open in your sketch: C - G - Am" })).toHaveAttribute("href", /\/\?p=C-G-Am/)
+})
+
 test("assistant passes accessibility scan on initial and result views", async ({ page }) => {
   await mockAssistant(page, "recommend")
   await page.goto("/assistant")

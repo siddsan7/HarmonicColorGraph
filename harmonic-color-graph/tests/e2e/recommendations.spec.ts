@@ -28,9 +28,11 @@ test("modulated continuation uses final key while append keeps automatic analysi
   await expect(page.getByRole("button", { name: "Append F", exact: true })).toBeVisible()
   expect(requests.at(-1)).toMatchObject({ key: "A minor", progression: ["m:i", "m:iv", "m:V", "m:i", "m:i", "m:iv", "m:V", "m:i"] })
   await expect(page.getByText("C major (chords 1-8) / A minor (chords 9-16)")).toBeVisible()
+  // The studio also analyzes on arrival, so count from here rather than from zero.
+  const analyzed = analysisRequests.length
   await page.getByRole("button", { name: "Append F", exact: true }).click()
-  await expect.poll(() => analysisRequests.length).toBe(2)
-  expect(analysisRequests[1].key).toBeNull()
+  await expect.poll(() => analysisRequests.length).toBe(analyzed + 1)
+  expect(analysisRequests.at(-1)?.key).toBeNull()
 })
 
 function candidate(chord: string, figure: string, score: number) {
@@ -84,9 +86,8 @@ test("workbench shows context-aware recommendations and appends a selected chord
   await expect(panel.getByText(/may follow here according to the corpus/).first()).toBeVisible()
   expect(requests.at(-1)).toMatchObject({ genre: "pop", section: "chorus" })
 
+  // Changing the context needs no button: the analysis and suggestions follow by themselves.
   await page.getByLabel("Genre").selectOption("rock")
-  await expect(page.getByText("Previous analysis", { exact: true })).toBeVisible()
-  await page.getByRole("button", { name: "Analyze", exact: true }).click()
   await expect(panel.getByRole("button", { name: "Append G" })).toBeVisible()
   await expect.poll(() => requests.at(-1)).toMatchObject({ genre: "rock", section: "chorus" })
 
@@ -107,13 +108,14 @@ test("workbench shows context-aware recommendations and appends a selected chord
   await page.getByLabel("Chord progression").fill("C, G, Am")
   await page.getByRole("button", { name: "Analyze", exact: true }).click()
   await expect(panel.getByRole("button", { name: "Append F" })).toBeVisible()
-  await expect(page.getByText("Previous analysis", { exact: true })).toHaveCount(0)
+  const status = page.locator(".composer-status")
+  await expect(status).toContainText("Analysis ready")
   await page.getByRole("button", { name: "+ Section", exact: true }).click()
-  await expect(page.getByText("Previous analysis", { exact: true })).toBeVisible()
+  await expect(status).toContainText("Showing C - G - Am")
   await expect(page.locator("[inert]")).toContainText("Possible next chords")
   await expect(page.getByRole("button", { name: "Find substitutes for C", exact: true })).toBeDisabled()
   await page.getByRole("button", { name: "Undo", exact: true }).click()
-  await expect(page.getByText("Previous analysis", { exact: true })).toHaveCount(0)
+  await expect(status).toContainText("Analysis ready")
   let failOnce = true
   await page.route("**/api/hcg/v2/analyze", (route) => {
     if (!failOnce) return route.fallback()

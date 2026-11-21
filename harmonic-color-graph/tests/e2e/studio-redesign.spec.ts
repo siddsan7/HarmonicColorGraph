@@ -48,13 +48,16 @@ test("a teaching view opens offline in a fresh context with the captured camera 
   await page.route("**/api/hcg/v2/graph/neighborhood?**", (route) => route.fulfill({ json: { data: { nodes, edges: [...edges, { ...edges[0], context_id: 8 }], context: "global" } } }))
   await page.route("**/api/hcg/v2/graph/path", (route) => route.fulfill({ json: { data: { paths: [{ nodes: nodes.map((n) => n.id), edges, cost: 1 }] } } }))
   await page.goto("/explore?p=Am-F-C&k=A-minor&g=jazz&s=verse")
-  await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "paused", { timeout: 10_000 })
-  await page.getByRole("button", { name: "Find paths", exact: true }).click()
+  // The map floats at rest ("ambient"); with reduced motion it stops rendering ("paused").
+  await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", /^(ambient|paused)$/, { timeout: 10_000 })
+  await page.getByLabel("Route destination").selectOption(nodes[2].id)
   await page.getByRole("list", { name: "Route steps" }).getByRole("button").nth(1).click()
-  await page.getByText("Graph filters & color").click()
-  await page.getByLabel("Node tint").selectOption("tension")
+  await page.getByRole("button", { name: "Map settings" }).click()
+  await page.getByLabel("Colour chords by").selectOption("tension")
+  await page.keyboard.press("Escape")
   await page.getByRole("button", { name: "Zoom in", exact: true }).click()
-  await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "paused", { timeout: 10_000 })
+  await page.waitForTimeout(1600) // capture the camera after its transitions, not during them
+  await expect(page.locator(".atlas-canvas")).toHaveAttribute("data-rendering", /^(ambient|paused)$/, { timeout: 10_000 })
   await page.getByText("Prepare a teaching view", { exact: true }).click()
   await page.getByLabel("Presentation title").fill("Night colors: a directed route")
   await page.getByLabel("Your explanation").fill("<script>not executable</script> Notice the borrowed destination.")
@@ -68,7 +71,7 @@ test("a teaching view opens offline in a fresh context with the captured camera 
   await fresh.route("**/api/hcg/**", (route) => route.abort())
   await fresh.goto(link)
   await expect(fresh.getByRole("heading", { name: "Night colors: a directed route" })).toBeVisible()
-  await expect(fresh.locator(".atlas-canvas")).toHaveAttribute("data-rendering", "paused", { timeout: 10_000 })
+  await expect(fresh.locator(".atlas-canvas")).toHaveAttribute("data-rendering", /^(ambient|paused)$/, { timeout: 10_000 })
   const positions = JSON.parse(await fresh.locator(".atlas-canvas").getAttribute("data-positions") ?? "[]")
   expect(positions).toEqual(captured.view!.positions)
   const camera = JSON.parse(await fresh.locator(".atlas-canvas").getAttribute("data-camera") ?? "{}")
@@ -105,17 +108,6 @@ test("the landing constellation lights a route one real connection at a time", a
   // vii° is not a listed move from vi, so it starts a fresh route instead of lighting a false pathway.
   await map.getByRole("button", { name: /^vii°, B° chord/ }).click()
   await expect(steps).toHaveCount(1)
-})
-
-test("a hand-built atlas route only follows real connections and can be undone", async ({ page }) => {
-  await page.goto("/explore?p=C-G-Am&k=C-major")
-  await page.locator(".route-editor > summary").waitFor()
-  if (!await page.getByRole("button", { name: "Build a route by hand" }).isVisible()) await page.locator(".route-editor > summary").click()
-  await page.getByRole("button", { name: "Build a route by hand" }).click()
-  await expect(page.getByRole("button", { name: "Done building" })).toHaveAttribute("aria-pressed", "true")
-  await expect(page.getByRole("list", { name: "Route steps" }).getByRole("listitem")).toHaveCount(1)
-  await page.getByRole("button", { name: "Done building" }).click()
-  await expect(page.getByRole("list", { name: "Route steps" })).toHaveCount(0)
 })
 
 test("hovering landing buttons never displaces them (no hover jitter)", async ({ page }) => {

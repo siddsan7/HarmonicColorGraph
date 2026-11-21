@@ -51,7 +51,7 @@ export function TopoLines({ className = "", levels = 13, cell = 16, seed = 0 }: 
             case 7: case 8: seg(top, left); break
           }
         }
-        ctx.strokeStyle = major ? "rgba(168,196,235,.55)" : "rgba(140,174,215,.28)"
+        ctx.strokeStyle = major ? "rgba(203,190,224,.42)" : "rgba(165,144,196,.2)"
         ctx.lineWidth = major ? 1.1 : 0.8
         ctx.stroke()
       }

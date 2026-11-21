@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { ArrowRight, RefreshCcw, Volume2, X } from "lucide-react"
+import { ArrowRight, LoaderCircle, Sparkles, Volume2, X } from "lucide-react"
 
 import { DegradedModeBanner, SystemStatusBadges } from "@/components/system-status"
 import { EvidencePanel } from "@/components/evidence-panel"
@@ -32,12 +32,12 @@ import type { Instrument, PlaybackChord, PlaybackSequence } from "@/lib/music/en
 import { defaultProgression, readProgression, writeProgression, type SharedProgression } from "@/lib/progression-url"
 import { useSketchbook } from "@/lib/hooks/use-sketchbook"
 import { SketchEditor } from "@/components/sketch-editor"
-import { ContextSelect, PageHeader, RequestError, TaskState } from "@/components/studio-primitives"
+import { ContextSelect, PageHeader, RequestError } from "@/components/studio-primitives"
 import { HomeHero } from "@/components/home/hero"
 
 const samples = [
-  { name: "Pull toward home · applied dominant", chords: "D7 - G - C", key: "C major" },
-  { name: "Ambiguous loop", chords: "C - Am - F - G", key: "" },
+  { name: "Pull toward home", chords: "D7 - G - C", key: "C major" },
+  { name: "Open loop", chords: "C - Am - F - G", key: "" },
   { name: "Minor cadence", chords: "Am - Dm - E7 - Am", key: "A minor" },
 ]
 
@@ -161,6 +161,7 @@ export function WorkbenchV2() {
   async function runAnalysis(chords: string[], requestedKey: string) {
     const requestId = ++analysisRequest.current
     const captured = { ...shared, input: chords.join(" - "), key: requestedKey }
+    attempted.current = writeProgression(new URLSearchParams(), captured).toString()
     playback.stop()
     if (chords.length === 0) {
       setError("Enter at least one chord.")
@@ -197,6 +198,17 @@ export function WorkbenchV2() {
     event.preventDefault()
     await runAnalysis(rawTokens, key)
   }
+
+  // Analysis follows the sketch: once on arrival, then again shortly after each change settles.
+  // A sketch is attempted once, so a failed request waits for the next edit (or Enter) instead of looping.
+  const attempted = useRef<string | null>(null)
+  const analyzedQuery = analysisContext ? writeProgression(new URLSearchParams(), analysisContext).toString() : null
+  useEffect(() => {
+    if (!sketches.ready || !rawTokens.length || sharedQuery === analyzedQuery || sharedQuery === attempted.current) return
+    const timer = window.setTimeout(() => void runAnalysis(rawTokens, key), attempted.current === null ? 150 : 1000)
+    return () => window.clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- sharedQuery captures the sketch; runAnalysis reads the same render.
+  }, [sharedQuery, analyzedQuery, sketches.ready])
 
   function appendChord(chord: string) {
     if (staleAnalysis) return
@@ -253,53 +265,33 @@ export function WorkbenchV2() {
     <main id="main-content" className="page text-[var(--text-primary)]">
       {showHero && <HomeHero />}
       <div id="studio" className="space-y-6">
-        <PageHeader level={showHero ? 2 : 1} eyebrow={showHero ? "Your studio" : "Write music"} title={<>Write <em>music.</em></>} lede="Shape a sketch. Hear a change. Keep what feels right."
-          actions={<details className="service-status text-xs text-[var(--text-muted)]"><summary className="cursor-pointer">Service status</summary><div className="mt-2"><SystemStatusBadges {...health} /></div></details>} />
+        <PageHeader level={showHero ? 2 : 1} eyebrow={showHero ? "Your studio" : "Write music"} title={<>Write <em>music.</em></>} lede="Type a few chords. Hear them, see where they lean, and pick what comes next." />
 
-        <details className="starting-points"><summary>Start with chords, a feeling, or a suggested idea</summary><section className="song-starts" aria-label="Start a song">
-          <button type="button" onClick={() => document.getElementById("progression-v2")?.focus()}><span>01 / Develop</span><strong>I have some chords</strong><p>Bring your idea. Hear where it can go.</p><b aria-hidden="true">↗</b></button>
-          <Link href={`/generate?${writeProgression(new URLSearchParams(), shared)}&feeling=open`}><span>02 / Discover</span><strong>Start with a feeling</strong><p>Find a musical color, then make it yours.</p><b aria-hidden="true">↗</b></Link>
-          <button type="button" onClick={() => { invalidate(); updateShared({ input: "C - Am - F - G", key: "C major" }); setError(null); document.getElementById("progression-v2")?.focus() }}><span>03 / Try</span><strong>Try a starting idea</strong><p>A simple loop with room to wander.</p><b aria-hidden="true">↗</b></button>
-        </section></details>
-        <SketchEditor store={sketches} busy={busy} />
+        <section className="composer" aria-label="Your sketch">
+          <form id="sketch-analysis" onSubmit={analyze} aria-busy={busy} aria-labelledby="sketch-context-heading" className="composer-form">
+            <h2 id="sketch-context-heading" className="sr-only">Type chords and set the musical context</h2>
+            <div className="composer-field">
+              <Label htmlFor="progression-v2" className="sr-only">Chord progression</Label>
+              <Input id="progression-v2" value={input} disabled={!sketches.ready} onChange={(event) => { invalidate(); updateShared({ input: event.target.value }, "input") }} className="composer-input font-mono" placeholder="Type chords, like C Am F G" autoComplete="off" spellCheck={false} />
+            </div>
+            <div className="composer-context">
+              <div><Label htmlFor="key-v2">Key (optional)</Label><Input id="key-v2" value={key} disabled={!sketches.ready} onChange={(event) => { invalidate(); updateShared({ key: event.target.value }, "key") }} className="font-mono" placeholder="Auto detect" autoComplete="off" /></div>
+              <div><Label htmlFor="genre-v2">Genre</Label><ContextSelect id="genre-v2" kind="genre" value={genre} onChange={(value) => updateShared({ genre: value })} /></div>
+              <div><Label htmlFor="section-v2">Section</Label><ContextSelect id="section-v2" kind="section" value={section} onChange={(value) => updateShared({ section: value })} /></div>
+            </div>
+            <div className="composer-starts"><span>Or start from</span>
+              {samples.map((sample) => <button key={sample.name} type="button" onClick={() => { invalidate(); updateShared({ input: sample.chords, key: sample.key }); setError(null) }}>{sample.name}</button>)}
+              <Link href={`/generate?${writeProgression(new URLSearchParams(), shared)}&feeling=open`}>Start with a feeling <ArrowRight className="size-3.5" aria-hidden="true" /></Link>
+            </div>
+            <button type="submit" className="composer-submit" disabled={busy} title="Analysis runs by itself as you type. Press Enter to run it now.">{busy ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Sparkles className="size-4" aria-hidden="true" />}Analyze</button>
+            {error && <RequestError action="analyze" detail={error} onRetry={() => void runAnalysis(rawTokens, key)} />}
+          </form>
+          <div className="transport-sticky"><Transport sequences={activeSequences.length ? activeSequences : sequences} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => playSequences(activeSequences.length ? activeSequences : sequences)} onStop={playback.stop} /></div>
+          <SketchEditor store={sketches} />
+        </section>
         <DegradedModeBanner dbStatus={health.dbStatus} />
 
-        <div className="transport-sticky"><Transport sequences={activeSequences.length ? activeSequences : sequences} playing={playback.playing} position={playback.position} error={playback.error} bpm={bpm} loop={loop} instrument={instrument} onBpmChange={(value) => { playback.stop(); setBpm(value) }} onLoopChange={(value) => { playback.stop(); setLoop(value) }} onInstrumentChange={(value) => { playback.stop(); setInstrument(value) }} onPlay={() => playSequences(activeSequences.length ? activeSequences : sequences)} onStop={playback.stop} /></div>
-
-        <form id="sketch-analysis" onSubmit={analyze} aria-busy={busy} aria-labelledby="sketch-context-heading" className="sketch-paste grid gap-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 lg:grid-cols-[minmax(0,1fr)_12rem_12rem_12rem] lg:items-end">
-          <div className="lg:col-span-4">
-            <h2 id="sketch-context-heading" className="text-sm font-semibold">Type chords & set the musical context</h2>
-            <p className="mt-1 text-xs text-[var(--text-muted)]">Typing here edits the active section above. Genre and song part tune suggestions to similar music in the corpus.</p>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="progression-v2">Chord progression</Label>
-            <Input id="progression-v2" value={input} onChange={(event) => { invalidate(); updateShared({ input: event.target.value }, "input") }} className="font-mono" placeholder="D7 - G - C" autoComplete="off" />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="key-v2">Key (optional)</Label>
-            <Input id="key-v2" value={key} onChange={(event) => { invalidate(); updateShared({ key: event.target.value }, "key") }} className="font-mono" placeholder="Auto detect" autoComplete="off" />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="genre-v2">Genre</Label>
-            <ContextSelect id="genre-v2" kind="genre" value={genre} onChange={(value) => updateShared({ genre: value })} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="section-v2">Section</Label>
-            <ContextSelect id="section-v2" kind="section" value={section} onChange={(value) => updateShared({ section: value })} />
-          </div>
-          <div className="flex flex-wrap items-center gap-2 lg:col-span-4"><span className="mr-1 text-xs text-[var(--text-muted)]">Try an example</span>
-            {samples.map((sample) => (
-              <Button key={sample.name} type="button" variant="outline" size="sm" onClick={() => { invalidate(); updateShared({ input: sample.chords, key: sample.key }); setError(null) }}>
-                <RefreshCcw aria-hidden="true" /> {sample.name}
-              </Button>
-            ))}
-          </div>
-          {error && <RequestError action="analyze" detail={error} onRetry={() => void runAnalysis(rawTokens, key)} />}
-        </form>
-        {busy && <TaskState title="Analyzing your chords…" busy>{analysis ? "The previous analysis stays available while this request completes." : "Results will appear below."}</TaskState>}
-        {!busy && analysis && staleAnalysis && <TaskState title="Previous analysis"><div className="flex flex-wrap items-center justify-between gap-3"><span>These results describe {analysisContext?.input} in {analysisContext?.key || "the detected key"}. Analyze the edited sketch to update them and use suggestions.</span><button type="submit" form="sketch-analysis" className="button-secondary">Analyze current sketch</button></div></TaskState>}
-        <p className="sr-only" role="status">{analysis && !busy ? `Analysis ready: ${analysis.song_key}, ${analysis.tokens.length} chords.` : ""}</p>
+        <p className="composer-status" role="status">{busy ? (analysis ? "Updating the analysis…" : "Listening to your chords…") : analysis && staleAnalysis ? `Showing ${analysisContext?.input} in ${analysisContext?.key || "the detected key"}. ${rawTokens.length ? "It updates when you pause, or press Enter." : "Add chords to this section to hear it."}` : analysis ? `Analysis ready: ${analysis.song_key}, ${analysis.tokens.length} chords.` : ""}</p>
 
         {analysis ? (
           <div className={`analysis-grid grid gap-5 transition-opacity lg:grid-cols-[minmax(0,1.6fr)_minmax(18rem,1fr)] ${staleAnalysis ? "is-stale" : ""}`}>
@@ -355,24 +347,7 @@ export function WorkbenchV2() {
                 <p className="mt-4 text-xs text-[var(--text-muted)]">T tonic · PD predominant · D dominant. Hover an applied chord for its target.</p>
               </section>
 
-              <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
-                <h2 className="text-base font-semibold">Input and chord features</h2>
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {inputTokens(analysisContext?.input ?? "").map((token, index) => {
-                    const warning = analysis.warnings?.find((item) => item.token_index === index)
-                    return <div key={`${token}-${index}`} className={`rounded-md border px-3 py-2 font-mono text-sm ${warning ? "border-[var(--state-warning)] text-[var(--state-warning)]" : "border-[var(--border-strong)]"}`} title={warning?.message}>
-                      {token}{warning && <span className="ml-2 text-xs">{warning.code}</span>}
-                    </div>
-                  })}
-                </div>
-                <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                  {analysis.chords.map((chord, index) => <div key={`${chord.symbol}-${index}`} className="rounded-md bg-[var(--bg-subtle)] p-3 text-xs text-[var(--text-secondary)]">
-                    <span className="font-mono text-sm text-[var(--text-primary)]">{chord.symbol}</span>
-                    <span className="ml-2">{chord.inversion} inversion</span>
-                    <div className="mt-1">{chord.tones_spelled?.join(" · ")} · {chord.quality_class}</div>
-                  </div>)}
-                </div>
-              </section>
+              <div inert={staleAnalysis || undefined}><RecommendationsPanel onRetry={() => loadRecommendations(analysis, analysisContext?.genre ?? genre, analysisContext?.section ?? section)} result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={inputTokens(analysisContext?.input ?? "")} keySignature={analysisContext?.key || undefined} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPlay={playSequences} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} /></div>
 
               <section className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Relationships and evidence</h2>
@@ -400,7 +375,25 @@ export function WorkbenchV2() {
                 {(analysis.modulations?.length ?? 0) > 0 && <p className="mt-4 text-xs text-[var(--accent-warm)]">{analysis.key_regions?.map((region) => `${region.key} (chords ${region.start_index + 1}-${region.end_index})`).join(" / ") ?? `${analysis.modulations?.length} local modulations detected.`}</p>}
               </section>
 
-              <div inert={staleAnalysis || undefined}><RecommendationsPanel onRetry={() => loadRecommendations(analysis, analysisContext?.genre ?? genre, analysisContext?.section ?? section)} result={next} busy={recommendationBusy} error={recommendationError} onAppend={appendChord} progression={inputTokens(analysisContext?.input ?? "")} keySignature={analysisContext?.key || undefined} pitchClasses={analysis.chords.map((chord) => chord.pitch_classes ?? [])} onPlay={playSequences} onPreferencesChange={(requestedIntent, requestedPreset) => { setIntent(requestedIntent); setPreset(requestedPreset); loadRecommendations(analysis, genre, section, requestedIntent, requestedPreset) }} /></div>
+
+              <details className="quiet-details rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
+                <summary>Chord spellings and parse details</summary>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {inputTokens(analysisContext?.input ?? "").map((token, index) => {
+                    const warning = analysis.warnings?.find((item) => item.token_index === index)
+                    return <div key={`${token}-${index}`} className={`rounded-md border px-3 py-2 font-mono text-sm ${warning ? "border-[var(--state-warning)] text-[var(--state-warning)]" : "border-[var(--border-strong)]"}`} title={warning?.message}>
+                      {token}{warning && <span className="ml-2 text-xs">{warning.code}</span>}
+                    </div>
+                  })}
+                </div>
+                <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                  {analysis.chords.map((chord, index) => <div key={`${chord.symbol}-${index}`} className="rounded-md bg-[var(--bg-subtle)] p-3 text-xs text-[var(--text-secondary)]">
+                    <span className="font-mono text-sm text-[var(--text-primary)]">{chord.symbol}</span>
+                    <span className="ml-2">{chord.inversion} inversion</span>
+                    <div className="mt-1">{chord.tones_spelled?.join(" · ")} · {chord.quality_class}</div>
+                  </div>)}
+                </div>
+              </details>
 
               {(analysis.warnings?.length ?? 0) > 0 && <section className="rounded-xl border border-[var(--state-warning)] bg-[var(--bg-surface)] p-5">
                 <h2 className="text-base font-semibold">Parse warnings</h2>
@@ -408,7 +401,8 @@ export function WorkbenchV2() {
               </section>}
             </aside>
           </div>
-        ) : !busy && <section className="empty-state is-centered py-12"><h2>Hear your sketch</h2><p className="max-w-md text-sm text-[var(--text-secondary)]">Add chords above, then choose <strong className="text-[var(--text-primary)]">Analyze</strong> to hear the progression, see its harmonic color and explore what could come next.</p></section>}
+        ) : !busy && <section className="empty-state is-centered py-12"><h2>Hear your sketch</h2><p className="max-w-md text-sm text-[var(--text-secondary)]">Type a few chords above. Sound, harmonic color and next-chord ideas appear as you write.</p></section>}
+        <details className="service-status text-xs text-[var(--text-muted)]"><summary className="cursor-pointer">Service status</summary><div className="mt-2"><SystemStatusBadges {...health} /></div></details>
       </div>
     </main>
   )

@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { ArrowLeft } from "lucide-react"
 import { BlurFade } from "@/components/ui/blur-fade"
 import { writeProgression, type SharedProgression } from "@/lib/progression-url"
 
@@ -21,11 +22,17 @@ export function PageHeader({ eyebrow, title, lede, actions, level = 1 }: { eyebr
 export function ContextSummary({ value, edit = true }: { value: SharedProgression; edit?: boolean }) {
   return <section className="context-summary" aria-label="Current sketch"><strong>Current sketch</strong><span className="chord-text">{value.input || "No chords yet"}</span><span>{value.key || "Auto key"} · {value.genre || "Any genre"} · {value.section || "No section selected"}</span>{edit && <Link href={`/?${writeProgression(new URLSearchParams(), value)}`}>Edit sketch</Link>}</section>
 }
+/** The way back to the sketch, carrying whatever chords the page is working on. */
+export function SketchChip({ value }: { value: SharedProgression }) {
+  return <Link className="sketch-chip" href={`/?${writeProgression(new URLSearchParams(), value)}`} aria-label={`Open in your sketch: ${value.input}`}><ArrowLeft size={15} aria-hidden="true" /><span className="chord-text">{value.input}</span>{value.key && <small>{value.key}</small>}</Link>
+}
+/** A chord function without its mode prefix: "M:IV" reads as "IV". */
+export const numeral = (token: string) => token.replace(/^[Mm]:/, "")
 export function TaskState({ title, children, busy = false }: { title: string; children?: React.ReactNode; busy?: boolean }) {
   return <div className={`task-state${busy ? " is-busy" : ""}`} role={busy ? "status" : undefined}><strong>{title}</strong>{children && <div>{children}</div>}</div>
 }
 export function RequestError({ action, detail, onRetry }: { action: "analyze" | "generate" | "search" | "compare" | "recommend" | "color" | "examples"; detail: string; onRetry: () => void }) {
   const messages = { analyze: "We couldn't analyze these chords right now. Your sketch is still here.", generate: "New ideas couldn't load. Your previous ideas are still here.", search: "Matches couldn't load. Your chords and previous matches are still here.", compare: "The comparison couldn't load. Keep your current sketch or try again.", recommend: "Next-chord suggestions are unavailable. You can keep editing and listening to your sketch.", color: "Color readings couldn't load. Your chord analysis is still available.", examples: "Corpus examples couldn't load. This does not change your harmonic analysis." }
-  return <div className="request-error"><p role="alert">{messages[action]}</p><button type="button" onClick={onRetry}>Try again</button><details><summary>Service details</summary><p>{detail}</p></details></div>
+  return <div className="request-error"><p role="alert">{messages[action]}</p><button type="button" onClick={onRetry}>Try again</button><details><summary>What went wrong</summary><p>{detail}</p></details></div>
 }
 export function RouteMotif() { return <svg className="route-motif" viewBox="0 0 100 24" aria-hidden="true"><path d="M8 16L48 7L90 16M84 11L90 16L83 19" fill="none" stroke="currentColor" strokeWidth="1.5"/><circle cx="8" cy="16" r="3" fill="currentColor"/><circle cx="48" cy="7" r="3" fill="currentColor"/><circle cx="90" cy="16" r="3" fill="currentColor"/></svg> }

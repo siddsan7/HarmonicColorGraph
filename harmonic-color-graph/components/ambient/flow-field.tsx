@@ -4,7 +4,7 @@ import { noise3 } from "@/lib/motion/noise"
 import { useReducedMotion } from "@/components/ambient/use-motion-preference"
 
 type Props = { className?: string; particles?: number; interactive?: boolean; speed?: number }
-const PALETTE = ["121,207,208", "169,149,236", "255,205,131", "140,174,215"]
+const PALETTE = ["165,144,196", "138,118,163", "242,193,78", "203,190,224"]
 
 /**
  * Particle swarm advected by a slowly evolving flow field. Particles leave soft trails, bend
