@@ -92,7 +92,7 @@ export function ColorProfilePanel({ profile, busy, error, onRetry }: { profile: 
       {profile && <span className="text-xs text-[var(--text-muted)]">0–100 · higher means more of an axis</span>}
     </div>
     {busy && <p className="mt-4 text-sm text-[var(--text-muted)]">Measuring color…</p>}
-    {error && <div className="request-error"><p role="alert">Color readings could not load. Your chord analysis is still available.</p>{onRetry && <button type="button" onClick={onRetry}>Try again</button>}<details><summary>Service details</summary><p>{error}</p></details></div>}
+    {error && <div className="request-error"><p role="alert">Color readings could not load. Your chord analysis is still available.</p>{onRetry && <button type="button" onClick={onRetry}>Try again</button>}<details><summary>What went wrong</summary><p>{error}</p></details></div>}
     {profile && <div className="mt-5 space-y-6">
       <ColorBars profile={profile} />
       <div><h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-[var(--text-secondary)]">Color through each chord</h3><ColorArc profile={profile} /></div>

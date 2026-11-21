@@ -44,7 +44,7 @@ export function HomeHero() {
           Write a few chords and watch the music around them light up: where they tend to lead, how they feel, and the next idea worth trying. You make every musical decision.
         </motion.p>
         <motion.div className="hero-actions" initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 1 }}>
-          <ShimmerButton type="button" onClick={() => openStudio(!reduced)} shimmerColor="#bfeceb" background="rgba(197,216,241,.14)" borderRadius="12px" shimmerDuration="3.4s" className="hero-cta">
+          <ShimmerButton type="button" onClick={() => openStudio(!reduced)} shimmerColor="#1a1508" background="#f2c14e" borderRadius="999px" shimmerDuration="3.4s" className="hero-cta">
             <span className="hero-cta-label">Start a sketch <ArrowRight size={16} aria-hidden="true" /></span>
           </ShimmerButton>
           <Link href="/explore" className="hero-secondary">Explore the atlas <ArrowRight size={15} aria-hidden="true" /></Link>
@@ -55,7 +55,7 @@ export function HomeHero() {
       </div>
       <motion.div className="hero-stage" initial={{ opacity: 0, scale: 0.96, y: 18 }} animate={{ opacity: 1, scale: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.35, ease: [0.22, 1, 0.36, 1] }}>
         <Constellation />
-        <BorderBeam size={220} duration={9} colorFrom="#79cfd0" colorTo="#c9b9f6" borderWidth={1.5} />
+        <BorderBeam size={220} duration={9} colorFrom="#f2c14e" colorTo="#8a76a3" borderWidth={1.5} />
       </motion.div>
       <button type="button" className="hero-scroll" onClick={() => openStudio(!reduced)} aria-label="Scroll to the writing studio">
         <span>Start writing</span><ChevronDown size={16} aria-hidden="true" />

@@ -2,10 +2,11 @@
 
 import { type FormEvent, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+import { LoaderCircle, Search } from "lucide-react"
 import { findSimilarProgressions, realizeProgression, type SimilarResponse } from "@/lib/api/client"
+import { useAutoRun } from "@/lib/hooks/use-auto-run"
 import { readProgression, writeProgression } from "@/lib/progression-url"
-
-import { ContextSummary, ContextSelect, PageHeader, RequestError, TaskState } from "@/components/studio-primitives"
+import { ContextSelect, PageHeader, RequestError, TaskState, numeral } from "@/components/studio-primitives"
 
 type Point = { type: "function" | "pattern"; id: string; x: number; y: number }
 type Projection = { model: string; points: Point[] }
@@ -104,35 +105,43 @@ export function SimilarityExplorer() {
   const [resultContext, setResultContext] = useState(shared)
   const [resultMode, setResultMode] = useState<"structural" | "surface">("structural")
   const [projection, setProjection] = useState<Projection | null>(null)
-  const [mapError, setMapError] = useState("")
   const [error, setError] = useState("")
   const [busy, setBusy] = useState(false)
   const [opening, setOpening] = useState<string | null>(null)
   const controller = useRef<AbortController | null>(null)
+  const progression = input.split(/\s*-\s*|\s*,\s*|\r?\n+|\s+/).map((item) => item.trim()).filter(Boolean)
+  const valid = progression.length >= 3 && progression.length <= 8
+  const signature = valid ? JSON.stringify([progression, key.trim(), genre.trim(), mode]) : null
 
   useEffect(() => {
     const abort = new AbortController()
+    // The corpus map is an optional extra; the page is complete without it.
     fetch("/snapshot/embedding-map.json", { signal: abort.signal })
       .then((response) => { if (!response.ok) throw new Error("The corpus projection is not published yet."); return response.json() })
       .then((data: unknown) => setProjection(parseProjection(data)))
-      .catch((caught) => { if (!abort.signal.aborted) setMapError(caught instanceof Error ? caught.message : "Map unavailable.") })
+      .catch(() => {})
     return () => { abort.abort(); controller.current?.abort() }
   }, [])
 
-  async function submit(event?: FormEvent<HTMLFormElement>) {
-    event?.preventDefault()
+  async function submit() {
+    if (!valid) return
     controller.current?.abort()
     const abort = new AbortController()
     controller.current = abort
     setBusy(true); setError("")
     try {
-      const progression = input.split(/\s*-\s*|\s*,\s*|\r?\n+|\s+/).map((item) => item.trim()).filter(Boolean)
-      if (progression.length < 3 || progression.length > 8) throw new Error("Enter 3 to 8 chords or core tokens.")
       const response = await findSimilarProgressions({ progression, key, mode, genre: genre.trim() || undefined, signal: abort.signal })
       if (!abort.signal.aborted) { setResult(response); setResultMode(mode); setResultContext({ input, key, genre, section: shared.section }) }
     } catch (caught) {
       if (!abort.signal.aborted) setError(caught instanceof Error ? caught.message : "Similarity search failed.")
     } finally { if (!abort.signal.aborted) setBusy(false) }
+  }
+  // Matches follow the chords by themselves: arriving with a sketch searches at once, typing waits for a pause.
+  const auto = useAutoRun(signature, () => void submit(), 900)
+  function searchNow(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (signature) auto.mark(signature)
+    void submit()
   }
 
   async function openInWorkbench(tokens: string[], id: string, source = resultContext) {
@@ -149,46 +158,45 @@ export function SimilarityExplorer() {
     }
   }
 
-  return <main id="main-content" className="page space-y-6 text-[var(--text-primary)]">
-    <PageHeader eyebrow="Similar" title={<>Find harmonic <em>neighbors</em></>} lede="Compare progression shape or shared chord functions, then make a match part of your sketch." />
-    <ContextSummary value={{ input, key, genre, section: shared.section }} />
-    <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
-      <div className="space-y-5">
-        <form aria-busy={busy} onSubmit={submit} className={`${panel} space-y-4`}>
-          <label className="grid gap-1.5 text-sm font-medium">Progression
-            <input aria-label="Progression" value={input} onChange={(event) => setInput(event.target.value)} className={`w-full font-mono ${field}`} placeholder="Cmaj7 - Em7 - Am7" autoComplete="off" />
-          </label>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <label className="grid gap-1.5 text-sm font-medium">Key <input aria-label="Key" value={key} onChange={(event) => setKey(event.target.value)} className={`w-full font-mono ${field}`} autoComplete="off" /></label>
-            <label className="grid gap-1.5 text-sm font-medium">Genre <ContextSelect kind="genre" value={genre} onChange={setGenre} className={`w-full ${field}`} /></label>
-          </div>
-          <fieldset><legend className="mb-2 text-sm font-medium">Similarity mode</legend>
-            <div className="grid gap-2 sm:grid-cols-2">{(["structural", "surface"] as const).map((choice) => <label key={choice} className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors ${mode === choice ? "border-[var(--accent-secondary)] bg-[var(--bg-subtle)] text-[var(--text-primary)]" : "border-[var(--border-default)] text-[var(--text-secondary)] hover:border-[var(--border-strong)]"}`}>
-              <input className="accent-[var(--accent-secondary)]" type="radio" name="mode" value={choice} checked={mode === choice} onChange={() => setMode(choice)} />{choice === "structural" ? "Similar movement" : "Shared chord functions"}
-            </label>)}</div>
-          </fieldset>
-          <button disabled={busy} className="button-primary disabled:opacity-50">{busy ? "Searching…" : "Find similar"}</button>
-          <details className="text-sm text-[var(--text-secondary)]"><summary className="cursor-pointer">How comparisons work</summary><p className="mt-2 leading-relaxed">Similar movement compares learned harmonic relationships using cosine similarity. Shared chord functions compares exact normalized tokens. Neither score measures emotional similarity or guarantees a musical fit.</p></details>
-        </form>
+  return <main id="main-content" className="page similar-page text-[var(--text-primary)]">
+    <PageHeader eyebrow="Similar" title={<>Find harmonic <em>neighbors</em></>} lede="Type a few chords to see progressions that move the same way, then take a match back to your sketch." />
+    <div className={`similar-layout${projection ? " has-map" : ""}`}>
+      <div className="similar-main">
+        <section className="composer" aria-label="Find similar progressions">
+          <form aria-busy={busy} onSubmit={searchNow} className="composer-form">
+            <div className="composer-field">
+              <label htmlFor="similar-progression" className="sr-only">Progression</label>
+              <input id="similar-progression" value={input} onChange={(event) => setInput(event.target.value)} className="composer-input font-mono" placeholder="Cmaj7 - Em7 - Am7" autoComplete="off" spellCheck={false} />
+            </div>
+            <div className="similar-context">
+              <div><label htmlFor="similar-key">Key</label><input id="similar-key" value={key} onChange={(event) => setKey(event.target.value)} className="font-mono" autoComplete="off" /></div>
+              <div><label htmlFor="similar-genre">Genre</label><ContextSelect id="similar-genre" kind="genre" value={genre} onChange={(value) => { auto.soon(); setGenre(value) }} /></div>
+              <fieldset><legend>Compare by</legend>
+                <div className="seg seg-radio">{(["structural", "surface"] as const).map((choice) => <label key={choice}>
+                  <input type="radio" name="mode" value={choice} checked={mode === choice} onChange={() => { auto.soon(); setMode(choice) }} />{choice === "structural" ? "Similar movement" : "Shared chord functions"}
+                </label>)}</div>
+              </fieldset>
+            </div>
+            <button type="submit" disabled={busy} className="composer-submit" title="Matches update by themselves as you type. Press Enter to search now.">{busy ? <LoaderCircle className="size-4 animate-spin" aria-hidden="true" /> : <Search className="size-4" aria-hidden="true" />}Find similar</button>
+          </form>
+          <p className="composer-status" role="status">{busy ? "Finding matches…" : progression.length > 0 && !valid ? "Enter 3 to 8 chords to find matches." : result ? `${result.results.length} ${result.results.length === 1 ? "match" : "matches"} for ${resultContext.input} in ${resultContext.key || "any key"}.` : ""}</p>
+          <details className="text-sm text-[var(--text-secondary)]"><summary>How comparisons work</summary><p className="mt-2 leading-relaxed">Similar movement compares learned harmonic relationships using cosine similarity. Shared chord functions compares exact normalized tokens. Neither score measures emotional similarity or guarantees a musical fit.</p></details>
+        </section>
         {error && <RequestError action="search" detail={error} onRetry={() => void submit()} />}
-        {busy && <TaskState title="Finding related progressions…" busy>Previous matches remain below.</TaskState>}
-        {result ? <section className={panel} aria-label="Similarity results">
-          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"><h2 className="page-section-title">Matches</h2><span className="font-mono text-sm text-[var(--text-secondary)]">{resultContext.input} · {resultContext.key}</span><span className="basis-full text-xs text-[var(--text-muted)]">{result.model} · corpus {result.corpus_version}</span></div>
+        {result ? <section className={panel} aria-label="Similarity results" aria-busy={busy}>
+          <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1"><h2 className="page-section-title">Matches</h2><span className="text-xs text-[var(--text-muted)]">{result.model} · corpus {result.corpus_version}</span></div>
           {result.results.length === 0 && <p className="text-sm text-[var(--text-secondary)]">No matches in this corpus. Try a different progression or genre.</p>}
-          <ol className="space-y-3">{result.results.map((item, index) => <li key={`${item.subject_id}:${index}`} className="rise rounded-lg border border-[var(--border-default)] bg-[var(--bg-subtle)] p-3" style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}>
-            <div className="flex flex-wrap items-start justify-between gap-3"><div><span className="mr-2 text-xs tabular-nums text-[var(--text-muted)]">#{index + 1}</span><span className="font-mono text-sm">{item.subject_id}</span>
+          <ol className="space-y-3">{result.results.map((item, index) => <li key={`${item.subject_id}:${index}`} className="rise similar-match" style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}>
+            <div className="flex flex-wrap items-start justify-between gap-3"><div><span className="mr-2 text-xs tabular-nums text-[var(--text-muted)]">#{index + 1}</span><span className="font-mono text-sm" title={item.subject_id}>{item.subject_id.split(" ").map(numeral).join(" → ")}</span>
               {item.rotation_of && <span className="ml-2 rounded border border-[var(--accent-warm)] px-1.5 py-0.5 text-xs text-[var(--accent-warm)]">Rotation</span>}
-            </div><button type="button" disabled={opening !== null} onClick={() => void openInWorkbench(item.subject_id.split(" "), item.subject_id)} className="rounded-md px-2 text-sm font-medium text-[var(--accent-primary)] hover:underline disabled:opacity-50">{opening === item.subject_id ? "Opening…" : "Use in sketch →"}</button></div>
+            </div><button type="button" disabled={opening !== null} onClick={() => void openInWorkbench(item.subject_id.split(" "), item.subject_id)} className="text-button">{opening === item.subject_id ? "Opening…" : "Use in sketch →"}</button></div>
             <p className="mt-2 text-xs leading-relaxed text-[var(--text-secondary)]">Why similar: {resultMode === "structural" ? `embedding neighbor · ${Math.round(item.similarity * 100)}% cosine similarity` : `${Math.round(item.similarity * 100)}% token overlap`}
-              {item.shared_tokens.length > 0 ? ` · shared ${item.shared_tokens.join(", ")}` : " · no exact shared tokens"}{item.support != null ? ` · ${item.support} corpus occurrences` : ""}</p>
+              {item.shared_tokens.length > 0 ? ` · shared ${item.shared_tokens.map(numeral).join(", ")}` : " · no exact shared tokens"}{item.support != null ? ` · ${item.support} corpus occurrences` : ""}</p>
           </li>)}</ol>
           {result.warnings.map((warning) => <p key={warning} className="mt-3 text-xs text-[var(--state-warning)]">{warning}</p>)}
-        </section> : !busy && <div className="empty-state"><h2>No matches yet</h2><p className="text-sm text-[var(--text-secondary)]">Enter three to eight chords, choose a comparison, then find similar progressions from the corpus.</p></div>}
+        </section> : busy ? <TaskState title="Finding related progressions…" busy>This takes a moment.</TaskState> : <div className="empty-state"><h2>No matches yet</h2><p className="text-sm text-[var(--text-secondary)]">Type three to eight chords above. Matches from the corpus appear by themselves.</p></div>}
       </div>
-      <div className="space-y-3">
-        {projection && <section className={panel} aria-label="Embedding map"><h2 className="page-section-title mb-3">Corpus relationship map</h2><EmbeddingMap projection={projection} selected={opening} onSelect={(point) => void openInWorkbench(point.id.split(" "), point.id, { input, key, genre, section: shared.section })} /></section>}
-        {mapError && <details className="service-details"><summary>Optional map availability</summary><p>{mapError}</p></details>}
-      </div>
+      {projection && <section className={panel} aria-label="Embedding map"><h2 className="page-section-title mb-3">Corpus relationship map</h2><EmbeddingMap projection={projection} selected={opening} onSelect={(point) => void openInWorkbench(point.id.split(" "), point.id, { input, key, genre, section: shared.section })} /></section>}
     </div>
   </main>
 }

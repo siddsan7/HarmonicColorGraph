@@ -2,6 +2,19 @@
 
 Status: implemented under the explicit R01–R22 authorization and reviewed on 2026-09-30. The product name is unchanged. Companion: [frontend design review](frontend-design-review.md); delivered behavior, verification and limits: [implementation ledger](frontend-review-implementation.md). The approved 3D atlas and deterministic harmonic behavior are preserved.
 
+## 2026-11-20 revision: record-sleeve studio
+
+Requested by the product owner on 2026-11-20. Where this section and the older text below disagree, this section describes what is built. The rest of the guide still applies.
+
+- **Palette.** Charcoal surfaces (`#17161A` base, `#222126` panel, `#2E2D33` raised, `#1C1B20` input), dusty purple structure (`#6B5B7B`, display text `#8A76A3`, links and focus `#C9B8E4`) and gold (`#F2C14E`) for the primary action, the active route and the sounding chord. Text is `#F4F1EA`, `#C8C2D1` and `#9D96A9`. Graph tints are `#79CFC4` low, `#A995EC` middle, `#F08E6E` high. The values live in `app/globals.css` (`.dark`) and `lib/graph/atlas.ts`; the token table below is historical.
+- **Type.** Headlines use Anton in capitals with one word in gold. Chord names, numerals and interface text stay in Geist and Geist Mono; the serif emphasis is retired.
+- **Navigation.** Five destinations are always one tap away (Write, Atlas, Ideas, Similar, Ask) with About beside them; there is no More menu. On phones the navigation is a fixed bar at the bottom of the screen.
+- **Atlas flow.** Clicking a chord selects it, plays it and loads its connections. Clicking a chord that follows the last one extends the route, which may revisit chords. The route bar holds Play, Undo, Clear and Use in sketch. "Find a route from here to" replaces the start, end, swap and find controls. Filters, tint and route rules live in one Map settings popover. A chord that does not follow the route is inspected without changing it.
+- **Motion.** The map floats continuously while it is on screen: each chord bobs around its resting position and new chords travel in from the chord they connect to. Resting positions and the camera never drift, so captures and teaching views stay exact. It stops rendering when off screen, in a hidden tab, or with reduced motion, and it holds still above 220 chords. This replaces the earlier "no background motion when idle" rule. Interface transitions run 280 to 350ms with one shared ease-out curve; camera moves take 900ms.
+- **Composer.** The home page has one composer: chords first, then key, genre and section, with Play directly beneath. Analysis runs on arrival and about a second after each change; Enter or Analyze runs it immediately. A failed analysis waits for the next edit instead of retrying.
+- **Ideas, Similar and Ask.** These pages run by themselves, like the composer. Ideas shows three ideas on arrival and again after each mood tap or Fine-tune change; there is no Generate button. Similar searches on arrival with a sketch and after each edit of 3 to 8 chords. Ask is one box: Enter sends, Shift+Enter adds a line, and the sketch attachment is only offered when a sketch exists. Shared behaviour lives in `lib/hooks/use-auto-run.ts`: each set of inputs is tried once, so a failure waits for the next edit.
+- **Disclosures.** Every expandable section (`details`) uses one marker in place of the browser arrow: a small ring whose gold plus folds into a minus, styled once in `app/globals.css`. Do not restyle the marker per component.
+
 ## Direction: a musical observatory
 
 Keep the product name **Harmonic Color Graph**. Use **Harmonic Atlas** for its exploration workspace. The visual direction is a precise musical instrument inside a quiet observatory: midnight surfaces, luminous musical relationships, warm route accents and occasional editorial serif emphasis. The signature comes from the relationship between notes and routes, consistent composition and thoughtful interaction.

@@ -23,8 +23,8 @@ const CHORDS: Chord[] = [
 ]
 const EDGES: [string, string][] = [["I", "IV"], ["I", "V"], ["I", "vi"], ["ii", "V"], ["IV", "V"], ["IV", "I"], ["IV", "ii"], ["V", "I"], ["V", "vi"], ["vi", "IV"], ["vi", "ii"], ["iii", "vi"], ["vii", "I"], ["I", "iii"]]
 const DEMO = ["I", "vi", "IV", "V", "I"]
-const TONE: Record<Fn, string> = { T: "#79cfd0", PD: "#a995ec", D: "#8cb8ed" }
-const ROUTE = "#ffcd83"
+const TONE: Record<Fn, string> = { T: "#79cfc4", PD: "#a995ec", D: "#f08e6e" }
+const ROUTE = "#f2c14e"
 const byId = new Map(CHORDS.map((chord) => [chord.id, chord]))
 
 function curve(from: Chord, to: Chord, index: number) {
@@ -95,7 +95,7 @@ export function Constellation() {
         </g>
         {EDGES.map(([a, b]) => {
           const key = edgeKey(a, b), lit = routeEdges.includes(key), near = outgoing.has(key)
-          return <path key={key} d={EDGE_PATHS.get(key)} fill="none" stroke={near ? "#c9d8f2" : "#8caed7"} strokeOpacity={lit ? 0 : near ? 0.8 : 0.2} strokeWidth={near ? 1.6 : 1} style={{ transition: "stroke-opacity .25s, stroke .25s" }} />
+          return <path key={key} d={EDGE_PATHS.get(key)} fill="none" stroke={near ? "#d8cdea" : "#8a76a3"} strokeOpacity={lit ? 0 : near ? 0.8 : 0.2} strokeWidth={near ? 1.6 : 1} style={{ transition: "stroke-opacity .25s, stroke .25s" }} />
         })}
         <AnimatePresence>
           {routeEdges.map((key) => <motion.g key={key} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
@@ -117,7 +117,7 @@ export function Constellation() {
             onClick={() => choose(chord.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); choose(chord.id) } }}>
             <circle cx={chord.x} cy={chord.y} r={r + 14} fill={color} opacity={onRoute || hover === chord.id ? 0.4 : 0.16} filter="url(#node-glow)" />
             {isCandidate && !reduced && <motion.circle cx={chord.x} cy={chord.y} r={r + 6} fill="none" stroke={ROUTE} strokeWidth={1.5} initial={{ scale: 0.9, opacity: 0.9 }} animate={{ scale: 1.35, opacity: 0 }} transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }} style={{ transformBox: "fill-box", transformOrigin: "center" }} />}
-            <circle className="constellation-node-core" cx={chord.x} cy={chord.y} r={r} fill="#0a1220" stroke={color} strokeWidth={isLast || sounding ? 3 : 1.6} />
+            <circle className="constellation-node-core" cx={chord.x} cy={chord.y} r={r} fill="#1c1b20" stroke={color} strokeWidth={isLast || sounding ? 3 : 1.6} />
             <circle cx={chord.x} cy={chord.y} r={r - 6} fill={color} opacity={onRoute ? 0.95 : 0.55} />
             <text x={chord.x} y={chord.y + 1} textAnchor="middle" dominantBaseline="middle" className="constellation-numeral" fill={onRoute ? "#1d1405" : "#07101c"}>{chord.numeral}</text>
           </motion.g>

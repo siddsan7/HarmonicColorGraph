@@ -2,19 +2,19 @@
 
 import Link from "next/link"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
-import { ChevronDown } from "lucide-react"
+import { useEffect, useState } from "react"
+import { MessageCircle, Orbit, PenLine, Sparkles, Waypoints } from "lucide-react"
 import { motion } from "motion/react"
 import { hrefWithProgression, writeProgression } from "@/lib/progression-url"
 import { readStoredProgression } from "@/lib/sketches"
 
+// Every destination is one tap away: no overflow menu to open first.
 const routes = [
-  { href: "/", label: "Write music" },
-  { href: "/explore", label: "Explore harmony" },
-  { href: "/generate", label: "Find an idea" },
-  { href: "/similar", label: "Similar" },
-  { href: "/assistant", label: "Assistant" },
-  { href: "/about", label: "About" },
+  { href: "/", label: "Write", icon: PenLine, hint: "Write music" },
+  { href: "/explore", label: "Atlas", icon: Orbit, hint: "Explore harmony" },
+  { href: "/generate", label: "Ideas", icon: Sparkles, hint: "Find an idea" },
+  { href: "/similar", label: "Similar", icon: Waypoints, hint: "Find similar progressions" },
+  { href: "/assistant", label: "Ask", icon: MessageCircle, hint: "Ask the assistant" },
 ]
 
 // Tools that act on the current sketch. Opened without a shared link, they continue the saved draft.
@@ -40,44 +40,24 @@ function SketchGate({ children }: { children: React.ReactNode }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const search = useSearchParams()
-  const more = useRef<HTMLDetailsElement>(null)
-  const secondary = routes.slice(3)
-  const currentSecondary = secondary.find((route) => route.href === pathname)
-
-  useEffect(() => {
-    // A disclosure menu should close like one: on outside press, Escape, or navigation.
-    const menu = more.current
-    if (!menu) return
-    const close = (restoreFocus: boolean) => { if (!menu.open) return; menu.open = false; if (restoreFocus) menu.querySelector("summary")?.focus() }
-    const onPointer = (event: PointerEvent) => { if (!menu.contains(event.target as Node)) close(false) }
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") close(menu.contains(document.activeElement)) }
-    document.addEventListener("pointerdown", onPointer)
-    document.addEventListener("keydown", onKey)
-    return () => { document.removeEventListener("pointerdown", onPointer); document.removeEventListener("keydown", onKey) }
-  }, [])
-  // Close after navigating, but not on first mount: an early click on More must not be undone by hydration.
-  const lastPath = useRef(pathname)
-  useEffect(() => {
-    if (lastPath.current === pathname) return
-    lastPath.current = pathname
-    if (more.current) more.current.open = false
-  }, [pathname])
-
   return <>
-    <header className="shell-header shell-atlas">
+    <header className="shell-header">
       <a href="#main-content" className="skip-link">Skip to content</a>
-      <div className="shell-header-inner page">
+      <div className="shell-bar page">
         <Link href={hrefWithProgression("/", search)} className="shell-brand" aria-label="Harmonic Color Graph, Write music">
-          <svg className="identity-mark" viewBox="0 0 48 32" aria-hidden="true"><path d="M5 7v18M5 16h12M17 7v18M42 10a10 10 0 1 0 0 12v-6h-8M19 16h10" fill="none" stroke="currentColor" strokeWidth="2.5"/><circle cx="20" cy="16" r="2.5" fill="var(--route-accent)"/><circle cx="28" cy="16" r="2.5" fill="var(--accent-secondary)"/></svg>
-          <span>Harmonic Color Graph</span>
+          <svg className="identity-mark" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="var(--brand-purple)" /><circle cx="20" cy="20" r="7.5" fill="var(--brand-gold)" /><path d="M20 2a18 18 0 0 1 18 18" fill="none" stroke="var(--brand-gold)" strokeWidth="2.5" strokeLinecap="round" /></svg>
+          <span>Harmonic <b>Color Graph</b></span>
         </Link>
         <nav aria-label="Primary navigation" className="shell-nav">
-          {routes.slice(0, 3).map(({ href, label }) => <Link key={href} href={hrefWithProgression(href, search)} className="nav-link" aria-current={pathname === href ? "page" : undefined}>{pathname === href && <motion.span layoutId="nav-pill" className="nav-pill" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}<span className="nav-label">{label}</span></Link>)}
-          <details ref={more} className="nav-more">
-            <summary aria-current={currentSecondary ? "page" : undefined}>{currentSecondary ? currentSecondary.label : "More"}<span className="sr-only">, more destinations</span><ChevronDown className="size-3.5" aria-hidden="true" /></summary>
-            <div>{secondary.map(({ href, label }) => <Link key={href} href={hrefWithProgression(href, search)} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}</div>
-          </details>
+          {routes.map(({ href, label, icon: Icon, hint }) => {
+            const active = pathname === href
+            return <Link key={href} href={hrefWithProgression(href, search)} className="nav-link" aria-current={active ? "page" : undefined} title={hint}>
+              {active && <motion.span layoutId="nav-lamp" className="nav-lamp" transition={{ type: "spring", stiffness: 300, damping: 30 }} />}
+              <Icon className="nav-icon" size={17} aria-hidden="true" /><span className="nav-label">{label}</span>
+            </Link>
+          })}
         </nav>
+        <Link href={hrefWithProgression("/about", search)} className="shell-about" aria-current={pathname === "/about" ? "page" : undefined}>About</Link>
       </div>
     </header>
     <SketchGate>{children}</SketchGate>

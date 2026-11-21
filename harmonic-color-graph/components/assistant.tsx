@@ -5,8 +5,8 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 import { useSearchParams } from "next/navigation"
 import { readProgression, writeProgression } from "@/lib/progression-url"
-import { ContextSummary, PageHeader } from "@/components/studio-primitives"
-import { AudioLines, Check, ChevronRight, LoaderCircle, Search } from "lucide-react"
+import { PageHeader, SketchChip } from "@/components/studio-primitives"
+import { ArrowUp, Check, LoaderCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { AssistantQueryError, queryAssistant, type AssistantResponse, type AssistantStep } from "@/lib/api/assistant"
@@ -16,8 +16,8 @@ const examples = [
   "Explain why Dm – G – C works in C major",
   "Generate a bright four-chord progression",
   "Find progressions similar to C – G – Am – F",
-  "Compare C – Am – F – G versus C – G – F – C",
 ]
+const sketchExamples = ["Explain the strongest change in my sketch", "Suggest a contrasting next chord for my sketch"]
 
 const nodeNames: Record<string, string> = {
   intent_parser: "Understand your request", analyze: "Analyze harmony",
@@ -81,38 +81,23 @@ export function Assistant() {
     }
   }
 
-  return <main id="main-content" tabIndex={-1} data-hydrated={hydrated} className="page text-[var(--text-primary)]">
+  return <main id="main-content" tabIndex={-1} data-hydrated={hydrated} className="page ask-page text-[var(--text-primary)]">
     <div>
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,48rem)_18rem] lg:justify-between">
-        <div className="min-w-0">
-          <PageHeader eyebrow="Assistant" title={<>Ask about the <em>music.</em></>} lede="Explore a progression, discover what could come next, or ask why a change works. Answers are tied to harmonic tools and cited facts." />
-          <div className="mt-4"><ContextSummary value={shared} /></div>
-          <form id="assistant-form" onSubmit={submit} className="mt-6 rounded-xl border border-[var(--border-strong)] bg-[var(--bg-surface)] p-3 focus-within:border-[var(--accent-secondary)]">
-            <label htmlFor="assistant-query" className="sr-only">Ask the harmonic assistant</label>
-            <textarea id="assistant-query" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={2000} rows={3}
-              placeholder="e.g. What chord could follow C – Am – F in C major?" className="min-h-24 w-full resize-y rounded-lg border-0 bg-transparent p-3 text-base outline-none placeholder:text-[var(--text-muted)] focus-visible:outline-none" />
-            <div className="grid gap-3 border-t border-[var(--border-default)] px-2 pt-3">
-              <label className="include-context mt-0 text-sm text-[var(--text-secondary)]"><input type="checkbox" checked={includeSketch} disabled={!shared.input} onChange={(event) => setIncludeSketch(event.target.checked)} className="size-4 accent-[var(--accent-secondary)]" /> {shared.input ? "Include current sketch in my question" : "No sketch to include yet"}</label>
-              <details className="submitted-context text-sm text-[var(--text-secondary)]"><summary className="cursor-pointer">Exactly what the assistant will receive</summary><pre className="mt-2 rounded-lg bg-[var(--bg-input)]">{includeSketch ? `Current sketch (provided by the user): ${JSON.stringify(shared)}\n\nQuestion: ${query.trim()}` : query.trim() || "Your question only"}</pre></details>
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <span className={`text-xs tabular-nums ${submittedText.length > 2000 ? "text-[var(--state-error)]" : "text-[var(--text-muted)]"}`}>{submittedText.length}/2000 characters including attachment</span>
-                <Button type="submit" disabled={!query.trim() || busy || submittedText.length > 2000}>{busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <Search aria-hidden="true" />}{busy ? "Thinking…" : "Ask assistant"}</Button>
-              </div>
-            </div>
-          </form>
-          {submittedText.length > 2000 && <p role="alert" className="mt-3 text-sm text-[var(--state-error)]">Shorten the question or turn off the sketch attachment to stay within 2,000 characters.</p>}
-          <div className="mt-6">
-            <p className="page-eyebrow text-[var(--text-muted)]">Try a question</p>
-            <div className="mt-3 flex flex-wrap gap-2">{[...(shared.input ? ["Explain the strongest change in my sketch", "Suggest a contrasting next chord for my sketch"] : []), ...examples].map((example) => <button key={example} type="button" onClick={() => { setQuery(example); if (example.includes("my sketch")) setIncludeSketch(true); document.getElementById("assistant-query")?.focus() }}
-              className="rounded-full border border-[var(--border-strong)] bg-[var(--bg-subtle)] px-3 py-2 text-left text-xs text-[var(--text-secondary)] transition hover:border-[var(--accent-primary)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-secondary)]">{example}</button>)}</div>
-          </div>
+      <PageHeader eyebrow="Ask" title={<>Ask about the <em>music.</em></>} lede="Ask what could come next, or why a change works. Answers are tied to harmonic tools and cited facts." actions={shared.input ? <SketchChip value={shared} /> : undefined} />
+      <form id="assistant-form" onSubmit={submit} className="composer ask-composer">
+        <label htmlFor="assistant-query" className="sr-only">Ask the harmonic assistant</label>
+        <textarea id="assistant-query" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={2000} rows={3} className="ask-input" placeholder="e.g. What chord could follow C – Am – F in C major?"
+          onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
+        <div className="ask-bar">
+          {shared.input && <label className="ask-attach"><input type="checkbox" checked={includeSketch} onChange={(event) => setIncludeSketch(event.target.checked)} className="size-4 accent-[var(--brand-gold)]" />Include my sketch</label>}
+          <span className="ask-hint">Enter to ask · Shift+Enter for a new line</span>
+          {submittedText.length > 1500 && <span className={`text-xs tabular-nums ${submittedText.length > 2000 ? "text-[var(--state-error)]" : "text-[var(--text-muted)]"}`}>{submittedText.length}/2000 characters{includeSketch ? " including your sketch" : ""}</span>}
+          <Button type="submit" disabled={!query.trim() || busy || submittedText.length > 2000}>{busy ? <LoaderCircle className="animate-spin" aria-hidden="true" /> : <ArrowUp aria-hidden="true" />}{busy ? "Thinking…" : "Ask assistant"}</Button>
         </div>
-        <aside className="rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5 lg:self-start" aria-label="How the assistant works">
-          <div className="flex items-center gap-2 text-sm font-semibold"><AudioLines className="size-4 text-[var(--accent-primary)]" aria-hidden="true" /> Your musical context</div>
-          <p className="mt-3 text-sm leading-relaxed text-[var(--text-secondary)]">Attach your sketch explicitly, inspect the evidence, then return to editing. The question preview shows exactly what is sent.</p>
-          <Link href={sketchHref} className="mt-5 inline-flex items-center gap-1 text-sm text-[var(--accent-secondary)] hover:underline">Continue in your sketch <ChevronRight className="size-4" aria-hidden="true" /></Link>
-        </aside>
-      </div>
+        {includeSketch && <details className="submitted-context text-sm text-[var(--text-secondary)]"><summary>What gets sent with your sketch</summary><pre className="mt-2 rounded-lg bg-[var(--bg-input)]">{submittedText}</pre></details>}
+      </form>
+      {submittedText.length > 2000 && <p role="alert" className="mt-3 text-sm text-[var(--state-error)]">Shorten the question or turn off the sketch attachment to stay within 2,000 characters.</p>}
+      <div className="composer-starts ask-starts"><span>Try</span>{[...(shared.input ? sketchExamples : []), ...examples].slice(0, 4).map((example) => <button key={example} type="button" onClick={() => { setQuery(example); if (example.includes("my sketch")) setIncludeSketch(true); document.getElementById("assistant-query")?.focus() }}>{example}</button>)}</div>
       {steps.length > 0 && <section className="mt-9 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5" aria-labelledby="assistant-steps-heading" aria-busy={busy}>
         <div className="flex items-center justify-between">
           <h2 id="assistant-steps-heading" className="font-semibold">How this answer was built</h2>
@@ -126,7 +111,7 @@ export function Assistant() {
       </section>}
       {error && <div role="alert" className="mt-8 rounded-xl border border-[var(--state-error)]/40 bg-[var(--state-error)]/10 p-5">
         <p className="font-semibold">{limited ? "Assistant limit reached" : "The assistant could not answer"}</p>
-        <p className="mt-1 text-sm text-[var(--text-secondary)]">Your question and sketch are still here.</p><button type="button" onClick={() => (document.getElementById("assistant-form") as HTMLFormElement)?.requestSubmit()}>Try again</button><details><summary>Service details</summary><p>{error}</p></details>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">Your question and sketch are still here.</p><div className="request-actions"><button type="button" className="pill-button" onClick={() => (document.getElementById("assistant-form") as HTMLFormElement)?.requestSubmit()}>Try again</button><details><summary>What went wrong</summary><p>{error}</p></details></div>
         <p className="mt-3 text-sm"><Link className="text-[var(--accent-secondary)] underline" href={sketchHref}>Continue in your sketch</Link> while the assistant is unavailable.</p>
       </div>}
       <p className="sr-only" role="status">{result && !busy ? "Answer ready." : ""}</p>

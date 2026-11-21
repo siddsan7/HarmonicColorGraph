@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Anton, Geist, Geist_Mono } from "next/font/google";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AmbientBackdrop } from "@/components/ambient/backdrop";
 import { MotionProvider } from "@/components/ambient/motion-provider";
@@ -12,13 +12,12 @@ const geistSans = Geist({
   subsets: ["latin"],
 });
 
-// Display face: an editorial serif that gives headlines the warmth of a printed score
-// and pairs cleanly with Geist for interface text.
-const display = Instrument_Serif({
+// Display face: a condensed poster grotesque, set in capitals like a record sleeve.
+// It carries headlines only; chord names and interface text stay in Geist.
+const display = Anton({
   variable: "--font-display",
   subsets: ["latin"],
   weight: "400",
-  style: ["normal", "italic"],
 });
 
 const geistMono = Geist_Mono({

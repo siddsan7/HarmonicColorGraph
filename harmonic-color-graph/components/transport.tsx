@@ -36,6 +36,6 @@ export function Transport({ sequences, playing, position, error, bpm, loop, inst
     <p className="mt-3 text-sm text-[var(--text-secondary)]" role="status" aria-live="polite">
       {playing ? active ? `Playing ${active.label}: ${active.chords[position.chord]?.label}` : "Starting playback…" : "Playback stopped"}
     </p>
-    {error && <div className="request-error"><p role="alert">Playback could not start. Your music is unchanged.</p><button type="button" onClick={onPlay}>Try playback again</button><details><summary>Audio details</summary><p>{error}</p></details></div>}
+    {error && <div className="request-error"><p role="alert">Playback could not start. Your music is unchanged.</p><button type="button" onClick={onPlay}>Try playback again</button><details><summary>What went wrong</summary><p>{error}</p></details></div>}
   </section>
 }
