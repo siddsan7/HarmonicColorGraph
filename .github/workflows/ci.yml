@@ -43,6 +43,9 @@ jobs:
   backend:
     name: backend (unit)
     runs-on: ubuntu-latest
+    # This job normally finishes in about two minutes. Without a limit, a
+    # runner that stops responding holds the run for GitHub's six-hour default.
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
 
