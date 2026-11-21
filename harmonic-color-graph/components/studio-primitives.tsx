@@ -22,9 +22,9 @@ export function PageHeader({ eyebrow, title, lede, actions, level = 1 }: { eyebr
 export function ContextSummary({ value, edit = true }: { value: SharedProgression; edit?: boolean }) {
   return <section className="context-summary" aria-label="Current sketch"><strong>Current sketch</strong><span className="chord-text">{value.input || "No chords yet"}</span><span>{value.key || "Auto key"} · {value.genre || "Any genre"} · {value.section || "No section selected"}</span>{edit && <Link href={`/?${writeProgression(new URLSearchParams(), value)}`}>Edit sketch</Link>}</section>
 }
-/** The way back to the sketch being worked on, shown on pages that act on it. */
+/** The way back to the sketch, carrying whatever chords the page is working on. */
 export function SketchChip({ value }: { value: SharedProgression }) {
-  return <Link className="sketch-chip" href={`/?${writeProgression(new URLSearchParams(), value)}`} aria-label={`Return to your sketch: ${value.input}`}><ArrowLeft size={15} aria-hidden="true" /><span className="chord-text">{value.input}</span>{value.key && <small>{value.key}</small>}</Link>
+  return <Link className="sketch-chip" href={`/?${writeProgression(new URLSearchParams(), value)}`} aria-label={`Open in your sketch: ${value.input}`}><ArrowLeft size={15} aria-hidden="true" /><span className="chord-text">{value.input}</span>{value.key && <small>{value.key}</small>}</Link>
 }
 /** A chord function without its mode prefix: "M:IV" reads as "IV". */
 export const numeral = (token: string) => token.replace(/^[Mm]:/, "")

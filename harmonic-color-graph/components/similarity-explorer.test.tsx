@@ -52,6 +52,8 @@ describe("similarity explorer", () => {
     // Too few chords explains itself instead of searching.
     fireEvent.change(screen.getByRole("textbox", { name: "Progression" }), { target: { value: "C - G" } })
     expect(screen.getByRole("status")).toHaveTextContent("Enter 3 to 8 chords")
+    // Edited chords can still be carried back to the sketch.
+    expect(screen.getByRole("link", { name: "Open in your sketch: C - G" })).toHaveAttribute("href", "/?p=C-G&k=C-major")
   })
 
   it("loads a map point with the same Workbench path", async () => {

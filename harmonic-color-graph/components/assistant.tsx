@@ -87,7 +87,8 @@ export function Assistant() {
       <form id="assistant-form" onSubmit={submit} className="composer ask-composer">
         <label htmlFor="assistant-query" className="sr-only">Ask the harmonic assistant</label>
         <textarea id="assistant-query" value={query} onChange={(event) => setQuery(event.target.value)} maxLength={2000} rows={3} className="ask-input" placeholder="e.g. What chord could follow C – Am – F in C major?"
-          onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
+          // A touch keyboard has no Shift+Enter, so there Enter keeps adding lines and the button sends.
+          onKeyDown={(event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing && window.matchMedia("(hover: hover) and (pointer: fine)").matches) { event.preventDefault(); event.currentTarget.form?.requestSubmit() } }} />
         <div className="ask-bar">
           {shared.input && <label className="ask-attach"><input type="checkbox" checked={includeSketch} onChange={(event) => setIncludeSketch(event.target.checked)} className="size-4 accent-[var(--brand-gold)]" />Include my sketch</label>}
           <span className="ask-hint">Enter to ask · Shift+Enter for a new line</span>

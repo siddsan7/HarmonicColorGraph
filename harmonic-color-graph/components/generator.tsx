@@ -135,7 +135,7 @@ export function Generator() {
   const auto = useAutoRun(view === "new" && ready ? JSON.stringify([key.trim(), length, start.trim(), end.trim(), cadence, genre, curve, curve === "custom" ? custom : 0, colors, preset]) : null, () => void submit(), 1200)
   useAutoRun(view === "continue" ? JSON.stringify([shared.input, shared.key, shared.genre, shared.section]) : null, () => void compare())
   function choose(item: (typeof feelings)[number]) {
-    auto.soon()
+    if (item.id !== feeling) auto.soon()
     setFeeling(item.id); setColors(item.colors); setCurve(item.curve); setPreset(item.preset)
     // On a phone the ideas sit below the moods, so bring them into view.
     const list = results.current

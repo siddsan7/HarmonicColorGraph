@@ -110,7 +110,7 @@ test("Enter asks the question, Shift+Enter adds a line, and the sketch is only o
   expect(sent).toEqual(["Why does Dm\nG C work?"])
   await page.goto("/assistant?p=C-G-Am&k=C-major")
   await expect(page.getByRole("checkbox", { name: "Include my sketch" })).toBeChecked()
-  await expect(page.getByRole("link", { name: "Return to your sketch: C - G - Am" })).toHaveAttribute("href", /\/\?p=C-G-Am/)
+  await expect(page.getByRole("link", { name: "Open in your sketch: C - G - Am" })).toHaveAttribute("href", /\/\?p=C-G-Am/)
 })
 
 test("assistant passes accessibility scan on initial and result views", async ({ page }) => {

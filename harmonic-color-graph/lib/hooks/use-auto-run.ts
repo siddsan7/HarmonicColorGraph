@@ -9,8 +9,9 @@ import { useEffect, useMemo, useRef } from "react"
  */
 export function useAutoRun(signature: string | null, run: () => void, delay = 800) {
   const attempted = useRef<string | null>(null)
-  // The first run, and any change made with a tap, should not wait out the typing delay.
-  const eager = useRef(true)
+  // Inputs that are ready on arrival, and any change made with a tap, should not wait out the typing delay.
+  // Inputs that become ready while someone is typing should.
+  const eager = useRef(signature !== null)
   const latest = useRef(run)
   useEffect(() => { latest.current = run })
   useEffect(() => {

@@ -6,7 +6,7 @@ import { LoaderCircle, Search } from "lucide-react"
 import { findSimilarProgressions, realizeProgression, type SimilarResponse } from "@/lib/api/client"
 import { useAutoRun } from "@/lib/hooks/use-auto-run"
 import { readProgression, writeProgression } from "@/lib/progression-url"
-import { ContextSelect, PageHeader, RequestError, TaskState, numeral } from "@/components/studio-primitives"
+import { ContextSelect, PageHeader, RequestError, SketchChip, TaskState, numeral } from "@/components/studio-primitives"
 
 type Point = { type: "function" | "pattern"; id: string; x: number; y: number }
 type Projection = { model: string; points: Point[] }
@@ -159,7 +159,7 @@ export function SimilarityExplorer() {
   }
 
   return <main id="main-content" className="page similar-page text-[var(--text-primary)]">
-    <PageHeader eyebrow="Similar" title={<>Find harmonic <em>neighbors</em></>} lede="Type a few chords to see progressions that move the same way, then take a match back to your sketch." />
+    <PageHeader eyebrow="Similar" title={<>Find harmonic <em>neighbors</em></>} lede="Type a few chords to see progressions that move the same way, then take a match back to your sketch." actions={progression.length ? <SketchChip value={{ input, key, genre, section: shared.section }} /> : undefined} />
     <div className={`similar-layout${projection ? " has-map" : ""}`}>
       <div className="similar-main">
         <section className="composer" aria-label="Find similar progressions">
