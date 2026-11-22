@@ -1,0 +1,12 @@
+{"id": "fallback-expansion-dev-01", "category": "comparative", "input": "Recommend a next chord after D A Bm in D major; tenser.", "expected_axes": {"tense_relaxed": -0.7}}
+{"id": "fallback-expansion-dev-02", "category": "comparative", "input": "Recommend a next chord after D A Bm in D major; less tenser.", "expected_axes": {"tense_relaxed": 0.7}}
+{"id": "fallback-expansion-dev-03", "category": "magnitude", "input": "Recommend a next chord after D A Bm in D major; a little bit darker.", "expected_axes": {"darker_brighter": -0.3}}
+{"id": "fallback-expansion-dev-04", "category": "magnitude", "input": "Recommend a next chord after D A Bm in D major; a little bit less tense.", "expected_axes": {"tense_relaxed": 0.3}}
+{"id": "fallback-expansion-dev-05", "category": "magnitude", "input": "Recommend a next chord after D A Bm in D major; a little bit smoother.", "expected_axes": {"smooth": 0.3}}
+{"id": "fallback-expansion-dev-06", "category": "multi_axis", "input": "Recommend a next chord after D A Bm in D major; tenser and a little bit brighter.", "expected_axes": {"tense_relaxed": -0.7, "darker_brighter": 0.3}}
+{"id": "fallback-expansion-dev-07", "category": "negation", "input": "Recommend a next chord after D A Bm in D major; not tenser.", "expected_axes": {}}
+{"id": "fallback-expansion-dev-08", "category": "negation", "input": "Recommend a next chord after D A Bm in D major; not a little bit darker.", "expected_axes": {}}
+{"id": "fallback-expansion-dev-09", "category": "alternative", "input": "Recommend a next chord after D A Bm in D major; tenser or more relaxed.", "expected_axes": {}}
+{"id": "fallback-expansion-dev-10", "category": "conditional", "input": "Recommend a next chord after D A Bm in D major; if tenser is a problem, keep the same character.", "expected_axes": {}}
+{"id": "fallback-expansion-dev-11", "category": "boundary", "input": "Recommend a next chord after D A Bm in D major; tensered.", "expected_axes": {}}
+{"id": "fallback-expansion-dev-12", "category": "conflict", "input": "Recommend a next chord after D A Bm in D major; tenser and more relaxed.", "expected_axes": {}}

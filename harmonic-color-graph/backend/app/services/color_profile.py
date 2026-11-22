@@ -25,7 +25,7 @@ from dataclasses import dataclass, replace
 
 from app.color.features import AXES as RAW_AXES
 from app.color.features import ChordColorRaw, compute_chord_color
-from app.color.perceptual import PERCEPTUAL_AXES, PerceptualColor, compute_perceptual_color
+from app.color.perceptual import PERCEPTUAL_AXES, PerceptualColor, _perceptual_from_raws
 from app.schemas.analysis_v2 import RomanToken
 from app.schemas.color_v2 import (
     ArcPoint,
@@ -77,6 +77,7 @@ def build_arc(
     chords: Sequence[CanonicalChord], tokens: Sequence[RomanToken], key: str
 ) -> list[ArcPointData]:
     arc: list[ArcPointData] = []
+    raws: list[ChordColorRaw] = []
     for index in range(len(chords)):
         raw = compute_chord_color(
             chords[index],
@@ -85,7 +86,8 @@ def build_arc(
             previous_chord=chords[index - 1] if index > 0 else None,
             previous_token=tokens[index - 1] if index > 0 else None,
         )
-        perceptual = compute_perceptual_color(chords[: index + 1], tokens[: index + 1], key)
+        raws.append(raw)
+        perceptual = _perceptual_from_raws(raws, tokens[: index + 1])
         arc.append(
             ArcPointData(
                 position=index,

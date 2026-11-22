@@ -83,6 +83,6 @@ include = ["app*", "pipeline*", "tests.eval*"]
 # by path at runtime (color rules load during app import), so they must ship.
 [tool.setuptools.package-data]
 "app.color" = ["perceptual_params.json", "rules/*.json"]
-"tests.eval" = ["ai_benchmark.jsonl", "ai_adversarial.jsonl"]
+"tests.eval" = ["ai_benchmark.jsonl", "ai_adversarial.jsonl", "intent_recovery.jsonl"]
 "app.recommend" = ["weights/*.json"]
 "app.theory" = ["keys_params.json"]

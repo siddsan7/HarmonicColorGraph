@@ -23,7 +23,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.ai.logs import AIQueryStore
-from app.ai.state import AssistantResponse
+from app.ai.state import AssistantResponse, CandidatePreview
 from app.ai.tools import HarmonicTools
 from app.ai.usage import UsageMeter, request_cost_bound
 from app.ai.workflow import AssistantWorkflow
@@ -164,6 +164,8 @@ class AIQueryRuntime:
                         raise TimeoutError("Assistant workflow deadline exceeded")
                     if meter.cost_usd > self.reservation_usd:
                         raise RuntimeError("Assistant model cost exceeded its reserved bound")
+                    if kind == "candidates":
+                        payload = CandidatePreview.model_validate(payload).model_dump(mode="json")
                     if kind == "final":
                         response = AssistantResponse.model_validate(payload["response"])
                         usage = self._accounted_usage(

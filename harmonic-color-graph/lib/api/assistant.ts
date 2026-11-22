@@ -22,9 +22,15 @@ export type AssistantResponse = {
   errors: string[]
   fallback: boolean
 }
+export type CandidatePreview = {
+  schema_version: 1
+  candidates: { chords: string[]; fact_ids: string[]; source_tool: string }[]
+  fact_ids: string[]
+}
 export type AssistantStep = { node: string; status: "started" | "completed" }
 export type AssistantEvent =
   | { kind: "step"; value: AssistantStep }
+  | { kind: "candidates"; value: CandidatePreview }
   | { kind: "partial"; value: string }
   | { kind: "final"; value: AssistantResponse }
 
@@ -43,6 +49,19 @@ function eventPayload(kind: string, value: unknown): AssistantEvent | null {
       throw new AssistantQueryError("The assistant sent an invalid progress event.")
     }
     return { kind: "step", value: { node: value.node, status: value.status as AssistantStep["status"] } }
+  }
+  if (kind === "candidates") {
+    const strings = (items: unknown, max: number, length: number): items is string[] =>
+      Array.isArray(items) && items.length > 0 && items.length <= max &&
+      items.every((item) => typeof item === "string" && item.length > 0 && item.length <= length)
+    if (value.schema_version !== 1 || !strings(value.fact_ids, 1280, 200) ||
+      !Array.isArray(value.candidates) || !value.candidates.length || value.candidates.length > 20 ||
+      !value.candidates.every((item) => object(item) && strings(item.chords, 16, 80) &&
+        strings(item.fact_ids, 64, 200) && item.fact_ids.every((id) => (value.fact_ids as string[]).includes(id)) &&
+        typeof item.source_tool === "string" && item.source_tool.length > 0 && item.source_tool.length <= 80)) {
+      throw new AssistantQueryError("The assistant sent invalid candidate data.")
+    }
+    return { kind: "candidates", value: value as CandidatePreview }
   }
   if (kind === "partial") {
     if (typeof value.text !== "string") throw new AssistantQueryError("The assistant sent invalid text.")
@@ -90,11 +109,22 @@ export async function queryAssistant(
   let kind = ""
   let data: string[] = []
   let finished = false
+  let queryId: string | undefined
   function dispatch() {
     if (!data.length) { kind = ""; return }
     let payload: unknown
     try { payload = JSON.parse(data.join("\n")) }
     catch { throw new AssistantQueryError("The assistant sent invalid stream data.") }
+    if (signal?.aborted) throw new DOMException("Aborted", "AbortError")
+    if (object(payload) && typeof payload.query_id === "string") {
+      if (queryId !== undefined && payload.query_id !== queryId) {
+        throw new AssistantQueryError("The assistant sent data for a different query.")
+      }
+      queryId = payload.query_id
+    }
+    if (kind === "candidates" && (!object(payload) || typeof payload.query_id !== "string")) {
+      throw new AssistantQueryError("The assistant candidate event has no query identity.")
+    }
     const event = eventPayload(kind, payload)
     if (event) {
       onEvent(event)
@@ -129,7 +159,7 @@ export async function queryAssistant(
       }
     }
   } finally {
-    if (finished) void reader.cancel().catch(() => undefined)
+    void reader.cancel().catch(() => undefined)
     reader.releaseLock()
   }
   if (!finished) throw new AssistantQueryError("The assistant stream ended before a result arrived.")

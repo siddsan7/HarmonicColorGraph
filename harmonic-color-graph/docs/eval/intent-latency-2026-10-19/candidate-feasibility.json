@@ -1,0 +1,3655 @@
+{
+  "mode": "offline_seeded_candidate_feasibility",
+  "cost_usd": "0",
+  "limits": "Fixed rubric/weights; feature feasibility is not a musician judgment or production evidence.",
+  "cases": [
+    {
+      "id": "recommend-01",
+      "parsed_axes": {
+        "darker_brighter": -0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "darker_brighter": 0.37142857142857144
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "darker_brighter": 0.41428571428571426
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "darker_brighter": 0.3285714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "darker_brighter": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "darker_brighter": -0.04285714285714293
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "darker_brighter": 0.375
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "darker_brighter": 0.5428571428571428
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "darker_brighter": 0.375
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "darker_brighter": 0.46071428571428574
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "darker_brighter": 0.4178571428571428
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "darker_brighter": 0.46071428571428574
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "darker_brighter": 0.5464285714285714
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "darker_brighter": 0.5035714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "darker_brighter": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "darker_brighter": -0.2142857142857143
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "darker_brighter": -0.25714285714285723
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "darker_brighter": 0.05714285714285716
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "darker_brighter": -0.30714285714285716
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "darker_brighter": -0.4
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "darker_brighter": -0.3571428571428572
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "darker_brighter": 0.042857142857142816
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "darker_brighter": 0.028571428571428525
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "darker_brighter": 0.5035714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "darker_brighter": 0.5892857142857143
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "darker_brighter": 0.5464285714285714
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "darker_brighter": 0.5892857142857143
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "darker_brighter": 0.4178571428571428
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "darker_brighter": 0.5035714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "darker_brighter": 0.08571428571428563
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "darker_brighter": 0.04999999999999993
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "darker_brighter": 0.13571428571428568
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "darker_brighter": 0.09285714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "darker_brighter": 0.13571428571428568
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "darker_brighter": 0.09285714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "darker_brighter": 0.04999999999999993
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:ii",
+        "M:vi",
+        "M:V",
+        "M:IV",
+        "M:I",
+        "M:iv",
+        "M:V7",
+        "M:i",
+        "M:bVI",
+        "M:bIII"
+      ],
+      "pre_floor_feasible": 6,
+      "post_floor_feasible": 6,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-02",
+      "parsed_axes": {
+        "darker_brighter": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "darker_brighter": 0.042857142857142816
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "darker_brighter": 0.08571428571428563
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "darker_brighter": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "darker_brighter": -0.3285714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "darker_brighter": -0.37142857142857155
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "darker_brighter": 0.046428571428571375
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "darker_brighter": 0.2142857142857142
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "darker_brighter": 0.046428571428571375
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "darker_brighter": 0.13214285714285712
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "darker_brighter": 0.08928571428571419
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "darker_brighter": 0.13214285714285712
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "darker_brighter": 0.21785714285714275
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "darker_brighter": 0.17499999999999993
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "darker_brighter": 0.17142857142857137
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "darker_brighter": -0.5428571428571429
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "darker_brighter": -0.5857142857142859
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "darker_brighter": -0.27142857142857146
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "darker_brighter": -0.6357142857142858
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "darker_brighter": -0.7285714285714286
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "darker_brighter": -0.6857142857142858
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "darker_brighter": -0.2857142857142858
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "darker_brighter": -0.3000000000000001
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "darker_brighter": 0.17499999999999993
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "darker_brighter": 0.2607142857142857
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "darker_brighter": 0.21785714285714275
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "darker_brighter": 0.2607142857142857
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "darker_brighter": 0.08928571428571419
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "darker_brighter": 0.17499999999999993
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "darker_brighter": -0.242857142857143
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "darker_brighter": -0.2785714285714287
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "darker_brighter": -0.19285714285714295
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "darker_brighter": -0.23571428571428577
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "darker_brighter": -0.19285714285714295
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "darker_brighter": -0.23571428571428577
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "darker_brighter": -0.2785714285714287
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:V",
+        "M:IV",
+        "M:I",
+        "M:V7",
+        "M:vi",
+        "M:ii",
+        "M:subV7/ii",
+        "M:V7/iii",
+        "M:III",
+        "M:subV7/V"
+      ],
+      "pre_floor_feasible": 17,
+      "post_floor_feasible": 16,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-03",
+      "parsed_axes": {
+        "tense_relaxed": -0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "tense_relaxed": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "tense_relaxed": -0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "tense_relaxed": -0.15
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "tense_relaxed": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "tense_relaxed": -0.15
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "tense_relaxed": -0.38
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "tense_relaxed": -0.06666666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "tense_relaxed": -0.38
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "tense_relaxed": -0.48
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "tense_relaxed": -0.06666666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "tense_relaxed": -0.20833333333333331
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "tense_relaxed": -0.2833333333333333
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "tense_relaxed": -0.14166666666666666
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "tense_relaxed": -0.31666666666666665
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "tense_relaxed": -0.21666666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "tense_relaxed": -0.06666666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "tense_relaxed": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "tense_relaxed": -0.3233333333333333
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "tense_relaxed": -0.33
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "tense_relaxed": -0.30500000000000005
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "tense_relaxed": -0.38
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "tense_relaxed": -0.30500000000000005
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "tense_relaxed": -0.28
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "tense_relaxed": -0.255
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "tense_relaxed": -0.36666666666666664
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "tense_relaxed": -0.45666666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "tense_relaxed": -0.45666666666666667
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:V7",
+        "M:IV",
+        "M:V",
+        "M:I",
+        "M:ii",
+        "M:vi",
+        "M:V7/iii",
+        "M:viio7/ii",
+        "M:V7/vi",
+        "M:V7/V"
+      ],
+      "pre_floor_feasible": 32,
+      "post_floor_feasible": 31,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-04",
+      "parsed_axes": {
+        "tense_relaxed": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "tense_relaxed": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "tense_relaxed": -0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "tense_relaxed": -0.15
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "tense_relaxed": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "tense_relaxed": -0.15
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "tense_relaxed": -0.38
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "tense_relaxed": -0.06666666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "tense_relaxed": -0.38
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "tense_relaxed": -0.48
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "tense_relaxed": -0.43
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "tense_relaxed": -0.06666666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "tense_relaxed": -0.20833333333333331
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "tense_relaxed": -0.2833333333333333
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "tense_relaxed": -0.14166666666666666
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "tense_relaxed": -0.31666666666666665
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "tense_relaxed": -0.21666666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "tense_relaxed": -0.06666666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "tense_relaxed": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "tense_relaxed": -0.3233333333333333
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "tense_relaxed": -0.33
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "tense_relaxed": -0.30500000000000005
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "tense_relaxed": -0.38
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "tense_relaxed": -0.30500000000000005
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "tense_relaxed": -0.28
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "tense_relaxed": -0.255
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "tense_relaxed": -0.36666666666666664
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "tense_relaxed": -0.45666666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "tense_relaxed": -0.5066666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "tense_relaxed": -0.45666666666666667
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:I",
+        "M:ii",
+        "M:vi",
+        "M:V",
+        "M:IV",
+        "M:V7",
+        "M:III",
+        "M:iii",
+        "M:i",
+        "M:VI"
+      ],
+      "pre_floor_feasible": 0,
+      "post_floor_feasible": 0,
+      "top_satisfies_direction": false,
+      "classification": "no_feasible_option_under_current_features"
+    },
+    {
+      "id": "recommend-05",
+      "parsed_axes": {
+        "common_surprising": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "common_surprising": -0.3738798807501711
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "common_surprising": -0.36269424693483865
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "common_surprising": -0.353759374819711
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "common_surprising": -0.33029005387644805
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "common_surprising": -0.291259374819711
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "common_surprising": -0.2792190574483112
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:I",
+        "M:ii",
+        "M:V",
+        "M:iv",
+        "M:viio7/iii",
+        "M:bIII",
+        "M:VI",
+        "M:III",
+        "M:vi",
+        "M:IV"
+      ],
+      "pre_floor_feasible": 29,
+      "post_floor_feasible": 28,
+      "top_satisfies_direction": false,
+      "classification": "ranking_tradeoff"
+    },
+    {
+      "id": "recommend-06",
+      "parsed_axes": {
+        "common_surprising": -0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "common_surprising": -0.3738798807501711
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "common_surprising": -0.36269424693483865
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "common_surprising": -0.353759374819711
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "common_surprising": -0.33029005387644805
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "common_surprising": -0.291259374819711
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "common_surprising": -0.2792190574483112
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "common_surprising": 0.5
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:I",
+        "M:V",
+        "M:IV",
+        "M:vi",
+        "M:ii",
+        "M:V7",
+        "M:V7/iii",
+        "M:bVI",
+        "M:bIII",
+        "M:III"
+      ],
+      "pre_floor_feasible": 6,
+      "post_floor_feasible": 6,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-07",
+      "parsed_axes": {
+        "resolved_open": -0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "resolved_open": -0.6499999999999999
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "resolved_open": -0.6499999999999999
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:I",
+        "M:vi",
+        "M:V",
+        "M:ii",
+        "M:i",
+        "M:IV",
+        "M:V7",
+        "M:subV7/V",
+        "M:VI",
+        "M:bVImaj7"
+      ],
+      "pre_floor_feasible": 7,
+      "post_floor_feasible": 7,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-08",
+      "parsed_axes": {
+        "resolved_open": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "resolved_open": -0.6499999999999999
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "resolved_open": -0.6499999999999999
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "resolved_open": -0.15000000000000002
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "resolved_open": 0.3
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:V",
+        "M:IV",
+        "M:ii",
+        "M:V7",
+        "M:vi",
+        "M:viio7/ii",
+        "M:V7/iii",
+        "M:III",
+        "M:bIII",
+        "M:I"
+      ],
+      "pre_floor_feasible": 28,
+      "post_floor_feasible": 27,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-09",
+      "parsed_axes": {
+        "smooth": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "smooth": 0.12499999999999989
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "smooth": 0.04166666666666652
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "smooth": 0.12499999999999989
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "smooth": 0.33333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "smooth": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "smooth": 0.08333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "smooth": 0.04166666666666652
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "smooth": 0.08333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "smooth": 0.16666666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "smooth": 0.04166666666666652
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "smooth": 0.20833333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "smooth": 0.16666666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "smooth": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "smooth": 0.29166666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "smooth": -0.125
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "smooth": 0.20833333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "smooth": 0.12499999999999989
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "smooth": 0.16666666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "smooth": 0.08333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "smooth": 0.08333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "smooth": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "smooth": -0.04166666666666674
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "smooth": 0.04166666666666652
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "smooth": 0.12499999999999989
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "smooth": 0.16666666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "smooth": -0.08333333333333348
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "smooth": 0.12499999999999989
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "smooth": 0.12499999999999989
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "smooth": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "smooth": 0.08333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "smooth": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "smooth": 0.16666666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "smooth": 0.08333333333333326
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "smooth": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "smooth": 0.16666666666666663
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:vi",
+        "M:V",
+        "M:I",
+        "M:IV",
+        "M:ii",
+        "M:V7",
+        "M:bVI",
+        "M:V7/iii",
+        "M:VI",
+        "M:III"
+      ],
+      "pre_floor_feasible": 26,
+      "post_floor_feasible": 26,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-10",
+      "parsed_axes": {
+        "simple_complex": -0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:I",
+        "M:ii",
+        "M:V",
+        "M:IV",
+        "M:vi",
+        "M:V7",
+        "M:bVI",
+        "M:bIII",
+        "M:III",
+        "M:iv"
+      ],
+      "pre_floor_feasible": 0,
+      "post_floor_feasible": 0,
+      "top_satisfies_direction": false,
+      "classification": "no_feasible_option_under_current_features"
+    },
+    {
+      "id": "recommend-11",
+      "parsed_axes": {
+        "simple_complex": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "simple_complex": 0.0
+          },
+          "satisfies_direction": false,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "simple_complex": 0.25
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:V7",
+        "M:vi",
+        "M:I",
+        "M:IV",
+        "M:ii",
+        "M:V",
+        "M:subV7/V",
+        "M:subV7/ii",
+        "M:subV7/I",
+        "M:V7/iii"
+      ],
+      "pre_floor_feasible": 20,
+      "post_floor_feasible": 19,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    },
+    {
+      "id": "recommend-12",
+      "parsed_axes": {
+        "dreamy": 0.7
+      },
+      "pool": [
+        {
+          "token": "M:I",
+          "measured_axes": {
+            "dreamy": 0.115
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V",
+          "measured_axes": {
+            "dreamy": 0.1
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:IV",
+          "measured_axes": {
+            "dreamy": 0.15
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vi",
+          "measured_axes": {
+            "dreamy": 0.13374999999999998
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:ii",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:III",
+          "measured_axes": {
+            "dreamy": 0.13333333333333333
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/I",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/IV",
+          "measured_axes": {
+            "dreamy": 0.10624999999999998
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/V",
+          "measured_axes": {
+            "dreamy": 0.125
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/ii",
+          "measured_axes": {
+            "dreamy": 0.10624999999999998
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/iii",
+          "measured_axes": {
+            "dreamy": 0.09375
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:V7/vi",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:VI",
+          "measured_axes": {
+            "dreamy": 0.12083333333333332
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bIII",
+          "measured_axes": {
+            "dreamy": 0.1
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVI",
+          "measured_axes": {
+            "dreamy": 0.11249999999999999
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVII",
+          "measured_axes": {
+            "dreamy": 0.10083333333333334
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:bVImaj7",
+          "measured_axes": {
+            "dreamy": 0.8625
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iv",
+          "measured_axes": {
+            "dreamy": 0.14375
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:i",
+          "measured_axes": {
+            "dreamy": 0.10208333333333333
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iii",
+          "measured_axes": {
+            "dreamy": 0.13374999999999998
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:iio",
+          "measured_axes": {
+            "dreamy": 0.11249999999999999
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/I",
+          "measured_axes": {
+            "dreamy": 0.11249999999999999
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/IV",
+          "measured_axes": {
+            "dreamy": 0.125
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": false
+        },
+        {
+          "token": "M:subV7/V",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/ii",
+          "measured_axes": {
+            "dreamy": 0.11249999999999999
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/iii",
+          "measured_axes": {
+            "dreamy": 0.13749999999999998
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:subV7/vi",
+          "measured_axes": {
+            "dreamy": 0.1
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:vii",
+          "measured_axes": {
+            "dreamy": 0.08125
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/I",
+          "measured_axes": {
+            "dreamy": 0.09375
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/IV",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/V",
+          "measured_axes": {
+            "dreamy": 0.13125
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/ii",
+          "measured_axes": {
+            "dreamy": 0.10624999999999998
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/iii",
+          "measured_axes": {
+            "dreamy": 0.13125
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        },
+        {
+          "token": "M:viio7/vi",
+          "measured_axes": {
+            "dreamy": 0.11875
+          },
+          "satisfies_direction": true,
+          "passes_plausibility_floor": true
+        }
+      ],
+      "selected_tokens": [
+        "M:I",
+        "M:ii",
+        "M:V",
+        "M:IV",
+        "M:vi",
+        "M:bVImaj7",
+        "M:V7",
+        "M:III",
+        "M:V7/iii",
+        "M:subV7/ii"
+      ],
+      "pre_floor_feasible": 35,
+      "post_floor_feasible": 34,
+      "top_satisfies_direction": true,
+      "classification": "top_matches"
+    }
+  ]
+}

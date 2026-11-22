@@ -8,6 +8,14 @@
   },
   "gotchas": [
     {
+      "id": "env-unit-test-database",
+      "area": "env",
+      "trap": "AppSettings reads backend/.env. Even SQLite-injected API tests can reach the default database through request-metrics middleware, which has its own session factory.",
+      "rule": "For ordinary offline unit checks, set DATABASE_URL to the exact default sqlite+pysqlite:///./.tmp/harmonic_color_graph.db (the config regression asserts this value), REDIS_URL to an empty value, and ANTHROPIC_API_KEY to an empty value. Do not inherit a hosted database for unit tests. Use dedicated TEST_DATABASE_URL only for explicitly configured integration tests.",
+      "check": "If a TestClient test waits in psycopg.connect via core/request_metrics.py, stop it and isolate test environment settings before retrying.",
+      "see": "docs/eval/intent-reliability-2026-10-19.md"
+    },
+    {
       "id": "env-onedrive",
       "area": "env",
       "trap": "The repo lives under OneDrive. Sync locks files mid-write. It leaves orphan `*.pyc.<digits>` temp files in `backend/app/**/__pycache__/`, makes installers and deletes fail with 'file in use', and a recursive `du`/`find` over `node_modules` or `.venv` can run past two minutes.",
