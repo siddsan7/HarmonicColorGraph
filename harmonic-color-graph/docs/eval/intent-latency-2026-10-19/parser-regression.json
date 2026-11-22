@@ -1,0 +1,367 @@
+{
+  "mode": "offline_fallback_parser_only",
+  "cost_usd": "0",
+  "sample_status": "formerly held out; inspected and promoted to regression coverage",
+  "matched": 30,
+  "total": 30,
+  "categories": {
+    "affirmative": {
+      "matched": 13,
+      "total": 13
+    },
+    "magnitude": {
+      "matched": 4,
+      "total": 4
+    },
+    "multi_axis": {
+      "matched": 4,
+      "total": 4
+    },
+    "negation_ambiguity": {
+      "matched": 6,
+      "total": 6
+    },
+    "control": {
+      "matched": 3,
+      "total": 3
+    }
+  },
+  "cases": [
+    {
+      "id": "fallback-holdout-01",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something darker.",
+      "expected_axes": {
+        "darker_brighter": -0.7
+      },
+      "actual_axes": {
+        "darker_brighter": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-02",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something brighter.",
+      "expected_axes": {
+        "darker_brighter": 0.7
+      },
+      "actual_axes": {
+        "darker_brighter": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-03",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something less bright.",
+      "expected_axes": {
+        "darker_brighter": -0.7
+      },
+      "actual_axes": {
+        "darker_brighter": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-04",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something more tense.",
+      "expected_axes": {
+        "tense_relaxed": -0.7
+      },
+      "actual_axes": {
+        "tense_relaxed": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-05",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something less tense.",
+      "expected_axes": {
+        "tense_relaxed": 0.7
+      },
+      "actual_axes": {
+        "tense_relaxed": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-06",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something more relaxed.",
+      "expected_axes": {
+        "tense_relaxed": 0.7
+      },
+      "actual_axes": {
+        "tense_relaxed": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-07",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something more surprising.",
+      "expected_axes": {
+        "common_surprising": 0.7
+      },
+      "actual_axes": {
+        "common_surprising": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-08",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something more common.",
+      "expected_axes": {
+        "common_surprising": -0.7
+      },
+      "actual_axes": {
+        "common_surprising": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-09",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something less complex.",
+      "expected_axes": {
+        "simple_complex": -0.7
+      },
+      "actual_axes": {
+        "simple_complex": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-10",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something more open.",
+      "expected_axes": {
+        "resolved_open": 0.7
+      },
+      "actual_axes": {
+        "resolved_open": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-11",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something more resolved.",
+      "expected_axes": {
+        "resolved_open": -0.7
+      },
+      "actual_axes": {
+        "resolved_open": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-12",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something smoother.",
+      "expected_axes": {
+        "smooth": 0.7
+      },
+      "actual_axes": {
+        "smooth": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-13",
+      "category": "affirmative",
+      "input": "Suggest a next chord after D A Bm in D major; something dreamier.",
+      "expected_axes": {
+        "dreamy": 0.7
+      },
+      "actual_axes": {
+        "dreamy": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-14",
+      "category": "magnitude",
+      "input": "Suggest a next chord after D A Bm in D major; something slightly brighter.",
+      "expected_axes": {
+        "darker_brighter": 0.3
+      },
+      "actual_axes": {
+        "darker_brighter": 0.3
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-15",
+      "category": "magnitude",
+      "input": "Suggest a next chord after D A Bm in D major; something a little smoother.",
+      "expected_axes": {
+        "smooth": 0.3
+      },
+      "actual_axes": {
+        "smooth": 0.3
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-16",
+      "category": "magnitude",
+      "input": "Suggest a next chord after D A Bm in D major; something very tense.",
+      "expected_axes": {
+        "tense_relaxed": -1.0
+      },
+      "actual_axes": {
+        "tense_relaxed": -1.0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-17",
+      "category": "magnitude",
+      "input": "Suggest a next chord after D A Bm in D major; something much simpler.",
+      "expected_axes": {
+        "simple_complex": -1.0
+      },
+      "actual_axes": {
+        "simple_complex": -1.0
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-18",
+      "category": "multi_axis",
+      "input": "Suggest a next chord after D A Bm in D major; something darker and smoother.",
+      "expected_axes": {
+        "darker_brighter": -0.7,
+        "smooth": 0.7
+      },
+      "actual_axes": {
+        "darker_brighter": -0.7,
+        "smooth": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-19",
+      "category": "multi_axis",
+      "input": "Suggest a next chord after D A Bm in D major; something relaxed and complex.",
+      "expected_axes": {
+        "tense_relaxed": 0.7,
+        "simple_complex": 0.7
+      },
+      "actual_axes": {
+        "tense_relaxed": 0.7,
+        "simple_complex": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-20",
+      "category": "multi_axis",
+      "input": "Suggest a next chord after D A Bm in D major; something common and resolved.",
+      "expected_axes": {
+        "common_surprising": -0.7,
+        "resolved_open": -0.7
+      },
+      "actual_axes": {
+        "common_surprising": -0.7,
+        "resolved_open": -0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-21",
+      "category": "multi_axis",
+      "input": "Suggest a next chord after D A Bm in D major; something dreamier and smoother.",
+      "expected_axes": {
+        "dreamy": 0.7,
+        "smooth": 0.7
+      },
+      "actual_axes": {
+        "smooth": 0.7,
+        "dreamy": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-22",
+      "category": "negation_ambiguity",
+      "input": "Suggest a next chord after D A Bm in D major; something not brighter.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-23",
+      "category": "negation_ambiguity",
+      "input": "Suggest a next chord after D A Bm in D major; something without more tension.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-24",
+      "category": "negation_ambiguity",
+      "input": "Suggest a next chord after D A Bm in D major; avoid darker but smoother is welcome.",
+      "expected_axes": {
+        "smooth": 0.7
+      },
+      "actual_axes": {
+        "smooth": 0.7
+      },
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-25",
+      "category": "negation_ambiguity",
+      "input": "Suggest a next chord after D A Bm in D major; something darker or brighter.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-26",
+      "category": "negation_ambiguity",
+      "input": "Suggest a next chord after D A Bm in D major; if darker is a problem, keep the same character.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-27",
+      "category": "negation_ambiguity",
+      "input": "Suggest a next chord after D A Bm in D major; I do not want darker or smoother chords.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-28",
+      "category": "control",
+      "input": "Suggest a next chord after D A Bm in D major; a soundtrack option.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-29",
+      "category": "control",
+      "input": "Suggest a next chord after D A Bm in D major; discuss commonality later.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    },
+    {
+      "id": "fallback-holdout-30",
+      "category": "control",
+      "input": "Suggest a next chord after D A Bm in D major; give me three options.",
+      "expected_axes": {},
+      "actual_axes": {},
+      "exact_match": true
+    }
+  ]
+}

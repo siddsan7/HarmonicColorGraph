@@ -1,0 +1,18 @@
+{
+  "positions": 500,
+  "requests": 9000,
+  "swaps": 560,
+  "parity_passed": true,
+  "registered_heldout_positions": 400,
+  "independent_positions": 100,
+  "private_sha256": "d2165d8b93a0a09ea562c3fa4a72dfdc4a04e918fc5cb938fa54e21d328a83da",
+  "runtime_selection_sha256": "af4368da4808dae0f04dba439527b1e69dd7a3a24426fbb2ebdd758724ca468b",
+  "frozen_experiment_sha256": "1c19e9496626e2600e340003214acacf3c3c5fd90e8abd254c2061c656d7ec2e",
+  "cost_usd": "0",
+  "notes": "same frozen policy; no retuning; top20score distribution, top5tokens, remainingorder, plausibility/features/components exact",
+  "independent_private_canonical_fingerprint": "f7a7ad3ae302390385c7c5e1b27646e5d98875d38e084fd71d73664caa201505",
+  "independent_private_file_sha256": "f7a775c6fc83e00fb511a44338984fe7358b9bfbe21991440c142cf8d90f7864",
+  "independent_membership_registration_verified": true,
+  "service_tests": "58 selection/service/API/hybrid/assistant checks pass; Windows sandbox TestClient stalls, local escalated execution passes",
+  "vector_sources": "nonempty returned embedding neighbors bypass selection and extra scoring; no vector quality claim"
+}

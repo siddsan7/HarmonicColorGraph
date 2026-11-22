@@ -1,0 +1,568 @@
+{
+  "baseline": {
+    "correct": 11,
+    "total": 12,
+    "unsupported_accepted": 0,
+    "rows": [
+      {
+        "id": "named_exact",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "opaque_wrong_title",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "71942"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "named_wrong_citation",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "example:b"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          },
+          "example:b": {
+            "subject": "Other Song"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "wrong_single_word",
+        "claims": [
+          {
+            "text": "Fireflies uses this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "71942"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "valid_single_word",
+        "claims": [
+          {
+            "text": "Fireflies uses this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Fireflies"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "no_example_generic",
+        "claims": [
+          {
+            "text": "This song uses this sequence.",
+            "fact_ids": [
+              "transition:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "transition:a": {}
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "song_key_exception",
+        "claims": [
+          {
+            "text": "The song key stays stable.",
+            "fact_ids": [
+              "transition:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "transition:a": {}
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "nonexample_subject",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "transition:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "transition:a": {
+            "subject": "Northern Lights"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "uncited_known_title",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "schema:ValidationError"
+        ]
+      },
+      {
+        "id": "multiple_exact",
+        "claims": [
+          {
+            "text": "Northern Lights and Silent Roads use this sequence.",
+            "fact_ids": [
+              "example:a",
+              "example:b"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          },
+          "example:b": {
+            "subject": "Silent Roads"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "multiple_missing",
+        "claims": [
+          {
+            "text": "Northern Lights and Silent Roads use this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          },
+          "example:b": {
+            "subject": "Silent Roads"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "numeric_example",
+        "claims": [
+          {
+            "text": "This song uses this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "71942"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      }
+    ]
+  },
+  "candidate": {
+    "correct": 12,
+    "total": 12,
+    "unsupported_accepted": 0,
+    "rows": [
+      {
+        "id": "named_exact",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "opaque_wrong_title",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "71942"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "named_wrong_citation",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "example:b"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          },
+          "example:b": {
+            "subject": "Other Song"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "wrong_single_word",
+        "claims": [
+          {
+            "text": "Fireflies uses this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "71942"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "valid_single_word",
+        "claims": [
+          {
+            "text": "Fireflies uses this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Fireflies"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "no_example_generic",
+        "claims": [
+          {
+            "text": "This song uses this sequence.",
+            "fact_ids": [
+              "transition:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "transition:a": {}
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "song_key_exception",
+        "claims": [
+          {
+            "text": "The song key stays stable.",
+            "fact_ids": [
+              "transition:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "transition:a": {}
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "nonexample_subject",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [
+              "transition:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "transition:a": {
+            "subject": "Northern Lights"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "uncited_known_title",
+        "claims": [
+          {
+            "text": "Northern Lights contains this sequence.",
+            "fact_ids": [],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "schema:ValidationError"
+        ]
+      },
+      {
+        "id": "multiple_exact",
+        "claims": [
+          {
+            "text": "Northern Lights and Silent Roads use this sequence.",
+            "fact_ids": [
+              "example:a",
+              "example:b"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          },
+          "example:b": {
+            "subject": "Silent Roads"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      },
+      {
+        "id": "multiple_missing",
+        "claims": [
+          {
+            "text": "Northern Lights and Silent Roads use this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "Northern Lights"
+          },
+          "example:b": {
+            "subject": "Silent Roads"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": false,
+        "actual_valid": false,
+        "codes": [
+          "claim:0:song_provenance"
+        ]
+      },
+      {
+        "id": "numeric_example",
+        "claims": [
+          {
+            "text": "This song uses this sequence.",
+            "fact_ids": [
+              "example:a"
+            ],
+            "theory_labels": []
+          }
+        ],
+        "fact_pool": {
+          "example:a": {
+            "subject": "71942"
+          }
+        },
+        "tool_results": {},
+        "expected_valid": true,
+        "actual_valid": true,
+        "codes": []
+      }
+    ]
+  },
+  "protocol": {
+    "case_sha256": "aabb856a98e683e054b00a9862b0246c5297a39e4ae73c7a52351719c333efae",
+    "baseline_sha": "cc1086762cb781eefa2740736f14f765d0f3b765",
+    "candidate_sha": "8e052c8",
+    "case_author": "independent coverage worker before candidate source frozen; parent scored once after freeze",
+    "closed_after_single_scoring": true,
+    "model_calls": 0,
+    "cost_usd": "0",
+    "limits": "Validator identity challenge, not observed live model fallback rate. Initial scoring invocation stopped on schema rejection before a complete result; runner corrected to treat schema rejection as invalid, without source/case changes."
+  }
+}

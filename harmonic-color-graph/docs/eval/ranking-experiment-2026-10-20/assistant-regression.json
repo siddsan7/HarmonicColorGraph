@@ -1,0 +1,336 @@
+{
+  "ran_at": "2026-10-20T09:34:46.298660+00:00",
+  "mode": "offline",
+  "data_source": "seeded_fixture",
+  "cases_completed": 40,
+  "cases_total": 40,
+  "intent_cases": 12,
+  "metrics": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 1.0,
+    "intent_match": 0.75,
+    "intent_parse_match": 1.0,
+    "color_axis_match": 0.75,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 1.0
+  },
+  "thresholds": {
+    "schema_valid": 1.0,
+    "must_not": 1.0,
+    "routing": 0.9,
+    "intent_match": 0.75,
+    "tool_correct": 1.0,
+    "theory_valid": 1.0,
+    "required_tags": 1.0,
+    "fact_coverage": 0.95
+  },
+  "passed": true,
+  "cost_usd": "0",
+  "reproducibility": {
+    "source_commit": "bfdfab801adda58a99628960923f7d8b11383307",
+    "source_branch": "codex/intent-reliability-diagnostics",
+    "python": "3.12.10",
+    "dirty": true,
+    "source_sha256": {
+      "app/ai/workflow.py": "d7e5c3ec082c43ee703e53fb868b7295dbc36888a49fe0bbf3b74c1e2663ac23",
+      "app/ai/intent_fallback.py": "8c97e037ca18c3086ffa099ff0ba70997953679de6f336e062c3c1d4770c6df2",
+      "app/recommend/scorer.py": "2272d8010cc04ff0772b36506e5eda96b923b108587d24c8131b571e93031888",
+      "app/recommend/features.py": "f1f41a433cc3a429ab5e0bd339860ed2ef0ffbd060711151bb7bd935002a7bf3",
+      "tests/eval/ai.py": "54f14d5b8f11f04afbc4ae4a55dec270c248a135748a3c60737e46caf335af70",
+      "tests/eval/ai_diagnostics.py": "b705f72efdea2605d7dc8eabaa0338f0f9155371e2c0d4a7811ef6441f12ad91"
+    },
+    "case_sha256": "dea639fffa862ec79576dd8144874fa3a5f484fac082692258769d9a123a852d",
+    "weights_sha256": "fe88830f93b69ace8e45aa4cebce9c2e7c018ac4af9789a9b46307281be6d272",
+    "models": {},
+    "corpus_version": "ai-eval-v1",
+    "timing_boundary": "in-process workflow including tool scope; excludes HTTP/SSE transport",
+    "first_useful_boundary": "validated explanation text; candidates arrive in final frame",
+    "cache_state": "uncontrolled; process caches may warm across cases",
+    "p95_method": "nearest rank; small samples do not establish a reliable tail"
+  },
+  "cases": [
+    {
+      "id": "recommend-01",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-02",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-03",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-04",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": false,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-05",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": false,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-06",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-07",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-08",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-09",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-10",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": false,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-11",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "recommend-12",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": true
+    },
+    {
+      "id": "generate-01",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-02",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-03",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-04",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-05",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-06",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-07",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "generate-08",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-01",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-02",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-03",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-04",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-05",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-06",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-07",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "explain-08",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "similar-01",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "similar-02",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "similar-03",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "similar-04",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "similar-05",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "similar-06",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "compare-01",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "compare-02",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "compare-03",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "compare-04",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "clarify-01",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    },
+    {
+      "id": "clarify-02",
+      "routing": true,
+      "tool_correct": true,
+      "intent_match": true,
+      "intent_scored": false
+    }
+  ]
+}

@@ -1,0 +1,440 @@
+{
+  "phase": "dev",
+  "frozen_sha256": "51f37dca8b3c199d6a9e77bab091e3414b5547ce339022c2d064c1e90b90fcb3",
+  "positions": 200,
+  "songs": 197,
+  "comparison": {
+    "baseline": {
+      "requests": 3600,
+      "feasible": 2811,
+      "infeasible": 789,
+      "feasible_hit_rate": 0.6090359302739239,
+      "all_request_hit_rate": 0.47555555555555556,
+      "mrr5": 0.5571388888888889,
+      "mean_log_plausibility": -1.8139794207570807
+    },
+    "candidate": {
+      "requests": 3600,
+      "feasible": 2811,
+      "infeasible": 789,
+      "feasible_hit_rate": 0.871220206332266,
+      "all_request_hit_rate": 0.6802777777777778,
+      "mrr5": 0.4958194444444445,
+      "mean_log_plausibility": -2.2974031185289747
+    },
+    "gain": 0.26218427605834216,
+    "plausibility_ratio": 0.616668486949709,
+    "per_request": {
+      "darker": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 0.94,
+          "all_request_hit_rate": 0.94,
+          "mrr5": 0.26058333333333333,
+          "mean_log_plausibility": -2.751334458142146
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 1.0,
+          "mrr5": 0.24558333333333335,
+          "mean_log_plausibility": -2.875207351513201
+        },
+        "paired_wins": 12,
+        "paired_losses": 0
+      },
+      "brighter": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 194,
+          "infeasible": 6,
+          "feasible_hit_rate": 0.7061855670103093,
+          "all_request_hit_rate": 0.685,
+          "mrr5": 0.542,
+          "mean_log_plausibility": -1.6806456793530955
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 194,
+          "infeasible": 6,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.97,
+          "mrr5": 0.47108333333333335,
+          "mean_log_plausibility": -2.2986069320696085
+        },
+        "paired_wins": 57,
+        "paired_losses": 0
+      },
+      "tense": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 199,
+          "infeasible": 1,
+          "feasible_hit_rate": 0.7839195979899497,
+          "all_request_hit_rate": 0.78,
+          "mrr5": 0.49825,
+          "mean_log_plausibility": -1.8910645317808237
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 199,
+          "infeasible": 1,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.995,
+          "mrr5": 0.4488333333333333,
+          "mean_log_plausibility": -2.3891557452382113
+        },
+        "paired_wins": 43,
+        "paired_losses": 0
+      },
+      "relaxed": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 110,
+          "infeasible": 90,
+          "feasible_hit_rate": 0.9454545454545454,
+          "all_request_hit_rate": 0.52,
+          "mrr5": 0.6138333333333333,
+          "mean_log_plausibility": -1.5698091961437397
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 110,
+          "infeasible": 90,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.55,
+          "mrr5": 0.6038333333333333,
+          "mean_log_plausibility": -1.688065015123519
+        },
+        "paired_wins": 6,
+        "paired_losses": 0
+      },
+      "common": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 1.0,
+          "mrr5": 0.6898333333333333,
+          "mean_log_plausibility": -1.4049441222236765
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 1.0,
+          "mrr5": 0.6898333333333333,
+          "mean_log_plausibility": -1.4049441222236765
+        },
+        "paired_wins": 0,
+        "paired_losses": 0
+      },
+      "surprising": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 0.775,
+          "all_request_hit_rate": 0.775,
+          "mrr5": 0.10291666666666666,
+          "mean_log_plausibility": -4.240165605929938
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 1.0,
+          "mrr5": 0.05825,
+          "mean_log_plausibility": -4.758070347250835
+        },
+        "paired_wins": 45,
+        "paired_losses": 0
+      },
+      "simple": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 17,
+          "infeasible": 183,
+          "feasible_hit_rate": 0.9411764705882353,
+          "all_request_hit_rate": 0.08,
+          "mrr5": 0.6710833333333334,
+          "mean_log_plausibility": -1.4202457588061526
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 17,
+          "infeasible": 183,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.085,
+          "mrr5": 0.6685833333333333,
+          "mean_log_plausibility": -1.4328625431848914
+        },
+        "paired_wins": 1,
+        "paired_losses": 0
+      },
+      "complex": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 183,
+          "infeasible": 17,
+          "feasible_hit_rate": 0.13114754098360656,
+          "all_request_hit_rate": 0.12,
+          "mrr5": 0.6360833333333333,
+          "mean_log_plausibility": -1.5251355350689246
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 183,
+          "infeasible": 17,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.915,
+          "mrr5": 0.37225,
+          "mean_log_plausibility": -3.3849848722175606
+        },
+        "paired_wins": 159,
+        "paired_losses": 0
+      },
+      "resolved": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 158,
+          "infeasible": 42,
+          "feasible_hit_rate": 0.7911392405063291,
+          "all_request_hit_rate": 0.625,
+          "mrr5": 0.5408333333333334,
+          "mean_log_plausibility": -1.7694246339778572
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 158,
+          "infeasible": 42,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.79,
+          "mrr5": 0.4794166666666667,
+          "mean_log_plausibility": -2.150321306476715
+        },
+        "paired_wins": 33,
+        "paired_losses": 0
+      },
+      "open": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 72,
+          "infeasible": 128,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.36,
+          "mrr5": 0.5045000000000001,
+          "mean_log_plausibility": -1.7070701794815029
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 72,
+          "infeasible": 128,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.36,
+          "mrr5": 0.5045000000000001,
+          "mean_log_plausibility": -1.7070701794815029
+        },
+        "paired_wins": 0,
+        "paired_losses": 0
+      },
+      "smooth": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 196,
+          "infeasible": 4,
+          "feasible_hit_rate": 0.45408163265306123,
+          "all_request_hit_rate": 0.445,
+          "mrr5": 0.628,
+          "mean_log_plausibility": -1.5900679277377867
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 196,
+          "infeasible": 4,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.98,
+          "mrr5": 0.4506666666666667,
+          "mean_log_plausibility": -2.6185107285656266
+        },
+        "paired_wins": 107,
+        "paired_losses": 0
+      },
+      "rough": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 187,
+          "infeasible": 13,
+          "feasible_hit_rate": 0.37433155080213903,
+          "all_request_hit_rate": 0.35,
+          "mrr5": 0.63725,
+          "mean_log_plausibility": -1.4953254371027211
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 187,
+          "infeasible": 13,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.935,
+          "mrr5": 0.44833333333333336,
+          "mean_log_plausibility": -2.9925962681584832
+        },
+        "paired_wins": 117,
+        "paired_losses": 0
+      },
+      "dreamy": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 1.0,
+          "mrr5": 0.679,
+          "mean_log_plausibility": -1.4492465321983274
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 1.0,
+          "mrr5": 0.679,
+          "mean_log_plausibility": -1.4492465321983274
+        },
+        "paired_wins": 0,
+        "paired_losses": 0
+      },
+      "weak_bright": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 73,
+          "infeasible": 127,
+          "feasible_hit_rate": 0.5616438356164384,
+          "all_request_hit_rate": 0.205,
+          "mrr5": 0.67525,
+          "mean_log_plausibility": -1.412600629271371
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 73,
+          "infeasible": 127,
+          "feasible_hit_rate": 0.5616438356164384,
+          "all_request_hit_rate": 0.205,
+          "mrr5": 0.67525,
+          "mean_log_plausibility": -1.412600629271371
+        },
+        "paired_wins": 0,
+        "paired_losses": 0
+      },
+      "weak_surprise": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 0.0,
+          "all_request_hit_rate": 0.0,
+          "mrr5": 0.6748333333333334,
+          "mean_log_plausibility": -1.4036221344585897
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 200,
+          "infeasible": 0,
+          "feasible_hit_rate": 0.0,
+          "all_request_hit_rate": 0.0,
+          "mrr5": 0.6748333333333334,
+          "mean_log_plausibility": -1.4036221344585897
+        },
+        "paired_wins": 0,
+        "paired_losses": 0
+      },
+      "weak_smooth": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 140,
+          "infeasible": 60,
+          "feasible_hit_rate": 0.07142857142857142,
+          "all_request_hit_rate": 0.05,
+          "mrr5": 0.6877500000000001,
+          "mean_log_plausibility": -1.4062545301087104
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 140,
+          "infeasible": 60,
+          "feasible_hit_rate": 0.07142857142857142,
+          "all_request_hit_rate": 0.05,
+          "mrr5": 0.6877500000000001,
+          "mean_log_plausibility": -1.4062545301087104
+        },
+        "paired_wins": 0,
+        "paired_losses": 0
+      },
+      "dark_smooth": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 192,
+          "infeasible": 8,
+          "feasible_hit_rate": 0.640625,
+          "all_request_hit_rate": 0.615,
+          "mrr5": 0.3441666666666666,
+          "mean_log_plausibility": -2.4215279496539615
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 192,
+          "infeasible": 8,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.96,
+          "mrr5": 0.2555,
+          "mean_log_plausibility": -3.181372061253663
+        },
+        "paired_wins": 69,
+        "paired_losses": 0
+      },
+      "relaxed_complex": {
+        "baseline": {
+          "requests": 200,
+          "feasible": 90,
+          "infeasible": 110,
+          "feasible_hit_rate": 0.022222222222222223,
+          "all_request_hit_rate": 0.01,
+          "mrr5": 0.6423333333333333,
+          "mean_log_plausibility": -1.513144732188128
+        },
+        "candidate": {
+          "requests": 200,
+          "feasible": 90,
+          "infeasible": 110,
+          "feasible_hit_rate": 1.0,
+          "all_request_hit_rate": 0.45,
+          "mrr5": 0.51125,
+          "mean_log_plausibility": -2.7997648347270516
+        },
+        "paired_wins": 88,
+        "paired_losses": 0
+      }
+    },
+    "checks": {
+      "directional_gain": true,
+      "request_regressions": true,
+      "mrr5": false,
+      "plausibility": true,
+      "neutral_unchanged": true
+    },
+    "passed": false
+  },
+  "cost_usd": "0",
+  "variant_labels": {
+    "6": "unchanged control",
+    "8": "full-floor constraint selection (not scale8)"
+  },
+  "runtime_changed": false
+}
