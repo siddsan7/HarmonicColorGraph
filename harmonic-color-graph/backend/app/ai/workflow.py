@@ -168,6 +168,60 @@ def heuristic_intent(query: str) -> ParsedIntent:
     )
 
 
+# Models that reject forced `tool_choice`; structured output must use the
+# native JSON schema path instead of forced tool calling.
+_NO_FORCED_TOOL_PREFIXES = (
+    "claude-sonnet-5-5",
+    "claude-opus-5-5",
+    "claude-fable-5-1",
+    "claude-fable-5-2",
+    "claude-mythos-5-1",
+    "claude-mythos-5-2",
+)
+# Models that reject non-default sampling settings such as temperature.
+_FIXED_SAMPLING_PREFIXES = (
+    "claude-haiku-5",
+    "claude-sonnet-5",
+    "claude-opus-5",
+    "claude-opus-4-7",
+    "claude-opus-4-8",
+    "claude-fable",
+    "claude-mythos",
+)
+_EFFORTS = {"low", "medium", "high", "xhigh", "max"}
+# Same-price server-side fallback for refusals, so the meter's rates stay valid.
+_SAME_PRICE_FALLBACK = {"claude-sonnet-5-5": "claude-sonnet-5"}
+
+
+def _fast_method(model: str) -> Literal["function_calling", "json_schema"]:
+    return "json_schema" if model.startswith(_NO_FORCED_TOOL_PREFIXES) else "function_calling"
+
+
+def _model_options(model: str, prefix: str, *, deterministic: bool = False) -> dict[str, Any]:
+    """Request options each model generation accepts.
+
+    Older models keep their original settings. Haiku 5.5 runs with thinking
+    off, as Haiku 4.5 did, so its small output budget goes to the answer and
+    forced tool calling stays valid. `<prefix>_EFFORT` optionally sets
+    `output_config.effort`.
+    """
+    options: dict[str, Any] = {}
+    if deterministic and not model.startswith(_FIXED_SAMPLING_PREFIXES):
+        options["temperature"] = 0
+    if model.startswith("claude-haiku-5"):
+        options["thinking"] = {"type": "disabled"}
+    effort = os.getenv(f"{prefix}_EFFORT", "").strip().lower()
+    if effort:
+        if effort not in _EFFORTS:
+            raise ValueError(f"{prefix}_EFFORT must be one of {sorted(_EFFORTS)}")
+        options["output_config"] = {"effort": effort}
+    fallback = _SAME_PRICE_FALLBACK.get(model)
+    if fallback:
+        options["betas"] = ["server-side-fallback-2026-07-01"]
+        options["model_kwargs"] = {"fallbacks": [{"model": fallback}]}
+    return options
+
+
 def _llm_calls(
     meter: UsageMeter | None = None,
 ) -> tuple[StructuredCall | None, StructuredCall | None]:
@@ -179,16 +233,17 @@ def _llm_calls(
     main_name = os.getenv("HCG_LLM_MODEL", "claude-sonnet-5")
     fast = ChatAnthropic(
         model=fast_name,
-        temperature=0,
         max_tokens=FAST_MAX_OUTPUT_TOKENS,
         default_request_timeout=8,
         max_retries=0,
+        **_model_options(fast_name, "HCG_LLM_FAST", deterministic=True),
     )
     main = ChatAnthropic(
         model=main_name,
         max_tokens=MAIN_MAX_OUTPUT_TOKENS,
         default_request_timeout=20,
         max_retries=0,
+        **_model_options(main_name, "HCG_LLM"),
     )
 
     def tracked(
@@ -242,7 +297,7 @@ def _llm_calls(
         return invoke
 
     return (
-        tracked(fast, ParsedIntent, fast_name, "HCG_LLM_FAST"),
+        tracked(fast, ParsedIntent, fast_name, "HCG_LLM_FAST", method=_fast_method(fast_name)),
         # Native schema-constrained generation keeps nested claims as arrays.
         # Ordinary forced tool calling repeatedly returned invalid containers.
         # Local schema and provenance validation still run on every response.
