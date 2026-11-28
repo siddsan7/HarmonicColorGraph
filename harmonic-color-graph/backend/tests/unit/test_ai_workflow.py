@@ -712,3 +712,97 @@ def test_preview_schema_rejects_unknown_facts_and_oversized_candidates():
         CandidatePreview(candidates=[item], fact_ids=["fact:2"])
     with pytest.raises(ValidationError):
         CandidatePreview(candidates=[item] * 21, fact_ids=["fact:1"])
+
+
+def _captured_model_kwargs(monkeypatch, fast: str, main: str) -> tuple[list[dict], list[str]]:
+    import langchain_anthropic
+
+    from app.ai.workflow import _llm_calls
+
+    created: list[dict] = []
+    methods: list[str] = []
+
+    class Model:
+        def __init__(self, **kwargs):
+            created.append(kwargs)
+
+        def with_structured_output(self, schema, *, include_raw, method):
+            methods.append(method)
+            return self
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "unit-test-placeholder")
+    monkeypatch.setenv("HCG_LLM_FAST_MODEL", fast)
+    monkeypatch.setenv("HCG_LLM_MODEL", main)
+    monkeypatch.delenv("HCG_LLM_EFFORT", raising=False)
+    monkeypatch.delenv("HCG_LLM_FAST_EFFORT", raising=False)
+    monkeypatch.setattr(langchain_anthropic, "ChatAnthropic", Model)
+    _llm_calls()
+    return created, methods
+
+
+def test_current_models_keep_original_request_options(monkeypatch):
+    created, methods = _captured_model_kwargs(
+        monkeypatch, "claude-haiku-4-5-20251001", "claude-sonnet-5"
+    )
+    fast, main = created
+    assert fast["temperature"] == 0
+    assert "thinking" not in fast and "betas" not in fast
+    assert "temperature" not in main and "betas" not in main
+    assert methods == ["function_calling", "json_schema"]
+
+
+def test_new_models_avoid_rejected_options(monkeypatch):
+    created, methods = _captured_model_kwargs(monkeypatch, "claude-haiku-5-5", "claude-sonnet-5-5")
+    fast, main = created
+    # Haiku 5.5 rejects non-default temperature; thinking off keeps forced tools valid.
+    assert "temperature" not in fast
+    assert fast["thinking"] == {"type": "disabled"}
+    assert "temperature" not in main and "thinking" not in main
+    assert main["betas"] == ["server-side-fallback-2026-07-01"]
+    assert main["model_kwargs"] == {"fallbacks": [{"model": "claude-sonnet-5"}]}
+    assert methods == ["function_calling", "json_schema"]
+
+
+def test_fast_model_without_forced_tools_uses_json_schema(monkeypatch):
+    _, methods = _captured_model_kwargs(monkeypatch, "claude-sonnet-5-5", "claude-sonnet-5-5")
+    assert methods == ["json_schema", "json_schema"]
+
+
+def test_effort_override_is_validated(monkeypatch):
+    import pytest
+
+    from app.ai.workflow import _model_options
+
+    monkeypatch.setenv("HCG_LLM_EFFORT", "LOW")
+    assert _model_options("claude-sonnet-5-5", "HCG_LLM")["output_config"] == {"effort": "low"}
+    monkeypatch.setenv("HCG_LLM_EFFORT", "fastest")
+    with pytest.raises(ValueError, match="HCG_LLM_EFFORT"):
+        _model_options("claude-sonnet-5-5", "HCG_LLM")
+
+
+def test_new_model_request_payloads_build_offline(monkeypatch):
+    """Real LangChain builds valid-looking payloads; no network request is sent."""
+    from langchain_anthropic import ChatAnthropic
+
+    from app.ai.workflow import _model_options
+
+    monkeypatch.delenv("HCG_LLM_EFFORT", raising=False)
+    haiku = ChatAnthropic(
+        model="claude-haiku-5-5",
+        max_tokens=512,
+        api_key="unit-test-placeholder",
+        **_model_options("claude-haiku-5-5", "HCG_LLM_FAST", deterministic=True),
+    )
+    payload = haiku._get_request_payload("prompt")
+    assert payload.get("temperature") in (None, 1)
+    assert payload["thinking"] == {"type": "disabled"}
+    sonnet = ChatAnthropic(
+        model="claude-sonnet-5-5",
+        max_tokens=1024,
+        api_key="unit-test-placeholder",
+        **_model_options("claude-sonnet-5-5", "HCG_LLM"),
+    )
+    payload = sonnet._get_request_payload("prompt")
+    assert payload["fallbacks"] == [{"model": "claude-sonnet-5"}]
+    assert payload["betas"] == ["server-side-fallback-2026-07-01"]
+    assert payload.get("temperature") in (None, 1)

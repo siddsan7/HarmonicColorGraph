@@ -11,9 +11,14 @@ from typing import Any
 # Standard, uncached API rates in USD per million tokens verified October 1, 2026.
 # https://platform.claude.com/docs/en/models/sonnet-5/overview
 # Override when a deployment uses a different model or contract.
+# Haiku 5.5 and Sonnet 5.5 rates were taken from the Claude API model table
+# cached 2026-11-03. The Haiku 5.5 rate applies to prompts up to 100K tokens;
+# prompts here are capped far below that by the byte limits below.
 MODEL_RATES = {
     "claude-haiku-4-5-20251001": (Decimal("1"), Decimal("5")),
+    "claude-haiku-5-5": (Decimal("0.10"), Decimal("0.50")),
     "claude-sonnet-5": (Decimal("2"), Decimal("10")),
+    "claude-sonnet-5-5": (Decimal("2"), Decimal("10")),
 }
 
 FAST_MAX_PROMPT_BYTES = 12_000
