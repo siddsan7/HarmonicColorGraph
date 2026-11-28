@@ -36,6 +36,8 @@ THRESHOLDS = {
     "required_tags": 1.0,
     "fact_coverage": 0.95,
 }
+# About 15K tokens; the judge report counts any sample cut at this limit.
+JUDGE_EVIDENCE_CHARS = 60_000
 ROUTES = {"recommend", "explain", "generate", "similar", "compare", "clarify"}
 TOOL_NAMES = {
     "analyze_progression",
@@ -270,7 +272,10 @@ def run(
     max_cost_usd: Decimal,
     fixture: bool = False,
     ragas: bool = False,
+    judge_samples: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
+    """Score cases; `judge_samples`, when given, collects claims and evidence in memory
+    for the optional batch faithfulness judge. Reports never contain that text."""
     if max_cost_usd <= 0:
         raise ValueError("Cost cap must be positive")
     if live and not os.getenv("ANTHROPIC_API_KEY"):
@@ -312,6 +317,17 @@ def run(
             row = _measure(case, response, parsed, tools.called)
             row["actual_route"] = response.route
             uncertain_cost = live and any("model_failed" in code for code in response.errors)
+            if judge_samples is not None and response.claims:
+                evidence = json.dumps(response.tool_results, ensure_ascii=False, default=str)
+                judge_samples.append(
+                    {
+                        "id": case["id"],
+                        "input": case["input"],
+                        "claims": [claim.model_dump() for claim in response.claims],
+                        "evidence": evidence[:JUDGE_EVIDENCE_CHARS],
+                        "evidence_truncated": len(evidence) > JUDGE_EVIDENCE_CHARS,
+                    }
+                )
             if ragas and response.claims and len(ragas_samples) < 3:
                 ragas_samples.append(
                     {

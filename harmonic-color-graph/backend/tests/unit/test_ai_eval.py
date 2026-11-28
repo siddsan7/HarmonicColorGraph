@@ -166,3 +166,40 @@ def test_missing_usage_is_reserved_without_poisoning_later_cases(monkeypatch):
     assert report["unknown_cost_cases"] == ["recommend-01"]
     assert Decimal(report["cost_usd"]) == Decimal("0.90")
     assert Decimal(report["metered_cost_usd"]) == Decimal("0.25")
+
+
+def test_judge_samples_collect_claims_in_memory_only(monkeypatch):
+    import json
+
+    from app.ai.state import AssistantResponse, Claim, ParsedIntent
+
+    class Workflow:
+        def stream(self, query):
+            response = AssistantResponse(
+                route="explain",
+                message="private generated text",
+                claims=[Claim(text="private claim text", fact_ids=["f1"])],
+                tool_results={"analyze_progression": {"fact_ids": ["f1"]}},
+            )
+            parsed = ParsedIntent(task_type="explain", chords=["C"])
+            yield "final", {"response": response.model_dump(), "parsed_intent": parsed.model_dump()}
+
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "dummy")
+    monkeypatch.setattr("tests.eval.ai.request_cost_bound", lambda: Decimal("0.10"))
+    monkeypatch.setattr(
+        "tests.eval.ai.AssistantWorkflow.from_environment", lambda tools, meter: Workflow()
+    )
+    samples = []
+    report = run(
+        cases=load_cases()[:1],
+        live=True,
+        fixture=True,
+        max_cost_usd=Decimal("1"),
+        judge_samples=samples,
+    )
+    assert len(samples) == 1
+    assert samples[0]["claims"] == [
+        {"text": "private claim text", "fact_ids": ["f1"], "theory_labels": []}
+    ]
+    assert '"f1"' in samples[0]["evidence"] and samples[0]["evidence_truncated"] is False
+    assert "private claim text" not in json.dumps(report, default=str)

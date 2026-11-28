@@ -39,3 +39,27 @@ Haiku 4.5 uses $1/$5 and Sonnet 5 uses $2/$10 per million input/output tokens.
 The defaults, environment example, and weekly workflow agree. Historical reports
 retain their original rate assumptions; they are not billing statements.
 The existing missing-usage reserve can exceed the known-token bound.
+
+## Paid model comparison tools (2026-11-28)
+
+Three development-only runners spend API credit; each takes a hard cap and
+writes to gitignored `.agent-logs/`. Run them from `backend/`.
+
+- `python -m tests.eval.model_ab --fixture --max-cost-usd <cap> --repeats <n> --arm name=fast_model,main_model[,effort] ...`
+  runs every benchmark case once per arm in rotating order, reusing this
+  runner and scorer unchanged. It reserves every arm's request bound before a
+  case, so the cap holds and pairs stay complete. `--judge-samples` keeps
+  claims and evidence in a local file for the judge below.
+- `python -m tests.eval.batch_judge submit|collect` grades those claims
+  against their tool evidence with Opus 5.5 through Message Batches (half
+  price). Reports hold counts only. It is a secondary signal: it does not
+  replace qualified human review, and the deterministic validator stays
+  authoritative.
+- `python -m tests.eval.synthetic_intent` drafts new intent-parsing cases
+  marked `review: pending`. It shows the model only the tracked development
+  files, removes duplicates of every tracked input, and never reads
+  gitignored private, sealed or reserved sets. Model-written labels are not
+  ground truth.
+
+The HTTP paired runner (`paired_live.py`) is unchanged: it writes audit rows
+to the production database and shares the production daily cap.
