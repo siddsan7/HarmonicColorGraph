@@ -275,6 +275,17 @@ def render_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines)
 
 
+def select_cases(cases: list[dict[str, Any]], ids: str | None) -> list[dict[str, Any]]:
+    if not ids:
+        return cases
+    wanted = [item.strip() for item in ids.split(",") if item.strip()]
+    by_id = {case["id"]: case for case in cases}
+    missing = [item for item in wanted if item not in by_id]
+    if missing:
+        raise SystemExit(f"Unknown case IDs: {', '.join(missing)}")
+    return [by_id[item] for item in wanted]
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(prog="python -m tests.eval.model_ab", description=__doc__)
     parser.add_argument("--arm", type=parse_arm, action="append", required=True)
@@ -282,6 +293,9 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--max-cost-usd", type=Decimal, required=True)
     parser.add_argument("--corpus", type=Path, default=CORPUS)
     parser.add_argument("--fixture", action="store_true", help="Use the seeded tool fixture")
+    parser.add_argument(
+        "--cases", help="Comma-separated case IDs to run, for smoke tests (default: all)"
+    )
     parser.add_argument("--output-dir", type=Path, default=Path(".agent-logs/model-ab"))
     parser.add_argument(
         "--judge-samples",
@@ -292,8 +306,9 @@ def main(argv: list[str] | None = None) -> None:
     if not os.getenv("ANTHROPIC_API_KEY"):
         raise SystemExit("ANTHROPIC_API_KEY is required for a live comparison")
     samples: list[dict[str, Any]] | None = [] if args.judge_samples else None
+    cases = select_cases(load_cases(args.corpus), args.cases)
     report = compare(
-        cases=load_cases(args.corpus),
+        cases=cases,
         arms=args.arm,
         repeats=args.repeats,
         max_cost_usd=args.max_cost_usd,

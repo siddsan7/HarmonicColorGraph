@@ -5,7 +5,14 @@ from decimal import Decimal
 
 import pytest
 
-from tests.eval.model_ab import Arm, compare, parse_arm, render_markdown, rotation
+from tests.eval.model_ab import (
+    Arm,
+    compare,
+    parse_arm,
+    render_markdown,
+    rotation,
+    select_cases,
+)
 
 ARMS = [Arm("a", "fast-a", "main-a"), Arm("b", "fast-b", "main-b", "low")]
 CASES = [{"id": f"c{i}", "intent": {"route": "explain"}} for i in range(3)]
@@ -97,3 +104,10 @@ def test_compare_rejects_duplicate_arm_names():
             run_case=_fake([]),
             bounds={"a": Decimal("0.1")},
         )
+
+
+def test_select_cases_keeps_requested_order_and_rejects_unknown_ids():
+    assert [c["id"] for c in select_cases(CASES, "c2, c0")] == ["c2", "c0"]
+    assert select_cases(CASES, None) == CASES
+    with pytest.raises(SystemExit, match="Unknown case IDs: nope"):
+        select_cases(CASES, "c1,nope")
