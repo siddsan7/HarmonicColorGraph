@@ -150,7 +150,8 @@ def compare(
     arms_out = {}
     for arm in arms:
         per_repeat = [
-            summarize(repeat_rows, len(repeat_rows), _cost(repeat_rows))
+            # A repeat cut short by the cap counts as incomplete, never as a pass.
+            summarize(repeat_rows, len(cases), _cost(repeat_rows))
             for repeat_rows in rows[arm.name]
             if repeat_rows
         ]

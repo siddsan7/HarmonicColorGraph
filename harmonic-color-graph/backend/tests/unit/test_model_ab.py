@@ -83,6 +83,7 @@ def test_cap_reserves_whole_pair_before_starting_a_case():
     )
     assert [call[0] for call in calls] == ["c0", "c0"]
     assert report["stopped_reason"] == "cost_cap_reached_before_case"
+    assert report["arms"]["a"]["passed_repeats"] == 0
     assert Decimal(report["accounted_cost_usd"]) <= Decimal("1.05")
 
 
