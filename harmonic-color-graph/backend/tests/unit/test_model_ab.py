@@ -12,7 +12,7 @@ CASES = [{"id": f"c{i}", "intent": {"route": "explain"}} for i in range(3)]
 
 
 def _fake(calls):
-    def run_case(case, cap):
+    def run_case(case, cap, arm, repeat):
         calls.append(
             (case["id"], os.environ["HCG_LLM_FAST_MODEL"], os.environ.get("HCG_LLM_EFFORT"), cap)
         )

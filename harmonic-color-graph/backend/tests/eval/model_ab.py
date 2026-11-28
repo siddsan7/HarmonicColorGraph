@@ -92,14 +92,21 @@ def rotation(arms: list[Arm], case_index: int, repeat: int) -> list[Arm]:
     return arms[shift:] + arms[:shift]
 
 
-RunCase = Callable[[dict[str, Any], Decimal], dict[str, Any]]
+# (case, request bound, arm name, repeat) -> single-case `tests.eval.ai.run` report
+RunCase = Callable[[dict[str, Any], Decimal, str, int], dict[str, Any]]
 
 
-def _live_case(fixture: bool) -> RunCase:
+def _live_case(fixture: bool, judge_samples: list[dict[str, Any]] | None) -> RunCase:
     from tests.eval.ai import run
 
-    def run_case(case: dict[str, Any], cap: Decimal) -> dict[str, Any]:
-        return run(cases=[case], live=True, max_cost_usd=cap, fixture=fixture)
+    def run_case(case: dict[str, Any], cap: Decimal, arm: str, repeat: int) -> dict[str, Any]:
+        collected: list[dict[str, Any]] | None = [] if judge_samples is not None else None
+        report = run(
+            cases=[case], live=True, max_cost_usd=cap, fixture=fixture, judge_samples=collected
+        )
+        if judge_samples is not None and collected:
+            judge_samples.extend({**sample, "arm": arm, "repeat": repeat} for sample in collected)
+        return report
 
     return run_case
 
@@ -132,7 +139,7 @@ def compare(
                 break
             for position, arm in enumerate(rotation(arms, index, repeat)):
                 with arm_environment(arm):
-                    report = run_case(case, bounds[arm.name])
+                    report = run_case(case, bounds[arm.name], arm.name, repeat)
                 accounted += Decimal(report["cost_usd"])
                 row = dict(report["cases"][0]) if report["cases"] else {"error": "not_run"}
                 row.update(repeat=repeat, order_position=position)
@@ -159,9 +166,7 @@ def compare(
             "completed": len(completed),
             "accounted_cost_usd": str(cost),
             "cost_per_completion_usd": (
-                str((cost / len(completed)).quantize(Decimal("0.000001")))
-                if completed
-                else None
+                str((cost / len(completed)).quantize(Decimal("0.000001"))) if completed else None
             ),
             "median_completion_ms": _median(completed, "workflow_completion_ms"),
             "median_first_result_ms": _median(completed, "first_validated_result_ms"),
@@ -256,7 +261,9 @@ def render_markdown(report: dict[str, Any]) -> str:
                 if spread
                 else "n/a"
             )
-        lines.append(f"| {metric.replace('_', ' ')} (≥{threshold:.0%}) | " + " | ".join(cells) + " |")
+        lines.append(
+            f"| {metric.replace('_', ' ')} (≥{threshold:.0%}) | " + " | ".join(cells) + " |"
+        )
     lines += [
         "",
         "Metric cells show the mean across repeats with the range in brackets. Timings are "
@@ -275,15 +282,21 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--corpus", type=Path, default=CORPUS)
     parser.add_argument("--fixture", action="store_true", help="Use the seeded tool fixture")
     parser.add_argument("--output-dir", type=Path, default=Path(".agent-logs/model-ab"))
+    parser.add_argument(
+        "--judge-samples",
+        action="store_true",
+        help="Save claims and evidence locally (gitignored) for tests.eval.batch_judge",
+    )
     args = parser.parse_args(argv)
     if not os.getenv("ANTHROPIC_API_KEY"):
         raise SystemExit("ANTHROPIC_API_KEY is required for a live comparison")
+    samples: list[dict[str, Any]] | None = [] if args.judge_samples else None
     report = compare(
         cases=load_cases(args.corpus),
         arms=args.arm,
         repeats=args.repeats,
         max_cost_usd=args.max_cost_usd,
-        run_case=_live_case(args.fixture),
+        run_case=_live_case(args.fixture, samples),
     )
     report["data_source"] = "seeded_fixture" if args.fixture else "database"
     args.output_dir.mkdir(parents=True, exist_ok=True)
@@ -291,6 +304,11 @@ def main(argv: list[str] | None = None) -> None:
         json.dumps(report, indent=2, default=str) + "\n", encoding="utf-8"
     )
     (args.output_dir / "model_ab.md").write_text(render_markdown(report), encoding="utf-8")
+    if samples is not None:
+        # Generated text stays in this local file; committed reports hold scores only.
+        with (args.output_dir / "judge_samples.jsonl").open("w", encoding="utf-8") as stream:
+            for sample in samples:
+                stream.write(json.dumps(sample, ensure_ascii=False) + "\n")
     print(
         f"Model comparison: ${report['accounted_cost_usd']} accounted; "
         f"stop={report['stopped_reason']}; output {args.output_dir}"
